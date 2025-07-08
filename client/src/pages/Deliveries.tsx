@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -30,6 +31,7 @@ import type { DeliveryWithRelations } from "@shared/schema";
 
 export default function Deliveries() {
   const { user } = useAuth();
+  const { selectedStoreId } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -41,7 +43,14 @@ export default function Deliveries() {
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryWithRelations | null>(null);
 
   const { data: deliveries = [], isLoading } = useQuery<DeliveryWithRelations[]>({
-    queryKey: ['/api/deliveries'],
+    queryKey: ['/api/deliveries', selectedStoreId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedStoreId && user?.role === 'admin') {
+        params.append('storeId', selectedStoreId.toString());
+      }
+      return await apiRequest("GET", `/api/deliveries?${params.toString()}`);
+    },
   });
 
   const { data: groups = [] } = useQuery({

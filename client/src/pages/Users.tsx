@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,8 +32,17 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithGroups | null>(null);
   const [userGroups, setUserGroups] = useState<number[]>([]);
+  
+  // Form states for creating user
+  const [newUser, setNewUser] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
+    role: "employee" as const,
+  });
 
   const { data: users = [], isLoading: usersLoading } = useQuery<UserWithGroups[]>({
     queryKey: ['/api/users'],
@@ -70,6 +80,31 @@ export default function UsersPage() {
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le rôle",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: typeof newUser) => {
+      const response = await apiRequest("POST", "/api/users", userData);
+      return response;
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Non autorisé",
+          description: "Vous êtes déconnecté. Reconnexion...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer l'utilisateur",
         variant: "destructive",
       });
     },
@@ -173,6 +208,49 @@ export default function UsersPage() {
     }
   };
 
+  const handleCreateUser = () => {
+    setShowCreateModal(true);
+    setNewUser({ email: "", firstName: "", lastName: "", role: "employee" });
+    setUserGroups([]);
+  };
+
+  const handleSubmitCreateUser = async () => {
+    if (!newUser.email || !newUser.firstName || !newUser.lastName) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // First create the user
+    try {
+      const createdUser = await createUserMutation.mutateAsync(newUser);
+      
+      // Then assign groups if any selected
+      if (userGroups.length > 0) {
+        await Promise.all(
+          userGroups.map(groupId =>
+            assignGroupMutation.mutateAsync({ userId: createdUser.id, groupId })
+          )
+        );
+      }
+      
+      toast({
+        title: "Succès",
+        description: `Utilisateur créé et assigné à ${userGroups.length} magasin(s)`,
+      });
+      
+      setShowCreateModal(false);
+      setNewUser({ email: "", firstName: "", lastName: "", role: "employee" });
+      setUserGroups([]);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    } catch (error) {
+      // Error handling is already done in the mutations
+    }
+  };
+
   const handleEditUser = (user: UserWithGroups) => {
     setSelectedUser(user);
     setUserGroups(user.userGroups.map(ug => ug.groupId));
@@ -239,6 +317,14 @@ export default function UsersPage() {
               {filteredUsers.length} utilisateur{filteredUsers.length !== 1 ? 's' : ''}
             </p>
           </div>
+          
+          <Button
+            onClick={handleCreateUser}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Créer un utilisateur
+          </Button>
         </div>
       </div>
 
@@ -462,6 +548,123 @@ export default function UsersPage() {
                   }}
                 >
                   Fermer
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Create User Modal */}
+      {showCreateModal && (
+        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <Plus className="w-5 h-5 mr-2" />
+                Créer un nouvel utilisateur
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">Prénom *</Label>
+                  <Input
+                    id="firstName"
+                    value={newUser.firstName}
+                    onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+                    placeholder="Prénom"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Nom *</Label>
+                  <Input
+                    id="lastName"
+                    value={newUser.lastName}
+                    onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
+                    placeholder="Nom"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                  placeholder="email@exemple.com"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="role">Rôle</Label>
+                <Select 
+                  value={newUser.role} 
+                  onValueChange={(value: "admin" | "manager" | "employee") => 
+                    setNewUser({...newUser, role: value})
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="employee">Employé</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="admin">Administrateur</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Magasins assignés</Label>
+                <div className="space-y-2 mt-2 max-h-40 overflow-y-auto">
+                  {groups.map((group) => (
+                    <div key={group.id} className="flex items-center space-x-3">
+                      <Checkbox
+                        id={`group-${group.id}`}
+                        checked={userGroups.includes(group.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setUserGroups([...userGroups, group.id]);
+                          } else {
+                            setUserGroups(userGroups.filter(id => id !== group.id));
+                          }
+                        }}
+                      />
+                      <div className="flex items-center space-x-2">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: group.color }}
+                        />
+                        <Label htmlFor={`group-${group.id}`} className="text-sm">
+                          {group.name}
+                        </Label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setNewUser({ email: "", firstName: "", lastName: "", role: "employee" });
+                    setUserGroups([]);
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  onClick={handleSubmitCreateUser}
+                  disabled={createUserMutation.isPending}
+                  className="flex-1"
+                >
+                  {createUserMutation.isPending ? "Création..." : "Créer l'utilisateur"}
                 </Button>
               </div>
             </div>

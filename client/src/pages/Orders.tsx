@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -28,6 +29,7 @@ import type { OrderWithRelations } from "@shared/schema";
 
 export default function Orders() {
   const { user } = useAuth();
+  const { selectedStoreId } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -39,7 +41,14 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithRelations | null>(null);
 
   const { data: orders = [], isLoading } = useQuery<OrderWithRelations[]>({
-    queryKey: ['/api/orders'],
+    queryKey: ['/api/orders', selectedStoreId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedStoreId && user?.role === 'admin') {
+        params.append('storeId', selectedStoreId.toString());
+      }
+      return await apiRequest("GET", `/api/orders?${params.toString()}`);
+    },
   });
 
   const { data: groups = [] } = useQuery({

@@ -574,6 +574,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Users management routes
+  app.get('/api/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get all users for admin
+      const allUsers = await Promise.all(
+        (await storage.getUsers()).map(async (userData) => {
+          return await storage.getUserWithGroups(userData.id);
+        })
+      );
+      
+      res.json(allUsers.filter(Boolean));
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post('/api/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const createUserSchema = z.object({
+        email: z.string().email(),
+        firstName: z.string().min(1),
+        lastName: z.string().min(1),
+        role: z.enum(['admin', 'manager', 'employee']),
+      });
+
+      const userData = createUserSchema.parse(req.body);
+      const newUser = await storage.createUser({
+        id: `manual_${Date.now()}`, // Generate manual ID for created users
+        ...userData,
+      });
+
+      res.json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.put('/api/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateUserSchema = z.object({
+        role: z.enum(['admin', 'manager', 'employee']).optional(),
+        firstName: z.string().min(1).optional(),
+        lastName: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+      });
+
+      const userData = updateUserSchema.parse(req.body);
+      const updatedUser = await storage.updateUser(req.params.id, userData);
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.post('/api/users/:id/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { groupId } = req.body;
+      await storage.assignUserToGroup({
+        userId: req.params.id,
+        groupId: parseInt(groupId),
+      });
+
+      res.json({ message: "User assigned to group successfully" });
+    } catch (error) {
+      console.error("Error assigning user to group:", error);
+      res.status(500).json({ message: "Failed to assign user to group" });
+    }
+  });
+
+  app.delete('/api/users/:id/groups/:groupId', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.removeUserFromGroup(req.params.id, parseInt(req.params.groupId));
+      res.json({ message: "User removed from group successfully" });
+    } catch (error) {
+      console.error("Error removing user from group:", error);
+      res.status(500).json({ message: "Failed to remove user from group" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
