@@ -229,7 +229,7 @@ export class DatabaseStorage implements IStorage {
 
   // Delivery operations
   async getDeliveries(groupIds?: number[]): Promise<DeliveryWithRelations[]> {
-    return await db.query.deliveries.findMany({
+    const results = await db.query.deliveries.findMany({
       with: {
         supplier: true,
         group: true,
@@ -239,6 +239,11 @@ export class DatabaseStorage implements IStorage {
       orderBy: [desc(deliveries.plannedDate)],
       where: groupIds ? inArray(deliveries.groupId, groupIds) : undefined,
     });
+    
+    return results.map(result => ({
+      ...result,
+      order: result.order || undefined,
+    }));
   }
 
   async getDeliveriesByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<DeliveryWithRelations[]> {
@@ -253,7 +258,7 @@ export class DatabaseStorage implements IStorage {
           lte(deliveries.plannedDate, endDate)
         );
 
-    return await db.query.deliveries.findMany({
+    const results = await db.query.deliveries.findMany({
       with: {
         supplier: true,
         group: true,
@@ -263,10 +268,15 @@ export class DatabaseStorage implements IStorage {
       where: whereCondition,
       orderBy: [deliveries.plannedDate],
     });
+    
+    return results.map(result => ({
+      ...result,
+      order: result.order || undefined,
+    }));
   }
 
   async getDelivery(id: number): Promise<DeliveryWithRelations | undefined> {
-    return await db.query.deliveries.findFirst({
+    const result = await db.query.deliveries.findFirst({
       where: eq(deliveries.id, id),
       with: {
         supplier: true,
@@ -275,6 +285,13 @@ export class DatabaseStorage implements IStorage {
         order: true,
       },
     });
+    
+    if (!result) return undefined;
+    
+    return {
+      ...result,
+      order: result.order || undefined,
+    };
   }
 
   async createDelivery(delivery: InsertDelivery): Promise<Delivery> {

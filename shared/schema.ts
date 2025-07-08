@@ -229,7 +229,7 @@ export type DeliveryWithRelations = Delivery & {
   supplier: Supplier;
   group: Group;
   creator: User;
-  order?: Order;
+  order?: Order | null;
 };
 
 export type UserWithGroups = User & {
