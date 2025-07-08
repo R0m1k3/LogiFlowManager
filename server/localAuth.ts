@@ -150,6 +150,11 @@ export function setupLocalAuth(app: Express) {
     const user = req.user as SelectUser;
     res.json({ id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role });
   });
+
+  // Health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "ok", auth: "local" });
+  });
 }
 
 export const requireAuth = (req: any, res: any, next: any) => {

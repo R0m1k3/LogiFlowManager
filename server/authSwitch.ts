@@ -3,7 +3,7 @@ import { setupAuth as setupReplitAuth, isAuthenticated as replitIsAuthenticated 
 import { setupLocalAuth, requireAuth as localRequireAuth } from "./localAuth";
 
 // Environment variable to switch between auth systems
-const USE_LOCAL_AUTH = process.env.USE_LOCAL_AUTH === 'true';
+const USE_LOCAL_AUTH = process.env.USE_LOCAL_AUTH === 'true' || process.env.NODE_ENV === 'development';
 
 export async function setupAuth(app: Express) {
   if (USE_LOCAL_AUTH) {
