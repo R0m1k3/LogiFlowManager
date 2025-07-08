@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AuthInfo from "@/components/AuthInfo";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -597,6 +598,9 @@ export default function UsersPage() {
                   onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                   placeholder="email@exemple.com"
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  L'utilisateur se connectera avec son compte Replit associé à cet email
+                </p>
               </div>
 
               <div>
@@ -667,6 +671,8 @@ export default function UsersPage() {
                   {createUserMutation.isPending ? "Création..." : "Créer l'utilisateur"}
                 </Button>
               </div>
+              
+              <AuthInfo />
             </div>
           </DialogContent>
         </Dialog>

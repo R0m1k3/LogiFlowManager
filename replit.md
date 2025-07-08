@@ -28,6 +28,8 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 - **OpenID Connect integration** via Replit Auth
 - **Session persistence** in PostgreSQL
 - **Role-based access control** throughout the application
+- **User creation workflow**: Admins can create users who authenticate via existing Replit accounts
+- **Multi-store access control**: Users see only data from their assigned stores
 
 ### Calendar Management
 - **Monthly calendar view** with interactive navigation
@@ -109,6 +111,9 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 
 Changelog:
 - July 08, 2025. Initial setup
+- July 08, 2025. Implemented multi-store system with user management and role-based permissions
+- July 08, 2025. Added comprehensive user creation interface with store assignments
+- July 08, 2025. Enhanced authentication documentation and user onboarding process
 
 ## User Preferences
 
