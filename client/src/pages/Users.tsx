@@ -46,7 +46,7 @@ export default function UsersPage() {
     role: "employee" as const,
   });
 
-  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true';
+  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true' || import.meta.env.MODE === 'development';
 
   const { data: users = [], isLoading: usersLoading } = useQuery<UserWithGroups[]>({
     queryKey: ['/api/users'],
