@@ -49,7 +49,8 @@ export default function Deliveries() {
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
       }
-      return await apiRequest("GET", `/api/deliveries?${params.toString()}`);
+      const result = await apiRequest("GET", `/api/deliveries?${params.toString()}`);
+      return Array.isArray(result) ? result : [];
     },
   });
 

@@ -24,11 +24,13 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 ## Key Components
 
 ### Authentication System
+- **Dual authentication support**: Replit Auth (development) and Local Auth (production/Docker)
 - **Three-tier role system**: Admin, Manager, Employee
-- **OpenID Connect integration** via Replit Auth
+- **OpenID Connect integration** via Replit Auth for development
+- **Local authentication** with email/password for Docker deployment
 - **Session persistence** in PostgreSQL
 - **Role-based access control** throughout the application
-- **User creation workflow**: Admins can create users who authenticate via existing Replit accounts
+- **User creation workflow**: Admins can create users who authenticate via existing Replit accounts or local accounts
 - **Multi-store access control**: Users see only data from their assigned stores
 
 ### Calendar Management
@@ -107,6 +109,14 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 - `npm run start`: Production server
 - `npm run db:push`: Deploy database schema changes
 
+### Docker Deployment
+- **Complete Docker setup**: Dockerfile, docker-compose.yml, and initialization scripts
+- **Local authentication**: Automatic switch to local auth in Docker environment
+- **PostgreSQL container**: Pre-configured with database initialization
+- **Default admin account**: admin@logiflow.com / admin123
+- **Health checks**: Application and database monitoring
+- **Volume persistence**: Database data and uploads
+
 ## Changelog
 
 Changelog:
@@ -114,6 +124,9 @@ Changelog:
 - July 08, 2025. Implemented multi-store system with user management and role-based permissions
 - July 08, 2025. Added comprehensive user creation interface with store assignments
 - July 08, 2025. Enhanced authentication documentation and user onboarding process
+- July 08, 2025. Implemented dual authentication system (Replit Auth + Local Auth)
+- July 08, 2025. Added complete Docker containerization with PostgreSQL
+- July 08, 2025. Created production-ready deployment configuration
 
 ## User Preferences
 

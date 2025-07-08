@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./authSwitch";
 import { 
   insertGroupSchema, 
   insertSupplierSchema, 
@@ -18,7 +18,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both Replit and local auth user structures
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
       const user = await storage.getUserWithGroups(userId);
       res.json(user);
     } catch (error) {
@@ -30,7 +31,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Groups routes
   app.get('/api/groups', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }

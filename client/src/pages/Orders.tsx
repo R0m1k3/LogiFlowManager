@@ -47,7 +47,8 @@ export default function Orders() {
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
       }
-      return await apiRequest("GET", `/api/orders?${params.toString()}`);
+      const result = await apiRequest("GET", `/api/orders?${params.toString()}`);
+      return Array.isArray(result) ? result : [];
     },
   });
 

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
+import AuthPage from "@/pages/AuthPage";
 import Dashboard from "@/pages/Dashboard";
 import Calendar from "@/pages/Calendar";
 import Orders from "@/pages/Orders";
@@ -17,6 +18,7 @@ import Layout from "@/components/Layout";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true';
 
   if (isLoading) {
     return (
@@ -29,7 +31,10 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/auth" component={AuthPage} />
+          <Route path="/" component={USE_LOCAL_AUTH ? AuthPage : Landing} />
+        </>
       ) : (
         <Layout>
           <Route path="/" component={Calendar} />
