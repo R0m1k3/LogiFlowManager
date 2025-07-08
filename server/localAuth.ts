@@ -29,11 +29,34 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+async function createDefaultAdminUser() {
+  try {
+    const existingAdmin = await storage.getUserByEmail('admin@logiflow.com');
+    if (!existingAdmin) {
+      const hashedPassword = await hashPassword('admin123');
+      await storage.createUser({
+        id: 'admin_local',
+        email: 'admin@logiflow.com',
+        firstName: 'Admin',
+        lastName: 'Système',
+        password: hashedPassword,
+        role: 'admin',
+      });
+      console.log('Admin user created: admin@logiflow.com / admin123');
+    }
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+  }
+}
+
 export function setupLocalAuth(app: Express) {
+  // Create admin user on startup
+  createDefaultAdminUser();
+  
   const PostgresSessionStore = connectPg(session);
   const sessionStore = new PostgresSessionStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
+    createTableIfMissing: false, // Don't try to create table since it exists
   });
 
   const sessionSettings: session.SessionOptions = {
