@@ -600,21 +600,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/users', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
-      if (!user || user.role !== 'admin') {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const currentUser = await storage.getUserWithGroups(userId);
+      if (!currentUser || currentUser.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
 
       const createUserSchema = z.object({
+        id: z.string().optional(),
         email: z.string().email(),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
+        password: z.string().optional(),
         role: z.enum(['admin', 'manager', 'employee']),
       });
 
       const userData = createUserSchema.parse(req.body);
+      
+      // Hash password if provided (for local auth)
+      if (userData.password) {
+        const { hashPassword } = await import("./localAuth");
+        userData.password = await hashPassword(userData.password);
+      }
+      
       const newUser = await storage.createUser({
-        id: `manual_${Date.now()}`, // Generate manual ID for created users
+        id: userData.id || `manual_${Date.now()}`, // Generate manual ID for created users
         ...userData,
       });
 

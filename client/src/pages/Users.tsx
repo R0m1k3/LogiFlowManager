@@ -42,8 +42,11 @@ export default function UsersPage() {
     email: "",
     firstName: "",
     lastName: "",
+    password: "",
     role: "employee" as const,
   });
+
+  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true';
 
   const { data: users = [], isLoading: usersLoading } = useQuery<UserWithGroups[]>({
     queryKey: ['/api/users'],
@@ -88,7 +91,17 @@ export default function UsersPage() {
 
   const createUserMutation = useMutation({
     mutationFn: async (userData: typeof newUser) => {
-      const response = await apiRequest("POST", "/api/users", userData);
+      const payload = {
+        ...userData,
+        id: userData.email.split('@')[0] + '_' + Date.now(), // Simple ID generation
+      };
+      
+      // Only include password for local auth
+      if (USE_LOCAL_AUTH && userData.password) {
+        payload.password = userData.password;
+      }
+      
+      const response = await apiRequest("POST", "/api/users", payload);
       return response;
     },
     onError: (error) => {
@@ -211,7 +224,7 @@ export default function UsersPage() {
 
   const handleCreateUser = () => {
     setShowCreateModal(true);
-    setNewUser({ email: "", firstName: "", lastName: "", role: "employee" });
+    setNewUser({ email: "", firstName: "", lastName: "", password: "", role: "employee" });
     setUserGroups([]);
   };
 
@@ -220,6 +233,15 @@ export default function UsersPage() {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (USE_LOCAL_AUTH && !newUser.password) {
+      toast({
+        title: "Erreur",
+        description: "Le mot de passe est obligatoire",
         variant: "destructive",
       });
       return;
@@ -244,7 +266,7 @@ export default function UsersPage() {
       });
       
       setShowCreateModal(false);
-      setNewUser({ email: "", firstName: "", lastName: "", role: "employee" });
+      setNewUser({ email: "", firstName: "", lastName: "", password: "", role: "employee" });
       setUserGroups([]);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     } catch (error) {
@@ -598,10 +620,28 @@ export default function UsersPage() {
                   onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                   placeholder="email@exemple.com"
                 />
-                <p className="text-sm text-muted-foreground mt-1">
-                  L'utilisateur se connectera avec son compte Replit associé à cet email
-                </p>
+                {!USE_LOCAL_AUTH && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    L'utilisateur se connectera avec son compte Replit associé à cet email
+                  </p>
+                )}
               </div>
+
+              {USE_LOCAL_AUTH && (
+                <div>
+                  <Label htmlFor="password">Mot de passe *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                    placeholder="••••••••"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Mot de passe pour l'authentification locale
+                  </p>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="role">Rôle</Label>

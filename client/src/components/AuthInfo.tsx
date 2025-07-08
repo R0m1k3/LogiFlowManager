@@ -1,8 +1,51 @@
-import { Info, ExternalLink } from "lucide-react";
+import { Info, ExternalLink, Lock, Mail } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function AuthInfo() {
+  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true';
+
+  if (USE_LOCAL_AUTH) {
+    return (
+      <Card className="border-green-200 bg-green-50">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-green-900">
+            <Lock className="w-5 h-5" />
+            Authentification locale activée
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3 text-sm text-green-800">
+            <div>
+              <Badge variant="outline" className="mb-2">Étape 1</Badge>
+              <p>L'utilisateur recevra ses identifiants par email ou communication sécurisée</p>
+            </div>
+            
+            <div>
+              <Badge variant="outline" className="mb-2">Étape 2</Badge>
+              <p>Il se connecte avec son email et mot de passe sur l'application</p>
+            </div>
+            
+            <div>
+              <Badge variant="outline" className="mb-2">Étape 3</Badge>
+              <p>Le système applique automatiquement ses permissions configurées</p>
+            </div>
+          </div>
+          
+          <div className="pt-3 border-t border-green-200">
+            <p className="text-sm text-green-700 font-medium mb-2">
+              Sécurité :
+            </p>
+            <div className="flex items-center gap-2 text-sm text-green-700">
+              <Mail className="w-4 h-4" />
+              <span>Le mot de passe initial sera communiqué de manière sécurisée à l'utilisateur</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-blue-200 bg-blue-50">
       <CardHeader className="pb-3">
