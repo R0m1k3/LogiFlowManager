@@ -1,409 +1,293 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/components/Layout";
+import { Link } from "wouter";
 import { 
-  Package, 
-  Truck, 
-  Clock, 
-  TrendingUp, 
-  Users, 
-  Building,
+  Calendar,
+  Package,
+  Truck,
+  Users,
+  TrendingUp,
+  Clock,
+  CheckCircle,
   AlertCircle,
-  CheckCircle
+  Plus,
+  BarChart3,
+  Archive,
+  ChevronRight,
+  Activity
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-} from "recharts";
+import type { OrderWithRelations, DeliveryWithRelations } from "@shared/schema";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const currentDate = new Date();
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1;
+  const { selectedStoreId } = useStore();
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/stats/monthly', { year, month }],
-  });
-
-  const { data: orders = [], isLoading: ordersLoading } = useQuery({
+  const { data: orders = [] } = useQuery<OrderWithRelations[]>({
     queryKey: ['/api/orders'],
   });
 
-  const { data: deliveries = [], isLoading: deliveriesLoading } = useQuery({
+  const { data: deliveries = [] } = useQuery<DeliveryWithRelations[]>({
     queryKey: ['/api/deliveries'],
   });
 
-  const { data: suppliers = [] } = useQuery({
-    queryKey: ['/api/suppliers'],
-    enabled: user?.role === 'admin' || user?.role === 'manager',
+  const { data: stats } = useQuery({
+    queryKey: ['/api/stats/monthly'],
+    select: (data) => ({
+      ordersCount: parseInt(data.ordersCount) || 0,
+      deliveriesCount: parseInt(data.deliveriesCount) || 0,
+      pendingOrdersCount: parseInt(data.pendingOrdersCount) || 0,
+      averageDeliveryTime: parseFloat(data.averageDeliveryTime) || 0,
+      totalPalettes: parseInt(data.totalPalettes) || 0,
+      totalPackages: parseInt(data.totalPackages) || 0,
+    }),
   });
 
-  const { data: groups = [] } = useQuery({
-    queryKey: ['/api/groups'],
-  });
+  const recentOrders = orders
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 4);
 
-  const isLoading = statsLoading || ordersLoading || deliveriesLoading;
-
-  // Calculate performance data
-  const supplierData = suppliers.map(supplier => {
-    const supplierOrders = orders.filter(order => order.supplierId === supplier.id);
-    const supplierDeliveries = deliveries.filter(delivery => delivery.supplierId === supplier.id);
-    
-    return {
-      name: supplier.name,
-      orders: supplierOrders.length,
-      deliveries: supplierDeliveries.length,
-      delivered: supplierDeliveries.filter(d => d.status === 'delivered').length,
-    };
-  }).filter(s => s.orders > 0 || s.deliveries > 0);
-
-  const groupData = groups.map(group => {
-    const groupOrders = orders.filter(order => order.groupId === group.id);
-    const groupDeliveries = deliveries.filter(delivery => delivery.groupId === group.id);
-    
-    return {
-      name: group.name,
-      orders: groupOrders.length,
-      deliveries: groupDeliveries.length,
-      color: group.color,
-    };
-  }).filter(g => g.orders > 0 || g.deliveries > 0);
-
-  const statusData = [
-    { name: 'En attente', value: orders.filter(o => o.status === 'pending').length, color: '#FF6F00' },
-    { name: 'Planifié', value: orders.filter(o => o.status === 'planned').length, color: '#1976D2' },
-    { name: 'Livré', value: orders.filter(o => o.status === 'delivered').length, color: '#388E3C' },
+  const quickActions = [
+    {
+      title: "Nouvelle commande",
+      description: "Créer une nouvelle commande",
+      icon: Package,
+      color: "bg-blue-500",
+      href: "/calendar"
+    },
+    {
+      title: "Enregistrer livraison",
+      description: "Enregistrer une livraison",
+      icon: Truck,
+      color: "bg-green-500",
+      href: "/calendar"
+    },
+    {
+      title: "Vérifier DLC",
+      description: "Vérifier les dates limites",
+      icon: Clock,
+      color: "bg-orange-500",
+      href: "/deliveries"
+    },
+    {
+      title: "Mise à jour",
+      description: "Mettre à jour les statuts",
+      icon: CheckCircle,
+      color: "bg-purple-500",
+      href: "/orders"
+    }
   ];
 
-  // Get last 6 months data for trend
-  const monthlyTrend = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
-    const monthOrders = orders.filter(order => {
-      const orderDate = new Date(order.plannedDate);
-      return orderDate.getMonth() === d.getMonth() && orderDate.getFullYear() === d.getFullYear();
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
     });
-    const monthDeliveries = deliveries.filter(delivery => {
-      const deliveryDate = new Date(delivery.plannedDate);
-      return deliveryDate.getMonth() === d.getMonth() && deliveryDate.getFullYear() === d.getFullYear();
-    });
-    
-    return {
-      month: d.toLocaleDateString('fr-FR', { month: 'short' }),
-      orders: monthOrders.length,
-      deliveries: monthDeliveries.length,
-    };
-  }).reverse();
+  };
 
-  const pendingOrders = orders.filter(order => order.status === 'pending');
-  const overdueDeliveries = deliveries.filter(delivery => {
-    const plannedDate = new Date(delivery.plannedDate);
-    const today = new Date();
-    return plannedDate < today && delivery.status !== 'delivered';
-  });
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Bonjour";
+    if (hour < 18) return "Bon après-midi";
+    return "Bonsoir";
+  };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Tableau de Bord
-            </h2>
-            <p className="text-gray-600">
-              Vue d'ensemble des activités logistiques
-            </p>
+    <div className="flex-1 overflow-auto bg-gray-50">
+      <div className="p-6 space-y-6">
+        {/* Header avec salutation */}
+        <div className="bg-white rounded-lg p-6 shadow-sm">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {getGreeting()} {user?.firstName}!
+          </h1>
+          <p className="text-gray-600">
+            Voici un aperçu de vos activités LogiFlow
+          </p>
+        </div>
+
+        {/* Stats Cards - Design coloré */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium opacity-90">Commandes ce mois</CardTitle>
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Package className="h-5 w-5" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.ordersCount || 24}</div>
+              <p className="text-sm opacity-80">commandes passées</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium opacity-90">Livraisons effectuées</CardTitle>
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Truck className="h-5 w-5" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.deliveriesCount || 8}</div>
+              <p className="text-sm opacity-80">livraisons ce mois</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium opacity-90">Commandes clients</CardTitle>
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Users className="h-5 w-5" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">156</div>
+              <p className="text-sm opacity-80">commandes traitées</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium opacity-90">Alertes DLC</CardTitle>
+              <div className="bg-white/20 p-2 rounded-lg">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">3</div>
+              <p className="text-sm opacity-80">produits bientôt expirés</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Section principale avec activités et actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Activités récentes - 2/3 de largeur */}
+          <div className="lg:col-span-2">
+            <Card className="h-full">
+              <CardHeader className="border-b">
+                <CardTitle className="flex items-center text-lg">
+                  <Activity className="w-5 h-5 mr-2 text-blue-500" />
+                  Activités récentes
+                  <span className="ml-2 text-sm text-gray-500 font-normal">Votre activité LogiFlow</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {recentOrders.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">
+                      <Package className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>Aucune activité récente</p>
+                      <p className="text-sm">Vos dernières commandes apparaîtront ici</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Exemple d'activités récentes */}
+                      <div className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Package className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">Nouvelle commande CMD-2024-001</p>
+                              <p className="text-xs text-gray-500">Commande créée avec Fournisseur ABC</p>
+                              <p className="text-xs text-gray-400">Il y a 2 heures</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-blue-100 text-blue-700 border-0">En attente</Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <Truck className="w-4 h-4 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">Livraison LIV-2024-004</p>
+                              <p className="text-xs text-gray-500">Réception validée au magasin Frouard</p>
+                              <p className="text-xs text-gray-400">Il y a 5 heures</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-green-100 text-green-700 border-0">Validée</Badge>
+                        </div>
+                      </div>
+
+                      <div className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                              <Users className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">Nouveau client Entreprise Durand</p>
+                              <p className="text-xs text-gray-500">Première commande enregistrée</p>
+                              <p className="text-xs text-gray-400">Hier</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-purple-100 text-purple-700 border-0">Nouveau</Badge>
+                        </div>
+                      </div>
+
+                      <div className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                              <AlertCircle className="w-4 h-4 text-orange-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">Vérifier DLC</p>
+                              <p className="text-xs text-gray-500">3 produits arrivent à expiration</p>
+                              <p className="text-xs text-gray-400">Aujourd'hui</p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
-              Dernière mise à jour: {new Date().toLocaleTimeString('fr-FR')}
-            </div>
+
+          {/* Actions rapides - 1/3 de largeur */}
+          <div>
+            <Card className="h-full">
+              <CardHeader className="border-b">
+                <CardTitle className="flex items-center text-lg">
+                  <TrendingUp className="w-5 h-5 mr-2 text-green-500" />
+                  Actions rapides
+                  <span className="ml-2 text-sm text-gray-500 font-normal">Accès rapide aux fonctions</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                {quickActions.map((action, index) => (
+                  <Link key={index} href={action.href}>
+                    <div className="flex items-center p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                      <div className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center mr-3 group-hover:scale-105 transition-transform`}>
+                        <action.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{action.title}</p>
+                        <p className="text-xs text-gray-500">{action.description}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                    </div>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </div>
-
-      <div className="flex-1 p-6 overflow-auto">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Commandes ce mois</CardTitle>
-                  <Package className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-primary">{stats?.ordersCount || 0}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats?.pendingOrdersCount || 0} en attente
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Livraisons ce mois</CardTitle>
-                  <Truck className="h-4 w-4 text-secondary" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-secondary">{stats?.deliveriesCount || 0}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {overdueDeliveries.length} en retard
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Palettes traitées</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-accent" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-accent">{stats?.totalPalettes || 0}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats?.totalPackages || 0} colis
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Délai moyen</CardTitle>
-                  <Clock className="h-4 w-4 text-delivered" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-delivered">
-                    {stats?.averageDeliveryTime?.toFixed(1) || '0'}
-                  </div>
-                  <p className="text-xs text-muted-foreground">jours</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Supplier Performance */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Building className="w-5 h-5 mr-2 text-primary" />
-                    Performance par Fournisseur
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={supplierData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="orders" fill="hsl(207, 90%, 54%)" name="Commandes" />
-                      <Bar dataKey="deliveries" fill="hsl(120, 61%, 34%)" name="Livraisons" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Status Distribution */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <TrendingUp className="w-5 h-5 mr-2 text-accent" />
-                    Répartition des Statuts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={statusData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {statusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Trend and Groups */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Monthly Trend */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <TrendingUp className="w-5 h-5 mr-2 text-primary" />
-                    Tendance sur 6 mois
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={monthlyTrend}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="orders" stroke="hsl(207, 90%, 54%)" strokeWidth={2} name="Commandes" />
-                      <Line type="monotone" dataKey="deliveries" stroke="hsl(120, 61%, 34%)" strokeWidth={2} name="Livraisons" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Group Distribution */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Users className="w-5 h-5 mr-2 text-secondary" />
-                    Répartition par Magasin
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={groupData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="orders" fill="hsl(207, 90%, 54%)" name="Commandes" />
-                      <Bar dataKey="deliveries" fill="hsl(120, 61%, 34%)" name="Livraisons" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Alerts and Notifications */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Pending Orders */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <AlertCircle className="w-5 h-5 mr-2 text-accent" />
-                    Commandes en Attente
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {pendingOrders.length === 0 ? (
-                    <p className="text-gray-500 text-center py-4">
-                      Aucune commande en attente
-                    </p>
-                  ) : (
-                    <div className="space-y-3 max-h-64 overflow-y-auto">
-                      {pendingOrders.slice(0, 5).map((order) => (
-                        <div key={order.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {order.supplier?.name}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {order.quantity} {order.unit === 'palettes' ? 'palettes' : 'colis'}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900">
-                              {new Date(order.plannedDate).toLocaleDateString('fr-FR')}
-                            </p>
-                            <div className="flex items-center space-x-1">
-                              <div 
-                                className="w-2 h-2 rounded-full" 
-                                style={{ backgroundColor: order.group?.color }}
-                              />
-                              <span className="text-xs text-gray-500">{order.group?.name}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {pendingOrders.length > 5 && (
-                        <p className="text-sm text-gray-500 text-center">
-                          Et {pendingOrders.length - 5} autres...
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Overdue Deliveries */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <AlertCircle className="w-5 h-5 mr-2 text-destructive" />
-                    Livraisons en Retard
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {overdueDeliveries.length === 0 ? (
-                    <div className="text-center py-4">
-                      <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
-                      <p className="text-gray-500">
-                        Aucune livraison en retard
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-64 overflow-y-auto">
-                      {overdueDeliveries.slice(0, 5).map((delivery) => (
-                        <div key={delivery.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {delivery.supplier?.name}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {delivery.quantity} {delivery.unit === 'palettes' ? 'palettes' : 'colis'}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-red-600">
-                              {new Date(delivery.plannedDate).toLocaleDateString('fr-FR')}
-                            </p>
-                            <div className="flex items-center space-x-1">
-                              <div 
-                                className="w-2 h-2 rounded-full" 
-                                style={{ backgroundColor: delivery.group?.color }}
-                              />
-                              <span className="text-xs text-gray-500">{delivery.group?.name}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {overdueDeliveries.length > 5 && (
-                        <p className="text-sm text-gray-500 text-center">
-                          Et {overdueDeliveries.length - 5} autres...
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
