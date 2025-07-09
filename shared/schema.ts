@@ -71,8 +71,8 @@ export const orders = pgTable("orders", {
   supplierId: integer("supplier_id").notNull(),
   groupId: integer("group_id").notNull(),
   plannedDate: date("planned_date").notNull(),
-  quantity: integer("quantity").notNull(),
-  unit: varchar("unit").notNull(), // 'palettes' or 'colis'
+  quantity: integer("quantity"), // Optional - will be set when delivery is linked
+  unit: varchar("unit"), // Optional - 'palettes' or 'colis'
   status: varchar("status").notNull().default("pending"), // pending, planned, delivered
   comments: text("comments"),
   createdBy: varchar("created_by").notNull(),

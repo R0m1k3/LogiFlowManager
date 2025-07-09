@@ -34,8 +34,6 @@ export default function CreateOrderModal({
     supplierId: "",
     groupId: "",
     plannedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : "",
-    quantity: "",
-    unit: "palettes",
     comments: "",
   });
 
@@ -105,7 +103,7 @@ export default function CreateOrderModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.supplierId || !formData.groupId || !formData.plannedDate || !formData.quantity) {
+    if (!formData.supplierId || !formData.groupId || !formData.plannedDate) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -118,8 +116,6 @@ export default function CreateOrderModal({
       supplierId: parseInt(formData.supplierId),
       groupId: parseInt(formData.groupId),
       plannedDate: formData.plannedDate,
-      quantity: parseInt(formData.quantity),
-      unit: formData.unit,
       comments: formData.comments || undefined,
     });
   };
@@ -182,32 +178,6 @@ export default function CreateOrderModal({
               onChange={(e) => handleChange('plannedDate', e.target.value)}
               required
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="quantity">Quantité *</Label>
-              <Input
-                id="quantity"
-                type="number"
-                min="1"
-                value={formData.quantity}
-                onChange={(e) => handleChange('quantity', e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="unit">Unité</Label>
-              <Select value={formData.unit} onValueChange={(value) => handleChange('unit', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="palettes">Palettes</SelectItem>
-                  <SelectItem value="colis">Colis</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div>
