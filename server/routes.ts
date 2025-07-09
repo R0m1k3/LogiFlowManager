@@ -20,7 +20,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Groups routes
   app.get('/api/groups', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const userId = req.user.claims ? req.user.claims ? req.user.claims.sub : req.user.id : req.user.id;
       const user = await storage.getUserWithGroups(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -42,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/groups', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const userId = req.user.claims ? req.user.claims ? req.user.claims.sub : req.user.id : req.user.id;
       const user = await storage.getUser(userId);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
         return res.status(403).json({ message: "Insufficient permissions" });
@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/groups/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
@@ -76,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/groups/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
@@ -93,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Suppliers routes
   app.get('/api/suppliers', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
@@ -108,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/suppliers', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/suppliers/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
@@ -141,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/suppliers/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
@@ -158,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Orders routes
   app.get('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -190,7 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/orders/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -219,7 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -247,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/orders/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -278,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/orders/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -313,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deliveries routes
   app.get('/api/deliveries', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -345,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -374,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/deliveries', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -467,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/deliveries/:id/validate', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -502,7 +502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Statistics routes
   app.get('/api/stats/monthly', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -529,7 +529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User-Group management routes (admin only)
   app.post('/api/users/:userId/groups', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
@@ -550,7 +550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/users/:userId/groups/:groupId', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
@@ -569,7 +569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Users management routes
   app.get('/api/users', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -630,7 +630,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/users/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -657,7 +657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/users/:id/groups', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -677,7 +677,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/users/:id/groups/:groupId', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims.sub);
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
