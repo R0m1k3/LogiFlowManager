@@ -179,73 +179,25 @@ export default function CreateDeliveryModal({
             </Select>
           </div>
 
-          {/* Pour les employés et managers : pas de sélecteur, magasin pré-déterminé */}
-          {user?.role !== 'admin' ? (
-            formData.groupId && (
-              <div>
-                <Label>Magasin/Groupe</Label>
-                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md border">
-                  {(() => {
-                    const selectedGroup = groups.find(g => g.id.toString() === formData.groupId);
-                    return selectedGroup ? (
-                      <>
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: selectedGroup.color }}
-                        />
-                        <span className="font-medium">{selectedGroup.name}</span>
-                      </>
-                    ) : null;
-                  })()}
-                </div>
+          {/* Magasin pré-sélectionné automatiquement - pas de sélecteur visible */}
+          {formData.groupId && (
+            <div>
+              <Label>Magasin/Groupe</Label>
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md border">
+                {(() => {
+                  const selectedGroup = groups.find(g => g.id.toString() === formData.groupId);
+                  return selectedGroup ? (
+                    <>
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: selectedGroup.color }}
+                      />
+                      <span className="font-medium">{selectedGroup.name}</span>
+                    </>
+                  ) : null;
+                })()}
               </div>
-            )
-          ) : (
-            /* Pour les admins : afficher le sélecteur seulement s'il y a plusieurs magasins */
-            groups.length > 1 ? (
-              <div>
-                <Label htmlFor="group">Magasin/Groupe *</Label>
-                <Select value={formData.groupId} onValueChange={(value) => handleChange('groupId', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionnez un groupe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {groups.map((group) => (
-                      <SelectItem key={group.id} value={group.id.toString()}>
-                        <div className="flex items-center space-x-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: group.color }}
-                          />
-                          <span>{group.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              /* Admin avec un seul magasin : affichage en lecture seule */
-              formData.groupId && (
-                <div>
-                  <Label>Magasin/Groupe</Label>
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md border">
-                    {(() => {
-                      const selectedGroup = groups.find(g => g.id.toString() === formData.groupId);
-                      return selectedGroup ? (
-                        <>
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: selectedGroup.color }}
-                          />
-                          <span className="font-medium">{selectedGroup.name}</span>
-                        </>
-                      ) : null;
-                    })()}
-                  </div>
-                </div>
-              )
-            )
+            </div>
           )}
 
           <div>
