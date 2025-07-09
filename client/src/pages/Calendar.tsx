@@ -17,7 +17,7 @@ import { fr } from "date-fns/locale";
 export default function Calendar() {
   const { user } = useAuth();
   const { selectedStoreId } = useStore();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 6, 1)); // July 2025
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
@@ -42,7 +42,9 @@ export default function Calendar() {
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
       }
+      console.log('Loading orders for period:', format(monthStart, 'yyyy-MM-dd'), 'to', format(monthEnd, 'yyyy-MM-dd'));
       const result = await apiRequest("GET", `/api/orders?${params.toString()}`);
+      console.log('Orders result:', result);
       return Array.isArray(result) ? result : [];
     },
   });
@@ -60,7 +62,9 @@ export default function Calendar() {
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
       }
+      console.log('Loading deliveries for period:', format(monthStart, 'yyyy-MM-dd'), 'to', format(monthEnd, 'yyyy-MM-dd'));
       const result = await apiRequest("GET", `/api/deliveries?${params.toString()}`);
+      console.log('Deliveries result:', result);
       return Array.isArray(result) ? result : [];
     },
   });
