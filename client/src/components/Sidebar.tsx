@@ -34,15 +34,15 @@ export default function Sidebar() {
 
   const menuItems = [
     { 
-      path: "/calendar", 
-      label: "Calendrier", 
-      icon: Calendar, 
-      roles: ["admin", "manager", "employee"] 
-    },
-    { 
       path: "/dashboard", 
       label: "Tableau de bord", 
       icon: BarChart3, 
+      roles: ["admin", "manager", "employee"] 
+    },
+    { 
+      path: "/calendar", 
+      label: "Calendrier", 
+      icon: Calendar, 
       roles: ["admin", "manager", "employee"] 
     },
     { 

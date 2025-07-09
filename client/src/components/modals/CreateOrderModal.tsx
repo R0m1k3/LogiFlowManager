@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -25,6 +26,7 @@ export default function CreateOrderModal({
   selectedDate,
 }: CreateOrderModalProps) {
   const { user } = useAuth();
+  const { selectedStoreId } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -45,6 +47,28 @@ export default function CreateOrderModal({
   const { data: groups = [] } = useQuery<Group[]>({
     queryKey: ['/api/groups'],
   });
+
+  // Auto-sélectionner le magasin selon les règles
+  useEffect(() => {
+    if (groups.length > 0 && !formData.groupId) {
+      let defaultGroupId = "";
+      
+      if (user?.role === 'admin') {
+        // Pour l'admin : utiliser le magasin sélectionné ou le premier si "tous les magasins"
+        if (selectedStoreId) {
+          defaultGroupId = selectedStoreId.toString();
+        } else {
+          defaultGroupId = groups[0].id.toString();
+        }
+      } else {
+        // Pour les autres rôles : prendre le premier magasin attribué
+        // (La logique existante filtre déjà les groupes selon les permissions)
+        defaultGroupId = groups[0].id.toString();
+      }
+      
+      setFormData(prev => ({ ...prev, groupId: defaultGroupId }));
+    }
+  }, [groups, selectedStoreId, user?.role, formData.groupId]);
 
   const createOrderMutation = useMutation({
     mutationFn: async (data: any) => {
