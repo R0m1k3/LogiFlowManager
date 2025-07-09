@@ -129,6 +129,9 @@ Changelog:
 - July 08, 2025. Created production-ready deployment configuration
 - July 09, 2025. Implemented user deletion functionality with safety protections
 - July 09, 2025. Redesigned dashboard with modern UI based on user template
+- July 09, 2025. Reorganized navigation menu with Dashboard as first item
+- July 09, 2025. Implemented intelligent store auto-selection for order/delivery creation forms
+- July 09, 2025. Hidden store selector for non-admin users in creation modals
 
 ## User Preferences
 

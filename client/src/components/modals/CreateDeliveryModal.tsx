@@ -179,27 +179,51 @@ export default function CreateDeliveryModal({
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="group">Magasin/Groupe *</Label>
-            <Select value={formData.groupId} onValueChange={(value) => handleChange('groupId', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez un groupe" />
-              </SelectTrigger>
-              <SelectContent>
-                {groups.map((group) => (
-                  <SelectItem key={group.id} value={group.id.toString()}>
-                    <div className="flex items-center space-x-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: group.color }}
-                      />
-                      <span>{group.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Afficher le sélecteur seulement pour les admins ou quand il y a plusieurs magasins */}
+          {(user?.role === 'admin' && groups.length > 1) ? (
+            <div>
+              <Label htmlFor="group">Magasin/Groupe *</Label>
+              <Select value={formData.groupId} onValueChange={(value) => handleChange('groupId', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez un groupe" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groups.map((group) => (
+                    <SelectItem key={group.id} value={group.id.toString()}>
+                      <div className="flex items-center space-x-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: group.color }}
+                        />
+                        <span>{group.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            /* Afficher juste le nom du magasin sélectionné pour les autres rôles */
+            formData.groupId && (
+              <div>
+                <Label>Magasin/Groupe</Label>
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md border">
+                  {(() => {
+                    const selectedGroup = groups.find(g => g.id.toString() === formData.groupId);
+                    return selectedGroup ? (
+                      <>
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: selectedGroup.color }}
+                        />
+                        <span className="font-medium">{selectedGroup.name}</span>
+                      </>
+                    ) : null;
+                  })()}
+                </div>
+              </div>
+            )
+          )}
 
           <div>
             <Label htmlFor="plannedDate">Date prévue *</Label>
