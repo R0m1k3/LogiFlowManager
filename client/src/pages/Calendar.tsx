@@ -42,7 +42,8 @@ export default function Calendar() {
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
       }
-      return await apiRequest("GET", `/api/orders?${params.toString()}`);
+      const result = await apiRequest("GET", `/api/orders?${params.toString()}`);
+      return Array.isArray(result) ? result : [];
     },
   });
 
@@ -59,7 +60,8 @@ export default function Calendar() {
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
       }
-      return await apiRequest("GET", `/api/deliveries?${params.toString()}`);
+      const result = await apiRequest("GET", `/api/deliveries?${params.toString()}`);
+      return Array.isArray(result) ? result : [];
     },
   });
 

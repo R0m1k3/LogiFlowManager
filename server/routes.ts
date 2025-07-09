@@ -163,14 +163,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { startDate, endDate } = req.query;
+      const { startDate, endDate, storeId } = req.query;
       let orders;
 
       if (user.role === 'admin') {
+        let groupIds: number[] | undefined;
+        
+        // If admin selected a specific store, filter by it
+        if (storeId) {
+          groupIds = [parseInt(storeId as string)];
+        }
+        
         if (startDate && endDate) {
-          orders = await storage.getOrdersByDateRange(startDate as string, endDate as string);
+          orders = await storage.getOrdersByDateRange(startDate as string, endDate as string, groupIds);
         } else {
-          orders = await storage.getOrders();
+          orders = await storage.getOrders(groupIds);
         }
       } else {
         const groupIds = user.userGroups.map(ug => ug.groupId);
@@ -318,14 +325,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { startDate, endDate } = req.query;
+      const { startDate, endDate, storeId } = req.query;
       let deliveries;
 
       if (user.role === 'admin') {
+        let groupIds: number[] | undefined;
+        
+        // If admin selected a specific store, filter by it
+        if (storeId) {
+          groupIds = [parseInt(storeId as string)];
+        }
+        
         if (startDate && endDate) {
-          deliveries = await storage.getDeliveriesByDateRange(startDate as string, endDate as string);
+          deliveries = await storage.getDeliveriesByDateRange(startDate as string, endDate as string, groupIds);
         } else {
-          deliveries = await storage.getDeliveries();
+          deliveries = await storage.getDeliveries(groupIds);
         }
       } else {
         const groupIds = user.userGroups.map(ug => ug.groupId);
