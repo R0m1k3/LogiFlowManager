@@ -166,6 +166,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { startDate, endDate, storeId } = req.query;
       let orders;
 
+      console.log('Orders API called with:', { startDate, endDate, storeId, userRole: user.role });
+
       if (user.role === 'admin') {
         let groupIds: number[] | undefined;
         
@@ -174,19 +176,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           groupIds = [parseInt(storeId as string)];
         }
         
+        console.log('Admin filtering with groupIds:', groupIds);
+        
         if (startDate && endDate) {
+          console.log('Fetching orders by date range:', startDate, 'to', endDate);
           orders = await storage.getOrdersByDateRange(startDate as string, endDate as string, groupIds);
         } else {
+          console.log('Fetching all orders');
           orders = await storage.getOrders(groupIds);
         }
       } else {
         const groupIds = user.userGroups.map(ug => ug.groupId);
+        console.log('Non-admin filtering with groupIds:', groupIds);
+        
         if (startDate && endDate) {
           orders = await storage.getOrdersByDateRange(startDate as string, endDate as string, groupIds);
         } else {
           orders = await storage.getOrders(groupIds);
         }
       }
+
+      console.log('Orders returned:', orders.length, 'items');
 
       res.json(orders);
     } catch (error) {
@@ -328,6 +338,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { startDate, endDate, storeId } = req.query;
       let deliveries;
 
+      console.log('Deliveries API called with:', { startDate, endDate, storeId, userRole: user.role });
+
       if (user.role === 'admin') {
         let groupIds: number[] | undefined;
         
@@ -336,19 +348,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           groupIds = [parseInt(storeId as string)];
         }
         
+        console.log('Admin filtering deliveries with groupIds:', groupIds);
+        
         if (startDate && endDate) {
+          console.log('Fetching deliveries by date range:', startDate, 'to', endDate);
           deliveries = await storage.getDeliveriesByDateRange(startDate as string, endDate as string, groupIds);
         } else {
+          console.log('Fetching all deliveries');
           deliveries = await storage.getDeliveries(groupIds);
         }
       } else {
         const groupIds = user.userGroups.map(ug => ug.groupId);
+        console.log('Non-admin filtering deliveries with groupIds:', groupIds);
+        
         if (startDate && endDate) {
           deliveries = await storage.getDeliveriesByDateRange(startDate as string, endDate as string, groupIds);
         } else {
           deliveries = await storage.getDeliveries(groupIds);
         }
       }
+
+      console.log('Deliveries returned:', deliveries.length, 'items');
 
       res.json(deliveries);
     } catch (error) {
