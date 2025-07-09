@@ -18,7 +18,7 @@ import Layout from "@/components/Layout";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
-  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true';
+  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true' || import.meta.env.MODE === 'development';
 
   if (isLoading) {
     return (
@@ -33,7 +33,7 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/auth" component={AuthPage} />
-          <Route path="/" component={USE_LOCAL_AUTH ? AuthPage : Landing} />
+          <Route path="/" component={AuthPage} />
         </>
       ) : (
         <Layout>
