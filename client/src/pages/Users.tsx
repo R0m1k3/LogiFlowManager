@@ -186,6 +186,37 @@ export default function UsersPage() {
     },
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      await apiRequest("DELETE", `/api/users/${userId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Utilisateur supprimé avec succès",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Non autorisé",
+          description: "Vous êtes déconnecté. Reconnexion...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'utilisateur",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -300,6 +331,21 @@ export default function UsersPage() {
       removeGroupMutation.mutate({ userId, groupId });
     } else {
       assignGroupMutation.mutate({ userId, groupId });
+    }
+  };
+
+  const handleDeleteUser = (userToDelete: UserWithGroups) => {
+    if (userToDelete.id === user?.id) {
+      toast({
+        title: "Erreur",
+        description: "Vous ne pouvez pas supprimer votre propre compte",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${userToDelete.firstName} ${userToDelete.lastName} ? Cette action est irréversible.`)) {
+      deleteUserMutation.mutate(userToDelete.id);
     }
   };
 
@@ -505,6 +551,15 @@ export default function UsersPage() {
                               onClick={() => handleEditUser(userData)}
                             >
                               <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteUser(userData)}
+                              disabled={userData.id === user?.id || deleteUserMutation.isPending}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </td>

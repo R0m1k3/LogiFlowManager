@@ -33,6 +33,7 @@ export interface IStorage {
   getUsers(): Promise<User[]>;
   createUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, user: Partial<UpsertUser>): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   
   // Group operations
   getGroups(): Promise<Group[]>;
@@ -146,6 +147,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   // Group operations

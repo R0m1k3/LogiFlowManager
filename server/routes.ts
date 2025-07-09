@@ -690,6 +690,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete user route
+  app.delete('/api/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const userToDelete = req.params.id;
+      
+      // Prevent admin from deleting themselves
+      if (userToDelete === user.id) {
+        return res.status(400).json({ message: "Vous ne pouvez pas supprimer votre propre compte" });
+      }
+
+      // Remove user from all groups first
+      const userWithGroups = await storage.getUserWithGroups(userToDelete);
+      if (userWithGroups) {
+        for (const userGroup of userWithGroups.userGroups) {
+          await storage.removeUserFromGroup(userToDelete, userGroup.groupId);
+        }
+      }
+
+      // Delete the user
+      await storage.deleteUser(userToDelete);
+      res.json({ message: "Utilisateur supprimé avec succès" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
