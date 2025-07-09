@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Store, LogIn, UserPlus } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -36,14 +36,22 @@ export default function AuthPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof loginData) => {
-      return await apiRequest("POST", "/api/login", data);
+      const response = await apiRequest("POST", "/api/login", data);
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (userData) => {
+      // Update the user data in the cache
+      queryClient.setQueryData(["/api/user"], userData);
+      
       toast({
         title: "Connexion réussie",
         description: "Bienvenue dans LogiFlow",
       });
-      setLocation("/");
+      
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        setLocation("/");
+      }, 100);
     },
     onError: (error: any) => {
       toast({
@@ -56,14 +64,22 @@ export default function AuthPage() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: typeof registerData) => {
-      return await apiRequest("POST", "/api/register", data);
+      const response = await apiRequest("POST", "/api/register", data);
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (userData) => {
+      // Update the user data in the cache
+      queryClient.setQueryData(["/api/user"], userData);
+      
       toast({
         title: "Compte créé",
         description: "Votre compte a été créé avec succès",
       });
-      setLocation("/");
+      
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        setLocation("/");
+      }, 100);
     },
     onError: (error: any) => {
       toast({
