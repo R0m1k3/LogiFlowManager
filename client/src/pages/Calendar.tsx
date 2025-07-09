@@ -8,10 +8,15 @@ import OrderDetailModal from "@/components/modals/OrderDetailModal";
 import CreateOrderModal from "@/components/modals/CreateOrderModal";
 import CreateDeliveryModal from "@/components/modals/CreateDeliveryModal";
 import StatsPanel from "@/components/StatsPanel";
+import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/components/Layout";
+import { apiRequest } from "@/lib/queryClient";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 
 export default function Calendar() {
+  const { user } = useAuth();
+  const { selectedStoreId } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -23,19 +28,39 @@ export default function Calendar() {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
 
-  // Fetch orders and deliveries for the current month
+  // Fetch orders and deliveries for the current month with store filtering
   const { data: orders = [], isLoading: loadingOrders } = useQuery({
-    queryKey: ['/api/orders', { 
+    queryKey: ['/api/orders', selectedStoreId, { 
       startDate: format(monthStart, 'yyyy-MM-dd'), 
       endDate: format(monthEnd, 'yyyy-MM-dd') 
     }],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        startDate: format(monthStart, 'yyyy-MM-dd'),
+        endDate: format(monthEnd, 'yyyy-MM-dd')
+      });
+      if (selectedStoreId && user?.role === 'admin') {
+        params.append('storeId', selectedStoreId.toString());
+      }
+      return await apiRequest("GET", `/api/orders?${params.toString()}`);
+    },
   });
 
   const { data: deliveries = [], isLoading: loadingDeliveries } = useQuery({
-    queryKey: ['/api/deliveries', { 
+    queryKey: ['/api/deliveries', selectedStoreId, { 
       startDate: format(monthStart, 'yyyy-MM-dd'), 
       endDate: format(monthEnd, 'yyyy-MM-dd') 
     }],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        startDate: format(monthStart, 'yyyy-MM-dd'),
+        endDate: format(monthEnd, 'yyyy-MM-dd')
+      });
+      if (selectedStoreId && user?.role === 'admin') {
+        params.append('storeId', selectedStoreId.toString());
+      }
+      return await apiRequest("GET", `/api/deliveries?${params.toString()}`);
+    },
   });
 
   const navigateMonth = (direction: 'prev' | 'next') => {

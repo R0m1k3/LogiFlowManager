@@ -109,6 +109,15 @@ export default function OrderDetailModal({
     }
   };
 
+  const handleEdit = () => {
+    // Pour l'instant, on ferme le modal et on pourrait ouvrir un modal d'édition
+    // Ceci est un placeholder - la fonctionnalité d'édition peut être ajoutée plus tard
+    toast({
+      title: "Fonction à venir",
+      description: "La modification sera disponible dans une prochaine version",
+    });
+  };
+
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
   const canDelete = user?.role === 'admin' || user?.role === 'manager';
   const canValidate = (user?.role === 'admin' || user?.role === 'manager') && 
@@ -310,7 +319,7 @@ export default function OrderDetailModal({
               Fermer
             </Button>
             {canEdit && (
-              <Button>
+              <Button onClick={handleEdit}>
                 <Edit className="w-4 h-4 mr-2" />
                 Modifier
               </Button>
