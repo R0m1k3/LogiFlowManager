@@ -118,7 +118,7 @@ export default function CalendarGrid({
                       }}
                     >
                       <span className="truncate">
-                        {order.supplier.name} - {formatQuantity(order.quantity, order.unit)}
+                        {order.supplier.name}
                       </span>
                       {order.status === 'delivered' && (
                         <Check className="w-3 h-3 ml-1 flex-shrink-0" />

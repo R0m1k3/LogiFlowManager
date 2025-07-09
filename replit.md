@@ -132,6 +132,10 @@ Changelog:
 - July 09, 2025. Reorganized navigation menu with Dashboard as first item
 - July 09, 2025. Implemented intelligent store auto-selection for order/delivery creation forms
 - July 09, 2025. Hidden store selector for non-admin users in creation modals
+- July 09, 2025. Removed quantity and unit fields from order creation - only kept for deliveries
+- July 09, 2025. Updated database schema to make quantity/unit optional for orders
+- July 09, 2025. Fixed admin store selector visibility and functionality in creation modals
+- July 09, 2025. Removed quantity display from order details modal, calendar, and orders table
 
 ## User Preferences
 

@@ -184,14 +184,17 @@ export default function OrderDetailModal({
                   {format(new Date(item.plannedDate), 'dd MMMM yyyy', { locale: fr })}
                 </p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantité
-                </label>
-                <Badge variant="outline" className="text-sm">
-                  {formatQuantity(item.quantity, item.unit)}
-                </Badge>
-              </div>
+              {/* Afficher la quantité seulement pour les livraisons */}
+              {isDelivery && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Quantité
+                  </label>
+                  <Badge variant="outline" className="text-sm">
+                    {formatQuantity(item.quantity, item.unit)}
+                  </Badge>
+                </div>
+              )}
             </div>
 
             {/* Right Column */}

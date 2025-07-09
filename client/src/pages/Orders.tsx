@@ -111,10 +111,6 @@ export default function Orders() {
     }
   };
 
-  const formatQuantity = (quantity: number, unit: string) => {
-    return `${quantity} ${unit === 'palettes' ? 'P' : 'C'}`;
-  };
-
   const handleViewOrder = (order: OrderWithRelations) => {
     setSelectedOrder({ ...order, type: 'order' });
     setShowDetailModal(true);
@@ -248,9 +244,7 @@ export default function Orders() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date prévue
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Quantité
-                      </th>
+
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Statut
                       </th>
@@ -293,11 +287,7 @@ export default function Orders() {
                             {format(new Date(order.plannedDate), 'dd MMM yyyy', { locale: fr })}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge variant="outline" className="text-sm">
-                            {formatQuantity(order.quantity, order.unit)}
-                          </Badge>
-                        </td>
+
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(order.status)}
                         </td>
