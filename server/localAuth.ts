@@ -56,7 +56,8 @@ export function setupLocalAuth(app: Express) {
   const PostgresSessionStore = connectPg(session);
   const sessionStore = new PostgresSessionStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: false, // Don't try to create table since it exists
+    createTableIfMissing: false,
+    tableName: 'session',
   });
 
   const sessionSettings: session.SessionOptions = {
