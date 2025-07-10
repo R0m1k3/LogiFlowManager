@@ -164,12 +164,9 @@ export function setupLocalAuth(app: Express) {
       if (err) return next(err);
       req.session.destroy((err: any) => {
         if (err) return next(err);
-        res.clearCookie('connect.sid');
-        if (req.method === 'GET') {
-          res.redirect('/');
-        } else {
-          res.json({ message: "Déconnexion réussie" });
-        }
+        res.clearCookie('connect.sid', { path: '/' });
+        // Force redirect to login page for both GET and POST
+        res.redirect('/auth');
       });
     });
   };
