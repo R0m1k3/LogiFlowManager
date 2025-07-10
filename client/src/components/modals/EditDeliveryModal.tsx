@@ -51,9 +51,9 @@ export default function EditDeliveryModal({
     queryKey: ['/api/orders'],
   });
 
-  // Filtrer les commandes par fournisseur sélectionné
+  // Filtrer les commandes par fournisseur sélectionné - montrer toutes les commandes non livrées
   const availableOrders = allOrders.filter(order => 
-    formData.supplierId ? order.supplierId === parseInt(formData.supplierId) : true
+    formData.supplierId ? (order.supplierId === parseInt(formData.supplierId) && order.status !== 'delivered') : false
   );
 
   // Initialiser le formulaire avec les données de la livraison
@@ -190,10 +190,10 @@ export default function EditDeliveryModal({
                   <SelectValue placeholder="Sélectionnez une commande" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Aucune commande</SelectItem>
+                  <SelectItem value="none">Aucune commande liée</SelectItem>
                   {availableOrders.map((order) => (
                     <SelectItem key={order.id} value={order.id.toString()}>
-                      Commande #{order.id} - {format(new Date(order.plannedDate), 'dd/MM/yyyy')}
+                      Commande #{order.id} - {order.supplier.name} - {format(new Date(order.plannedDate), 'dd/MM/yyyy')}
                     </SelectItem>
                   ))}
                 </SelectContent>

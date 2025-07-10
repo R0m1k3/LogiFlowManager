@@ -54,8 +54,9 @@ export default function CreateDeliveryModal({
     queryKey: ['/api/orders'],
   });
 
+  // Filtrer les commandes par fournisseur sélectionné - montrer toutes les commandes non livrées
   const availableOrders = allOrders.filter(order => 
-    formData.supplierId ? order.supplierId === parseInt(formData.supplierId) : true
+    formData.supplierId ? (order.supplierId === parseInt(formData.supplierId) && order.status !== 'delivered') : false
   );
 
   // Auto-sélectionner le magasin selon les règles
@@ -144,10 +145,8 @@ export default function CreateDeliveryModal({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Filter orders by supplier and delivery status
-  const finalFilteredOrders = availableOrders.filter(order => 
-    order.status !== 'delivered' && (!order.deliveries || order.deliveries.length === 0)
-  );
+  // Afficher toutes les commandes du fournisseur sélectionné (pas de filtrage supplémentaire)
+  const finalFilteredOrders = availableOrders;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -184,6 +183,7 @@ export default function CreateDeliveryModal({
                   <SelectValue placeholder="Sélectionnez une commande de ce fournisseur" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">Aucune commande liée</SelectItem>
                   {finalFilteredOrders.map((order) => (
                     <SelectItem key={order.id} value={order.id.toString()}>
                       #{order.id} - {order.supplier.name} - {format(new Date(order.plannedDate), 'dd/MM/yyyy')}

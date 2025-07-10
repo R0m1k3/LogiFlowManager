@@ -151,6 +151,9 @@ Changelog:
 - July 10, 2025. Removed store selectors from creation modals with intelligent auto-selection
 - July 10, 2025. Replaced "Fonction à venir" message with fully functional edit modals
 - July 10, 2025. Fixed SelectItem empty value errors in form components
+- July 10, 2025. Fixed order filtering in delivery creation - orders from all dates now visible
+- July 10, 2025. Improved order display in delivery modals with supplier name and date
+- July 10, 2025. Added "Aucune commande liée" option for clearer interface
 
 ## User Preferences
 
