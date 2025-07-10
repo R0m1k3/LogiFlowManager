@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupLocalAuth, requireAuth } from "./localAuth";
+import { setupLocalAuth, requireAuth } from "./localAuth.production";
 import { 
   insertGroupSchema, 
   insertSupplierSchema, 

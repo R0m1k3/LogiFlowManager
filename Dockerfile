@@ -43,7 +43,8 @@ RUN npx esbuild server/index.production.ts \
     --external:tsx \
     --external:openid-client \
     --external:@neondatabase/serverless \
-    --external:ws
+    --external:ws \
+    --external:drizzle-orm/neon-serverless
 
 # Production stage
 FROM node:20-alpine AS production

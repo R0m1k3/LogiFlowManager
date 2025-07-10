@@ -4,7 +4,7 @@ echo "🔄 Test du build de production..."
 
 # Test du build frontend
 echo "1. Build frontend avec Vite..."
-timeout 30s npx vite build
+npx vite build
 
 if [ -d "dist/client" ]; then
     echo "✅ Frontend build réussi"
