@@ -26,7 +26,7 @@ services:
       USE_LOCAL_AUTH: "true"
       NODE_ENV: production
     ports:
-      - "5001:5000"
+      - "8080:5000"
     depends_on:
       postgres:
         condition: service_healthy
