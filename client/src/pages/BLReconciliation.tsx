@@ -55,9 +55,10 @@ export default function BLReconciliation() {
       }
       
       const deliveries = await response.json();
-      return deliveries
-        .filter((d: any) => d.blNumber && d.status === 'delivered')
-        .sort((a: any, b: any) => new Date(b.deliveredDate).getTime() - new Date(a.deliveredDate).getTime());
+      console.log('All deliveries received:', deliveries);
+      const filtered = deliveries.filter((d: any) => d.blNumber && d.status === 'delivered');
+      console.log('Filtered deliveries for BL reconciliation:', filtered);
+      return filtered.sort((a: any, b: any) => new Date(b.deliveredDate).getTime() - new Date(a.deliveredDate).getTime());
     },
   });
 

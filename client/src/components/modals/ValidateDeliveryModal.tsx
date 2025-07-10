@@ -58,6 +58,7 @@ export default function ValidateDeliveryModal({
         description: "Livraison validée avec succès",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
       form.reset();
       onClose();
