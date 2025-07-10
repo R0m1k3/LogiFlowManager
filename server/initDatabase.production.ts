@@ -4,18 +4,15 @@ export async function initializeDatabase() {
   console.log("🔄 Initializing database schema...");
   
   try {
-    // Drop and recreate users table to ensure correct schema
-    await db.execute(`DROP TABLE IF EXISTS users CASCADE`);
+    // Create users table if not exists
     await db.execute(`
-      CREATE TABLE users (
+      CREATE TABLE IF NOT EXISTS users (
         id VARCHAR PRIMARY KEY NOT NULL,
-        username VARCHAR UNIQUE,
-        email VARCHAR UNIQUE,
-        first_name VARCHAR,
-        last_name VARCHAR,
-        profile_image_url VARCHAR,
-        password VARCHAR,
-        role VARCHAR NOT NULL DEFAULT 'employee',
+        username VARCHAR UNIQUE NOT NULL,
+        email VARCHAR UNIQUE NOT NULL,
+        name VARCHAR NOT NULL,
+        role VARCHAR NOT NULL DEFAULT 'employee' CHECK (role IN ('admin', 'manager', 'employee')),
+        password VARCHAR NOT NULL,
         password_changed BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -51,11 +48,9 @@ export async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         supplier_id INTEGER NOT NULL,
         group_id INTEGER NOT NULL,
-        planned_date DATE NOT NULL,
-        quantity INTEGER,
-        unit VARCHAR,
-        status VARCHAR NOT NULL DEFAULT 'pending',
-        comments TEXT,
+        planned_date VARCHAR NOT NULL,
+        status VARCHAR NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'planned', 'received')),
+        notes TEXT,
         created_by VARCHAR NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -69,12 +64,11 @@ export async function initializeDatabase() {
         order_id INTEGER,
         supplier_id INTEGER NOT NULL,
         group_id INTEGER NOT NULL,
-        planned_date DATE NOT NULL,
-        delivered_date TIMESTAMP,
-        quantity INTEGER NOT NULL,
-        unit VARCHAR NOT NULL,
-        status VARCHAR NOT NULL DEFAULT 'planned',
-        comments TEXT,
+        scheduled_date VARCHAR NOT NULL,
+        quantity INTEGER,
+        unit VARCHAR,
+        status VARCHAR NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'delivered')),
+        notes TEXT,
         bl_number VARCHAR,
         bl_amount DECIMAL(10,2),
         invoice_reference VARCHAR,
