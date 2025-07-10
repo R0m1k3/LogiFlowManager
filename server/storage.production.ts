@@ -402,8 +402,8 @@ export class DatabaseStorage implements IStorage {
       sqlQuery += ` ORDER BY o.created_at DESC`;
       
       const results = params.length > 0 
-        ? await db.execute(sql.raw(sqlQuery, params))
-        : await db.execute(sql.raw(sqlQuery));
+        ? await db.execute(sql`${sql.raw(sqlQuery)}`, params)
+        : await db.execute(sql`${sql.raw(sqlQuery)}`);
       
       const orders = results.map(row => ({
         id: row.id as number,
