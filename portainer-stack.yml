@@ -5,8 +5,14 @@ version: '3.8'
 
 services:
   logiflow-app:
-    # Image depuis GitHub Container Registry
-    image: ghcr.io/username/logiflow:latest
+    # OPTION 1: Build local (pour premier déploiement)
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    
+    # OPTION 2: Image depuis GitHub Container Registry (décommentez après publication)
+    # image: ghcr.io/username/logiflow:latest
     # Changez 'username/logiflow' selon votre repository GitHub
     
     container_name: logiflow-app

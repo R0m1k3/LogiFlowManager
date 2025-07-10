@@ -2,9 +2,13 @@ version: '3.8'
 
 services:
   logiflow-app:
-    # Image depuis GitHub Container Registry pour mises à jour via Portainer
-    image: ghcr.io/username/logiflow:latest
-    # Remplacez 'username' par votre nom d'utilisateur GitHub
+    # Pour le moment, build local jusqu'à ce que l'image GitHub soit disponible
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    # Une fois l'image GitHub publiée, décommentez cette ligne :
+    # image: ghcr.io/username/logiflow:latest
     
     container_name: logiflow-app
     restart: unless-stopped

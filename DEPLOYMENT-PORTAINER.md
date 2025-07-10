@@ -11,29 +11,36 @@ Ce guide explique comment déployer et mettre à jour LogiFlow via Portainer en 
 
 ## 🔧 Configuration Initiale
 
-### 1. Préparer le Repository GitHub
+### 1. Déploiement Initial (Build Local)
 
-1. **Forker ou cloner** ce repository dans votre compte GitHub
-2. **Activer GitHub Container Registry** :
-   - Aller dans Settings > Packages
-   - Activer "Improved container support"
+Pour le premier déploiement, utilisez le build local :
 
-### 2. Configurer l'Image
-
-1. **Modifier les fichiers de configuration** :
+1. **Télécharger le code** :
    ```bash
-   # Dans docker-compose.production.yml et portainer-stack.yml
-   # Remplacer :
-   image: ghcr.io/username/logiflow:latest
-   # Par :
-   image: ghcr.io/VOTRE_USERNAME/VOTRE_REPO:latest
+   git clone <repository> && cd logiflow
    ```
 
-2. **Push vers GitHub** :
+2. **Déployer avec build local** :
    ```bash
-   git add .
-   git commit -m "Configuration pour déploiement Portainer"
-   git push origin main
+   docker-compose -f docker-compose.production.yml up -d
+   ```
+
+### 2. Configuration GitHub Registry (Optionnel)
+
+Pour les mises à jour automatiques via GitHub :
+
+1. **Configurer automatiquement** :
+   ```bash
+   ./scripts/setup-github-registry.sh
+   ```
+
+2. **Publier l'image** :
+   ```bash
+   # Se connecter (utilisez votre Personal Access Token)
+   docker login ghcr.io -u VOTRE_USERNAME
+   
+   # Publier
+   docker push ghcr.io/VOTRE_USERNAME/VOTRE_REPO:latest
    ```
 
 ### 3. Premier Build Automatique
