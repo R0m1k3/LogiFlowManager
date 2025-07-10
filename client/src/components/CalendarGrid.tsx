@@ -114,14 +114,6 @@ export default function CalendarGrid({
                       ? 'bg-orange-500 text-white border-2 border-orange-300'
                       : 'bg-primary text-white';
                     
-                    // Debug : voir quelle classe est appliquée
-                    console.log(`Commande ${order.id} - ${order.supplier.name} - Date: ${order.plannedDate}:`, {
-                      status: order.status,
-                      hasLinkedDelivery,
-                      deliveriesCount: order.deliveries?.length || 0,
-                      colorClass
-                    });
-                    
                     return (
                       <div
                         key={`order-${order.id}`}
