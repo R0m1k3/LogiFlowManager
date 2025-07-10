@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  logiflow-app:
+    # Image depuis GitHub Container Registry pour mises à jour via Portainer
+    image: ghcr.io/username/logiflow:latest
+    # Remplacez 'username' par votre nom d'utilisateur GitHub
+    
+    container_name: logiflow-app
+    restart: unless-stopped
+    networks:
+      - nginx_default
+    environment:
+      DATABASE_URL: postgresql://logiflow_admin:LogiFlow2025!@postgres:5432/logiflow_db
+      SESSION_SECRET: LogiFlow_Super_Secret_Session_Key_2025_Production
+      PORT: 5000
+      USE_LOCAL_AUTH: "true"
+    ports:
+      - "5001:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: logiflow-postgres
+    restart: unless-stopped
+    networks:
+      - nginx_default
+    environment:
+      POSTGRES_DB: logiflow_db
+      POSTGRES_USER: logiflow_admin
+      POSTGRES_PASSWORD: LogiFlow2025!
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logiflow_admin -d logiflow_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  nginx_default:
+    external: true

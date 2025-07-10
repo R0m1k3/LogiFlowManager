@@ -256,6 +256,28 @@ docker-compose ps
 - **Login** : admin / admin
 - **Base de données** : localhost:5434
 
+## 🚀 Déploiement Production via Portainer
+
+LogiFlow supporte le déploiement automatisé via GitHub Container Registry et Portainer :
+
+### Configuration Rapide
+
+1. **Fork le repository** sur votre compte GitHub
+2. **Modifier l'image** dans `portainer-stack.yml` :
+   ```yaml
+   image: ghcr.io/VOTRE_USERNAME/VOTRE_REPO:latest
+   ```
+3. **Créer une stack** dans Portainer avec le contenu de `portainer-stack.yml`
+4. **Déployer** !
+
+### Mises à Jour Automatiques
+
+- **Push vers GitHub** → Build automatique de l'image
+- **Portainer** → Update en un clic ou via Watchtower
+- **Script de mise à jour** : `./scripts/update-from-github.sh`
+
+📖 **Guide complet** : [DEPLOYMENT-PORTAINER.md](DEPLOYMENT-PORTAINER.md)
+
 ## 📞 Support et Maintenance
 
 ### Monitoring

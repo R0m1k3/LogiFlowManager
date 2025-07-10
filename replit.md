@@ -207,6 +207,11 @@ Changelog:
 - July 10, 2025. Removed Nginx service, configured PostgreSQL on port 5434
 - July 10, 2025. Preconfigured database credentials (logiflow_admin/LogiFlow2025!/logiflow_db)
 - July 10, 2025. Simplified deployment for existing infrastructure with external reverse proxy
+- July 10, 2025. Implemented GitHub Container Registry integration with automated Docker builds via GitHub Actions
+- July 10, 2025. Created Portainer stack configuration for easy deployment and updates from GitHub images
+- July 10, 2025. Added Watchtower integration for automatic container updates when new images are published
+- July 10, 2025. Created comprehensive update scripts and documentation for production deployment via Portainer
+- July 10, 2025. Added support for version tagging and rollback capabilities through GitHub Container Registry
 
 ## User Preferences
 
