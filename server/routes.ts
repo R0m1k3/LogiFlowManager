@@ -406,6 +406,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const id = parseInt(req.params.id);
+      const delivery = await storage.getDelivery(id);
+      
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery not found" });
+      }
+
+      // Check permissions
+      if (user.role !== 'admin') {
+        const userGroupIds = user.userGroups.map(ug => ug.groupId);
+        if (!userGroupIds.includes(delivery.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const data = insertDeliverySchema.partial().parse(req.body);
+      const updatedDelivery = await storage.updateDelivery(id, data);
+      res.json(updatedDelivery);
+    } catch (error) {
+      console.error("Error updating delivery:", error);
+      res.status(500).json({ message: "Failed to update delivery" });
+    }
+  });
+
   app.post('/api/deliveries', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);

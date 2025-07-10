@@ -26,6 +26,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import CreateDeliveryModal from "@/components/modals/CreateDeliveryModal";
+import EditDeliveryModal from "@/components/modals/EditDeliveryModal";
 import OrderDetailModal from "@/components/modals/OrderDetailModal";
 import type { DeliveryWithRelations } from "@shared/schema";
 
@@ -39,6 +40,7 @@ export default function Deliveries() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [groupFilter, setGroupFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryWithRelations | null>(null);
 
@@ -150,6 +152,11 @@ export default function Deliveries() {
   const handleViewDelivery = (delivery: DeliveryWithRelations) => {
     setSelectedDelivery({ ...delivery, type: 'delivery' });
     setShowDetailModal(true);
+  };
+
+  const handleEditDelivery = (delivery: DeliveryWithRelations) => {
+    setSelectedDelivery(delivery);
+    setShowEditModal(true);
   };
 
   const handleValidateDelivery = (id: number) => {
@@ -371,7 +378,7 @@ export default function Deliveries() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleViewDelivery(delivery)}
+                                onClick={() => handleEditDelivery(delivery)}
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -415,6 +422,14 @@ export default function Deliveries() {
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           selectedDate={null}
+        />
+      )}
+
+      {showEditModal && selectedDelivery && (
+        <EditDeliveryModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          delivery={selectedDelivery}
         />
       )}
 

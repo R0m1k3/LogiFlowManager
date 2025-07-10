@@ -24,6 +24,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import CreateOrderModal from "@/components/modals/CreateOrderModal";
+import EditOrderModal from "@/components/modals/EditOrderModal";
 import OrderDetailModal from "@/components/modals/OrderDetailModal";
 import type { OrderWithRelations } from "@shared/schema";
 
@@ -37,6 +38,7 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [groupFilter, setGroupFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithRelations | null>(null);
 
@@ -114,6 +116,11 @@ export default function Orders() {
   const handleViewOrder = (order: OrderWithRelations) => {
     setSelectedOrder({ ...order, type: 'order' });
     setShowDetailModal(true);
+  };
+
+  const handleEditOrder = (order: OrderWithRelations) => {
+    setSelectedOrder(order);
+    setShowEditModal(true);
   };
 
   const handleDeleteOrder = (id: number) => {
@@ -310,7 +317,7 @@ export default function Orders() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleViewOrder(order)}
+                                onClick={() => handleEditOrder(order)}
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -343,6 +350,14 @@ export default function Orders() {
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           selectedDate={null}
+        />
+      )}
+
+      {showEditModal && selectedOrder && (
+        <EditOrderModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          order={selectedOrder}
         />
       )}
 

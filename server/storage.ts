@@ -338,6 +338,15 @@ export class DatabaseStorage implements IStorage {
 
   async createDelivery(delivery: InsertDelivery): Promise<Delivery> {
     const [newDelivery] = await db.insert(deliveries).values(delivery).returning();
+    
+    // Si la livraison est liée à une commande, mettre à jour le statut de la commande
+    if (newDelivery.orderId) {
+      await db
+        .update(orders)
+        .set({ status: 'planned' })
+        .where(eq(orders.id, newDelivery.orderId));
+    }
+    
     return newDelivery;
   }
 

@@ -145,6 +145,10 @@ Changelog:
 - July 10, 2025. Relocated user profile and logout to bottom of sidebar for better UX
 - July 10, 2025. Replaced header user info with store selector for admins
 - July 10, 2025. Added ability for admins to view all stores or filter by specific store
+- July 10, 2025. Implemented status management: orders linked to deliveries automatically become "planned"
+- July 10, 2025. Added edit functionality for both orders and deliveries with proper role-based access
+- July 10, 2025. Created comprehensive edit modals with form validation and error handling
+- July 10, 2025. Removed store selectors from creation modals with intelligent auto-selection
 
 ## User Preferences
 
