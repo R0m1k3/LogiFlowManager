@@ -64,8 +64,11 @@ export default function Deliveries() {
         title: "Succès",
         description: "Livraison validée avec succès",
       });
+      // Invalider tous les caches liés aux livraisons
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      queryClient.invalidateQueries({ queryKey: [deliveriesUrl] });
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -96,7 +99,10 @@ export default function Deliveries() {
         title: "Succès",
         description: "Livraison supprimée avec succès",
       });
+      // Invalider tous les caches liés aux livraisons
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      queryClient.invalidateQueries({ queryKey: [deliveriesUrl] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

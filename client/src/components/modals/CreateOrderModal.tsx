@@ -75,7 +75,9 @@ export default function CreateOrderModal({
         title: "Succès",
         description: "Commande créée avec succès",
       });
+      // Invalider tous les caches liés aux commandes
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
       onClose();
     },
     onError: (error) => {

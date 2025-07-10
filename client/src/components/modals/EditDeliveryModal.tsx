@@ -80,8 +80,10 @@ export default function EditDeliveryModal({
         title: "Succès",
         description: "Livraison modifiée avec succès",
       });
+      // Invalider tous les caches liés aux livraisons
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
       onClose();
     },
     onError: (error) => {

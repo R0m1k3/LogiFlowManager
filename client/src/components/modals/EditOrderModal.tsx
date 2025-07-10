@@ -65,7 +65,9 @@ export default function EditOrderModal({
         title: "Succès",
         description: "Commande modifiée avec succès",
       });
+      // Invalider tous les caches liés aux commandes
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
       onClose();
     },
     onError: (error) => {
