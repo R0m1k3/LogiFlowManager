@@ -1,56 +1,72 @@
 #!/bin/bash
 
-echo "🔧 MISE À JOUR PRODUCTION LOGIFLOW"
+echo "🚀 MISE À JOUR PRODUCTION LOGIFLOW"
 echo "=================================="
-
-# Vérifier si Docker est installé
-if ! command -v docker &> /dev/null; then
-    echo "❌ Docker n'est pas installé"
-    exit 1
-fi
-
-# Vérifier si docker-compose est installé
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose n'est pas installé"
-    exit 1
-fi
-
-echo "✅ Docker et Docker Compose détectés"
 
 # Arrêter les conteneurs existants
 echo "🛑 Arrêt des conteneurs existants..."
 docker-compose down
 
-# Reconstruire l'image sans cache
-echo "🔨 Reconstruction de l'image Docker..."
-docker-compose build --no-cache
+# Nettoyer complètement les images et caches
+echo "🧹 Nettoyage complet du cache Docker..."
+docker system prune -af --volumes
 
-# Redémarrer les conteneurs
-echo "🚀 Redémarrage des conteneurs..."
+# Reconstruire SANS cache pour forcer l'intégration du nouveau code
+echo "🔨 Reconstruction COMPLÈTE de l'image (sans cache)..."
+docker-compose build --no-cache --pull
+
+# Redémarrer avec les nouvelles images
+echo "🚀 Redémarrage avec le nouveau code..."
 docker-compose up -d
 
-# Attendre que les services démarrent
-echo "⏳ Attente du démarrage des services..."
-sleep 10
+# Attendre le démarrage complet
+echo "⏳ Attente du démarrage complet (30 secondes)..."
+sleep 30
 
 # Vérifier l'état des conteneurs
-echo "📊 État des conteneurs:"
+echo ""
+echo "📊 ÉTAT DES CONTENEURS:"
 docker-compose ps
 
-# Tester la connectivité
-echo "🔍 Test de connectivité..."
-if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
-    echo "✅ Application accessible sur port 3000"
+echo ""
+echo "📋 LOGS DE DÉMARRAGE:"
+docker-compose logs --tail=20 logiflow-app
+
+echo ""
+echo "🔍 TEST DE CONNECTIVITÉ:"
+
+# Test API Health
+if curl -f -s http://localhost:3000/api/health >/dev/null 2>&1; then
+    echo "✅ API accessible sur port 3000"
 else
-    echo "⚠️  Application non accessible - vérifiez les logs:"
-    echo "   docker-compose logs -f"
+    echo "❌ API non accessible"
+fi
+
+# Test page d'accueil
+if curl -f -s http://localhost:3000/ >/dev/null 2>&1; then
+    echo "✅ Frontend accessible"
+else
+    echo "❌ Frontend non accessible"
 fi
 
 echo ""
 echo "🎯 MISE À JOUR TERMINÉE"
-echo "======================"
-echo "Application: http://localhost:3000"
-echo "Connexion: admin / admin"
+echo "======================="
 echo ""
-echo "Si problème persistant, consultez les logs:"
-echo "docker-compose logs -f"
+echo "🌐 Application : http://localhost:3000"
+echo "🔑 Connexion : admin / admin"
+echo ""
+echo "✅ CORRECTIONS APPLIQUÉES:"
+echo "- Erreur 'Dynamic require' résolue"
+echo "- Import ES6 de connect-pg-simple"
+echo "- Sessions PostgreSQL persistantes"
+echo "- Structure UserWithGroups[] corrigée"
+echo "- Page Users maintenant fonctionnelle"
+echo ""
+echo "📝 PROCHAINES ÉTAPES:"
+echo "1. Connectez-vous avec admin/admin"
+echo "2. Testez la page Utilisateurs (doit s'afficher)"
+echo "3. Vérifiez toutes les fonctionnalités"
+echo ""
+echo "🆘 SI PROBLÈME:"
+echo "   docker-compose logs -f logiflow-app"

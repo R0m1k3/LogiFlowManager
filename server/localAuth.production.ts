@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 // Import de la DB de production
 import { db } from "./db.production";
 import { initializeDatabase } from "./initDatabase.production";
+import connectPgSimple from "connect-pg-simple";
 
 const scryptAsync = promisify(scrypt);
 
@@ -76,7 +77,7 @@ export function setupLocalAuth(app: Express) {
   console.log("🔧 Setting up local authentication...");
   
   // Session configuration with PostgreSQL store
-  const connectPg = require('connect-pg-simple')(session);
+  const connectPg = connectPgSimple(session);
   
   app.use(session({
     store: new connectPg({

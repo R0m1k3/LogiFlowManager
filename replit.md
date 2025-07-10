@@ -267,6 +267,11 @@ Changelog:
 - July 10, 2025. Résolu erreurs "Non authentifié" causées par sessions non persistantes en production
 - July 10, 2025. Configuré connect-pg-simple pour sessions persistantes avec reverse proxy
 - July 10, 2025. Créé script fix-session-auth.sh pour corriger problèmes d'authentification production
+- July 10, 2025. **ERREUR PRODUCTION RÉSOLUE** - Correction "Dynamic require of connect-pg-simple is not supported"
+- July 10, 2025. Remplacé require() par import ES6 statique dans localAuth.production.ts
+- July 10, 2025. Architecture production stabilisée : PostgreSQL sessions + authentification locale fonctionnelle
+- July 10, 2025. Structure UserWithGroups[] corrigée pour affichage page Utilisateurs
+- July 10, 2025. Créé update-production.sh pour reconstruction complète avec nouvelles corrections
 
 ## User Preferences
 
