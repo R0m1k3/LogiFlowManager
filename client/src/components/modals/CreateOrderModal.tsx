@@ -129,8 +129,8 @@ export default function CreateOrderModal({
       <DialogContent className="sm:max-w-md" aria-describedby="order-modal-description">
         <DialogHeader>
           <DialogTitle>Nouvelle Commande</DialogTitle>
-          <p id="order-modal-description" className="sr-only">
-            Formulaire de création d'une nouvelle commande
+          <p id="order-modal-description" className="text-sm text-gray-600 mt-1">
+            Créer une nouvelle commande pour un fournisseur
           </p>
         </DialogHeader>
         

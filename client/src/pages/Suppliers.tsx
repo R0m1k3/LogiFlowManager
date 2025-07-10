@@ -394,11 +394,14 @@ export default function Suppliers() {
         setSelectedSupplier(null);
         setFormData({ name: "", contact: "", phone: "" });
       }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby="supplier-modal-description">
           <DialogHeader>
             <DialogTitle>
               {selectedSupplier ? 'Modifier' : 'Nouveau'} Fournisseur
             </DialogTitle>
+            <p id="supplier-modal-description" className="text-sm text-gray-600 mt-1">
+              {selectedSupplier ? 'Modifier les informations du fournisseur' : 'Créer un nouveau fournisseur'}
+            </p>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4">

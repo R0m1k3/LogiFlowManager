@@ -144,7 +144,7 @@ export default function OrderDetailModal({
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden" aria-describedby="order-detail-modal-description">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary to-blue-600 text-white p-6 -m-6 mb-4">
           <DialogHeader>
@@ -162,6 +162,9 @@ export default function OrderDetailModal({
                 </DialogTitle>
                 <p className="text-blue-100">
                   #{isOrder ? 'CMD' : 'LIV'}-{item.id}
+                </p>
+                <p id="order-detail-modal-description" className="sr-only">
+                  Affichage détaillé de {isOrder ? 'la commande' : 'la livraison'} avec options de gestion
                 </p>
               </div>
             </div>

@@ -156,8 +156,8 @@ export default function CreateDeliveryModal({
       <DialogContent className="sm:max-w-md" aria-describedby="delivery-modal-description">
         <DialogHeader>
           <DialogTitle>Nouvelle Livraison</DialogTitle>
-          <p id="delivery-modal-description" className="sr-only">
-            Formulaire de création d'une nouvelle livraison
+          <p id="delivery-modal-description" className="text-sm text-gray-600 mt-1">
+            Créer une nouvelle livraison pour un fournisseur
           </p>
         </DialogHeader>
         

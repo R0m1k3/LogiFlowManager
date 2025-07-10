@@ -460,7 +460,7 @@ export default function BLReconciliation() {
 
       {/* Invoice Modal */}
       <Dialog open={showInvoiceModal} onOpenChange={setShowInvoiceModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby="invoice-modal-description">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Euro className="w-5 h-5 text-primary" />
@@ -468,6 +468,9 @@ export default function BLReconciliation() {
                 {selectedDelivery?.invoiceReference ? 'Modifier' : 'Ajouter'} la facture
               </span>
             </DialogTitle>
+            <p id="invoice-modal-description" className="text-sm text-gray-600 mt-1">
+              Saisir les informations de la facture pour le rapprochement
+            </p>
           </DialogHeader>
 
           <Form {...form}>

@@ -140,8 +140,8 @@ export default function EditDeliveryModal({
       <DialogContent className="sm:max-w-md" aria-describedby="edit-delivery-modal-description">
         <DialogHeader>
           <DialogTitle>Modifier la Livraison #{delivery.id}</DialogTitle>
-          <p id="edit-delivery-modal-description" className="sr-only">
-            Formulaire de modification de la livraison
+          <p id="edit-delivery-modal-description" className="text-sm text-gray-600 mt-1">
+            Modifier les détails de cette livraison
           </p>
         </DialogHeader>
         

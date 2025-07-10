@@ -580,11 +580,14 @@ export default function UsersPage() {
           setSelectedUser(null);
           setUserGroups([]);
         }}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" aria-describedby="edit-user-modal-description">
             <DialogHeader>
               <DialogTitle>
                 Gérer les Groupes - {selectedUser.firstName} {selectedUser.lastName}
               </DialogTitle>
+              <p id="edit-user-modal-description" className="text-sm text-gray-600 mt-1">
+                Assigner ou retirer cet utilisateur des groupes/magasins
+              </p>
             </DialogHeader>
             
             <div className="space-y-4">
@@ -636,12 +639,15 @@ export default function UsersPage() {
       {/* Create User Modal */}
       {showCreateModal && (
         <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md" aria-describedby="create-user-modal-description">
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 <Plus className="w-5 h-5 mr-2" />
                 Créer un nouvel utilisateur
               </DialogTitle>
+              <p id="create-user-modal-description" className="text-sm text-gray-600 mt-1">
+                Créer un nouveau compte utilisateur avec ses permissions
+              </p>
             </DialogHeader>
             
             <div className="space-y-4">

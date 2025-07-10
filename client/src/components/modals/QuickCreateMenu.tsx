@@ -17,9 +17,12 @@ export default function QuickCreateMenu({
 }: QuickCreateMenuProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="quick-create-modal-description">
         <DialogHeader>
           <DialogTitle>Création rapide</DialogTitle>
+          <p id="quick-create-modal-description" className="text-sm text-gray-600 mt-1">
+            Choisir le type d'élément à créer
+          </p>
         </DialogHeader>
         <div className="space-y-3">
           <Button

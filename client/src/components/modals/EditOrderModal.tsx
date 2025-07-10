@@ -121,8 +121,8 @@ export default function EditOrderModal({
       <DialogContent className="sm:max-w-md" aria-describedby="edit-order-modal-description">
         <DialogHeader>
           <DialogTitle>Modifier la Commande #{order.id}</DialogTitle>
-          <p id="edit-order-modal-description" className="sr-only">
-            Formulaire de modification de la commande
+          <p id="edit-order-modal-description" className="text-sm text-gray-600 mt-1">
+            Modifier les détails de cette commande
           </p>
         </DialogHeader>
         

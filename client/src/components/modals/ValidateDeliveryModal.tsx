@@ -95,12 +95,15 @@ export default function ValidateDeliveryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="validate-delivery-modal-description">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Check className="w-5 h-5 text-green-600" />
             <span>Valider la livraison</span>
           </DialogTitle>
+          <p id="validate-delivery-modal-description" className="text-sm text-gray-600 mt-1">
+            Saisir les informations du bon de livraison
+          </p>
         </DialogHeader>
 
         <Form {...form}>

@@ -386,11 +386,14 @@ export default function Groups() {
         setSelectedGroup(null);
         setFormData({ name: "", color: "#1976D2" });
       }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby="group-modal-description">
           <DialogHeader>
             <DialogTitle>
               {selectedGroup ? 'Modifier' : 'Nouveau'} Groupe
             </DialogTitle>
+            <p id="group-modal-description" className="text-sm text-gray-600 mt-1">
+              {selectedGroup ? 'Modifier les informations du groupe' : 'Créer un nouveau groupe/magasin'}
+            </p>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4">
