@@ -9,7 +9,7 @@ echo "🚀 DÉPLOIEMENT LOGIFLOW PRODUCTION"
 echo "=================================="
 
 # Variables
-COMPOSE_FILE="docker-compose.production.yml"
+COMPOSE_FILE="docker-compose.yml"
 APP_PORT="8080"
 DB_PORT="5434"
 

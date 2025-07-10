@@ -11,8 +11,8 @@ Application web de gestion logistique pour La Foir'Fouille avec système de cale
 
 ### Déploiement Manuel
 ```bash
-docker-compose -f docker-compose.production.yml build --no-cache
-docker-compose -f docker-compose.production.yml up -d
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
 ## 📋 Accès Application

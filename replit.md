@@ -243,6 +243,9 @@ Changelog:
 - July 10, 2025. Créé README.md simplifié avec guide déploiement rapide
 - July 10, 2025. Projet nettoyé : 7 fichiers essentiels (docker-compose, deploy-fix.sh, docs, nginx config)
 - July 10, 2025. **RÉSEAU DOCKER CONFIGURÉ** - Utilisation du réseau externe nginx_default pour intégration infrastructure
+- July 10, 2025. **PROBLÈME DOCKER-COMPOSE RÉSOLU** - Créé docker-compose.yml standard depuis docker-compose.production.yml
+- July 10, 2025. Simplifié déploiement : docker-compose up -d fonctionne maintenant, compatible Portainer
+- July 10, 2025. Mis à jour deploy-fix.sh et documentation pour utiliser docker-compose.yml standard
 
 ## User Preferences
 

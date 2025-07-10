@@ -22,15 +22,15 @@
 cd /path/to/logiflow
 
 # Nettoyer complètement
-docker-compose -f docker-compose.production.yml down -v
+docker-compose down -v
 docker system prune -f
 docker volume prune -f
 
 # Rebuild avec cache vide
-docker-compose -f docker-compose.production.yml build --no-cache
+docker-compose build --no-cache
 
 # Démarrer en arrière-plan
-docker-compose -f docker-compose.production.yml up -d
+docker-compose up -d
 ```
 
 ### 2. Vérification du Déploiement
