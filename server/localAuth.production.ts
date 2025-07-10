@@ -8,6 +8,7 @@ import { users, type User } from "@shared/schema";
 import { eq } from "drizzle-orm";
 // Import de la DB de production
 import { db } from "./db.production";
+import { initializeDatabase } from "./initDatabase.production";
 
 const scryptAsync = promisify(scrypt);
 
@@ -44,6 +45,9 @@ async function comparePasswords(supplied: string, stored: string) {
 
 async function createDefaultAdminUser() {
   try {
+    // First ensure database schema exists
+    await initializeDatabase();
+    
     console.log("Checking for default admin user...");
     
     const existingAdmin = await db.select().from(users).where(eq(users.username, 'admin')).limit(1);

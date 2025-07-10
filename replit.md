@@ -220,6 +220,8 @@ Changelog:
 - July 10, 2025. Création script d'initialisation SQL complet pour résoudre l'erreur "relation users does not exist"
 - July 10, 2025. Instructions de déploiement documentées avec procédure de nettoyage du volume PostgreSQL
 - July 10, 2025. Architecture production finalisée : WebSocket éliminé, bcrypt remplacé, base de données initialisée
+- July 10, 2025. Ajout système d'auto-initialisation de la base de données pour éviter l'erreur "relation users does not exist"
+- July 10, 2025. L'application crée maintenant automatiquement toutes les tables au démarrage si elles n'existent pas
 
 ## User Preferences
 
