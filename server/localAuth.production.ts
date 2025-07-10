@@ -73,16 +73,32 @@ async function createDefaultAdminUser() {
 }
 
 export function setupLocalAuth(app: Express) {
-  // Session configuration
+  console.log("🔧 Setting up local authentication with PostgreSQL session store...");
+  
+  // PostgreSQL session store configuration
+  const pgSession = require('connect-pg-simple')(session);
+  const sessionStore = new pgSession({
+    pool: require('./db.production').pool,
+    tableName: 'session',
+    createTableIfMissing: false // We create it in initDatabase
+  });
+
+  // Session configuration with PostgreSQL store
   app.use(session({
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: {
       secure: false, // Set to true in HTTPS production
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      sameSite: 'lax'
+    },
+    name: 'logiflow.sid'
   }));
+  
+  console.log("✅ PostgreSQL session store configured");
 
   // Passport configuration
   app.use(passport.initialize());

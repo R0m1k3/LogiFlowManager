@@ -21,11 +21,22 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Logging middleware pour production
+// Enhanced logging middleware for debugging
 app.use((req, res, next) => {
   const start = Date.now();
   const reqPath = req.path;
+  const reqId = Math.random().toString(36).substring(7);
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  // Log incoming request details
+  console.log(`[${reqId}] --> ${req.method} ${reqPath}`);
+  console.log(`[${reqId}]     Host: ${req.get('host')}`);
+  console.log(`[${reqId}]     IP: ${req.ip || req.socket.remoteAddress}`);
+  console.log(`[${reqId}]     Headers: ${JSON.stringify({
+    'x-forwarded-for': req.get('x-forwarded-for'),
+    'x-real-ip': req.get('x-real-ip'),
+    'user-agent': req.get('user-agent')?.substring(0, 50)
+  })}`);
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
@@ -35,17 +46,22 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (reqPath.startsWith("/api")) {
-      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+    let logLine = `[${reqId}] <-- ${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
+    
+    if (capturedJsonResponse && reqPath.startsWith("/api")) {
+      const responseStr = JSON.stringify(capturedJsonResponse);
+      if (responseStr.length > 100) {
+        logLine += ` :: ${responseStr.substring(0, 99)}…`;
+      } else {
+        logLine += ` :: ${responseStr}`;
       }
+    }
 
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      console.log(`[express] ${logLine}`);
+    console.log(logLine);
+    
+    // Log errors
+    if (res.statusCode >= 400) {
+      console.error(`[${reqId}] ERROR Response:`, res.statusCode, res.statusMessage);
     }
   });
 
@@ -103,5 +119,24 @@ async function loadRoutes() {
     reusePort: true,
   }, () => {
     console.log(`[express] serving on port ${port}`);
+    console.log(`[express] Server bound to 0.0.0.0:${port}`);
+    console.log(`[express] Ready to accept connections`);
+    
+    // Test server accessibility
+    setTimeout(() => {
+      console.log("\n🔍 Server diagnostics:");
+      console.log(`   - Process PID: ${process.pid}`);
+      console.log(`   - Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
+      console.log(`   - Node version: ${process.version}`);
+      console.log(`   - Working directory: ${process.cwd()}`);
+    }, 1000);
+  });
+  
+  // Handle server errors
+  server.on('error', (error: any) => {
+    console.error('❌ Server error:', error);
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Port ${port} is already in use`);
+    }
   });
 })();

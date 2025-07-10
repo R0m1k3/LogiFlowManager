@@ -24,6 +24,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       database: 'connected'
     });
   });
+  
+  // Debug routes for troubleshooting
+  app.get('/api/debug/status', (req, res) => {
+    res.json({
+      status: 'running',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      port: process.env.PORT || 5000,
+      headers: req.headers,
+      ip: req.ip || req.socket.remoteAddress,
+      protocol: req.protocol,
+      hostname: req.hostname,
+      originalUrl: req.originalUrl,
+      memory: {
+        heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
+        heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB'
+      },
+      uptime: Math.round(process.uptime()) + ' seconds'
+    });
+  });
+  
+  app.get('/api/debug/echo', (req, res) => {
+    console.log('📥 Echo request received:', {
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      query: req.query
+    });
+    
+    res.json({
+      echo: 'success',
+      received: {
+        headers: req.headers,
+        query: req.query,
+        body: req.body
+      }
+    });
+  });
+  
+  app.get('/api/debug/db', async (req, res) => {
+    try {
+      const { db } = await import('./db.production.js');
+      const result = await db.execute('SELECT NOW() as now, version() as version');
+      res.json({
+        connected: true,
+        timestamp: result.rows[0].now,
+        version: result.rows[0].version
+      });
+    } catch (error) {
+      console.error('Database debug error:', error);
+      res.status(500).json({
+        connected: false,
+        error: error.message
+      });
+    }
+  });
 
   // Setup ONLY local authentication in production
   console.log('Using local authentication system');
