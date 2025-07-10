@@ -20,6 +20,7 @@ docker-compose -f docker-compose.production.yml up -d
 - **URL** : http://votre-serveur:8080
 - **Admin** : admin/admin
 - **Base de données** : PostgreSQL sur port 5434
+- **Réseau** : nginx_default (externe)
 
 ## 🔧 Configuration Nginx
 

@@ -242,6 +242,7 @@ Changelog:
 - July 10, 2025. Supprimé scripts/ et ssl/ folders, anciens fichiers de test et cookies
 - July 10, 2025. Créé README.md simplifié avec guide déploiement rapide
 - July 10, 2025. Projet nettoyé : 7 fichiers essentiels (docker-compose, deploy-fix.sh, docs, nginx config)
+- July 10, 2025. **RÉSEAU DOCKER CONFIGURÉ** - Utilisation du réseau externe nginx_default pour intégration infrastructure
 
 ## User Preferences
 

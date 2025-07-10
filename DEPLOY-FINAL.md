@@ -7,7 +7,7 @@
 - **Base de données** : PostgreSQL dans conteneur séparé (port 5434)
 - **Session** : MemoryStore (compatible production courte)
 - **Authentification** : Locale (admin/admin)
-- **Réseau** : Bridge Docker personnalisé
+- **Réseau** : nginx_default (réseau externe)
 
 ### ✅ Ports Configurés
 - **8080** : Application LogiFlow (accessible depuis l'extérieur)
