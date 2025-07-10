@@ -572,18 +572,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { year, month } = req.query;
+      const { year, month, storeId } = req.query;
       const currentYear = year ? parseInt(year as string) : new Date().getFullYear();
       const currentMonth = month ? parseInt(month as string) : new Date().getMonth() + 1;
 
-      let stats;
+      let groupIds: number[] | undefined;
+      
       if (user.role === 'admin') {
-        stats = await storage.getMonthlyStats(currentYear, currentMonth);
+        // Admin can view all stores or filter by selected store
+        groupIds = storeId ? [parseInt(storeId as string)] : undefined;
       } else {
-        const groupIds = user.userGroups.map(ug => ug.groupId);
-        stats = await storage.getMonthlyStats(currentYear, currentMonth, groupIds);
+        // Non-admin users: filter by their assigned groups
+        const userGroupIds = user.userGroups.map(ug => ug.groupId);
+        
+        // If a specific store is selected and user has access, filter by it
+        if (storeId && userGroupIds.includes(parseInt(storeId as string))) {
+          groupIds = [parseInt(storeId as string)];
+        } else {
+          groupIds = userGroupIds;
+        }
       }
 
+      const stats = await storage.getMonthlyStats(currentYear, currentMonth, groupIds);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching stats:", error);

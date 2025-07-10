@@ -154,6 +154,8 @@ Changelog:
 - July 10, 2025. Fixed order filtering in delivery creation - orders from all dates now visible
 - July 10, 2025. Improved order display in delivery modals with supplier name and date
 - July 10, 2025. Added "Aucune commande liée" option for clearer interface
+- July 10, 2025. Fixed statistics panel to filter by selected store for admins
+- July 10, 2025. Statistics now update correctly when switching between stores
 
 ## User Preferences
 
