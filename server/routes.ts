@@ -178,6 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('Admin filtering with groupIds:', groupIds);
         
+        // Only filter by date if both startDate and endDate are provided
         if (startDate && endDate) {
           console.log('Fetching orders by date range:', startDate, 'to', endDate);
           orders = await storage.getOrdersByDateRange(startDate as string, endDate as string, groupIds);
@@ -189,6 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const groupIds = user.userGroups.map(ug => ug.groupId);
         console.log('Non-admin filtering with groupIds:', groupIds);
         
+        // Only filter by date if both startDate and endDate are provided
         if (startDate && endDate) {
           orders = await storage.getOrdersByDateRange(startDate as string, endDate as string, groupIds);
         } else {
@@ -350,6 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('Admin filtering deliveries with groupIds:', groupIds);
         
+        // Only filter by date if both startDate and endDate are provided
         if (startDate && endDate) {
           console.log('Fetching deliveries by date range:', startDate, 'to', endDate);
           deliveries = await storage.getDeliveriesByDateRange(startDate as string, endDate as string, groupIds);
@@ -361,6 +364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const groupIds = user.userGroups.map(ug => ug.groupId);
         console.log('Non-admin filtering deliveries with groupIds:', groupIds);
         
+        // Only filter by date if both startDate and endDate are provided
         if (startDate && endDate) {
           deliveries = await storage.getDeliveriesByDateRange(startDate as string, endDate as string, groupIds);
         } else {
