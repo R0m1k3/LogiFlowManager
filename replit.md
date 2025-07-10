@@ -24,14 +24,13 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 ## Key Components
 
 ### Authentication System
-- **Dual authentication support**: Replit Auth (development) and Local Auth (production/Docker)
+- **Local authentication**: Email/password authentication with PostgreSQL storage
 - **Three-tier role system**: Admin, Manager, Employee
-- **OpenID Connect integration** via Replit Auth for development
-- **Local authentication** with email/password for Docker deployment
-- **Session persistence** in PostgreSQL
+- **Session persistence** in PostgreSQL with secure session management
 - **Role-based access control** throughout the application
-- **User creation workflow**: Admins can create users who authenticate via existing Replit accounts or local accounts
+- **User creation workflow**: Admins can create users with email/password credentials
 - **Multi-store access control**: Users see only data from their assigned stores
+- **Default admin account**: admin@logiflow.com / admin123 (created automatically)
 
 ### Calendar Management
 - **Monthly calendar view** with interactive navigation
@@ -54,10 +53,10 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 ## Data Flow
 
 ### User Authentication Flow
-1. User accesses application → Redirected to Replit Auth
-2. Successful authentication → User data stored/updated in database
-3. Session created and stored in PostgreSQL
-4. Role-based navigation and feature access applied
+1. User accesses application → Local login form with email/password
+2. Successful authentication → User session created and stored in PostgreSQL
+3. Role-based navigation and feature access applied
+4. Admin can create new user accounts with store assignments
 
 ### Order/Delivery Management Flow
 1. User selects date on calendar → Quick create menu appears
@@ -80,9 +79,9 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 - **Connection pooling**: @neondatabase/serverless with WebSocket support
 
 ### Authentication
-- **Replit Auth**: OpenID Connect provider
+- **Local authentication**: Email/password with bcrypt hashing
 - **Session storage**: PostgreSQL with connect-pg-simple
-- **Passport.js**: Authentication middleware
+- **Passport.js**: Authentication middleware with local strategy
 
 ### UI/UX
 - **Radix UI**: Accessible component primitives
@@ -124,7 +123,7 @@ Changelog:
 - July 08, 2025. Implemented multi-store system with user management and role-based permissions
 - July 08, 2025. Added comprehensive user creation interface with store assignments
 - July 08, 2025. Enhanced authentication documentation and user onboarding process
-- July 08, 2025. Implemented dual authentication system (Replit Auth + Local Auth)
+- July 08, 2025. Implemented local authentication system with PostgreSQL storage
 - July 08, 2025. Added complete Docker containerization with PostgreSQL
 - July 08, 2025. Created production-ready deployment configuration
 - July 09, 2025. Implemented user deletion functionality with safety protections
@@ -136,6 +135,8 @@ Changelog:
 - July 09, 2025. Updated database schema to make quantity/unit optional for orders
 - July 09, 2025. Fixed admin store selector visibility and functionality in creation modals
 - July 09, 2025. Removed quantity display from order details modal, calendar, and orders table
+- July 10, 2025. Improved delivery modal with supplier-first workflow and order filtering
+- July 10, 2025. Relocated user profile and logout to bottom of sidebar for better UX
 
 ## User Preferences
 
