@@ -104,27 +104,39 @@ export default function CalendarGrid({
                 
                 {/* Orders and Deliveries */}
                 <div className="mt-1 space-y-1">
-                  {dayOrders.map((order) => (
-                    <div
-                      key={`order-${order.id}`}
-                      className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${
-                        order.status === 'delivered' 
-                          ? 'bg-delivered text-white' 
-                          : 'bg-primary text-white'
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onItemClick(order, 'order');
-                      }}
-                    >
-                      <span className="truncate">
-                        {order.supplier.name}
-                      </span>
-                      {order.status === 'delivered' && (
-                        <Check className="w-3 h-3 ml-1 flex-shrink-0" />
-                      )}
-                    </div>
-                  ))}
+                  {dayOrders.map((order) => {
+                    // Vérifier si la commande a une livraison en attente
+                    const hasDeliveryPending = order.deliveries?.some(delivery => delivery.status === 'pending') || false;
+                    
+                    return (
+                      <div
+                        key={`order-${order.id}`}
+                        className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${
+                          order.status === 'delivered' 
+                            ? 'bg-delivered text-white' 
+                            : hasDeliveryPending
+                            ? 'bg-orange-500 text-white border-2 border-orange-300'
+                            : 'bg-primary text-white'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onItemClick(order, 'order');
+                        }}
+                      >
+                        <span className="truncate">
+                          {order.supplier.name}
+                        </span>
+                        <div className="flex items-center ml-1 flex-shrink-0">
+                          {hasDeliveryPending && (
+                            <span className="w-2 h-2 bg-yellow-300 rounded-full mr-1" title="Livraison en attente de validation" />
+                          )}
+                          {order.status === 'delivered' && (
+                            <Check className="w-3 h-3" />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                   
                   {dayDeliveries.map((delivery) => (
                     <div
@@ -132,6 +144,8 @@ export default function CalendarGrid({
                       className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${
                         delivery.status === 'delivered' 
                           ? 'bg-delivered text-white' 
+                          : delivery.status === 'pending'
+                          ? 'bg-yellow-500 text-white border-2 border-yellow-300'
                           : 'bg-secondary text-white'
                       }`}
                       onClick={(e) => {
@@ -142,9 +156,14 @@ export default function CalendarGrid({
                       <span className="truncate">
                         {delivery.supplier.name} - {formatQuantity(delivery.quantity, delivery.unit)}
                       </span>
-                      {delivery.status === 'delivered' && (
-                        <Check className="w-3 h-3 ml-1 flex-shrink-0" />
-                      )}
+                      <div className="flex items-center ml-1 flex-shrink-0">
+                        {delivery.status === 'pending' && (
+                          <span className="w-2 h-2 bg-orange-300 rounded-full mr-1" title="En attente de validation" />
+                        )}
+                        {delivery.status === 'delivered' && (
+                          <Check className="w-3 h-3" />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

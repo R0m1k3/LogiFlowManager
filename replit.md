@@ -160,6 +160,9 @@ Changelog:
 - July 10, 2025. Calendar shows monthly data, Orders/Deliveries pages show all historical data
 - July 10, 2025. Hidden group/store filter in Orders and Deliveries pages for non-admin users
 - July 10, 2025. Simplified interface for employees and managers who only see their assigned stores
+- July 10, 2025. Added "En attente" status display for deliveries with pending status
+- July 10, 2025. Enhanced calendar visual indicators for pending deliveries and linked orders
+- July 10, 2025. Orders linked to pending deliveries now show orange background with indicator dot
 
 ## User Preferences
 

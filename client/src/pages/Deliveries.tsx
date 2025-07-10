@@ -130,6 +130,8 @@ export default function Deliveries() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'pending':
+        return <Badge variant="secondary">En attente</Badge>;
       case 'planned':
         return <Badge className="bg-blue-100 text-blue-800">Planifié</Badge>;
       case 'delivered':
@@ -218,6 +220,7 @@ export default function Deliveries() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="pending">En attente</SelectItem>
               <SelectItem value="planned">Planifié</SelectItem>
               <SelectItem value="delivered">Livré</SelectItem>
             </SelectContent>
