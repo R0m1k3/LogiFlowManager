@@ -21,7 +21,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Enhanced logging middleware for debugging
+// Enhanced logging middleware for production debugging
 app.use((req, res, next) => {
   const start = Date.now();
   const reqPath = req.path;

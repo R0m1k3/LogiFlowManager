@@ -303,6 +303,10 @@ Changelog:
 - July 10, 2025. Élimination de "Cannot convert undefined or null to object" dans orderSelectedFields()
 - July 10, 2025. Architecture hybride finale: SQL brut pour code critique, Drizzle ORM pour modules non-critiques
 - July 10, 2025. Optimisation performance avec Map pour user groups et gestion d'erreur gracieuse
+- July 10, 2025. **ERREUR DOCKER BUILD RÉSOLUE** - Correction conflit esbuild --packages=external vs --external: spécifiques
+- July 10, 2025. Dockerfile corrigé : suppression --packages=external, gardé seulement --external: pour modules Node.js critiques
+- July 10, 2025. Build backend optimisé avec bundle ESM et modules externes (pg, express, bcrypt, drizzle-orm, etc.)
+- July 10, 2025. Correction déploiement Docker : esbuild moderne compatible avec format ESM production
 
 ## User Preferences
 

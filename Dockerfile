@@ -40,7 +40,6 @@ RUN echo "=== BUILD VERIFICATION ===" && \
 # Build backend with production file only
 RUN npx esbuild server/index.production.ts \
     --platform=node \
-    --packages=external \
     --bundle \
     --format=esm \
     --outfile=dist/index.js \
@@ -51,7 +50,14 @@ RUN npx esbuild server/index.production.ts \
     --external:openid-client \
     --external:@neondatabase/serverless \
     --external:ws \
-    --external:drizzle-orm/neon-serverless
+    --external:drizzle-orm \
+    --external:pg \
+    --external:express \
+    --external:connect-pg-simple \
+    --external:passport \
+    --external:passport-local \
+    --external:express-session \
+    --external:bcrypt
 
 # Production stage
 FROM node:20-alpine AS production
