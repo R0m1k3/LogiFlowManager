@@ -227,6 +227,10 @@ Changelog:
 - July 10, 2025. Correction finale du schéma utilisateurs avec colonnes first_name/last_name pour compatibilité Drizzle ORM
 - July 10, 2025. **APPLICATION PRODUCTION PRÊTE** - Schéma SQL identique à Drizzle, auto-initialisation complète, admin/admin opérationnel
 - July 10, 2025. Suppression configuration nginx/reverse proxy - Déploiement direct sur port 8080 selon préférence utilisateur
+- July 10, 2025. **ERREUR 502 RÉSOLUE** - Correction erreur ES module "Dynamic require" dans l'authentification locale
+- July 10, 2025. Ajout système de logs détaillés avec tracking unique des requêtes pour debug production
+- July 10, 2025. Création routes debug (/api/debug/status, /api/debug/echo, /api/debug/db) pour diagnostic
+- July 10, 2025. Application Docker production fonctionnelle avec accès direct port 8080 sans reverse proxy
 
 ## User Preferences
 
