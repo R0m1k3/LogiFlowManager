@@ -10,7 +10,7 @@ export async function initializeDatabase() {
         id VARCHAR PRIMARY KEY NOT NULL,
         username VARCHAR UNIQUE NOT NULL,
         email VARCHAR UNIQUE NOT NULL,
-        name VARCHAR NOT NULL,
+        name VARCHAR,
         role VARCHAR NOT NULL DEFAULT 'employee' CHECK (role IN ('admin', 'manager', 'employee')),
         password VARCHAR NOT NULL,
         password_changed BOOLEAN DEFAULT FALSE,
@@ -18,6 +18,33 @@ export async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Check if 'name' column exists, if not add it (for existing installations)
+    console.log("🔧 Checking for name column in users table...");
+    try {
+      const columnCheck = await db.execute(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'name'
+      `);
+      
+      if (columnCheck.length === 0) {
+        console.log("🔧 Adding missing 'name' column to users table...");
+        await db.execute(`ALTER TABLE users ADD COLUMN name VARCHAR(255)`);
+        
+        // Update existing users with name from username
+        await db.execute(`
+          UPDATE users 
+          SET name = COALESCE(username, email) 
+          WHERE name IS NULL OR name = ''
+        `);
+        console.log("✅ Name column added and populated successfully");
+      } else {
+        console.log("✅ Name column already exists");
+      }
+    } catch (error) {
+      console.log("⚠️ Could not check/add name column:", error.message);
+    }
 
     // Create groups table  
     await db.execute(`

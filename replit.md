@@ -288,6 +288,9 @@ Changelog:
 - July 10, 2025. **ERREUR PRODUCTION IDENTIFIÉE** - Colonne "name" manquante dans base PostgreSQL production
 - July 10, 2025. Créé script apply-production-fix.sql pour corriger le schéma en production
 - July 10, 2025. **CORRECTION REQUISE** - Exécuter ALTER TABLE users ADD COLUMN name VARCHAR(255) sur base production
+- July 10, 2025. **SOLUTION AUTO-RÉPARATION** - Modification initDatabase.production.ts pour détecter et ajouter automatiquement la colonne manquante
+- July 10, 2025. Script d'initialisation maintenant vérifie l'existence de la colonne 'name' et l'ajoute si nécessaire au démarrage
+- July 10, 2025. Migration automatique des données existantes avec COALESCE(username, email) pour remplir la colonne name
 
 ## User Preferences
 
