@@ -14,7 +14,7 @@ RUN npm ci && npm cache clean --force
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN npm run build && node server/build.js
 
 # Production stage
 FROM node:20-alpine AS production
@@ -43,14 +43,14 @@ USER nextjs
 # Expose port
 EXPOSE 5000
 
-# Install curl for health check
+# Install wget for health check
 USER root
-RUN apk add --no-cache curl
+RUN apk add --no-cache wget
 USER nextjs
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/api/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1
 
 # Start the application
 CMD ["node", "dist/index.js"]
