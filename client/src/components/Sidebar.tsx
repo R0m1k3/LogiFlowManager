@@ -69,6 +69,12 @@ export default function Sidebar() {
       icon: Truck, 
       roles: ["admin", "manager", "employee"] 
     },
+    { 
+      path: "/bl-reconciliation", 
+      label: "Rapprochement", 
+      icon: FileText, 
+      roles: ["admin", "manager"] 
+    },
   ];
 
   const managementItems = [
@@ -82,12 +88,6 @@ export default function Sidebar() {
       path: "/groups", 
       label: "Groupes/Magasins", 
       icon: Users, 
-      roles: ["admin", "manager"] 
-    },
-    { 
-      path: "/bl-reconciliation", 
-      label: "BL/Factures", 
-      icon: FileText, 
       roles: ["admin", "manager"] 
     },
     { 

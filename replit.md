@@ -170,6 +170,7 @@ Changelog:
 - July 10, 2025. Created BLReconciliation page for managing delivery receipts and invoice reconciliation
 - July 10, 2025. Enhanced deliveries table with BL tracking fields: blNumber, blAmount, invoiceReference, invoiceAmount, reconciled
 - July 10, 2025. Modified validation workflow to require BL information when validating deliveries
+- July 10, 2025. Renamed BL/Factures to "Rapprochement" and moved to main navigation menu
 
 ## User Preferences
 

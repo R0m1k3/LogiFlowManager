@@ -164,7 +164,7 @@ export default function BLReconciliation() {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 flex items-center">
               <FileText className="w-6 h-6 mr-3 text-primary" />
-              Gestion BL/Factures
+              Rapprochement
             </h2>
             <p className="text-gray-600 mt-1">
               Rapprochement des bons de livraison et factures
