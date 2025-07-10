@@ -42,10 +42,16 @@ export default function Calendar() {
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
       }
-      console.log('Loading orders for period:', format(monthStart, 'yyyy-MM-dd'), 'to', format(monthEnd, 'yyyy-MM-dd'));
-      const result = await apiRequest("GET", `/api/orders?${params.toString()}`);
-      console.log('Orders result:', result);
-      return Array.isArray(result) ? result : [];
+      
+      const response = await fetch(`/api/orders?${params.toString()}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch orders');
+      }
+      
+      return await response.json();
     },
   });
 
@@ -62,10 +68,16 @@ export default function Calendar() {
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
       }
-      console.log('Loading deliveries for period:', format(monthStart, 'yyyy-MM-dd'), 'to', format(monthEnd, 'yyyy-MM-dd'));
-      const result = await apiRequest("GET", `/api/deliveries?${params.toString()}`);
-      console.log('Deliveries result:', result);
-      return Array.isArray(result) ? result : [];
+      
+      const response = await fetch(`/api/deliveries?${params.toString()}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch deliveries');
+      }
+      
+      return await response.json();
     },
   });
 
