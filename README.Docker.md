@@ -68,7 +68,7 @@ docker-compose ps
 
 Une fois déployé, l'application est accessible sur :
 
-- **Application** : http://localhost:5000
+- **Application** : http://localhost:5001
 
 ### 🔑 Connexion par Défaut
 

@@ -73,7 +73,7 @@ if docker-compose ps | grep -q "Up"; then
     print_status "✅ Services démarrés avec succès !"
     echo ""
     echo "🌐 Application disponible sur :"
-    echo "   - Application: http://localhost:5000"
+    echo "   - Application: http://localhost:5001"
     echo ""
     echo "🔑 Connexion par défaut :"
     echo "   - Identifiant: admin"

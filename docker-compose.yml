@@ -39,7 +39,7 @@ services:
       # Force local authentication in Docker
       USE_LOCAL_AUTH: "true"
     ports:
-      - "5000:5000"
+      - "5001:5000"
     depends_on:
       postgres:
         condition: service_healthy
