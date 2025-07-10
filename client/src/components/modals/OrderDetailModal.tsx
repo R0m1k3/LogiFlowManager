@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import EditOrderModal from "./EditOrderModal";
 import EditDeliveryModal from "./EditDeliveryModal";
+import ValidateDeliveryModal from "./ValidateDeliveryModal";
 import { Package, Truck, Edit, Trash2, Check, X } from "lucide-react";
 
 interface OrderDetailModalProps {
@@ -34,8 +35,8 @@ export default function OrderDetailModal({
   const isDelivery = item?.type === 'delivery';
 
   const validateDeliveryMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("POST", `/api/deliveries/${id}/validate`);
+    mutationFn: async (data: { id: number; blNumber: string; blAmount: number }) => {
+      await apiRequest("POST", `/api/deliveries/${data.id}/validate`, data);
     },
     onSuccess: () => {
       toast({
@@ -100,10 +101,10 @@ export default function OrderDetailModal({
     },
   });
 
+  const [showValidateModal, setShowValidateModal] = useState(false);
+
   const handleValidateDelivery = () => {
-    if (item.id) {
-      validateDeliveryMutation.mutate(item.id);
-    }
+    setShowValidateModal(true);
   };
 
   const handleDelete = () => {
@@ -326,7 +327,6 @@ export default function OrderDetailModal({
             {canValidate && (
               <Button
                 onClick={handleValidateDelivery}
-                disabled={validateDeliveryMutation.isPending}
                 className="bg-secondary hover:bg-green-700"
               >
                 <Check className="w-4 h-4 mr-2" />
@@ -381,6 +381,15 @@ export default function OrderDetailModal({
       <EditDeliveryModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
+        delivery={item}
+      />
+    )}
+
+    {/* Validate Delivery Modal */}
+    {showValidateModal && isDelivery && (
+      <ValidateDeliveryModal
+        isOpen={showValidateModal}
+        onClose={() => setShowValidateModal(false)}
         delivery={item}
       />
     )}

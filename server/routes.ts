@@ -337,10 +337,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { startDate, endDate, storeId } = req.query;
+      const { startDate, endDate, storeId, withBL } = req.query;
       let deliveries;
 
-      console.log('Deliveries API called with:', { startDate, endDate, storeId, userRole: user.role });
+      console.log('Deliveries API called with:', { startDate, endDate, storeId, withBL, userRole: user.role });
 
       if (user.role === 'admin') {
         let groupIds: number[] | undefined;
@@ -370,6 +370,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           deliveries = await storage.getDeliveries(groupIds);
         }
+      }
+
+      // Filter for BL if requested
+      if (withBL === 'true') {
+        deliveries = deliveries.filter((d: any) => d.blNumber && d.status === 'delivered');
       }
 
       console.log('Deliveries returned:', deliveries.length, 'items');
@@ -560,7 +565,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      await storage.validateDelivery(id);
+      const { blNumber, blAmount } = req.body;
+      
+      if (!blNumber || !blAmount) {
+        return res.status(400).json({ message: "BL number and amount are required" });
+      }
+      
+      await storage.validateDelivery(id, { blNumber, blAmount });
       res.json({ message: "Delivery validated successfully" });
     } catch (error) {
       console.error("Error validating delivery:", error);

@@ -62,7 +62,7 @@ export interface IStorage {
   createDelivery(delivery: InsertDelivery): Promise<Delivery>;
   updateDelivery(id: number, delivery: Partial<InsertDelivery>): Promise<Delivery>;
   deleteDelivery(id: number): Promise<void>;
-  validateDelivery(id: number): Promise<void>;
+  validateDelivery(id: number, blData?: { blNumber: string; blAmount: number }): Promise<void>;
   
   // User-Group operations
   getUserGroups(userId: string): Promise<UserGroup[]>;
@@ -363,18 +363,27 @@ export class DatabaseStorage implements IStorage {
     await db.delete(deliveries).where(eq(deliveries.id, id));
   }
 
-  async validateDelivery(id: number): Promise<void> {
+  async validateDelivery(id: number, blData?: { blNumber: string; blAmount: number }): Promise<void> {
     const delivery = await this.getDelivery(id);
     if (!delivery) throw new Error("Delivery not found");
+    
+    // Prepare update data
+    const updateData: any = { 
+      status: "delivered",
+      deliveredDate: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Add BL data if provided
+    if (blData) {
+      updateData.blNumber = blData.blNumber;
+      updateData.blAmount = blData.blAmount.toString();
+    }
     
     // Update delivery status and set delivered date
     await db
       .update(deliveries)
-      .set({ 
-        status: "delivered",
-        deliveredDate: new Date(),
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(deliveries.id, id));
     
     // Update linked order status if exists

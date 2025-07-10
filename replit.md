@@ -165,6 +165,11 @@ Changelog:
 - July 10, 2025. Orders linked to pending deliveries now show orange background with indicator dot
 - July 10, 2025. Improved calendar color logic: planned orders (linked to deliveries) now orange, pending orders stay blue
 - July 10, 2025. Added visual indicators for planned orders and pending deliveries with appropriate tooltips
+- July 10, 2025. Implemented comprehensive BL/Invoice reconciliation system with database schema extensions
+- July 10, 2025. Added ValidateDeliveryModal for capturing BL number and amount during delivery validation
+- July 10, 2025. Created BLReconciliation page for managing delivery receipts and invoice reconciliation
+- July 10, 2025. Enhanced deliveries table with BL tracking fields: blNumber, blAmount, invoiceReference, invoiceAmount, reconciled
+- July 10, 2025. Modified validation workflow to require BL information when validating deliveries
 
 ## User Preferences
 

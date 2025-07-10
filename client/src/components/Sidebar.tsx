@@ -10,7 +10,8 @@ import {
   Building, 
   Users, 
   UserCog, 
-  LogOut 
+  LogOut,
+  FileText 
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -81,6 +82,12 @@ export default function Sidebar() {
       path: "/groups", 
       label: "Groupes/Magasins", 
       icon: Users, 
+      roles: ["admin", "manager"] 
+    },
+    { 
+      path: "/bl-reconciliation", 
+      label: "BL/Factures", 
+      icon: FileText, 
       roles: ["admin", "manager"] 
     },
     { 

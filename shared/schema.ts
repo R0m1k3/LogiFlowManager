@@ -92,6 +92,12 @@ export const deliveries = pgTable("deliveries", {
   unit: varchar("unit").notNull(), // 'palettes' or 'colis'
   status: varchar("status").notNull().default("planned"), // planned, delivered
   comments: text("comments"),
+  // Champs pour le rapprochement BL/Factures
+  blNumber: varchar("bl_number"), // Numéro de Bon de Livraison
+  blAmount: decimal("bl_amount", { precision: 10, scale: 2 }), // Montant BL
+  invoiceReference: varchar("invoice_reference"), // Référence facture
+  invoiceAmount: decimal("invoice_amount", { precision: 10, scale: 2 }), // Montant facture
+  reconciled: boolean("reconciled").default(false), // Rapprochement effectué
   createdBy: varchar("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
