@@ -105,15 +105,8 @@ export default function CalendarGrid({
                 {/* Orders and Deliveries */}
                 <div className="mt-1 space-y-1">
                   {dayOrders.map((order) => {
-                    // Vérifier si la commande a une livraison en attente
-                    const hasDeliveryPending = order.deliveries?.some(delivery => delivery.status === 'pending') || false;
-                    
-                    // Debug : afficher les données de la commande
-                    console.log(`Commande ${order.id} - ${order.supplier.name}:`, {
-                      status: order.status,
-                      deliveries: order.deliveries,
-                      hasDeliveryPending
-                    });
+                    // Vérifier si la commande a une livraison liée (peu importe le statut)
+                    const hasLinkedDelivery = order.deliveries && order.deliveries.length > 0;
                     
                     return (
                       <div
@@ -121,7 +114,7 @@ export default function CalendarGrid({
                         className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${
                           order.status === 'delivered' 
                             ? 'bg-delivered text-white' 
-                            : hasDeliveryPending
+                            : hasLinkedDelivery
                             ? 'bg-orange-500 text-white border-2 border-orange-300'
                             : 'bg-primary text-white'
                         }`}
@@ -134,8 +127,8 @@ export default function CalendarGrid({
                           {order.supplier.name}
                         </span>
                         <div className="flex items-center ml-1 flex-shrink-0">
-                          {hasDeliveryPending && (
-                            <span className="w-2 h-2 bg-yellow-300 rounded-full mr-1" title="Livraison en attente de validation" />
+                          {hasLinkedDelivery && (
+                            <span className="w-2 h-2 bg-yellow-300 rounded-full mr-1" title="Commande liée à une livraison" />
                           )}
                           {order.status === 'delivered' && (
                             <Check className="w-3 h-3" />
@@ -145,15 +138,8 @@ export default function CalendarGrid({
                     );
                   })}
                   
-                  {dayDeliveries.map((delivery) => {
-                    // Debug : afficher les données de la livraison
-                    console.log(`Livraison ${delivery.id} - ${delivery.supplier.name}:`, {
-                      status: delivery.status,
-                      orderId: delivery.orderId
-                    });
-                    
-                    return (
-                      <div
+                  {dayDeliveries.map((delivery) => (
+                    <div
                       key={`delivery-${delivery.id}`}
                       className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${
                         delivery.status === 'delivered' 
@@ -178,9 +164,8 @@ export default function CalendarGrid({
                           <Check className="w-3 h-3" />
                         )}
                       </div>
-                      </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
               
