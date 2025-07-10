@@ -137,7 +137,7 @@ export default function Sidebar() {
         })}
 
         {/* Management Section */}
-        {managementItems.some(item => hasPermission(item.roles)) && (
+        {(user?.role === 'admin' || user?.role === 'manager') && (
           <div className="pt-4 border-t border-gray-200">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 px-3">
               Gestion
