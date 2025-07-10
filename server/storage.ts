@@ -208,7 +208,7 @@ export class DatabaseStorage implements IStorage {
         creator: true,
         deliveries: true,
       },
-      orderBy: [desc(orders.plannedDate)],
+      orderBy: [desc(orders.createdAt)],
       where: groupIds ? inArray(orders.groupId, groupIds) : undefined,
     });
     
@@ -235,7 +235,7 @@ export class DatabaseStorage implements IStorage {
         deliveries: true,
       },
       where: whereCondition,
-      orderBy: [orders.plannedDate],
+      orderBy: [desc(orders.createdAt)],
     });
   }
 
@@ -278,7 +278,7 @@ export class DatabaseStorage implements IStorage {
         creator: true,
         order: true,
       },
-      orderBy: [desc(deliveries.plannedDate)],
+      orderBy: [desc(deliveries.createdAt)],
       where: groupIds ? inArray(deliveries.groupId, groupIds) : undefined,
     });
     
@@ -308,7 +308,7 @@ export class DatabaseStorage implements IStorage {
         order: true,
       },
       where: whereCondition,
-      orderBy: [deliveries.plannedDate],
+      orderBy: [desc(deliveries.createdAt)],
     });
     
     return results.map(result => ({

@@ -172,6 +172,10 @@ Changelog:
 - July 10, 2025. Modified validation workflow to require BL information when validating deliveries
 - July 10, 2025. Renamed BL/Factures to "Rapprochement" and moved to main navigation menu
 - July 10, 2025. Modified validation workflow to automatically close detail modal after successful delivery validation
+- July 10, 2025. Enhanced BL reconciliation module with editable invoice fields and automatic difference calculation
+- July 10, 2025. Added validation workflow for completed reconciliations with visual status indicators and line graying
+- July 10, 2025. Implemented newest-first display order across all pages (orders, deliveries, reconciliation)
+- July 10, 2025. Added comprehensive invoice editing functionality with real-time difference calculation between BL and invoice amounts
 
 ## User Preferences
 

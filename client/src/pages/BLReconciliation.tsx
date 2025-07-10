@@ -15,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useStore } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, Plus, Edit, FileText, Euro, Calendar, Building2 } from "lucide-react";
+import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle } from "lucide-react";
 
 const invoiceSchema = z.object({
   invoiceReference: z.string().min(1, "La référence facture est obligatoire"),
@@ -55,7 +55,9 @@ export default function BLReconciliation() {
       }
       
       const deliveries = await response.json();
-      return deliveries.filter((d: any) => d.blNumber && d.status === 'delivered');
+      return deliveries
+        .filter((d: any) => d.blNumber && d.status === 'delivered')
+        .sort((a: any, b: any) => new Date(b.deliveredDate).getTime() - new Date(a.deliveredDate).getTime());
     },
   });
 
@@ -72,7 +74,6 @@ export default function BLReconciliation() {
       await apiRequest("PUT", `/api/deliveries/${data.id}`, {
         invoiceReference: data.invoiceReference,
         invoiceAmount: data.invoiceAmount,
-        reconciled: true,
       });
     },
     onSuccess: () => {
@@ -105,6 +106,39 @@ export default function BLReconciliation() {
     },
   });
 
+  const reconcileMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("PUT", `/api/deliveries/${id}`, {
+        reconciled: true,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Rapprochement validé avec succès",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Non autorisé",
+          description: "Vous êtes déconnecté. Reconnexion...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erreur",
+        description: "Impossible de valider le rapprochement",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAddInvoice = (delivery: any) => {
     setSelectedDelivery(delivery);
     form.reset({
@@ -131,12 +165,23 @@ export default function BLReconciliation() {
 
   const getStatusBadge = (delivery: any) => {
     if (delivery.reconciled) {
-      return <Badge className="bg-green-100 text-green-800">Rapproché</Badge>;
+      return <Badge className="bg-green-100 text-green-800">Validé</Badge>;
+    }
+    if (delivery.invoiceReference && delivery.invoiceAmount) {
+      return <Badge className="bg-blue-100 text-blue-800">Prêt à valider</Badge>;
     }
     if (delivery.invoiceReference) {
-      return <Badge className="bg-yellow-100 text-yellow-800">Facture saisie</Badge>;
+      return <Badge className="bg-yellow-100 text-yellow-800">Facture partielle</Badge>;
     }
     return <Badge variant="secondary">En attente</Badge>;
+  };
+
+  const canValidate = (delivery: any) => {
+    return delivery.invoiceReference && delivery.invoiceAmount && !delivery.reconciled;
+  };
+
+  const handleValidateReconciliation = (delivery: any) => {
+    reconcileMutation.mutate(delivery.id);
   };
 
   const filteredDeliveries = deliveriesWithBL.filter((delivery: any) => {
@@ -247,7 +292,10 @@ export default function BLReconciliation() {
                   );
                   
                   return (
-                    <tr key={delivery.id} className="hover:bg-gray-50">
+                    <tr 
+                      key={delivery.id} 
+                      className={`hover:bg-gray-50 ${delivery.reconciled ? 'bg-gray-100 text-gray-600' : ''}`}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {delivery.supplier?.name}
@@ -305,18 +353,30 @@ export default function BLReconciliation() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center justify-end space-x-2">
                           {getStatusBadge(delivery)}
                           {!delivery.reconciled && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleAddInvoice(delivery)}
-                              className="ml-2"
-                            >
-                              <Edit className="w-4 h-4 mr-1" />
-                              {delivery.invoiceReference ? 'Modifier' : 'Ajouter'} facture
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAddInvoice(delivery)}
+                              >
+                                <Edit className="w-4 h-4 mr-1" />
+                                {delivery.invoiceReference ? 'Modifier' : 'Ajouter'} facture
+                              </Button>
+                              {canValidate(delivery) && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleValidateReconciliation(delivery)}
+                                  disabled={reconcileMutation.isPending}
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  Valider
+                                </Button>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>
