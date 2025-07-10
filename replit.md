@@ -285,6 +285,9 @@ Changelog:
 - July 10, 2025. Ajout du champ "name" dans le schéma users pour compatibilité avec l'existant
 - July 10, 2025. Mapping manuel des résultats SQL vers les types TypeScript avec gestion d'erreur robuste
 - July 10, 2025. **APPROCHE TECHNIQUE FINALE** - Abandon des SELECT complexes Drizzle au profit de db.execute(sql\`...\`) pour la stabilité
+- July 10, 2025. **ERREUR PRODUCTION IDENTIFIÉE** - Colonne "name" manquante dans base PostgreSQL production
+- July 10, 2025. Créé script apply-production-fix.sql pour corriger le schéma en production
+- July 10, 2025. **CORRECTION REQUISE** - Exécuter ALTER TABLE users ADD COLUMN name VARCHAR(255) sur base production
 
 ## User Preferences
 
