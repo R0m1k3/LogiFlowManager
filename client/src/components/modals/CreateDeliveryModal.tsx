@@ -151,9 +151,12 @@ export default function CreateDeliveryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="delivery-modal-description">
         <DialogHeader>
           <DialogTitle>Nouvelle Livraison</DialogTitle>
+          <p id="delivery-modal-description" className="sr-only">
+            Formulaire de création d'une nouvelle livraison
+          </p>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">

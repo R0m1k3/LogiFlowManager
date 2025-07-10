@@ -158,13 +158,24 @@ export function setupLocalAuth(app: Express) {
     })(req, res, next);
   });
 
-  // Logout route
-  app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
+  // Logout routes (both GET and POST for compatibility)
+  const logoutHandler = (req: any, res: any, next: any) => {
+    req.logout((err: any) => {
       if (err) return next(err);
-      res.json({ message: "Déconnexion réussie" });
+      req.session.destroy((err: any) => {
+        if (err) return next(err);
+        res.clearCookie('connect.sid');
+        if (req.method === 'GET') {
+          res.redirect('/');
+        } else {
+          res.json({ message: "Déconnexion réussie" });
+        }
+      });
     });
-  });
+  };
+  
+  app.post("/api/logout", logoutHandler);
+  app.get("/api/logout", logoutHandler);
 
   // Get current user
   app.get("/api/user", (req, res) => {

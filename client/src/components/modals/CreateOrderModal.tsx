@@ -125,9 +125,12 @@ export default function CreateOrderModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="order-modal-description">
         <DialogHeader>
           <DialogTitle>Nouvelle Commande</DialogTitle>
+          <p id="order-modal-description" className="sr-only">
+            Formulaire de création d'une nouvelle commande
+          </p>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
