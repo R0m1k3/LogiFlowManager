@@ -1,0 +1,104 @@
+Production Environment Configuration:
+
+- NODE_ENV: production
+
+- USE_LOCAL_AUTH: true
+
+- DATABASE_URL: ***configured***
+
+- PORT: 5000
+
+Using PostgreSQL connection for production
+
+Using local authentication system
+
+🔧 Setting up local authentication...
+
+Warning: connect.session() MemoryStore is not
+
+designed for a production environment, as it will leak
+
+memory, and will not scale past a single process.
+
+✅ Session configured
+
+🔄 Initializing database schema...
+
+[express] Serving static files from: /app/dist/client
+
+[express] serving on port 5000
+
+[express] Server bound to 0.0.0.0:5000
+
+[express] Ready to accept connections
+
+✅ Database schema initialized successfully
+
+Checking for default admin user...
+
+✅ Default admin user already exists
+
+🔍 Server diagnostics:
+
+   - Process PID: 1
+
+   - Memory usage: 12MB
+
+   - Node version: v20.19.3
+
+   - Working directory: /app
+
+[iub6e8] --> HEAD /api/health
+
+[iub6e8]     Host: localhost:5000
+
+[iub6e8]     IP: 127.0.0.1
+
+[iub6e8]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[iub6e8] <-- HEAD /api/health 200 in 4ms :: {"status":"healthy","timestamp":"2025-07-10T19:54:51.208Z","environment":"production","auth":"local…
+
+[7u62lb] --> HEAD /api/health
+
+[7u62lb]     Host: localhost:5000
+
+[7u62lb]     IP: 127.0.0.1
+
+[7u62lb]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[7u62lb] <-- HEAD /api/health 200 in 1ms :: {"status":"healthy","timestamp":"2025-07-10T19:55:21.276Z","environment":"production","auth":"local…
+
+[05lei] --> HEAD /api/health
+
+[05lei]     Host: localhost:5000
+
+[05lei]     IP: 127.0.0.1
+
+[05lei]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[05lei] <-- HEAD /api/health 200 in 1ms :: {"status":"healthy","timestamp":"2025-07-10T19:55:51.336Z","environment":"production","auth":"local…
+
+[ji1iga] --> HEAD /api/health
+
+[ji1iga]     Host: localhost:5000
+
+[ji1iga]     IP: 127.0.0.1
+
+[ji1iga]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[ji1iga] <-- HEAD /api/health 200 in 1ms :: {"status":"healthy","timestamp":"2025-07-10T19:56:21.402Z","environment":"production","auth":"local…
+
+[tg2dq8] --> HEAD /api/health
+
+[tg2dq8]     Host: localhost:5000
+
+[tg2dq8]     IP: 127.0.0.1
+
+[tg2dq8]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[tg2dq8] <-- HEAD /api/health 200 in 1ms :: {"status":"healthy","timestamp":"2025-07-10T19:56:51.454Z","environment":"production","auth":"local…
+
+
+      
+      
+    
