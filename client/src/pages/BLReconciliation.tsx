@@ -322,7 +322,14 @@ export default function BLReconciliation() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {delivery.invoiceReference || (
-                            <span className="text-gray-400">Non renseigné</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleAddInvoice(delivery)}
+                              className="text-blue-600 hover:text-blue-800 p-0 h-auto font-normal underline"
+                            >
+                              Cliquer pour ajouter
+                            </Button>
                           )}
                         </div>
                       </td>
@@ -330,7 +337,14 @@ export default function BLReconciliation() {
                         <div className="text-sm text-gray-900">
                           {delivery.invoiceAmount ? 
                             `${parseFloat(delivery.invoiceAmount).toFixed(2)} €` : 
-                            <span className="text-gray-400">-</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleAddInvoice(delivery)}
+                              className="text-blue-600 hover:text-blue-800 p-0 h-auto font-normal underline"
+                            >
+                              Cliquer pour ajouter
+                            </Button>
                           }
                         </div>
                       </td>
@@ -357,14 +371,16 @@ export default function BLReconciliation() {
                           {getStatusBadge(delivery)}
                           {!delivery.reconciled && (
                             <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleAddInvoice(delivery)}
-                              >
-                                <Edit className="w-4 h-4 mr-1" />
-                                {delivery.invoiceReference ? 'Modifier' : 'Ajouter'} facture
-                              </Button>
+                              {(delivery.invoiceReference || delivery.invoiceAmount) && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleAddInvoice(delivery)}
+                                >
+                                  <Edit className="w-4 h-4 mr-1" />
+                                  Modifier
+                                </Button>
+                              )}
                               {canValidate(delivery) && (
                                 <Button
                                   size="sm"
@@ -450,6 +466,24 @@ export default function BLReconciliation() {
                   </FormItem>
                 )}
               />
+
+              {/* Aperçu de l'écart */}
+              {form.watch("invoiceAmount") && selectedDelivery?.blAmount && (
+                <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                  <h4 className="font-medium text-gray-900">Aperçu de l'écart</h4>
+                  <div className="text-sm">
+                    <p><strong>Montant BL:</strong> {parseFloat(selectedDelivery.blAmount).toFixed(2)} €</p>
+                    <p><strong>Montant Facture:</strong> {parseFloat(form.watch("invoiceAmount") || "0").toFixed(2)} €</p>
+                    <p className={`font-medium ${
+                      Math.abs(parseFloat(selectedDelivery.blAmount) - parseFloat(form.watch("invoiceAmount") || "0")) < 0.01 
+                        ? 'text-green-600' 
+                        : 'text-red-600'
+                    }`}>
+                      <strong>Écart:</strong> {(parseFloat(selectedDelivery.blAmount) - parseFloat(form.watch("invoiceAmount") || "0")).toFixed(2)} €
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex justify-end space-x-3 pt-4">
