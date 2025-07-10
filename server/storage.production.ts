@@ -247,64 +247,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // REMOVED: old getUsers method that was causing Drizzle ORM errors
-              assignedAt: userGroups.assignedAt,
-              groupName: groups.name,
-              groupColor: groups.color,
-              groupCreatedAt: groups.createdAt,
-              groupUpdatedAt: groups.updatedAt,
-            })
-            .from(userGroups)
-            .leftJoin(groups, eq(userGroups.groupId, groups.id))
-            .where(eq(userGroups.userId, user.id));
-          
-          console.log('✅ User groups for', user.username, ':', userGroupsData.length);
-          
-          // Build user with groups
-          const userWithGroups: UserWithGroups = {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-            password: user.password,
-            passwordChanged: user.passwordChanged,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
-            userGroups: userGroupsData.map(ug => ({
-              id: ug.id,
-              userId: ug.userId,
-              groupId: ug.groupId,
-              assignedAt: ug.assignedAt,
-              group: ug.groupName ? {
-                id: ug.groupId,
-                name: ug.groupName,
-                color: ug.groupColor!,
-                createdAt: ug.groupCreatedAt!,
-                updatedAt: ug.groupUpdatedAt!,
-              } : undefined
-            })).filter(ug => ug.group !== undefined) as any[]
-          };
-          
-          usersWithGroups.push(userWithGroups);
-        } catch (error) {
-          console.error('❌ Error processing user groups for', user.username, ':', error);
-          // Add user without groups if groups query fails
-          usersWithGroups.push({
-            ...user,
-            userGroups: []
-          });
-        }
-      }
-      
-      console.log('✅ Final users with groups:', usersWithGroups.length);
-      return usersWithGroups;
-      
-    } catch (error) {
-      console.error('❌ Error in getUsers:', error);
-      throw error;
-    }
-  }
+
 
   async createUser(userData: UpsertUser): Promise<User> {
     const result = await db.insert(users).values(userData).returning();

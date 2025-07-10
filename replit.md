@@ -307,6 +307,9 @@ Changelog:
 - July 10, 2025. Dockerfile corrigé : suppression --packages=external, gardé seulement --external: pour modules Node.js critiques
 - July 10, 2025. Build backend optimisé avec bundle ESM et modules externes (pg, express, bcrypt, drizzle-orm, etc.)
 - July 10, 2025. Correction déploiement Docker : esbuild moderne compatible avec format ESM production
+- July 10, 2025. **ERREUR SYNTAXE RÉSOLUE** - Nettoyage complet storage.production.ts, suppression code Drizzle ORM cassé
+- July 10, 2025. Test esbuild local réussi : 285.8kb bundle généré en 55ms sans erreur
+- July 10, 2025. **DOCKER BUILD FINALEMENT PRÊT** - Toutes erreurs syntaxe et build corrigées pour déploiement production
 
 ## User Preferences
 

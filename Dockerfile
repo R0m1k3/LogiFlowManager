@@ -38,26 +38,7 @@ RUN echo "=== BUILD VERIFICATION ===" && \
     ls -la dist/public/index.html
 
 # Build backend with production file only
-RUN npx esbuild server/index.production.ts \
-    --platform=node \
-    --bundle \
-    --format=esm \
-    --outfile=dist/index.js \
-    --external:vite \
-    --external:@vitejs/* \
-    --external:@replit/* \
-    --external:tsx \
-    --external:openid-client \
-    --external:@neondatabase/serverless \
-    --external:ws \
-    --external:drizzle-orm \
-    --external:pg \
-    --external:express \
-    --external:connect-pg-simple \
-    --external:passport \
-    --external:passport-local \
-    --external:express-session \
-    --external:bcrypt
+RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm --outfile=dist/index.js --external:vite --external:@vitejs/* --external:@replit/* --external:tsx --external:openid-client --external:@neondatabase/serverless --external:ws --external:drizzle-orm --external:pg --external:express --external:connect-pg-simple --external:passport --external:passport-local --external:express-session --external:bcrypt
 
 # Production stage
 FROM node:20-alpine AS production
