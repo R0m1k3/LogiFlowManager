@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CalendarGrid from "@/components/CalendarGrid";
@@ -17,6 +17,7 @@ import { fr } from "date-fns/locale";
 export default function Calendar() {
   const { user } = useAuth();
   const { selectedStoreId } = useStore();
+  const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date(2025, 6, 1)); // July 2025
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -97,6 +98,10 @@ export default function Calendar() {
   };
 
   const handleItemClick = (item: any, type: 'order' | 'delivery') => {
+    // Rafraîchir les données avant d'ouvrir le modal pour s'assurer d'avoir les liaisons à jour
+    queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+    
     setSelectedItem({ ...item, type });
     setShowOrderDetail(true);
   };
