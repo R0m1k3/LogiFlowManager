@@ -31,7 +31,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getUserWithGroups(id: string): Promise<UserWithGroups | undefined>;
-  getUsers(): Promise<User[]>;
+  getUsers(): Promise<UserWithGroups[]>;
   createUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, user: Partial<UpsertUser>): Promise<User>;
   deleteUser(id: string): Promise<void>;
@@ -175,8 +175,73 @@ export class DatabaseStorage implements IStorage {
     return user as UserWithGroups;
   }
 
-  async getUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(desc(users.createdAt));
+  async getUsers(): Promise<UserWithGroups[]> {
+    const result = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        name: users.name,
+        role: users.role,
+        password: users.password,
+        passwordChanged: users.passwordChanged,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        userGroupId: userGroups.id,
+        userGroupUserId: userGroups.userId,
+        userGroupGroupId: userGroups.groupId,
+        userGroupAssignedAt: userGroups.assignedAt,
+        groupId: groups.id,
+        groupName: groups.name,
+        groupColor: groups.color,
+        groupCreatedAt: groups.createdAt,
+        groupUpdatedAt: groups.updatedAt,
+      })
+      .from(users)
+      .leftJoin(userGroups, eq(users.id, userGroups.userId))
+      .leftJoin(groups, eq(userGroups.groupId, groups.id))
+      .orderBy(desc(users.createdAt));
+
+    // Group by user ID to consolidate user groups
+    const usersMap = new Map<string, UserWithGroups>();
+    
+    for (const row of result) {
+      if (!usersMap.has(row.id)) {
+        usersMap.set(row.id, {
+          id: row.id,
+          username: row.username,
+          email: row.email,
+          name: row.name,
+          role: row.role,
+          password: row.password,
+          passwordChanged: row.passwordChanged,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          userGroups: []
+        });
+      }
+      
+      const user = usersMap.get(row.id)!;
+      
+      // Add user group if it exists
+      if (row.userGroupId && row.groupId) {
+        user.userGroups.push({
+          id: row.userGroupId,
+          userId: row.userGroupUserId!,
+          groupId: row.userGroupGroupId!,
+          assignedAt: row.userGroupAssignedAt!,
+          group: {
+            id: row.groupId,
+            name: row.groupName!,
+            color: row.groupColor!,
+            createdAt: row.groupCreatedAt!,
+            updatedAt: row.groupUpdatedAt!,
+          }
+        });
+      }
+    }
+    
+    return Array.from(usersMap.values());
   }
 
   async createUser(userData: UpsertUser): Promise<User> {

@@ -224,15 +224,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Users routes - Get all users (admin only)
   app.get('/api/users', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('🔍 Users API called, user ID:', req.user?.id);
+      
       const user = await storage.getUser(req.user.id);
+      console.log('🔍 Current user found:', user ? { id: user.id, role: user.role } : 'null');
+      
       if (!user || user.role !== 'admin') {
+        console.log('❌ Access denied - user is not admin');
         return res.status(403).json({ message: "Access denied - admin only" });
       }
 
+      console.log('✅ User is admin, fetching all users...');
       const users = await storage.getUsers();
+      console.log('✅ Users fetched successfully, count:', users.length);
+      
       res.json(users);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("❌ Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
