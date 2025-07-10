@@ -21,7 +21,6 @@ COPY components.json ./
 COPY client/ client/
 COPY server/ server/
 COPY shared/ shared/
-COPY scripts/ scripts/
 
 # Vérifier la structure
 RUN ls -la server/ && echo "Production files:" && ls -la server/*.production.*

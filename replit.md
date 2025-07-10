@@ -246,6 +246,8 @@ Changelog:
 - July 10, 2025. **PROBLÈME DOCKER-COMPOSE RÉSOLU** - Créé docker-compose.yml standard depuis docker-compose.production.yml
 - July 10, 2025. Simplifié déploiement : docker-compose up -d fonctionne maintenant, compatible Portainer
 - July 10, 2025. Mis à jour deploy-fix.sh et documentation pour utiliser docker-compose.yml standard
+- July 10, 2025. **ERREUR DOCKERFILE RÉSOLUE** - Supprimé référence au dossier scripts/ inexistant causant erreur checksum
+- July 10, 2025. Build Docker corrigé, déploiement Portainer maintenant fonctionnel
 
 ## User Preferences
 
