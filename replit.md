@@ -217,6 +217,9 @@ Changelog:
 - July 10, 2025. Application Docker opérationnelle avec health checks fonctionnels et authentification locale
 - July 10, 2025. Architecture finale : server/index.production.ts + server/routes.production.ts + server/storage.production.ts
 - July 10, 2025. Configuration PostgreSQL Docker : port 5434 externe, 5432 interne, credentials logiflow_admin/LogiFlow2025!
+- July 10, 2025. Création script d'initialisation SQL complet pour résoudre l'erreur "relation users does not exist"
+- July 10, 2025. Instructions de déploiement documentées avec procédure de nettoyage du volume PostgreSQL
+- July 10, 2025. Architecture production finalisée : WebSocket éliminé, bcrypt remplacé, base de données initialisée
 
 ## User Preferences
 
