@@ -46,6 +46,16 @@ export default function Dashboard() {
     queryKey: ['/api/deliveries', selectedStoreId],
   });
 
+  // Données dérivées pour les sections
+  const recentOrders = allOrders
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 3);
+  
+  const upcomingDeliveries = allDeliveries
+    .filter((d: any) => d.status === 'pending')
+    .sort((a: any, b: any) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime())
+    .slice(0, 2);
+
   // Calculs pour les statistiques
   const pendingOrdersCount = allOrders.filter((order: any) => order.status === 'pending').length;
   const averageDeliveryTime = Math.round(stats?.averageDeliveryTime || 2);
@@ -56,16 +66,6 @@ export default function Dashboard() {
            deliveryDate.getFullYear() === now.getFullYear() && 
            delivery.status === 'delivered';
   }).length;
-
-  // Données dérivées pour les sections
-  const recentOrders = allOrders
-    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 3);
-  
-  const upcomingDeliveries = allDeliveries
-    .filter((d: any) => d.status === 'pending')
-    .sort((a: any, b: any) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime())
-    .slice(0, 2);
 
   // Statistiques pour les commandes clients
   const ordersByStatus = {
@@ -176,11 +176,8 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <Badge variant={order.status === 'delivered' ? 'default' : order.status === 'planned' ? 'secondary' : 'destructive'}>
-                    {order.status === 'delivered' ? 'Livrée' : order.status === 'planned' ? 'En attente' : 'Livrée'}
+                    {order.status === 'delivered' ? 'Livrée' : order.status === 'planned' ? 'Planifiée' : 'En attente'}
                   </Badge>
-                  <p className="text-xs text-gray-500 mt-1">
-                    1 palettes
-                  </p>
                   <p className="text-xs text-gray-500">
                     {format(new Date(order.plannedDate), "d MMM", { locale: fr })}
                   </p>
