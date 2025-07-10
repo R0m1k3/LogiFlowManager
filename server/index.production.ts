@@ -1,7 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./routes.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,14 +44,23 @@ app.use((req, res, next) => {
 
 // Fonction pour servir les fichiers statiques en production
 function serveStatic(app: express.Express) {
-  const distPath = path.resolve(__dirname, "../client");
+  // En production, les fichiers sont dans dist/client
+  const distPath = path.resolve(process.cwd(), "dist/client");
   
-  // Servir les fichiers statiques depuis /client
+  console.log(`[express] Serving static files from: ${distPath}`);
+  
+  // Servir les fichiers statiques depuis dist/client
   app.use(express.static(distPath));
   
   // Route catch-all pour le SPA
   app.get("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    const indexPath = path.resolve(distPath, "index.html");
+    if (!fs.existsSync(indexPath)) {
+      console.error(`[ERROR] index.html not found at: ${indexPath}`);
+      res.status(404).send("Application not found");
+      return;
+    }
+    res.sendFile(indexPath);
   });
 }
 

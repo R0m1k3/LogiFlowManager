@@ -14,7 +14,20 @@ RUN npm ci && npm cache clean --force
 COPY . .
 
 # Build the application
-RUN npm run build && node server/build.js
+# Build frontend first
+RUN npx vite build
+
+# Build backend with production file only
+RUN npx esbuild server/index.production.ts \
+    --platform=node \
+    --packages=external \
+    --bundle \
+    --format=esm \
+    --outfile=dist/index.js \
+    --external:vite \
+    --external:@vitejs/* \
+    --external:@replit/* \
+    --external:tsx
 
 # Production stage
 FROM node:20-alpine AS production
