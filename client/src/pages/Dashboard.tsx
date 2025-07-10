@@ -37,13 +37,17 @@ export default function Dashboard() {
     },
   });
 
+  // Construire les URLs pour récupérer toutes les données (pas de filtrage par date)
+  const ordersUrl = `/api/orders${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
+  const deliveriesUrl = `/api/deliveries${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
+
   // Utiliser les mêmes clés de cache que les autres pages pour assurer la cohérence
   const { data: allOrders = [] } = useQuery({
-    queryKey: ['/api/orders', selectedStoreId],
+    queryKey: [ordersUrl, selectedStoreId],
   });
 
   const { data: allDeliveries = [] } = useQuery({
-    queryKey: ['/api/deliveries', selectedStoreId],
+    queryKey: [deliveriesUrl, selectedStoreId],
   });
 
   // Données dérivées pour les sections
@@ -55,6 +59,16 @@ export default function Dashboard() {
     .filter((d: any) => d.status === 'pending')
     .sort((a: any, b: any) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime())
     .slice(0, 2);
+
+  // Log temporaire pour diagnostic
+  console.log('Dashboard data:', {
+    totalOrders: allOrders.length,
+    totalDeliveries: allDeliveries.length,
+    recentOrdersCount: recentOrders.length,
+    upcomingDeliveriesCount: upcomingDeliveries.length,
+    allOrders: allOrders.map(o => ({ id: o.id, supplier: o.supplier?.name, createdAt: o.createdAt })),
+    allDeliveries: allDeliveries.map(d => ({ id: d.id, supplier: d.supplier?.name, status: d.status, plannedDate: d.plannedDate }))
+  });
 
   // Calculs pour les statistiques
   const pendingOrdersCount = allOrders.filter((order: any) => order.status === 'pending').length;
