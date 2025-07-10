@@ -108,16 +108,24 @@ export default function CalendarGrid({
                     // Vérifier si la commande a une livraison liée (peu importe le statut)
                     const hasLinkedDelivery = order.deliveries && order.deliveries.length > 0;
                     
+                    const colorClass = order.status === 'delivered' 
+                      ? 'bg-delivered text-white' 
+                      : hasLinkedDelivery
+                      ? 'bg-orange-500 text-white border-2 border-orange-300'
+                      : 'bg-primary text-white';
+                    
+                    // Debug : voir quelle classe est appliquée
+                    console.log(`Commande ${order.id} - ${order.supplier.name} - Date: ${order.plannedDate}:`, {
+                      status: order.status,
+                      hasLinkedDelivery,
+                      deliveriesCount: order.deliveries?.length || 0,
+                      colorClass
+                    });
+                    
                     return (
                       <div
                         key={`order-${order.id}`}
-                        className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${
-                          order.status === 'delivered' 
-                            ? 'bg-delivered text-white' 
-                            : hasLinkedDelivery
-                            ? 'bg-orange-500 text-white border-2 border-orange-300'
-                            : 'bg-primary text-white'
-                        }`}
+                        className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${colorClass}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           onItemClick(order, 'order');
