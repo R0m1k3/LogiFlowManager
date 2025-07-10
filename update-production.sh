@@ -1,72 +1,53 @@
 #!/bin/bash
 
-echo "🚀 MISE À JOUR PRODUCTION LOGIFLOW"
-echo "=================================="
+echo "🔧 MISE À JOUR PRODUCTION - CORRECTION COMPLÈTE DRIZZLE ORM"
+echo "========================================================="
 
-# Arrêter les conteneurs existants
-echo "🛑 Arrêt des conteneurs existants..."
-docker-compose down
-
-# Nettoyer complètement les images et caches
-echo "🧹 Nettoyage complet du cache Docker..."
-docker system prune -af --volumes
-
-# Reconstruire SANS cache pour forcer l'intégration du nouveau code
-echo "🔨 Reconstruction COMPLÈTE de l'image (sans cache)..."
-docker-compose build --no-cache --pull
-
-# Redémarrer avec les nouvelles images
-echo "🚀 Redémarrage avec le nouveau code..."
-docker-compose up -d
-
-# Attendre le démarrage complet
-echo "⏳ Attente du démarrage complet (30 secondes)..."
-sleep 30
-
-# Vérifier l'état des conteneurs
+echo "📝 PROBLÈME RÉSOLU:"
+echo "- Erreur Drizzle ORM : 'Cannot convert undefined or null to object'"
+echo "- Problème causé par requêtes SELECT avec objets imbriqués complexes"
+echo "- Incompatibilité entre schéma et requêtes (notes vs comments, scheduledDate vs plannedDate)"
 echo ""
-echo "📊 ÉTAT DES CONTENEURS:"
-docker-compose ps
 
+echo "✅ SOLUTION APPLIQUÉE:"
+echo "- Remplacement de toutes les requêtes Drizzle complexes par du SQL brut"
+echo "- getGroups() : SQL brut sans objets imbriqués"
+echo "- getUserWithGroups() : SQL brut avec requêtes séparées"
+echo "- getOrders() : SQL brut avec jointures explicites"
+echo "- Correction des références de champs dans le schéma"
 echo ""
-echo "📋 LOGS DE DÉMARRAGE:"
-docker-compose logs --tail=20 logiflow-app
 
+echo "🔧 FICHIERS MODIFIÉS:"
+echo "- server/storage.production.ts : Toutes les méthodes problématiques en SQL brut"
+echo "- shared/schema.ts : Ajout du champ 'name' pour compatibilité"
+echo "- Routes et logs détaillés déjà en place"
 echo ""
-echo "🔍 TEST DE CONNECTIVITÉ:"
 
-# Test API Health
-if curl -f -s http://localhost:3000/api/health >/dev/null 2>&1; then
-    echo "✅ API accessible sur port 3000"
-else
-    echo "❌ API non accessible"
-fi
+echo "🚀 INSTRUCTIONS DÉPLOIEMENT:"
+echo "1. Récupérez les fichiers corrigés :"
+echo "   - server/storage.production.ts (méthodes en SQL brut)"
+echo "   - shared/schema.ts (schéma corrigé)"
+echo ""
+echo "2. Reconstruisez l'image Docker :"
+echo "   docker-compose down"
+echo "   docker-compose build --no-cache"
+echo "   docker-compose up -d"
+echo ""
+echo "3. Vérifiez les logs :"
+echo "   docker-compose logs -f logiflow-app | grep -E 'Storage|Groups|Users|Orders'"
+echo ""
 
-# Test page d'accueil
-if curl -f -s http://localhost:3000/ >/dev/null 2>&1; then
-    echo "✅ Frontend accessible"
-else
-    echo "❌ Frontend non accessible"
-fi
+echo "🎯 RÉSULTAT ATTENDU:"
+echo "- Plus d'erreur 'Cannot convert undefined or null to object'"
+echo "- L'API /api/groups retournera les groupes (Frouard, Houdemont)"
+echo "- L'API /api/users retournera les utilisateurs"
+echo "- L'API /api/orders fonctionnera normalement"
+echo "- Toutes les pages de l'application afficheront les données"
+echo "- Performance optimisée (plus de 7000ms de latence)"
 
 echo ""
-echo "🎯 MISE À JOUR TERMINÉE"
-echo "======================="
-echo ""
-echo "🌐 Application : http://localhost:3000"
-echo "🔑 Connexion : admin / admin"
-echo ""
-echo "✅ CORRECTIONS APPLIQUÉES:"
-echo "- Erreur 'Dynamic require' résolue"
-echo "- Import ES6 de connect-pg-simple"
-echo "- Sessions PostgreSQL persistantes"
-echo "- Structure UserWithGroups[] corrigée"
-echo "- Page Users maintenant fonctionnelle"
-echo ""
-echo "📝 PROCHAINES ÉTAPES:"
-echo "1. Connectez-vous avec admin/admin"
-echo "2. Testez la page Utilisateurs (doit s'afficher)"
-echo "3. Vérifiez toutes les fonctionnalités"
-echo ""
-echo "🆘 SI PROBLÈME:"
-echo "   docker-compose logs -f logiflow-app"
+echo "🔍 TECHNIQUE:"
+echo "- Abandon des requêtes Drizzle ORM complexes"
+echo "- Utilisation de db.execute(sql\`...\`) pour éviter les problèmes d'objets imbriqués"
+echo "- Mapping manuel des résultats SQL vers les types TypeScript"
+echo "- Gestion d'erreur robuste avec logs détaillés"

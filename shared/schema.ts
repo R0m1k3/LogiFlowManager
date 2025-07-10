@@ -31,6 +31,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   username: varchar("username").unique(), // For simple login
   email: varchar("email").unique(),
+  name: varchar("name"), // Single name field for compatibility
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),

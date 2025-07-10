@@ -280,6 +280,11 @@ Changelog:
 - July 10, 2025. Même problème SQL complexe dans getUserWithGroups() que dans getUsers() - requête simplifiée
 - July 10, 2025. Toutes les méthodes de récupération données (getUsers, getGroups, getUserWithGroups) maintenant simplifiées
 - July 10, 2025. Créé complete-fix-users.sh avec correction finale complète pour users et groups
+- July 10, 2025. **SOLUTION RADICALE APPLIQUÉE** - Remplacement de toutes les requêtes Drizzle ORM complexes par du SQL brut
+- July 10, 2025. Conversion getGroups(), getUserWithGroups(), getOrders() en requêtes SQL natives pour éviter les erreurs d'objets imbriqués
+- July 10, 2025. Ajout du champ "name" dans le schéma users pour compatibilité avec l'existant
+- July 10, 2025. Mapping manuel des résultats SQL vers les types TypeScript avec gestion d'erreur robuste
+- July 10, 2025. **APPROCHE TECHNIQUE FINALE** - Abandon des SELECT complexes Drizzle au profit de db.execute(sql\`...\`) pour la stabilité
 
 ## User Preferences
 

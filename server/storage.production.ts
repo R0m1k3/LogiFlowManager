@@ -1,4 +1,4 @@
-import { eq, and, inArray, desc, sql, gte, lte } from "drizzle-orm";
+import { eq, and, inArray, desc, gte, lte, sql } from "drizzle-orm";
 import { 
   users, 
   groups, 
@@ -122,46 +122,60 @@ export class DatabaseStorage implements IStorage {
     console.log('🔍 Storage getUserWithGroups called for:', id);
     
     try {
-      // First get the user
-      const user = await db.select().from(users).where(eq(users.id, id)).limit(1);
-      if (user.length === 0) {
+      // Use raw SQL to avoid Drizzle ORM issues
+      const userResult = await db.execute(sql`
+        SELECT id, username, email, name, role, password, password_changed, created_at, updated_at 
+        FROM users 
+        WHERE id = ${id} 
+        LIMIT 1
+      `);
+      
+      if (userResult.length === 0) {
         console.log('❌ User not found:', id);
         return undefined;
       }
       
-      console.log('✅ User found:', user[0].username);
+      const user = userResult[0];
+      console.log('✅ User found:', user.username);
       
-      // Then get user groups separately
-      const userGroupsData = await db
-        .select({
-          id: userGroups.id,
-          userId: userGroups.userId,
-          groupId: userGroups.groupId,
-          assignedAt: userGroups.assignedAt,
-          groupName: groups.name,
-          groupColor: groups.color,
-          groupCreatedAt: groups.createdAt,
-          groupUpdatedAt: groups.updatedAt,
-        })
-        .from(userGroups)
-        .leftJoin(groups, eq(userGroups.groupId, groups.id))
-        .where(eq(userGroups.userId, id));
+      // Get user groups with raw SQL
+      const userGroupsResult = await db.execute(sql`
+        SELECT 
+          ug.user_id,
+          ug.group_id,
+          ug.created_at as assigned_at,
+          g.name as group_name,
+          g.color as group_color,
+          g.created_at as group_created_at,
+          g.updated_at as group_updated_at
+        FROM user_groups ug
+        LEFT JOIN groups g ON ug.group_id = g.id
+        WHERE ug.user_id = ${id}
+      `);
       
-      console.log('✅ User groups found:', userGroupsData.length);
+      console.log('✅ User groups found:', userGroupsResult.length);
       
       const userWithGroups: UserWithGroups = {
-        ...user[0],
-        userGroups: userGroupsData.map(ug => ({
-          id: ug.id,
-          userId: ug.userId,
-          groupId: ug.groupId,
-          assignedAt: ug.assignedAt,
-          group: ug.groupName ? {
-            id: ug.groupId,
-            name: ug.groupName,
-            color: ug.groupColor!,
-            createdAt: ug.groupCreatedAt!,
-            updatedAt: ug.groupUpdatedAt!,
+        id: user.id as string,
+        username: user.username as string,
+        email: user.email as string,
+        name: user.name as string,
+        role: user.role as 'admin' | 'manager' | 'employee',
+        password: user.password as string,
+        passwordChanged: user.password_changed as boolean,
+        createdAt: new Date(user.created_at as string),
+        updatedAt: new Date(user.updated_at as string),
+        userGroups: userGroupsResult.map(ug => ({
+          id: `${ug.user_id}-${ug.group_id}`,
+          userId: ug.user_id as string,
+          groupId: ug.group_id as number,
+          assignedAt: new Date(ug.assigned_at as string),
+          group: ug.group_name ? {
+            id: ug.group_id as number,
+            name: ug.group_name as string,
+            color: ug.group_color as string,
+            createdAt: new Date(ug.group_created_at as string),
+            updatedAt: new Date(ug.group_updated_at as string),
           } : undefined
         })).filter(ug => ug.group !== undefined) as any[]
       };
@@ -280,16 +294,31 @@ export class DatabaseStorage implements IStorage {
     console.log('🔍 Storage getGroups called');
     
     try {
-      const result = await db.select().from(groups).orderBy(groups.name);
+      // Raw SQL query to avoid Drizzle ORM issues
+      const result = await db.execute(sql`
+        SELECT id, name, color, created_at, updated_at 
+        FROM groups 
+        ORDER BY name
+      `);
+      
       console.log('✅ Groups query returned:', result.length, 'groups');
       
       if (result.length === 0) {
         console.log('❌ No groups found in database');
-      } else {
-        console.log('✅ Groups found:', result.map(g => ({ id: g.id, name: g.name })));
+        return [];
       }
       
-      return result;
+      const groups = result.map(row => ({
+        id: row.id as number,
+        name: row.name as string,
+        color: row.color as string,
+        createdAt: new Date(row.created_at as string),
+        updatedAt: new Date(row.updated_at as string),
+      }));
+      
+      console.log('✅ Groups found:', groups.map(g => ({ id: g.id, name: g.name })));
+      
+      return groups;
     } catch (error) {
       console.error('❌ Error in getGroups:', error);
       throw error;
@@ -346,60 +375,83 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrders(groupIds?: number[]): Promise<OrderWithRelations[]> {
-    let query = db
-      .select({
-        id: orders.id,
-        supplierId: orders.supplierId,
-        groupId: orders.groupId,
-        plannedDate: orders.plannedDate,
-        status: orders.status,
-        notes: orders.notes,
-        createdBy: orders.createdBy,
-        createdAt: orders.createdAt,
-        updatedAt: orders.updatedAt,
+    console.log('🔍 Storage getOrders called with groupIds:', groupIds);
+    
+    try {
+      // Use raw SQL to avoid complex object structure issues
+      let sqlQuery = `
+        SELECT 
+          o.id, o.supplier_id, o.group_id, o.planned_date, o.status, o.comments, o.created_by, o.created_at, o.updated_at,
+          s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.email as supplier_email, s.phone as supplier_phone,
+          s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
+          g.id as group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
+          u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
+          u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+        FROM orders o
+        INNER JOIN suppliers s ON o.supplier_id = s.id
+        INNER JOIN groups g ON o.group_id = g.id
+        INNER JOIN users u ON o.created_by = u.id
+      `;
+      
+      const params = [];
+      if (groupIds && groupIds.length > 0) {
+        sqlQuery += ` WHERE o.group_id = ANY($1)`;
+        params.push(groupIds);
+      }
+      
+      sqlQuery += ` ORDER BY o.created_at DESC`;
+      
+      const results = params.length > 0 
+        ? await db.execute(sql.raw(sqlQuery, params))
+        : await db.execute(sql.raw(sqlQuery));
+      
+      const orders = results.map(row => ({
+        id: row.id as number,
+        supplierId: row.supplier_id as number,
+        groupId: row.group_id as number,
+        plannedDate: row.planned_date as string,
+        status: row.status as string,
+        comments: row.comments as string,
+        createdBy: row.created_by as string,
+        createdAt: new Date(row.created_at as string),
+        updatedAt: new Date(row.updated_at as string),
         supplier: {
-          id: suppliers.id,
-          name: suppliers.name,
-          contact: suppliers.contact,
-          email: suppliers.email,
-          phone: suppliers.phone,
-          createdAt: suppliers.createdAt,
-          updatedAt: suppliers.updatedAt,
+          id: row.supplier_id as number,
+          name: row.supplier_name as string,
+          contact: row.supplier_contact as string,
+          email: row.supplier_email as string,
+          phone: row.supplier_phone as string,
+          createdAt: new Date(row.supplier_created_at as string),
+          updatedAt: new Date(row.supplier_updated_at as string),
         },
         group: {
-          id: groups.id,
-          name: groups.name,
-          color: groups.color,
-          createdAt: groups.createdAt,
-          updatedAt: groups.updatedAt,
+          id: row.group_id as number,
+          name: row.group_name as string,
+          color: row.group_color as string,
+          createdAt: new Date(row.group_created_at as string),
+          updatedAt: new Date(row.group_updated_at as string),
         },
         creator: {
-          id: users.id,
-          username: users.username,
-          email: users.email,
-          name: users.name,
-          role: users.role,
-          password: users.password,
-          passwordChanged: users.passwordChanged,
-          createdAt: users.createdAt,
-          updatedAt: users.updatedAt,
-        }
-      })
-      .from(orders)
-      .innerJoin(suppliers, eq(orders.supplierId, suppliers.id))
-      .innerJoin(groups, eq(orders.groupId, groups.id))
-      .innerJoin(users, eq(orders.createdBy, users.id));
-
-    if (groupIds && groupIds.length > 0) {
-      query = query.where(inArray(orders.groupId, groupIds));
+          id: row.creator_id as string,
+          username: row.creator_username as string,
+          email: row.creator_email as string,
+          name: row.creator_name as string,
+          role: row.creator_role as 'admin' | 'manager' | 'employee',
+          password: row.creator_password as string,
+          passwordChanged: row.creator_password_changed as boolean,
+          createdAt: new Date(row.creator_created_at as string),
+          updatedAt: new Date(row.creator_updated_at as string),
+        },
+        deliveries: []
+      }));
+      
+      console.log('✅ Orders query returned:', orders.length, 'orders');
+      return orders as OrderWithRelations[];
+      
+    } catch (error) {
+      console.error('❌ Error in getOrders:', error);
+      throw error;
     }
-
-    const results = await query.orderBy(desc(orders.createdAt));
-
-    return results.map(result => ({
-      ...result,
-      deliveries: []
-    })) as OrderWithRelations[];
   }
 
   async getOrdersByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<OrderWithRelations[]> {
