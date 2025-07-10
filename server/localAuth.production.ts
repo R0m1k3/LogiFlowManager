@@ -75,13 +75,20 @@ async function createDefaultAdminUser() {
 export function setupLocalAuth(app: Express) {
   console.log("🔧 Setting up local authentication...");
   
-  // Session configuration - temporarily using MemoryStore
+  // Session configuration with PostgreSQL store
+  const connectPg = require('connect-pg-simple')(session);
+  
   app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+    store: new connectPg({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      tableName: 'session',
+    }),
+    secret: process.env.SESSION_SECRET || 'logiflow-production-secret-2025',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Set to true in HTTPS production
+      secure: false, // HTTPS handled by reverse proxy
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       sameSite: 'lax'

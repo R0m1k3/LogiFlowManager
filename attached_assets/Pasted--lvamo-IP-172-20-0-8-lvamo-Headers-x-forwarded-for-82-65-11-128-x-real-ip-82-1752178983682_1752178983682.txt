@@ -1,0 +1,100 @@
+[lvamo]     IP: 172.20.0.8
+
+[lvamo]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[lvamo] <-- GET /api/user 401 in 1ms :: {"message":"Non authentifié"}
+
+[lvamo] ERROR Response: 401 Unauthorized
+
+[t1jnle] --> GET /users
+
+[t1jnle]     Host: logiflow.ffnancy.fr
+
+[t1jnle]     IP: 172.20.0.8
+
+[t1jnle]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[t1jnle] <-- GET /users 304 in 2ms
+
+[8rre9k] --> GET /api/user
+
+[8rre9k]     Host: logiflow.ffnancy.fr
+
+[8rre9k]     IP: 172.20.0.8
+
+[8rre9k]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[8rre9k] ERROR Response: 401 Unauthorized
+
+[8rre9k] <-- GET /api/user 401 in 1ms :: {"message":"Non authentifié"}
+
+[37tiuf] --> GET /users
+
+[37tiuf]     Host: logiflow.ffnancy.fr
+
+[37tiuf]     IP: 172.20.0.8
+
+[37tiuf]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[37tiuf] <-- GET /users 304 in 2ms
+
+[12h0ek] ERROR Response: 401 Unauthorized
+
+[12h0ek] --> GET /api/user
+
+[12h0ek]     Host: logiflow.ffnancy.fr
+
+[12h0ek]     IP: 172.20.0.8
+
+[12h0ek]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[12h0ek] <-- GET /api/user 401 in 2ms :: {"message":"Non authentifié"}
+
+[0elhll] --> GET /users
+
+[0elhll]     Host: logiflow.ffnancy.fr
+
+[0elhll]     IP: 172.20.0.8
+
+[0elhll]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[0elhll] <-- GET /users 304 in 2ms
+
+[1inhnk] --> GET /api/user
+
+[1inhnk]     Host: logiflow.ffnancy.fr
+
+[1inhnk]     IP: 172.20.0.8
+
+[1inhnk]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[1inhnk] <-- GET /api/user 401 in 1ms :: {"message":"Non authentifié"}
+
+[1inhnk] ERROR Response: 401 Unauthorized
+
+[cddg1] --> GET /users
+
+[cddg1]     Host: logiflow.ffnancy.fr
+
+[cddg1]     IP: 172.20.0.8
+
+[cddg1]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[cddg1] <-- GET /users 304 in 2ms
+
+[4r9h] --> GET /api/user
+
+[4r9h]     Host: logiflow.ffnancy.fr
+
+[4r9h]     IP: 172.20.0.8
+
+[4r9h]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[4r9h] <-- GET /api/user 401 in 1ms :: {"message":"Non authentifié"}
+
+[4r9h] ERROR Response: 401 Unauthorized
+
+
+      
+      
+    

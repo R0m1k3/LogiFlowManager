@@ -263,6 +263,10 @@ Changelog:
 - July 10, 2025. **ROUTES DUPLIQUÉES CORRIGÉES** - Supprimé duplication route /api/users dans routes.production.ts
 - July 10, 2025. Résolu pages blanches causées par conflits de routes API (Users, Orders, Deliveries, etc.)
 - July 10, 2025. Créé script update-production.sh pour appliquer corrections rapidement en production
+- July 10, 2025. **AUTHENTIFICATION SESSION CORRIGÉE** - Remplacé MemoryStore par PostgreSQL session store
+- July 10, 2025. Résolu erreurs "Non authentifié" causées par sessions non persistantes en production
+- July 10, 2025. Configuré connect-pg-simple pour sessions persistantes avec reverse proxy
+- July 10, 2025. Créé script fix-session-auth.sh pour corriger problèmes d'authentification production
 
 ## User Preferences
 
