@@ -322,14 +322,13 @@ export default function BLReconciliation() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {delivery.invoiceReference || (
-                            <Button
-                              size="sm"
-                              variant="ghost"
+                            <button
                               onClick={() => handleAddInvoice(delivery)}
-                              className="text-blue-600 hover:text-blue-800 p-0 h-auto font-normal underline"
+                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-1 group"
                             >
-                              Cliquer pour ajouter
-                            </Button>
+                              <Plus className="w-4 h-4" />
+                              <span className="text-xs group-hover:underline">Ajouter</span>
+                            </button>
                           )}
                         </div>
                       </td>
@@ -337,14 +336,13 @@ export default function BLReconciliation() {
                         <div className="text-sm text-gray-900">
                           {delivery.invoiceAmount ? 
                             `${parseFloat(delivery.invoiceAmount).toFixed(2)} €` : 
-                            <Button
-                              size="sm"
-                              variant="ghost"
+                            <button
                               onClick={() => handleAddInvoice(delivery)}
-                              className="text-blue-600 hover:text-blue-800 p-0 h-auto font-normal underline"
+                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-1 group"
                             >
-                              Cliquer pour ajouter
-                            </Button>
+                              <Plus className="w-4 h-4" />
+                              <span className="text-xs group-hover:underline">Ajouter</span>
+                            </button>
                           }
                         </div>
                       </td>

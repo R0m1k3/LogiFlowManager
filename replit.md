@@ -176,6 +176,7 @@ Changelog:
 - July 10, 2025. Added validation workflow for completed reconciliations with visual status indicators and line graying
 - July 10, 2025. Implemented newest-first display order across all pages (orders, deliveries, reconciliation)
 - July 10, 2025. Added comprehensive invoice editing functionality with real-time difference calculation between BL and invoice amounts
+- July 10, 2025. Improved UI aesthetics in reconciliation module with subtle add buttons using icons instead of text
 
 ## User Preferences
 
