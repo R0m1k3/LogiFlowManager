@@ -12,7 +12,7 @@
 ### ✅ Ports Configurés
 - **8080** : Application LogiFlow (accessible depuis l'extérieur)
 - **5434** : PostgreSQL (pour administration)
-- **5000** : Port interne application (dans le conteneur)
+- **3000** : Port interne application (dans le conteneur)
 
 ## 🛠️ Commandes de Déploiement
 
@@ -206,7 +206,7 @@ docker exec logiflow-postgres pg_isready -U logiflow_admin
 docker exec -it logiflow-postgres psql -U logiflow_admin -d logiflow_db
 
 # Recréer les tables si besoin
-docker exec logiflow-app curl http://localhost:5000/api/debug/db
+docker exec logiflow-app curl http://localhost:3000/api/debug/db
 ```
 
 ## ✅ Validation Finale

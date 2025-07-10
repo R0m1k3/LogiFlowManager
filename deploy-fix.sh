@@ -86,7 +86,7 @@ fi
 log "Conteneurs actifs ✅"
 
 # Vérifier les ports
-APP_PORT_CHECK=$(docker port logiflow-app | grep "5000/tcp" | cut -d: -f2 || echo "")
+APP_PORT_CHECK=$(docker port logiflow-app | grep "3000/tcp" | cut -d: -f2 || echo "")
 if [ "$APP_PORT_CHECK" != "$APP_PORT" ]; then
     error "Port $APP_PORT non exposé correctement"
     docker port logiflow-app

@@ -248,6 +248,8 @@ Changelog:
 - July 10, 2025. Mis à jour deploy-fix.sh et documentation pour utiliser docker-compose.yml standard
 - July 10, 2025. **ERREUR DOCKERFILE RÉSOLUE** - Supprimé référence au dossier scripts/ inexistant causant erreur checksum
 - July 10, 2025. Build Docker corrigé, déploiement Portainer maintenant fonctionnel
+- July 10, 2025. **PORT INTERNE MODIFIÉ** - Changé port interne de 5000 vers 3000 pour éviter conflits
+- July 10, 2025. Configuration finale : 8080:3000 (externe:interne) compatible multi-applications serveur
 
 ## User Preferences
 
