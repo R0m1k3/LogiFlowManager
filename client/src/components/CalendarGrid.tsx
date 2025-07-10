@@ -112,6 +112,8 @@ export default function CalendarGrid({
                       ? 'bg-delivered text-white' 
                       : hasLinkedDelivery
                       ? 'bg-orange-500 text-white border-2 border-orange-300'
+                      : order.status === 'pending'
+                      ? 'bg-yellow-500 text-white border-2 border-yellow-300'
                       : 'bg-primary text-white';
                     
                     return (
@@ -129,6 +131,9 @@ export default function CalendarGrid({
                         <div className="flex items-center ml-1 flex-shrink-0">
                           {hasLinkedDelivery && (
                             <span className="w-2 h-2 bg-yellow-300 rounded-full mr-1" title="Commande liée à une livraison" />
+                          )}
+                          {order.status === 'pending' && !hasLinkedDelivery && (
+                            <span className="w-2 h-2 bg-orange-300 rounded-full mr-1" title="Commande en attente" />
                           )}
                           {order.status === 'delivered' && (
                             <Check className="w-3 h-3" />

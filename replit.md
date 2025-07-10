@@ -163,6 +163,8 @@ Changelog:
 - July 10, 2025. Added "En attente" status display for deliveries with pending status
 - July 10, 2025. Enhanced calendar visual indicators for pending deliveries and linked orders
 - July 10, 2025. Orders linked to pending deliveries now show orange background with indicator dot
+- July 10, 2025. Improved calendar color logic: pending orders now yellow, linked orders orange, pending deliveries yellow
+- July 10, 2025. Added visual indicators for all pending items with appropriate tooltips
 
 ## User Preferences
 
