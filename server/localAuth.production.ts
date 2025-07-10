@@ -56,16 +56,12 @@ async function createDefaultAdminUser() {
       console.log("Creating default admin user...");
       const hashedPassword = await hashPassword('admin');
       
-      await db.insert(users).values({
-        id: 'admin_local',
-        username: 'admin',
-        email: 'admin@logiflow.com',
-        firstName: 'Admin',
-        lastName: 'Système',
-        role: 'admin',
-        password: hashedPassword,
-        passwordChanged: false
-      });
+      // Create admin user using raw SQL to avoid schema mismatch
+      await db.execute(`
+        INSERT INTO users (id, username, email, role, password, password_changed) 
+        VALUES ('admin_local', 'admin', 'admin@logiflow.com', 'admin', '${hashedPassword}', false)
+        ON CONFLICT (id) DO NOTHING
+      `);
       
       console.log("✅ Default admin user created: admin/admin");
     } else {
