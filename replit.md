@@ -224,6 +224,8 @@ Changelog:
 - July 10, 2025. L'application crée maintenant automatiquement toutes les tables au démarrage si elles n'existent pas
 - July 10, 2025. Correction erreur "multiple primary keys" dans table session - clé primaire définie directement dans CREATE TABLE
 - July 10, 2025. **DÉPLOIEMENT DOCKER FINALISÉ** - Toutes les erreurs de production résolues (WebSocket, bcrypt, schema, session)
+- July 10, 2025. Correction finale du schéma utilisateurs avec colonnes first_name/last_name pour compatibilité Drizzle ORM
+- July 10, 2025. **APPLICATION PRODUCTION PRÊTE** - Schéma SQL identique à Drizzle, auto-initialisation complète, admin/admin opérationnel
 
 ## User Preferences
 

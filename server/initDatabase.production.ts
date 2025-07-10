@@ -4,10 +4,11 @@ export async function initializeDatabase() {
   console.log("🔄 Initializing database schema...");
   
   try {
-    // Create users table
+    // Drop and recreate users table to ensure correct schema
+    await db.execute(`DROP TABLE IF EXISTS users CASCADE`);
     await db.execute(`
-      CREATE TABLE IF NOT EXISTS users (
-        id VARCHAR PRIMARY KEY,
+      CREATE TABLE users (
+        id VARCHAR PRIMARY KEY NOT NULL,
         username VARCHAR UNIQUE,
         email VARCHAR UNIQUE,
         first_name VARCHAR,
