@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,25 +8,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Store, LogIn, UserPlus } from "lucide-react";
+import { Store, LogIn, User, Info } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
+  const [showDefaultCredentials, setShowDefaultCredentials] = useState(true);
   
   const [loginData, setLoginData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
-  
-  const [registerData, setRegisterData] = useState({
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
+
+  // Check if admin user still has default password
+  const { data: defaultCredentialsCheck } = useQuery({
+    queryKey: ['/api/default-credentials-check'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/default-credentials-check");
+        return await response.json();
+      } catch (error) {
+        // If the endpoint doesn't exist or fails, assume we should show credentials
+        return { showDefault: true };
+      }
+    },
   });
+
+  useEffect(() => {
+    if (defaultCredentialsCheck) {
+      setShowDefaultCredentials(defaultCredentialsCheck.showDefault);
+    }
+  }, [defaultCredentialsCheck]);
 
   // Redirect if already authenticated
   if (!isLoading && user) {
@@ -56,49 +70,20 @@ export default function AuthPage() {
     onError: (error: any) => {
       toast({
         title: "Erreur de connexion",
-        description: error.message || "Email ou mot de passe incorrect",
+        description: error.message || "Identifiant ou mot de passe incorrect",
         variant: "destructive",
       });
     },
   });
 
-  const registerMutation = useMutation({
-    mutationFn: async (data: typeof registerData) => {
-      const response = await apiRequest("POST", "/api/register", data);
-      return await response.json();
-    },
-    onSuccess: (userData) => {
-      // Update the user data in the cache
-      queryClient.setQueryData(["/api/user"], userData);
-      
-      toast({
-        title: "Compte créé",
-        description: "Votre compte a été créé avec succès",
-      });
-      
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        setLocation("/");
-      }, 100);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erreur de création",
-        description: error.message || "Erreur lors de la création du compte",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     loginMutation.mutate(loginData);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    registerMutation.mutate(registerData);
-  };
+
 
   if (isLoading) {
     return (
@@ -130,128 +115,71 @@ export default function AuthPage() {
             </p>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Connexion</TabsTrigger>
-              <TabsTrigger value="register">Inscription</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <LogIn className="w-5 h-5" />
-                    Connexion
-                  </CardTitle>
-                  <CardDescription>
-                    Connectez-vous à votre compte LogiFlow
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                      <Label htmlFor="login-email">Email</Label>
-                      <Input
-                        id="login-email"
-                        type="email"
-                        value={loginData.email}
-                        onChange={(e) => setLoginData({...loginData, email: e.target.value})}
-                        required
-                        placeholder="votre@email.com"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="login-password">Mot de passe</Label>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        value={loginData.password}
-                        onChange={(e) => setLoginData({...loginData, password: e.target.value})}
-                        required
-                        placeholder="••••••••"
-                      />
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={loginMutation.isPending}
-                    >
-                      {loginMutation.isPending ? "Connexion..." : "Se connecter"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="register">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <UserPlus className="w-5 h-5" />
-                    Inscription
-                  </CardTitle>
-                  <CardDescription>
-                    Créez votre compte LogiFlow
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleRegister} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="register-firstName">Prénom</Label>
-                        <Input
-                          id="register-firstName"
-                          value={registerData.firstName}
-                          onChange={(e) => setRegisterData({...registerData, firstName: e.target.value})}
-                          required
-                          placeholder="Jean"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="register-lastName">Nom</Label>
-                        <Input
-                          id="register-lastName"
-                          value={registerData.lastName}
-                          onChange={(e) => setRegisterData({...registerData, lastName: e.target.value})}
-                          required
-                          placeholder="Dupont"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="register-email">Email</Label>
-                      <Input
-                        id="register-email"
-                        type="email"
-                        value={registerData.email}
-                        onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
-                        required
-                        placeholder="votre@email.com"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="register-password">Mot de passe</Label>
-                      <Input
-                        id="register-password"
-                        type="password"
-                        value={registerData.password}
-                        onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
-                        required
-                        placeholder="••••••••"
-                      />
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={registerMutation.isPending}
-                    >
-                      {registerMutation.isPending ? "Création..." : "Créer le compte"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LogIn className="w-5 h-5" />
+                Connexion
+              </CardTitle>
+              <CardDescription>
+                Connectez-vous à votre compte LogiFlow
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <Label htmlFor="login-username">Identifiant</Label>
+                  <Input
+                    id="login-username"
+                    type="text"
+                    value={loginData.username}
+                    onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                    required
+                    placeholder="Votre identifiant"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="login-password">Mot de passe</Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    value={loginData.password}
+                    onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                    required
+                    placeholder="••••••••"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? "Connexion..." : "Se connecter"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Default credentials info - only show if admin password hasn't been changed */}
+          {showDefaultCredentials && (
+            <Card className="mt-4 bg-blue-50 border-blue-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-blue-800 text-sm">
+                  <Info className="w-4 h-4" />
+                  Première connexion
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-sm text-blue-700 space-y-1">
+                  <p><strong>Identifiant :</strong> admin</p>
+                  <p><strong>Mot de passe :</strong> admin</p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    Changez le mot de passe après votre première connexion
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 

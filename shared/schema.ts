@@ -29,12 +29,14 @@ export const sessions = pgTable(
 // User storage table - supports both Replit Auth and local auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
+  username: varchar("username").unique(), // For simple login
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   password: varchar("password"), // For local auth only
   role: varchar("role").notNull().default("employee"), // admin, manager, employee
+  passwordChanged: boolean("password_changed").default(false), // Track if default password was changed
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -170,11 +172,13 @@ export const deliveriesRelations = relations(deliveries, ({ one }) => ({
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   id: true,
+  username: true,
   email: true,
   firstName: true,
   lastName: true,
   profileImageUrl: true,
   role: true,
+  passwordChanged: true,
 });
 
 export const insertGroupSchema = createInsertSchema(groups).omit({

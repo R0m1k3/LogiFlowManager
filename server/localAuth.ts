@@ -31,18 +31,20 @@ async function comparePasswords(supplied: string, stored: string) {
 
 async function createDefaultAdminUser() {
   try {
-    const existingAdmin = await storage.getUserByEmail('admin@logiflow.com');
+    const existingAdmin = await storage.getUserByUsername('admin');
     if (!existingAdmin) {
-      const hashedPassword = await hashPassword('admin123');
+      const hashedPassword = await hashPassword('admin');
       await storage.createUser({
         id: 'admin_local',
+        username: 'admin',
         email: 'admin@logiflow.com',
-        firstName: 'Admin',
+        firstName: 'Administrateur',
         lastName: 'Système',
         password: hashedPassword,
         role: 'admin',
+        passwordChanged: false,
       });
-      console.log('Admin user created: admin@logiflow.com / admin123');
+      console.log('Admin user created: admin / admin');
     }
   } catch (error) {
     console.error('Error creating admin user:', error);
@@ -80,19 +82,19 @@ export function setupLocalAuth(app: Express) {
   passport.use(
     new LocalStrategy(
       {
-        usernameField: 'email',
+        usernameField: 'username',
         passwordField: 'password',
       },
-      async (email, password, done) => {
+      async (username, password, done) => {
         try {
-          const user = await storage.getUserByEmail(email);
+          const user = await storage.getUserByUsername(username);
           if (!user || !user.password) {
-            return done(null, false, { message: 'Email ou mot de passe incorrect' });
+            return done(null, false, { message: 'Identifiant ou mot de passe incorrect' });
           }
 
           const isValidPassword = await comparePasswords(password, user.password);
           if (!isValidPassword) {
-            return done(null, false, { message: 'Email ou mot de passe incorrect' });
+            return done(null, false, { message: 'Identifiant ou mot de passe incorrect' });
           }
 
           return done(null, user);
@@ -113,35 +115,7 @@ export function setupLocalAuth(app: Express) {
     }
   });
 
-  // Register route
-  app.post("/api/register", async (req, res, next) => {
-    try {
-      const { email, password, firstName, lastName } = req.body;
-      
-      const existingUser = await storage.getUserByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ message: "Un utilisateur avec cet email existe déjà" });
-      }
 
-      const hashedPassword = await hashPassword(password);
-      const user = await storage.createUser({
-        id: `local_${Date.now()}`,
-        email,
-        firstName,
-        lastName,
-        password: hashedPassword,
-        role: "employee",
-      });
-
-      req.login(user, (err) => {
-        if (err) return next(err);
-        res.status(201).json({ id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role });
-      });
-    } catch (error) {
-      console.error("Registration error:", error);
-      res.status(500).json({ message: "Erreur lors de la création du compte" });
-    }
-  });
 
   // Login route
   app.post("/api/login", (req, res, next) => {
@@ -153,7 +127,15 @@ export function setupLocalAuth(app: Express) {
       
       req.login(user, (err) => {
         if (err) return next(err);
-        res.json({ id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role });
+        res.json({ 
+          id: user.id, 
+          username: user.username, 
+          email: user.email, 
+          firstName: user.firstName, 
+          lastName: user.lastName, 
+          role: user.role,
+          passwordChanged: user.passwordChanged 
+        });
       });
     })(req, res, next);
   });
@@ -180,7 +162,26 @@ export function setupLocalAuth(app: Express) {
       return res.status(401).json({ message: "Non authentifié" });
     }
     const user = req.user as SelectUser;
-    res.json({ id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role });
+    res.json({ 
+      id: user.id, 
+      username: user.username, 
+      email: user.email, 
+      firstName: user.firstName, 
+      lastName: user.lastName, 
+      role: user.role,
+      passwordChanged: user.passwordChanged 
+    });
+  });
+
+  // Check if default credentials should be shown
+  app.get("/api/default-credentials-check", async (req, res) => {
+    try {
+      const adminUser = await storage.getUserByUsername('admin');
+      const showDefault = adminUser && !adminUser.passwordChanged;
+      res.json({ showDefault: !!showDefault });
+    } catch (error) {
+      res.json({ showDefault: true }); // Default to showing credentials if error
+    }
   });
 
   // Health check endpoint

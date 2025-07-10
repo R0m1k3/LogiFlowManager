@@ -189,6 +189,11 @@ Changelog:
 - July 10, 2025. Enhanced modal design with elegant shadows, fine borders, and rounded close buttons
 - July 10, 2025. Added comprehensive accessibility descriptions to all modal components
 - July 10, 2025. Unified modal typography with larger titles and refined font weights
+- July 10, 2025. Simplified authentication system by removing registration functionality
+- July 10, 2025. Changed login system from email-based to username-based authentication  
+- July 10, 2025. Added automatic default admin account creation on first startup
+- July 10, 2025. Implemented intelligent credential display/hiding based on password change status
+- July 10, 2025. Default admin account: admin/admin (credentials shown until password changed)
 
 ## User Preferences
 
