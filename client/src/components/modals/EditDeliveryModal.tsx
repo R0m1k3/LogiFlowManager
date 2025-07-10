@@ -62,7 +62,7 @@ export default function EditDeliveryModal({
       setFormData({
         supplierId: delivery.supplierId.toString(),
         groupId: delivery.groupId.toString(),
-        orderId: delivery.orderId ? delivery.orderId.toString() : "",
+        orderId: delivery.orderId ? delivery.orderId.toString() : "none",
         plannedDate: format(new Date(delivery.plannedDate), 'yyyy-MM-dd'),
         quantity: delivery.quantity.toString(),
         unit: delivery.unit,
@@ -119,7 +119,7 @@ export default function EditDeliveryModal({
     updateDeliveryMutation.mutate({
       supplierId: parseInt(formData.supplierId),
       groupId: parseInt(formData.groupId),
-      orderId: formData.orderId ? parseInt(formData.orderId) : null,
+      orderId: formData.orderId && formData.orderId !== "none" ? parseInt(formData.orderId) : null,
       plannedDate: formData.plannedDate,
       quantity: parseInt(formData.quantity),
       unit: formData.unit,
@@ -190,7 +190,7 @@ export default function EditDeliveryModal({
                   <SelectValue placeholder="Sélectionnez une commande" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucune commande</SelectItem>
+                  <SelectItem value="none">Aucune commande</SelectItem>
                   {availableOrders.map((order) => (
                     <SelectItem key={order.id} value={order.id.toString()}>
                       Commande #{order.id} - {format(new Date(order.plannedDate), 'dd/MM/yyyy')}

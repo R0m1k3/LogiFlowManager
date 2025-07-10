@@ -130,7 +130,7 @@ export default function CreateDeliveryModal({
     }
 
     createDeliveryMutation.mutate({
-      orderId: formData.orderId ? parseInt(formData.orderId) : undefined,
+      orderId: formData.orderId && formData.orderId !== "none" ? parseInt(formData.orderId) : undefined,
       supplierId: parseInt(formData.supplierId),
       groupId: parseInt(formData.groupId),
       plannedDate: formData.plannedDate,
@@ -190,7 +190,7 @@ export default function CreateDeliveryModal({
                     </SelectItem>
                   ))}
                   {finalFilteredOrders.length === 0 && (
-                    <SelectItem value="" disabled>
+                    <SelectItem value="disabled" disabled>
                       Aucune commande disponible pour ce fournisseur
                     </SelectItem>
                   )}

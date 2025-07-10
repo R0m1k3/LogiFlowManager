@@ -149,6 +149,8 @@ Changelog:
 - July 10, 2025. Added edit functionality for both orders and deliveries with proper role-based access
 - July 10, 2025. Created comprehensive edit modals with form validation and error handling
 - July 10, 2025. Removed store selectors from creation modals with intelligent auto-selection
+- July 10, 2025. Replaced "Fonction à venir" message with fully functional edit modals
+- July 10, 2025. Fixed SelectItem empty value errors in form components
 
 ## User Preferences
 
