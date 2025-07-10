@@ -50,50 +50,42 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-semibold text-foreground">LogiFlow</h1>
               
-              {/* Store selector for admin */}
-              {user?.role === 'admin' && stores.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Store className="h-4 w-4 text-muted-foreground" />
-                  <Select
-                    value={selectedStoreId?.toString() || "all"}
-                    onValueChange={(value) => setSelectedStoreId(value === "all" ? null : parseInt(value))}
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Sélectionner un magasin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tous les magasins</SelectItem>
-                      {stores.map((store) => (
-                        <SelectItem key={store.id} value={store.id.toString()}>
-                          {store.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+
             </div>
 
-            {/* User info and logout */}
-            <div className="flex items-center gap-4">
-              <div className="text-sm">
-                <div className="font-medium text-foreground">
-                  {user?.firstName} {user?.lastName}
-                </div>
-                <div className="text-muted-foreground capitalize">
-                  {user?.role}
-                </div>
+            {/* Store selector for admin - moved to top right */}
+            {user?.role === 'admin' && stores.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Store className="h-4 w-4 text-muted-foreground" />
+                <Select
+                  value={selectedStoreId?.toString() || "all"}
+                  onValueChange={(value) => setSelectedStoreId(value === "all" ? null : parseInt(value))}
+                >
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="Sélectionner un magasin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-green-500"></div>
+                        <span>Tous les magasins</span>
+                      </div>
+                    </SelectItem>
+                    {stores.map((store) => (
+                      <SelectItem key={store.id} value={store.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: store.color }}
+                          />
+                          <span>{store.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Déconnexion
-              </Button>
-            </div>
+            )}
           </header>
 
           <div className="flex-1 overflow-auto">

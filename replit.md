@@ -46,9 +46,15 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 - **User Groups**: Many-to-many relationship for access control
 
 ### Permission System
-- **Admin**: Full access to all features and user management
+- **Admin**: Full access to all features, user management, and store switching
 - **Manager**: Supplier and group management across multiple stores
 - **Employee**: View and create within assigned groups only
+
+### Store Management for Admins
+- **Store selector in header**: Admins can switch between stores or view all data
+- **Visual indicators**: Each store has a color-coded identifier
+- **Data filtering**: All modules filter data based on selected store
+- **"Tous les magasins" option**: View aggregated data across all stores
 
 ## Data Flow
 
@@ -137,6 +143,8 @@ Changelog:
 - July 09, 2025. Removed quantity display from order details modal, calendar, and orders table
 - July 10, 2025. Improved delivery modal with supplier-first workflow and order filtering
 - July 10, 2025. Relocated user profile and logout to bottom of sidebar for better UX
+- July 10, 2025. Replaced header user info with store selector for admins
+- July 10, 2025. Added ability for admins to view all stores or filter by specific store
 
 ## User Preferences
 
