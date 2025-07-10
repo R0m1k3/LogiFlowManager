@@ -176,72 +176,87 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsers(): Promise<UserWithGroups[]> {
-    const result = await db
-      .select({
-        id: users.id,
-        username: users.username,
-        email: users.email,
-        name: users.name,
-        role: users.role,
-        password: users.password,
-        passwordChanged: users.passwordChanged,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        userGroupId: userGroups.id,
-        userGroupUserId: userGroups.userId,
-        userGroupGroupId: userGroups.groupId,
-        userGroupAssignedAt: userGroups.assignedAt,
-        groupId: groups.id,
-        groupName: groups.name,
-        groupColor: groups.color,
-        groupCreatedAt: groups.createdAt,
-        groupUpdatedAt: groups.updatedAt,
-      })
-      .from(users)
-      .leftJoin(userGroups, eq(users.id, userGroups.userId))
-      .leftJoin(groups, eq(userGroups.groupId, groups.id))
-      .orderBy(desc(users.createdAt));
-
-    // Group by user ID to consolidate user groups
-    const usersMap = new Map<string, UserWithGroups>();
+    console.log('🔍 Storage getUsers called');
     
-    for (const row of result) {
-      if (!usersMap.has(row.id)) {
-        usersMap.set(row.id, {
-          id: row.id,
-          username: row.username,
-          email: row.email,
-          name: row.name,
-          role: row.role,
-          password: row.password,
-          passwordChanged: row.passwordChanged,
-          createdAt: row.createdAt,
-          updatedAt: row.updatedAt,
-          userGroups: []
-        });
+    try {
+      // First get all users - simple query without joins
+      const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
+      console.log('✅ Basic users query returned:', allUsers.length, 'users');
+      
+      if (allUsers.length === 0) {
+        console.log('❌ No users found in database');
+        return [];
       }
       
-      const user = usersMap.get(row.id)!;
+      // Then get user groups for each user
+      const usersWithGroups: UserWithGroups[] = [];
       
-      // Add user group if it exists
-      if (row.userGroupId && row.groupId) {
-        user.userGroups.push({
-          id: row.userGroupId,
-          userId: row.userGroupUserId!,
-          groupId: row.userGroupGroupId!,
-          assignedAt: row.userGroupAssignedAt!,
-          group: {
-            id: row.groupId,
-            name: row.groupName!,
-            color: row.groupColor!,
-            createdAt: row.groupCreatedAt!,
-            updatedAt: row.groupUpdatedAt!,
-          }
-        });
+      for (const user of allUsers) {
+        console.log('🔍 Processing user:', user.id, user.username);
+        
+        try {
+          // Get user groups for this user
+          const userGroupsData = await db
+            .select({
+              id: userGroups.id,
+              userId: userGroups.userId,
+              groupId: userGroups.groupId,
+              assignedAt: userGroups.assignedAt,
+              groupName: groups.name,
+              groupColor: groups.color,
+              groupCreatedAt: groups.createdAt,
+              groupUpdatedAt: groups.updatedAt,
+            })
+            .from(userGroups)
+            .leftJoin(groups, eq(userGroups.groupId, groups.id))
+            .where(eq(userGroups.userId, user.id));
+          
+          console.log('✅ User groups for', user.username, ':', userGroupsData.length);
+          
+          // Build user with groups
+          const userWithGroups: UserWithGroups = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            password: user.password,
+            passwordChanged: user.passwordChanged,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            userGroups: userGroupsData.map(ug => ({
+              id: ug.id,
+              userId: ug.userId,
+              groupId: ug.groupId,
+              assignedAt: ug.assignedAt,
+              group: ug.groupName ? {
+                id: ug.groupId,
+                name: ug.groupName,
+                color: ug.groupColor!,
+                createdAt: ug.groupCreatedAt!,
+                updatedAt: ug.groupUpdatedAt!,
+              } : undefined
+            })).filter(ug => ug.group !== undefined) as any[]
+          };
+          
+          usersWithGroups.push(userWithGroups);
+        } catch (error) {
+          console.error('❌ Error processing user groups for', user.username, ':', error);
+          // Add user without groups if groups query fails
+          usersWithGroups.push({
+            ...user,
+            userGroups: []
+          });
+        }
       }
+      
+      console.log('✅ Final users with groups:', usersWithGroups.length);
+      return usersWithGroups;
+      
+    } catch (error) {
+      console.error('❌ Error in getUsers:', error);
+      throw error;
     }
-    
-    return Array.from(usersMap.values());
   }
 
   async createUser(userData: UpsertUser): Promise<User> {

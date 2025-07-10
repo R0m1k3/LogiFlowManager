@@ -272,6 +272,10 @@ Changelog:
 - July 10, 2025. Architecture production stabilisée : PostgreSQL sessions + authentification locale fonctionnelle
 - July 10, 2025. Structure UserWithGroups[] corrigée pour affichage page Utilisateurs
 - July 10, 2025. Créé update-production.sh pour reconstruction complète avec nouvelles corrections
+- July 10, 2025. **API USERS CORRIGÉE** - Simplification requête SQL complexe causant "Aucun utilisateur trouvé"
+- July 10, 2025. Remplacé JOIN complexe par requêtes séparées avec gestion d'erreur robuste dans getUsers()
+- July 10, 2025. Ajouté logs détaillés pour diagnostic de performance (7000ms -> requête optimisée)
+- July 10, 2025. Créé fix-users-api-production.sh pour correction spécifique du problème utilisateurs
 
 ## User Preferences
 
