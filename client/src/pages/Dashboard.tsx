@@ -71,6 +71,14 @@ export default function Dashboard() {
            delivery.status === 'delivered';
   }).length;
 
+  // Calculer le total réel des palettes
+  const totalPalettes = allDeliveries.reduce((total: number, delivery: any) => {
+    if (delivery.unit === 'palettes') {
+      return total + (delivery.quantity || 0);
+    }
+    return total;
+  }, 0);
+
   // Statistiques pour les commandes clients
   const ordersByStatus = {
     pending: allOrders.filter((o: any) => o.status === 'pending').length,
@@ -148,7 +156,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total palettes</p>
-                <p className="text-3xl font-bold text-gray-900">{stats?.totalPalettes || 115}</p>
+                <p className="text-3xl font-bold text-gray-900">{totalPalettes}</p>
               </div>
               <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Package className="h-6 w-6 text-purple-600" />
@@ -213,7 +221,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-gray-900">
-                    17 palettes
+                    {delivery.quantity} {delivery.unit}
                   </p>
                   <p className="text-xs text-gray-500">
                     {format(new Date(delivery.plannedDate), "d MMM", { locale: fr })}
