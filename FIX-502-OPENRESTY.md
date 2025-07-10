@@ -1,102 +1,167 @@
-# 🔧 Résolution Erreur 502 Bad Gateway - OpenResty
+# 🚨 Solution 502 Bad Gateway - OpenResty Configuration
 
-## 🎯 Problème
-OpenResty (reverse proxy) ne peut pas atteindre l'application LogiFlow
+## 🔍 Problème Identifié
 
-## 📋 Diagnostic
+OpenResty reçoit une erreur 502 en essayant de se connecter à l'application LogiFlow.
 
-L'erreur 502 signifie que :
-- OpenResty fonctionne
-- Mais ne peut pas communiquer avec LogiFlow
-- Probablement configuré pour l'ancien port 5001
+### État Actuel
+- ✅ Application fonctionne (port 5000 interne)
+- ✅ API Health répond 200
+- ✅ Docker expose port 8080 externe
+- ❌ OpenResty ne peut pas se connecter
 
-## ✅ Solution 1 - Accès Direct (Recommandé)
+## 🛠️ Solutions
 
-**Contournez complètement OpenResty :**
-```
-http://VOTRE_IP_SERVEUR:8080
-```
+### 1. Rebuild et Redéployer l'Application
 
-Ne pas utiliser l'URL avec OpenResty, accéder directement au port 8080.
-
-## 🔧 Solution 2 - Corriger OpenResty
-
-Si vous devez garder OpenResty, trouvez sa configuration :
-
-### 1. Localiser la config OpenResty
 ```bash
-# Généralement dans :
-/etc/nginx/conf.d/
-/etc/openresty/conf.d/
-/usr/local/openresty/nginx/conf/
+# Arrêter et supprimer les conteneurs
+docker-compose -f docker-compose.production.yml down
+
+# Rebuild avec les corrections
+docker-compose -f docker-compose.production.yml build --no-cache
+
+# Démarrer
+docker-compose -f docker-compose.production.yml up -d
 ```
 
-### 2. Modifier le proxy_pass
-Cherchez votre configuration de site et changez :
-```nginx
-# Ancien
-proxy_pass http://localhost:5001;
+### 2. Vérifier la Configuration OpenResty
 
-# Nouveau
-proxy_pass http://localhost:8080;
-```
+Trouvez et vérifiez votre configuration OpenResty :
 
-### 3. Recharger OpenResty
 ```bash
-# Tester la configuration
-nginx -t
+# Trouver les fichiers de config
+find /etc -name "*.conf" 2>/dev/null | xargs grep -l "proxy_pass"
 
-# Recharger
-nginx -s reload
-# ou
-systemctl reload openresty
+# Ou spécifiquement pour OpenResty
+ls /etc/openresty/sites-enabled/
+ls /usr/local/openresty/nginx/conf/
 ```
 
-## 🚀 Solution 3 - Configuration OpenResty Complète
+### 3. Configuration OpenResty Correcte
 
-Créer `/etc/nginx/conf.d/logiflow.conf` :
+Votre configuration OpenResty doit pointer vers `http://localhost:8080` :
+
 ```nginx
 server {
     listen 80;
     server_name votre-domaine.com;
-    
+
     location / {
         proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
         
-        # WebSocket support
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 }
 ```
 
-## ✅ Vérification
+### 4. Test Direct de l'Application
 
-### 1. Tester l'accès direct
+Après redéploiement, testez :
+
 ```bash
+# Test depuis l'hôte
 curl http://localhost:8080/api/health
+curl http://localhost:8080/api/debug/status
+
+# Vérifier les logs avec tracking détaillé
+docker logs -f logiflow-app --tail 50
 ```
 
-### 2. Vérifier que l'app écoute
+### 5. Debug avec les Nouvelles Routes
+
+Les nouvelles routes de debug vous donneront des informations précieuses :
+
+- **http://localhost:8080/api/debug/status** - État complet du serveur
+- **http://localhost:8080/api/debug/echo** - Test de connectivité
+- **http://localhost:8080/api/debug/db** - Test base de données
+
+### 6. Vérifier le Réseau Docker
+
 ```bash
-netstat -tlnp | grep 8080
-# ou
-ss -tlnp | grep 8080
+# Vérifier que le conteneur écoute bien
+docker exec logiflow-app netstat -tlnp | grep 5000
+
+# Vérifier le mapping des ports
+docker port logiflow-app
+
+# Inspecter le réseau
+docker inspect logiflow-app | grep -A 10 "NetworkMode"
 ```
 
-### 3. Vérifier les logs Docker
+## 📋 Script de Diagnostic Complet
+
 ```bash
-docker logs logiflow-app
+#!/bin/bash
+echo "🔍 Diagnostic 502 Error..."
+
+# 1. Rebuild
+echo "1. Rebuilding containers..."
+docker-compose -f docker-compose.production.yml down
+docker-compose -f docker-compose.production.yml build --no-cache
+docker-compose -f docker-compose.production.yml up -d
+
+# 2. Attendre le démarrage
+echo "2. Waiting for startup..."
+sleep 30
+
+# 3. Test direct
+echo "3. Testing direct access..."
+curl -s http://localhost:8080/api/health | jq .
+
+# 4. Debug info
+echo "4. Getting debug info..."
+curl -s http://localhost:8080/api/debug/status | jq .
+
+# 5. Logs
+echo "5. Application logs:"
+docker logs logiflow-app --tail 20
+
+# 6. Test depuis le conteneur
+echo "6. Testing from inside container..."
+docker exec logiflow-app curl -s http://localhost:5000/api/health
 ```
 
-## 🎯 Recommandation
+## 🎯 Résolution Rapide
 
-Puisque vous voulez un accès simplifié sans reverse proxy :
-1. **Utilisez directement** : `http://VOTRE_IP:8080`
-2. **Désactivez OpenResty** si non nécessaire
-3. **Ou corrigez** la configuration pour pointer vers 8080
+Si OpenResty continue à donner 502 :
+
+1. **Accès Direct** - Utilisez directement `http://VOTRE_IP:8080` sans OpenResty
+2. **Modifier OpenResty** - Changez `proxy_pass` vers `http://localhost:8080`
+3. **Redémarrer OpenResty** :
+   ```bash
+   systemctl restart openresty
+   # ou
+   nginx -s reload
+   ```
+
+## ✅ Validation
+
+L'application fonctionne correctement quand :
+- `curl http://localhost:8080/api/health` retourne `{"status":"healthy"}`
+- Les logs montrent les requêtes avec IDs uniques
+- Pas d'erreur "Dynamic require" dans les logs
+
+## 📝 Note Importante
+
+Les logs détaillés afficheront maintenant :
+```
+[abc123] --> GET /api/health
+[abc123]     Host: localhost:8080
+[abc123]     IP: 172.20.0.1
+[abc123]     Headers: {"x-forwarded-for":null,"x-real-ip":null}
+[abc123] <-- GET /api/health 200 in 5ms
+```
+
+Cela vous aidera à identifier d'où viennent les requêtes et diagnostiquer les problèmes.

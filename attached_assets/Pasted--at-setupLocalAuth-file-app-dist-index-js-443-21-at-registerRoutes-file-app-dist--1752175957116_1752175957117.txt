@@ -1,0 +1,192 @@
+    at setupLocalAuth (file:///app/dist/index.js:443:21)
+
+    at registerRoutes (file:///app/dist/index.js:1174:3)
+
+    at async file:///app/dist/index.js:1717:18
+
+Node.js v20.19.3
+
+Production Environment Configuration:
+
+- NODE_ENV: production
+
+- USE_LOCAL_AUTH: true
+
+- DATABASE_URL: ***configured***
+
+- PORT: 5000
+
+Using PostgreSQL connection for production
+
+Using local authentication system
+
+🔧 Setting up local authentication with PostgreSQL session store...
+
+file:///app/dist/index.js:9
+
+  throw Error('Dynamic require of "' + x + '" is not supported');
+
+
+
+^
+
+Error: Dynamic require of "connect-pg-simple" is not supported
+
+    at file:///app/dist/index.js:9:9
+
+    at setupLocalAuth (file:///app/dist/index.js:443:21)
+
+    at registerRoutes (file:///app/dist/index.js:1174:3)
+
+    at async file:///app/dist/index.js:1717:18
+
+Node.js v20.19.3
+
+Production Environment Configuration:
+
+- NODE_ENV: production
+
+- USE_LOCAL_AUTH: true
+
+- DATABASE_URL: ***configured***
+
+- PORT: 5000
+
+Using PostgreSQL connection for production
+
+Using local authentication system
+
+🔧 Setting up local authentication with PostgreSQL session store...
+
+file:///app/dist/index.js:9
+
+  throw Error('Dynamic require of "' + x + '" is not supported');
+
+
+
+^
+
+Error: Dynamic require of "connect-pg-simple" is not supported
+
+    at file:///app/dist/index.js:9:9
+
+    at setupLocalAuth (file:///app/dist/index.js:443:21)
+
+    at registerRoutes (file:///app/dist/index.js:1174:3)
+
+    at async file:///app/dist/index.js:1717:18
+
+Node.js v20.19.3
+
+Production Environment Configuration:
+
+- NODE_ENV: production
+
+- USE_LOCAL_AUTH: true
+
+- DATABASE_URL: ***configured***
+
+- PORT: 5000
+
+Using PostgreSQL connection for production
+
+Using local authentication system
+
+🔧 Setting up local authentication with PostgreSQL session store...
+
+file:///app/dist/index.js:9
+
+  throw Error('Dynamic require of "' + x + '" is not supported');
+
+
+
+^
+
+Error: Dynamic require of "connect-pg-simple" is not supported
+
+    at file:///app/dist/index.js:9:9
+
+    at setupLocalAuth (file:///app/dist/index.js:443:21)
+
+    at registerRoutes (file:///app/dist/index.js:1174:3)
+
+    at async file:///app/dist/index.js:1717:18
+
+Node.js v20.19.3
+
+Production Environment Configuration:
+
+- NODE_ENV: production
+
+- USE_LOCAL_AUTH: true
+
+- DATABASE_URL: ***configured***
+
+- PORT: 5000
+
+Using PostgreSQL connection for production
+
+Using local authentication system
+
+🔧 Setting up local authentication with PostgreSQL session store...
+
+file:///app/dist/index.js:9
+
+  throw Error('Dynamic require of "' + x + '" is not supported');
+
+
+
+^
+
+Error: Dynamic require of "connect-pg-simple" is not supported
+
+    at file:///app/dist/index.js:9:9
+
+    at setupLocalAuth (file:///app/dist/index.js:443:21)
+
+    at registerRoutes (file:///app/dist/index.js:1174:3)
+
+    at async file:///app/dist/index.js:1717:18
+
+Node.js v20.19.3
+
+Production Environment Configuration:
+
+- NODE_ENV: production
+
+- USE_LOCAL_AUTH: true
+
+- DATABASE_URL: ***configured***
+
+- PORT: 5000
+
+Using PostgreSQL connection for production
+
+Using local authentication system
+
+🔧 Setting up local authentication with PostgreSQL session store...
+
+file:///app/dist/index.js:9
+
+  throw Error('Dynamic require of "' + x + '" is not supported');
+
+
+
+^
+
+Error: Dynamic require of "connect-pg-simple" is not supported
+
+    at file:///app/dist/index.js:9:9
+
+    at setupLocalAuth (file:///app/dist/index.js:443:21)
+
+    at registerRoutes (file:///app/dist/index.js:1174:3)
+
+    at async file:///app/dist/index.js:1717:18
+
+Node.js v20.19.3
+
+
+      
+      
+    
