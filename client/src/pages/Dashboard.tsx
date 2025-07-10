@@ -56,19 +56,9 @@ export default function Dashboard() {
     .slice(0, 3);
   
   const upcomingDeliveries = allDeliveries
-    .filter((d: any) => d.status === 'pending')
+    .filter((d: any) => d.status === 'planned')
     .sort((a: any, b: any) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime())
     .slice(0, 2);
-
-  // Log temporaire pour diagnostic
-  console.log('Dashboard data:', {
-    totalOrders: allOrders.length,
-    totalDeliveries: allDeliveries.length,
-    recentOrdersCount: recentOrders.length,
-    upcomingDeliveriesCount: upcomingDeliveries.length,
-    allOrders: allOrders.map(o => ({ id: o.id, supplier: o.supplier?.name, createdAt: o.createdAt })),
-    allDeliveries: allDeliveries.map(d => ({ id: d.id, supplier: d.supplier?.name, status: d.status, plannedDate: d.plannedDate }))
-  });
 
   // Calculs pour les statistiques
   const pendingOrdersCount = allOrders.filter((order: any) => order.status === 'pending').length;
@@ -253,7 +243,7 @@ export default function Dashboard() {
                 <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
                 <span className="text-sm text-gray-600">En attente</span>
               </div>
-              <span className="font-medium text-orange-600">{allDeliveries.filter((d: any) => d.status === 'pending').length}</span>
+              <span className="font-medium text-orange-600">{allDeliveries.filter((d: any) => d.status === 'planned').length}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
