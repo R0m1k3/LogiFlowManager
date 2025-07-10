@@ -222,6 +222,8 @@ Changelog:
 - July 10, 2025. Architecture production finalisée : WebSocket éliminé, bcrypt remplacé, base de données initialisée
 - July 10, 2025. Ajout système d'auto-initialisation de la base de données pour éviter l'erreur "relation users does not exist"
 - July 10, 2025. L'application crée maintenant automatiquement toutes les tables au démarrage si elles n'existent pas
+- July 10, 2025. Correction erreur "multiple primary keys" dans table session - clé primaire définie directement dans CREATE TABLE
+- July 10, 2025. **DÉPLOIEMENT DOCKER FINALISÉ** - Toutes les erreurs de production résolues (WebSocket, bcrypt, schema, session)
 
 ## User Preferences
 

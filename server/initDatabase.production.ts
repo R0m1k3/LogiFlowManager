@@ -94,17 +94,13 @@ export async function initializeDatabase() {
       )
     `);
 
-    // Create session table
+    // Create session table with primary key
     await db.execute(`
       CREATE TABLE IF NOT EXISTS session (
-        sid VARCHAR NOT NULL COLLATE "default",
+        sid VARCHAR PRIMARY KEY NOT NULL,
         sess JSON NOT NULL,
         expire TIMESTAMP(6) NOT NULL
       )
-    `);
-
-    await db.execute(`
-      ALTER TABLE session ADD CONSTRAINT session_pkey PRIMARY KEY (sid) NOT DEFERRABLE INITIALLY IMMEDIATE
     `);
 
     await db.execute(`
@@ -122,9 +118,9 @@ export async function initializeDatabase() {
 
     // Insert default suppliers
     await db.execute(`
-      INSERT INTO suppliers (id, name, contact, email, phone) VALUES 
-        (1, 'Fournisseur Test', 'Contact Principal', 'contact@fournisseur.fr', '03.83.00.00.00'),
-        (2, 'Logistique Pro', 'Service Commercial', 'commercial@logistique-pro.fr', '03.87.11.22.33')
+      INSERT INTO suppliers (id, name, contact, phone) VALUES 
+        (1, 'Fournisseur Test', 'Contact Principal', '03.83.00.00.00'),
+        (2, 'Logistique Pro', 'Service Commercial', '03.87.11.22.33')
       ON CONFLICT (id) DO NOTHING
     `);
 

@@ -1,0 +1,124 @@
+Production Environment Configuration:
+
+- NODE_ENV: production
+
+- USE_LOCAL_AUTH: true
+
+- DATABASE_URL: ***configured***
+
+- PORT: 5000
+
+Using PostgreSQL connection for production
+
+Using local authentication system
+
+Warning: connect.session() MemoryStore is not
+
+designed for a production environment, as it will leak
+
+memory, and will not scale past a single process.
+
+🔄 Initializing database schema...
+
+[express] Serving static files from: /app/dist/client
+
+[express] serving on port 5000
+
+❌ Error initializing database: error: multiple primary keys for table "session" are not allowed
+
+    at /app/node_modules/pg-pool/index.js:45:11
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async initializeDatabase (file:///app/dist/index.js:350:5)
+
+    at async createDefaultAdminUser (file:///app/dist/index.js:408:5) {
+
+  length: 124,
+
+  severity: 'ERROR',
+
+  code: '42P16',
+
+  detail: undefined,
+
+  hint: undefined,
+
+  position: undefined,
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'index.c',
+
+  line: '222',
+
+  routine: 'index_check_primary_key'
+
+}
+
+Error creating admin user: error: multiple primary keys for table "session" are not allowed
+
+    at /app/node_modules/pg-pool/index.js:45:11
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async initializeDatabase (file:///app/dist/index.js:350:5)
+
+    at async createDefaultAdminUser (file:///app/dist/index.js:408:5) {
+
+  length: 124,
+
+  severity: 'ERROR',
+
+  code: '42P16',
+
+  detail: undefined,
+
+  hint: undefined,
+
+  position: undefined,
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'index.c',
+
+  line: '222',
+
+  routine: 'index_check_primary_key'
+
+}
+
+[express] HEAD /api/health 200 in 5ms :: {"status":"healthy","timestamp":"2025-07-10T18:4…
+
+
+      
+      
+    
