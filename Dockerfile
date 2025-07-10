@@ -27,7 +27,8 @@ RUN npx esbuild server/index.production.ts \
     --external:vite \
     --external:@vitejs/* \
     --external:@replit/* \
-    --external:tsx
+    --external:tsx \
+    --external:openid-client
 
 # Production stage
 FROM node:20-alpine AS production

@@ -1,8 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+
+// Forcer l'authentification locale en production Docker
+process.env.USE_LOCAL_AUTH = "true";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,7 +66,14 @@ function serveStatic(app: express.Express) {
   });
 }
 
+// Import des routes de production (sans dépendances Replit)
+async function loadRoutes() {
+  const { registerRoutes } = await import("./routes.production.js");
+  return registerRoutes;
+}
+
 (async () => {
+  const registerRoutes = await loadRoutes();
   const server = await registerRoutes(app);
 
   // Gestion des erreurs
