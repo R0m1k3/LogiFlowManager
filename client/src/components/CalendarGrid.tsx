@@ -108,6 +108,13 @@ export default function CalendarGrid({
                     // Vérifier si la commande a une livraison en attente
                     const hasDeliveryPending = order.deliveries?.some(delivery => delivery.status === 'pending') || false;
                     
+                    // Debug : afficher les données de la commande
+                    console.log(`Commande ${order.id} - ${order.supplier.name}:`, {
+                      status: order.status,
+                      deliveries: order.deliveries,
+                      hasDeliveryPending
+                    });
+                    
                     return (
                       <div
                         key={`order-${order.id}`}
@@ -138,8 +145,15 @@ export default function CalendarGrid({
                     );
                   })}
                   
-                  {dayDeliveries.map((delivery) => (
-                    <div
+                  {dayDeliveries.map((delivery) => {
+                    // Debug : afficher les données de la livraison
+                    console.log(`Livraison ${delivery.id} - ${delivery.supplier.name}:`, {
+                      status: delivery.status,
+                      orderId: delivery.orderId
+                    });
+                    
+                    return (
+                      <div
                       key={`delivery-${delivery.id}`}
                       className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${
                         delivery.status === 'delivered' 
@@ -164,8 +178,9 @@ export default function CalendarGrid({
                           <Check className="w-3 h-3" />
                         )}
                       </div>
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               
