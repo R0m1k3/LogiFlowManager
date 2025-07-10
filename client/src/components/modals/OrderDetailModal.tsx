@@ -9,6 +9,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import EditOrderModal from "./EditOrderModal";
+import EditDeliveryModal from "./EditDeliveryModal";
 import { Package, Truck, Edit, Trash2, Check, X } from "lucide-react";
 
 interface OrderDetailModalProps {
@@ -26,6 +28,7 @@ export default function OrderDetailModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const isOrder = item?.type === 'order';
   const isDelivery = item?.type === 'delivery';
@@ -110,12 +113,7 @@ export default function OrderDetailModal({
   };
 
   const handleEdit = () => {
-    // Pour l'instant, on ferme le modal et on pourrait ouvrir un modal d'édition
-    // Ceci est un placeholder - la fonctionnalité d'édition peut être ajoutée plus tard
-    toast({
-      title: "Fonction à venir",
-      description: "La modification sera disponible dans une prochaine version",
-    });
+    setShowEditModal(true);
   };
 
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
@@ -143,6 +141,7 @@ export default function OrderDetailModal({
   if (!item) return null;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden">
         {/* Header */}
@@ -368,5 +367,23 @@ export default function OrderDetailModal({
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Edit Modals */}
+    {showEditModal && isOrder && (
+      <EditOrderModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        order={item}
+      />
+    )}
+
+    {showEditModal && isDelivery && (
+      <EditDeliveryModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        delivery={item}
+      />
+    )}
+    </>
   );
 }
