@@ -42,16 +42,11 @@ export default function Orders() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithRelations | null>(null);
 
+  // Construire l'URL pour l'historique complet sans filtrage par date
+  const ordersUrl = `/api/orders${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
+  
   const { data: orders = [], isLoading } = useQuery<OrderWithRelations[]>({
-    queryKey: ['/api/orders', selectedStoreId],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (selectedStoreId && user?.role === 'admin') {
-        params.append('storeId', selectedStoreId.toString());
-      }
-      const result = await apiRequest("GET", `/api/orders?${params.toString()}`);
-      return Array.isArray(result) ? result : [];
-    },
+    queryKey: [ordersUrl, selectedStoreId],
   });
 
   const { data: groups = [] } = useQuery({

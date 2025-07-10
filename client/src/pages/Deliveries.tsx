@@ -44,16 +44,11 @@ export default function Deliveries() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryWithRelations | null>(null);
 
+  // Construire l'URL pour l'historique complet sans filtrage par date
+  const deliveriesUrl = `/api/deliveries${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
+  
   const { data: deliveries = [], isLoading } = useQuery<DeliveryWithRelations[]>({
-    queryKey: ['/api/deliveries', selectedStoreId],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (selectedStoreId && user?.role === 'admin') {
-        params.append('storeId', selectedStoreId.toString());
-      }
-      const result = await apiRequest("GET", `/api/deliveries?${params.toString()}`);
-      return Array.isArray(result) ? result : [];
-    },
+    queryKey: [deliveriesUrl, selectedStoreId],
   });
 
   const { data: groups = [] } = useQuery({
