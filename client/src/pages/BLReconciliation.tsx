@@ -15,7 +15,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useStore } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle } from "lucide-react";
+import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format as formatDate } from "date-fns";
+import { DayPicker } from "react-day-picker";
 
 const invoiceSchema = z.object({
   invoiceReference: z.string().min(1, "La référence facture est obligatoire"),
@@ -34,16 +38,25 @@ export default function BLReconciliation() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Récupérer les livraisons validées avec BL
   const { data: deliveriesWithBL = [], isLoading } = useQuery({
-    queryKey: ['/api/deliveries/bl', selectedStoreId],
+    queryKey: ['/api/deliveries/bl', selectedStoreId, selectedDate],
     queryFn: async () => {
       const params = new URLSearchParams({
         withBL: 'true'
       });
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
+      }
+      
+      // Ajouter filtre par date si sélectionné
+      if (selectedDate) {
+        const dateStr = formatDate(selectedDate, 'yyyy-MM-dd');
+        params.append('startDate', dateStr);
+        params.append('endDate', dateStr);
       }
       
       const response = await fetch(`/api/deliveries?${params.toString()}`, {
@@ -235,6 +248,47 @@ export default function BLReconciliation() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
+          </div>
+          
+          {/* Sélecteur de date */}
+          <div className="flex items-center space-x-2">
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {selectedDate ? formatDate(selectedDate, "d MMMM yyyy", { locale: fr }) : "Filtrer par date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <DayPicker
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    setIsDatePickerOpen(false);
+                  }}
+                  locale={fr}
+                  className="rounded-md border"
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {selectedDate && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedDate(null)}
+                className="h-9 px-2"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
