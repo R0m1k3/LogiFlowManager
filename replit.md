@@ -295,6 +295,10 @@ Changelog:
 - July 10, 2025. Ajout forceInitDatabase() qui force l'initialisation avant toute authentification ou route
 - July 10, 2025. Ordre d'exécution strict: DB ready → AUTH setup → ROUTES loading → SERVER start
 - July 10, 2025. Arrêt automatique (process.exit(1)) si l'initialisation échoue pour éviter états incohérents
+- July 10, 2025. **CONVERSION COMPLÈTE SQL BRUT** - Remplacement intégral de Drizzle ORM par pool.query() PostgreSQL natif
+- July 10, 2025. Élimination de tous les db.execute() au profit de pool.query() pour opérations critiques base de données
+- July 10, 2025. Triple vérification: CREATE TABLE + information_schema + SELECT verification pour colonne 'name'
+- July 10, 2025. Paramètres SQL sécurisés ($1, $2, etc.) pour éviter injection SQL lors création utilisateur admin
 
 ## User Preferences
 

@@ -1,16 +1,17 @@
-import { db } from "./db.production";
+import { pool } from "./db.production";
 
 export async function initializeDatabase() {
-  console.log("🔄 Initializing database schema...");
+  console.log("🔄 CRITICAL: Initializing database schema with raw SQL...");
   
   try {
-    // Create users table if not exists
-    await db.execute(`
+    // STEP 1: Create users table with name column included from the start
+    console.log("🔧 Creating users table with name column...");
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR PRIMARY KEY NOT NULL,
         username VARCHAR UNIQUE NOT NULL,
         email VARCHAR UNIQUE NOT NULL,
-        name VARCHAR,
+        name VARCHAR(255),
         role VARCHAR NOT NULL DEFAULT 'employee' CHECK (role IN ('admin', 'manager', 'employee')),
         password VARCHAR NOT NULL,
         password_changed BOOLEAN DEFAULT FALSE,
@@ -19,35 +20,41 @@ export async function initializeDatabase() {
       )
     `);
     
-    // Check if 'name' column exists, if not add it (for existing installations)
-    console.log("🔧 Checking for name column in users table...");
-    try {
-      const columnCheck = await db.execute(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'users' AND column_name = 'name'
-      `);
+    // STEP 2: Force check if name column exists using raw SQL
+    console.log("🔧 CRITICAL: Verifying name column exists...");
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name = 'name'
+    `);
+    
+    if (columnCheck.rows.length === 0) {
+      console.log("🚨 CRITICAL: Name column missing! Adding immediately...");
+      await pool.query(`ALTER TABLE users ADD COLUMN name VARCHAR(255)`);
       
-      if (columnCheck.length === 0) {
-        console.log("🔧 Adding missing 'name' column to users table...");
-        await db.execute(`ALTER TABLE users ADD COLUMN name VARCHAR(255)`);
-        
-        // Update existing users with name from username
-        await db.execute(`
-          UPDATE users 
-          SET name = COALESCE(username, email) 
-          WHERE name IS NULL OR name = ''
-        `);
-        console.log("✅ Name column added and populated successfully");
-      } else {
-        console.log("✅ Name column already exists");
-      }
+      // Update existing users
+      await pool.query(`
+        UPDATE users 
+        SET name = COALESCE(username, email) 
+        WHERE name IS NULL OR name = ''
+      `);
+      console.log("✅ CRITICAL: Name column added and populated successfully");
+    } else {
+      console.log("✅ CRITICAL: Name column confirmed present");
+    }
+    
+    // STEP 3: Double-check by attempting to select from name column
+    try {
+      await pool.query(`SELECT name FROM users LIMIT 1`);
+      console.log("✅ CRITICAL: Name column verified working");
     } catch (error) {
-      console.log("⚠️ Could not check/add name column:", error.message);
+      console.error("❌ CRITICAL: Name column still not working:", error.message);
+      throw new Error("Name column verification failed");
     }
 
-    // Create groups table  
-    await db.execute(`
+    // Create groups table using raw SQL
+    console.log("🔧 Creating groups table...");
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS groups (
         id SERIAL PRIMARY KEY,
         name VARCHAR NOT NULL,
@@ -57,8 +64,9 @@ export async function initializeDatabase() {
       )
     `);
 
-    // Create suppliers table
-    await db.execute(`
+    // Create suppliers table using raw SQL
+    console.log("🔧 Creating suppliers table...");
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS suppliers (
         id SERIAL PRIMARY KEY,
         name VARCHAR NOT NULL,
@@ -69,8 +77,9 @@ export async function initializeDatabase() {
       )
     `);
 
-    // Create orders table
-    await db.execute(`
+    // Create orders table using raw SQL
+    console.log("🔧 Creating orders table...");
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         supplier_id INTEGER NOT NULL,
@@ -84,8 +93,9 @@ export async function initializeDatabase() {
       )
     `);
 
-    // Create deliveries table
-    await db.execute(`
+    // Create deliveries table using raw SQL
+    console.log("🔧 Creating deliveries table...");
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS deliveries (
         id SERIAL PRIMARY KEY,
         order_id INTEGER,
@@ -107,30 +117,36 @@ export async function initializeDatabase() {
       )
     `);
 
-    // Create user_groups table
-    await db.execute(`
+    // Create user_groups table using raw SQL
+    console.log("🔧 Creating user_groups table...");
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS user_groups (
+        id SERIAL PRIMARY KEY,
         user_id VARCHAR NOT NULL,
         group_id INTEGER NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, group_id)
       )
     `);
 
-    // Create session table with primary key
-    await db.execute(`
+    // Create session table for session storage using raw SQL
+    console.log("🔧 Creating session table...");
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS session (
-        sid VARCHAR PRIMARY KEY NOT NULL,
+        sid VARCHAR NOT NULL,
         sess JSON NOT NULL,
-        expire TIMESTAMP(6) NOT NULL
+        expire TIMESTAMP(6) NOT NULL,
+        PRIMARY KEY (sid)
       )
     `);
 
-    await db.execute(`
+    await pool.query(`
       CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire)
     `);
 
-    // Insert default groups
-    await db.execute(`
+    // Insert default groups using raw SQL
+    console.log("🔧 Inserting default groups...");
+    await pool.query(`
       INSERT INTO groups (id, name, color) VALUES 
         (1, 'Frouard', '#1976D2'),
         (2, 'Nancy', '#388E3C'),
@@ -138,17 +154,19 @@ export async function initializeDatabase() {
       ON CONFLICT (id) DO NOTHING
     `);
 
-    // Insert default suppliers
-    await db.execute(`
+    // Insert default suppliers using raw SQL
+    console.log("🔧 Inserting default suppliers...");
+    await pool.query(`
       INSERT INTO suppliers (id, name, contact, phone) VALUES 
         (1, 'Fournisseur Test', 'Contact Principal', '03.83.00.00.00'),
         (2, 'Logistique Pro', 'Service Commercial', '03.87.11.22.33')
       ON CONFLICT (id) DO NOTHING
     `);
 
-    // Reset sequences
-    await db.execute(`SELECT setval('groups_id_seq', (SELECT MAX(id) FROM groups))`);
-    await db.execute(`SELECT setval('suppliers_id_seq', (SELECT MAX(id) FROM suppliers))`);
+    // Reset sequences using raw SQL
+    console.log("🔧 Resetting sequences...");
+    await pool.query(`SELECT setval('groups_id_seq', (SELECT MAX(id) FROM groups))`);
+    await pool.query(`SELECT setval('suppliers_id_seq', (SELECT MAX(id) FROM suppliers))`);
 
     console.log("✅ Database schema initialized successfully");
   } catch (error) {

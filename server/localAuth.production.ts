@@ -46,30 +46,35 @@ async function comparePasswords(supplied: string, stored: string) {
 
 async function createDefaultAdminUser() {
   try {
-    // First ensure database schema exists
+    // Force database initialization FIRST with raw SQL
+    console.log("🔧 CRITICAL: Forcing database initialization before admin creation...");
     await initializeDatabase();
     
-    console.log("Checking for default admin user...");
+    console.log("🔧 Checking for default admin user with raw SQL...");
     
-    const existingAdmin = await db.select().from(users).where(eq(users.username, 'admin')).limit(1);
+    // Use raw SQL to check for admin user (avoid Drizzle issues)
+    const { pool } = await import("./db.production.js");
+    const adminCheck = await pool.query(`SELECT id FROM users WHERE username = 'admin' LIMIT 1`);
     
-    if (existingAdmin.length === 0) {
-      console.log("Creating default admin user...");
+    if (adminCheck.rows.length === 0) {
+      console.log("🔧 Creating default admin user with raw SQL...");
       const hashedPassword = await hashPassword('admin');
       
-      // Create admin user using raw SQL with all required columns
-      await db.execute(`
+      // Use raw SQL to create admin user (completely avoid Drizzle)
+      await pool.query(`
         INSERT INTO users (id, username, email, name, role, password, password_changed) 
-        VALUES ('admin_local', 'admin', 'admin@logiflow.com', 'Admin Système', 'admin', '${hashedPassword}', false)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT (id) DO NOTHING
-      `);
+      `, ['admin_local', 'admin', 'admin@logiflow.com', 'Admin Système', 'admin', hashedPassword, false]);
       
-      console.log("✅ Default admin user created: admin/admin");
+      console.log("✅ CRITICAL: Default admin user created: admin/admin");
     } else {
-      console.log("✅ Default admin user already exists");
+      console.log("✅ CRITICAL: Default admin user already exists");
     }
   } catch (error) {
-    console.error("Error creating admin user:", error);
+    console.error("❌ CRITICAL: Error creating admin user:", error);
+    console.error("❌ CRITICAL: Error details:", error.message);
+    throw error; // Re-throw to stop application startup
   }
 }
 
