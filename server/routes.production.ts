@@ -221,7 +221,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Users routes
+  // Users routes - Get all users (admin only)
+  app.get('/api/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied - admin only" });
+      }
+
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Get current user profile
   app.get('/api/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -236,20 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/users', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.id);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ message: "Insufficient permissions" });
-      }
 
-      const users = await storage.getUsers();
-      res.json(users);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
 
   app.post('/api/users', isAuthenticated, async (req: any, res) => {
     try {

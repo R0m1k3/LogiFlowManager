@@ -260,6 +260,9 @@ Changelog:
 - July 10, 2025. Authentification admin/admin fonctionnelle, base PostgreSQL connectée, architecture Docker stable
 - July 10, 2025. **ERREUR API LOGIN RÉSOLUE** - Ajouté routes manquantes /api/login, /api/user, /api/logout pour compatibilité frontend
 - July 10, 2025. Résolu "Cannot POST /api/login" en production - harmonisation routes développement/production
+- July 10, 2025. **ROUTES DUPLIQUÉES CORRIGÉES** - Supprimé duplication route /api/users dans routes.production.ts
+- July 10, 2025. Résolu pages blanches causées par conflits de routes API (Users, Orders, Deliveries, etc.)
+- July 10, 2025. Créé script update-production.sh pour appliquer corrections rapidement en production
 
 ## User Preferences
 
