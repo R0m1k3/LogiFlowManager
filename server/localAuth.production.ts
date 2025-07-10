@@ -59,8 +59,8 @@ async function createDefaultAdminUser() {
       
       // Create admin user using raw SQL with all required columns
       await db.execute(`
-        INSERT INTO users (id, username, email, first_name, last_name, role, password, password_changed) 
-        VALUES ('admin_local', 'admin', 'admin@logiflow.com', 'Admin', 'Système', 'admin', '${hashedPassword}', false)
+        INSERT INTO users (id, username, email, name, role, password, password_changed) 
+        VALUES ('admin_local', 'admin', 'admin@logiflow.com', 'Admin Système', 'admin', '${hashedPassword}', false)
         ON CONFLICT (id) DO NOTHING
       `);
       
