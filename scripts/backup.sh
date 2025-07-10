@@ -42,7 +42,7 @@ fi
 
 # Create backup
 print_status "Création de la sauvegarde: $BACKUP_FILE"
-if docker-compose exec -T postgres pg_dump -U logiflow_user --clean --if-exists logiflow > "$BACKUP_FILE"; then
+if docker-compose exec -T postgres pg_dump -U logiflow_admin --clean --if-exists logiflow_db > "$BACKUP_FILE"; then
     print_status "✅ Sauvegarde créée avec succès!"
     
     # Compress the backup

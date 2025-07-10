@@ -30,12 +30,14 @@ nano .env
 Modifiez ces variables dans `.env` :
 
 ```bash
-# ⚠️ OBLIGATOIRE: Changez ces valeurs pour la production
-POSTGRES_PASSWORD=votre_mot_de_passe_securise_123
-SESSION_SECRET=votre_cle_secrete_session_super_longue_et_aleatoire
+# Configuration préconfigurée pour la production
+POSTGRES_DB=logiflow_db
+POSTGRES_USER=logiflow_admin
+POSTGRES_PASSWORD=LogiFlow2025!
+SESSION_SECRET=LogiFlow_Super_Secret_Session_Key_2025_Production
 
 # Configuration base de données
-DATABASE_URL=postgresql://logiflow_user:${POSTGRES_PASSWORD}@postgres:5432/logiflow
+DATABASE_URL=postgresql://logiflow_admin:LogiFlow2025!@postgres:5432/logiflow_db
 
 # Configuration application
 NODE_ENV=production
@@ -66,9 +68,7 @@ docker-compose ps
 
 Une fois déployé, l'application est accessible sur :
 
-- **HTTPS (recommandé)** : https://localhost
-- **HTTP** : http://localhost  
-- **Direct** : http://localhost:5000
+- **Application** : http://localhost:5000
 
 ### 🔑 Connexion par Défaut
 
@@ -81,9 +81,8 @@ Une fois déployé, l'application est accessible sur :
 
 ### Services Déployés
 
-1. **logiflow-app** : Application Node.js principale
-2. **logiflow-db** : Base de données PostgreSQL 15
-3. **logiflow-nginx** : Reverse proxy avec SSL
+1. **logiflow-app** : Application Node.js principale (port 5000)
+2. **logiflow-db** : Base de données PostgreSQL 15 (port 5434)
 
 ### Volumes Persistants
 
@@ -92,7 +91,14 @@ Une fois déployé, l'application est accessible sur :
 
 ### Réseau
 
-- `logiflow-network` : Réseau privé pour la communication inter-conteneurs
+- `nginx_default` : Réseau externe existant (doit être créé au préalable)
+
+### Identifiants de Base de Données
+
+- **Host** : localhost:5434
+- **Database** : logiflow_db
+- **User** : logiflow_admin
+- **Password** : LogiFlow2025!
 
 ## 🔧 Commandes de Gestion
 
@@ -131,48 +137,45 @@ docker-compose down -v
 
 ```bash
 # Accéder à la base de données
-docker-compose exec postgres psql -U logiflow_user -d logiflow
+docker-compose exec postgres psql -U logiflow_admin -d logiflow_db
 
 # Sauvegarde de la base de données
-docker-compose exec postgres pg_dump -U logiflow_user logiflow > backup.sql
+docker-compose exec postgres pg_dump -U logiflow_admin logiflow_db > backup.sql
 
 # Restaurer une sauvegarde
-docker-compose exec -T postgres psql -U logiflow_user logiflow < backup.sql
+docker-compose exec -T postgres psql -U logiflow_admin logiflow_db < backup.sql
 ```
 
 ## 🔒 Sécurité en Production
 
-### 1. Certificats SSL
+### 1. Pare-feu
 
-Le déploiement génère des certificats auto-signés pour le développement. En production :
+Configurez votre pare-feu pour les ports exposés :
 
 ```bash
-# Remplacez les certificats dans le dossier ssl/
-cp votre-certificat.pem ssl/cert.pem
-cp votre-cle-privee.key ssl/key.pem
+# Autoriser l'application
+ufw allow 5000
 
-# Redémarrer nginx
-docker-compose restart nginx
+# Autoriser PostgreSQL si accès externe nécessaire
+ufw allow 5434
 ```
 
-### 2. Pare-feu
+### 2. Réseau Docker
 
-Configurez votre pare-feu pour n'exposer que les ports nécessaires :
+Assurez-vous que le réseau `nginx_default` existe :
 
 ```bash
-# Autoriser seulement HTTP/HTTPS
-ufw allow 80
-ufw allow 443
+# Créer le réseau s'il n'existe pas
+docker network create nginx_default
 
-# Bloquer l'accès direct à l'application et la base de données
-# (ils sont accessibles seulement via nginx et le réseau Docker interne)
+# Vérifier les réseaux existants
+docker network ls
 ```
 
 ### 3. Mots de Passe
 
-- Changez `POSTGRES_PASSWORD` dans `.env`
-- Changez `SESSION_SECRET` dans `.env`
-- Changez le mot de passe admin dans l'application
+- Les identifiants de base de données sont préconfigurés
+- Changez le mot de passe admin de l'application après la première connexion
 
 ## 📈 Optimisations Production
 
@@ -240,14 +243,13 @@ Ajoutez un service de monitoring :
 3. **Base de données inaccessible**
    ```bash
    # Vérifier la santé de PostgreSQL
-   docker-compose exec postgres pg_isready -U logiflow_user
+   docker-compose exec postgres pg_isready -U logiflow_admin
    ```
 
-4. **Certificats SSL invalides**
+4. **Réseau nginx_default manquant**
    ```bash
-   # Régénérer les certificats
-   rm ssl/*
-   ./scripts/deploy.sh
+   # Créer le réseau externe
+   docker network create nginx_default
    ```
 
 ### Logs de Debug

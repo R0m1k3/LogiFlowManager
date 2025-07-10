@@ -203,6 +203,10 @@ Changelog:
 - July 10, 2025. Implemented health checks and monitoring for production deployment
 - July 10, 2025. Created automated deployment script with SSL certificate generation
 - July 10, 2025. Added complete production documentation and troubleshooting guide
+- July 10, 2025. Updated Docker configuration for external nginx_default network integration
+- July 10, 2025. Removed Nginx service, configured PostgreSQL on port 5434
+- July 10, 2025. Preconfigured database credentials (logiflow_admin/LogiFlow2025!/logiflow_db)
+- July 10, 2025. Simplified deployment for existing infrastructure with external reverse proxy
 
 ## User Preferences
 

@@ -6,20 +6,20 @@ services:
     image: postgres:15-alpine
     container_name: logiflow-db
     environment:
-      POSTGRES_DB: logiflow
-      POSTGRES_USER: logiflow_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_123}
+      POSTGRES_DB: logiflow_db
+      POSTGRES_USER: logiflow_admin
+      POSTGRES_PASSWORD: LogiFlow2025!
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data/pgdata
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
-      - "5432:5432"
+      - "5434:5432"
     networks:
-      - logiflow-network
+      - nginx_default
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U logiflow_user -d logiflow"]
+      test: ["CMD-SHELL", "pg_isready -U logiflow_admin -d logiflow_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,8 +33,8 @@ services:
     container_name: logiflow-app
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://logiflow_user:${POSTGRES_PASSWORD:-secure_password_123}@postgres:5432/logiflow
-      SESSION_SECRET: ${SESSION_SECRET:-your_super_secret_session_key_change_this_in_production}
+      DATABASE_URL: postgresql://logiflow_admin:LogiFlow2025!@postgres:5432/logiflow_db
+      SESSION_SECRET: LogiFlow_Super_Secret_Session_Key_2025_Production
       PORT: 5000
       # Force local authentication in Docker
       USE_LOCAL_AUTH: "true"
@@ -44,7 +44,7 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - logiflow-network
+      - nginx_default
     volumes:
       - app_uploads:/app/uploads
     restart: unless-stopped
@@ -55,22 +55,6 @@ services:
       retries: 3
       start_period: 40s
 
-  # Nginx Reverse Proxy (Optional - for production with SSL)
-  nginx:
-    image: nginx:alpine
-    container_name: logiflow-nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - app
-    networks:
-      - logiflow-network
-    restart: unless-stopped
-
 volumes:
   postgres_data:
     driver: local
@@ -78,5 +62,5 @@ volumes:
     driver: local
 
 networks:
-  logiflow-network:
-    driver: bridge
+  nginx_default:
+    external: true
