@@ -37,88 +37,13 @@ export default function Dashboard() {
     },
   });
 
-  const { data: recentOrders = [] } = useQuery({
-    queryKey: ['/api/orders/recent', selectedStoreId],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (selectedStoreId && user?.role === 'admin') {
-        params.append('storeId', selectedStoreId.toString());
-      }
-      
-      const response = await fetch(`/api/orders?${params.toString()}`, {
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
-      }
-      
-      const orders = await response.json();
-      return orders.slice(0, 3);
-    },
-  });
-
-  const { data: upcomingDeliveries = [] } = useQuery({
-    queryKey: ['/api/deliveries/upcoming', selectedStoreId],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (selectedStoreId && user?.role === 'admin') {
-        params.append('storeId', selectedStoreId.toString());
-      }
-      
-      const response = await fetch(`/api/deliveries?${params.toString()}`, {
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch deliveries');
-      }
-      
-      const deliveries = await response.json();
-      return deliveries
-        .filter((d: any) => d.status === 'pending')
-        .slice(0, 2);
-    },
-  });
-
+  // Utiliser les mêmes clés de cache que les autres pages pour assurer la cohérence
   const { data: allOrders = [] } = useQuery({
-    queryKey: ['/api/orders/all', selectedStoreId],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (selectedStoreId && user?.role === 'admin') {
-        params.append('storeId', selectedStoreId.toString());
-      }
-      
-      const response = await fetch(`/api/orders?${params.toString()}`, {
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
-      }
-      
-      return response.json();
-    },
+    queryKey: ['/api/orders', selectedStoreId],
   });
 
   const { data: allDeliveries = [] } = useQuery({
-    queryKey: ['/api/deliveries/all', selectedStoreId],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (selectedStoreId && user?.role === 'admin') {
-        params.append('storeId', selectedStoreId.toString());
-      }
-      
-      const response = await fetch(`/api/deliveries?${params.toString()}`, {
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch deliveries');
-      }
-      
-      return response.json();
-    },
+    queryKey: ['/api/deliveries', selectedStoreId],
   });
 
   // Calculs pour les statistiques
@@ -131,6 +56,16 @@ export default function Dashboard() {
            deliveryDate.getFullYear() === now.getFullYear() && 
            delivery.status === 'delivered';
   }).length;
+
+  // Données dérivées pour les sections
+  const recentOrders = allOrders
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 3);
+  
+  const upcomingDeliveries = allDeliveries
+    .filter((d: any) => d.status === 'pending')
+    .sort((a: any, b: any) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime())
+    .slice(0, 2);
 
   // Statistiques pour les commandes clients
   const ordersByStatus = {
