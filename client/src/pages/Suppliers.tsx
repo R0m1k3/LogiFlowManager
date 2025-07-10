@@ -242,20 +242,20 @@ export default function Suppliers() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 p-6">
+      <div className="bg-white border-b border-gray-200 p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Building className="w-6 h-6 mr-2 text-primary" />
+            <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
+              <Building className="w-6 h-6 mr-3 text-blue-600" />
               Gestion des Fournisseurs
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mt-1">
               {filteredSuppliers.length} fournisseur{filteredSuppliers.length !== 1 ? 's' : ''}
             </p>
           </div>
           <Button
             onClick={handleCreate}
-            className="bg-primary hover:bg-blue-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nouveau Fournisseur
@@ -264,14 +264,14 @@ export default function Suppliers() {
       </div>
 
       {/* Search */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-gray-50 border-b border-gray-200 p-4">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Rechercher un fournisseur..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 border border-gray-300 shadow-sm"
           />
         </div>
       </div>
@@ -309,14 +309,14 @@ export default function Suppliers() {
               {filteredSuppliers.map((supplier) => {
                 const stats = getSupplierStats(supplier.id);
                 return (
-                  <div key={supplier.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <div key={supplier.id} className="bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-shadow p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
+                        <div className="w-10 h-10 bg-blue-600 flex items-center justify-center mr-3">
                           <Building className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
+                          <h3 className="font-medium text-gray-900">{supplier.name}</h3>
                           <p className="text-sm text-gray-500">#{supplier.id}</p>
                         </div>
                       </div>

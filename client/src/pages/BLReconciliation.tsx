@@ -218,11 +218,11 @@ export default function BLReconciliation() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 p-6">
+      <div className="bg-white border-b border-gray-200 p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <FileText className="w-6 h-6 mr-3 text-primary" />
+            <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
+              <FileText className="w-6 h-6 mr-3 text-blue-600" />
               Rapprochement
             </h2>
             <p className="text-gray-600 mt-1">
@@ -230,7 +230,7 @@ export default function BLReconciliation() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <Badge variant="outline" className="text-sm">
+            <Badge variant="outline" className="text-sm border border-gray-300">
               {filteredDeliveries.length} bon(s) de livraison
             </Badge>
           </div>
@@ -238,7 +238,7 @@ export default function BLReconciliation() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-gray-50 border-b border-gray-200 p-4">
         <div className="flex items-center space-x-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -246,7 +246,7 @@ export default function BLReconciliation() {
               placeholder="Rechercher par fournisseur, BL ou facture..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 border border-gray-300 shadow-sm"
             />
           </div>
           
@@ -257,7 +257,7 @@ export default function BLReconciliation() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-[240px] justify-start text-left font-normal",
+                    "w-[240px] justify-start text-left font-normal border border-gray-300 shadow-sm",
                     !selectedDate && "text-muted-foreground"
                   )}
                 >
@@ -306,9 +306,9 @@ export default function BLReconciliation() {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white border border-gray-200 shadow-lg overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fournisseur

@@ -375,30 +375,30 @@ export default function UsersPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 p-6">
+      <div className="bg-white border-b border-gray-200 p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <UserCog className="w-6 h-6 mr-2 text-primary" />
+            <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
+              <UserCog className="w-6 h-6 mr-3 text-blue-600" />
               Gestion des Utilisateurs
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mt-1">
               {filteredUsers.length} utilisateur{filteredUsers.length !== 1 ? 's' : ''}
             </p>
           </div>
           
           <Button
             onClick={handleCreateUser}
-            className="flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 mr-2" />
             Créer un utilisateur
           </Button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-gray-50 border-b border-gray-200 p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-64">
             <div className="relative">
@@ -407,13 +407,13 @@ export default function UsersPage() {
                 placeholder="Rechercher un utilisateur..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 border border-gray-300 shadow-sm"
               />
             </div>
           </div>
           
           <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 border border-gray-300 shadow-sm">
               <SelectValue placeholder="Filtrer par rôle" />
             </SelectTrigger>
             <SelectContent>
@@ -444,10 +444,10 @@ export default function UsersPage() {
           </div>
         ) : (
           <div className="p-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white border border-gray-200 shadow-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Utilisateur
