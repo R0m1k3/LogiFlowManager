@@ -87,10 +87,10 @@ export default function Dashboard() {
 
       {/* Alert */}
       {pendingOrdersCount > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
-          <AlertTriangle className="h-5 w-5 text-red-500" />
-          <span className="text-sm text-red-700">
-            <strong>{pendingOrdersCount} ticket(s) SAV urgent(s)</strong> nécessitent une attention immédiate
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center space-x-3">
+          <AlertTriangle className="h-5 w-5 text-orange-500" />
+          <span className="text-sm text-orange-700">
+            <strong>{pendingOrdersCount} commande(s) en attente</strong> nécessitent une planification
           </span>
         </div>
       )}
@@ -226,121 +226,77 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Bottom Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Derniers Tickets SAV */}
+      {/* Section Rapprochement BL */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Statut des livraisons */}
         <Card className="bg-white border border-gray-200">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2" />
-              Derniers Tickets SAV
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
-                <div>
-                  <p className="font-medium text-gray-900">Michael SCHAL</p>
-                  <p className="text-sm text-gray-600">Brisque</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                  Moyenne
-                </Badge>
-                <p className="text-xs text-gray-500 mt-1">04 juil.</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-                <div>
-                  <p className="font-medium text-gray-900">Michael SCHAL</p>
-                  <p className="text-sm text-gray-600">Brisque</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <Badge variant="destructive">
-                  Urgent
-                </Badge>
-                <p className="text-xs text-gray-500 mt-1">04 juil.</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Prochaine Pub */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2" />
-              Prochaine Pub
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                <div>
-                  <p className="font-medium text-gray-900">TRUC</p>
-                  <p className="text-sm text-gray-600">Pub n°2029</p>
-                </div>
-              </div>
-              <div className="text-right mt-2">
-                <p className="text-sm font-medium text-gray-900">13 juil.</p>
-                <p className="text-xs text-gray-500">Année 2025</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tâches à faire */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2" />
-              Tâches à faire
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <CheckCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-900 mb-2">Aucune tâche à faire</p>
-              <p className="text-sm text-gray-600">Toutes vos tâches sont terminées !</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Commandes Clients */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              Commandes Clients
+              <Package className="h-5 w-5 mr-2" />
+              Statut des Livraisons
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
+                <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
                 <span className="text-sm text-gray-600">En attente</span>
               </div>
-              <span className="font-medium">{ordersByStatus.pending}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">En commande</span>
-              </div>
-              <span className="font-medium">{ordersByStatus.planned}</span>
+              <span className="font-medium text-orange-600">{allDeliveries.filter((d: any) => d.status === 'pending').length}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Disponible</span>
+                <span className="text-sm text-gray-600">Livrées</span>
               </div>
-              <span className="font-medium">{ordersByStatus.delivered}</span>
+              <span className="font-medium text-green-600">{allDeliveries.filter((d: any) => d.status === 'delivered').length}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">Avec BL validé</span>
+              </div>
+              <span className="font-medium text-blue-600">{allDeliveries.filter((d: any) => d.blNumber && d.status === 'delivered').length}</span>
+            </div>
+            <div className="flex items-center justify-between border-t pt-2">
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-gray-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-900">Total livraisons</span>
+              </div>
+              <span className="font-bold">{allDeliveries.length}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Statut des commandes */}
+        <Card className="bg-white border border-gray-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+              <ShoppingCart className="h-5 w-5 mr-2" />
+              Statut des Commandes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">En attente</span>
+              </div>
+              <span className="font-medium text-red-600">{ordersByStatus.pending}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">Planifiées</span>
+              </div>
+              <span className="font-medium text-orange-600">{ordersByStatus.planned}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">Terminées</span>
+              </div>
+              <span className="font-medium text-green-600">{ordersByStatus.delivered}</span>
             </div>
             <div className="flex items-center justify-between border-t pt-2">
               <div className="flex items-center space-x-2">
@@ -348,55 +304,6 @@ export default function Dashboard() {
                 <span className="text-sm font-medium text-gray-900">Total commandes</span>
               </div>
               <span className="font-bold">{ordersByStatus.total}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Gestion DLC Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <Package className="h-5 w-5 mr-2" />
-              Gestion DLC
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">DLC dépassées</span>
-              </div>
-              <span className="font-medium">0</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Expirent bientôt</span>
-              </div>
-              <span className="font-medium">0</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">En cours</span>
-              </div>
-              <span className="font-medium text-blue-600">{allDeliveries.filter((d: any) => d.status === 'pending').length}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Produits validés</span>
-              </div>
-              <span className="font-medium text-green-600">{allDeliveries.filter((d: any) => d.status === 'delivered').length}</span>
-            </div>
-            <div className="flex items-center justify-between border-t pt-2">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-gray-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">Total produits DLC</span>
-              </div>
-              <span className="font-bold">{allDeliveries.length}</span>
             </div>
           </CardContent>
         </Card>
