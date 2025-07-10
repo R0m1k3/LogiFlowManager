@@ -46,23 +46,23 @@ export default function Layout({ children }: LayoutProps) {
         <Sidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Header with store selector for admin */}
-          <header className="h-16 bg-white border-b-4 border-gray-400 flex items-center justify-between px-6 shadow-lg">
+          <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-black text-gray-900 uppercase tracking-wide">LogiFlow</h1>
+              <h1 className="text-lg font-medium text-gray-800">LogiFlow</h1>
             </div>
 
             {/* Store selector for admin - moved to top right */}
             {user?.role === 'admin' && stores.length > 0 && (
               <div className="flex items-center gap-2">
-                <Store className="h-5 w-5 text-gray-600" />
+                <Store className="h-4 w-4 text-gray-500" />
                 <Select
                   value={selectedStoreId?.toString() || "all"}
                   onValueChange={(value) => setSelectedStoreId(value === "all" ? null : parseInt(value))}
                 >
-                  <SelectTrigger className="w-64 border-2 border-gray-400 font-bold shadow-sm">
+                  <SelectTrigger className="w-64 border border-gray-300 shadow-sm">
                     <SelectValue placeholder="Sélectionner un magasin" />
                   </SelectTrigger>
-                  <SelectContent className="border-2 border-gray-400">
+                  <SelectContent>
                     <SelectItem value="all">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500"></div>

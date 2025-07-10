@@ -103,18 +103,18 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r-4 border-gray-400 flex flex-col shadow-xl">
+    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-lg">
       {/* Logo */}
-      <div className="h-16 flex items-center justify-center border-b-4 border-gray-400 bg-blue-100">
+      <div className="h-16 flex items-center justify-center border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="flex items-center space-x-3">
-          <Store className="h-8 w-8 text-blue-600" />
-          <span className="text-xl font-black text-gray-900 uppercase tracking-wide">LogiFlow</span>
+          <Store className="h-6 w-6 text-blue-600" />
+          <span className="text-lg font-semibold text-gray-900">LogiFlow</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-6 px-4 bg-gray-50">
-        <div className="space-y-3">
+      <nav className="flex-1 py-4 px-3">
+        <div className="space-y-1">
           {menuItems.map((item) => {
             if (!item.roles.includes(user?.role || '')) return null;
             
@@ -124,13 +124,13 @@ export default function Sidebar() {
             return (
               <Link key={item.path} href={item.path}>
                 <div
-                  className={`flex items-center px-4 py-3 text-sm font-bold border-2 transition-colors ${
+                  className={`flex items-center px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 ${
                     active
-                      ? 'bg-blue-600 text-white border-blue-800 shadow-md'
-                      : 'text-gray-700 hover:bg-gray-200 border-gray-300 hover:border-gray-400'
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                      : 'text-gray-700'
                   }`}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
+                  <Icon className="mr-3 h-4 w-4" />
                   {item.label}
                 </div>
               </Link>
@@ -141,12 +141,12 @@ export default function Sidebar() {
         {/* Management Section */}
         {managementItems.some(item => item.roles.includes(user?.role || '')) && (
           <>
-            <div className="mt-8 mb-4">
-              <h3 className="px-4 text-xs font-black text-gray-800 uppercase tracking-wider border-b-2 border-gray-300 pb-2">
+            <div className="mt-6 mb-2">
+              <h3 className="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Gestion
               </h3>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-1">
               {managementItems.map((item) => {
                 if (!item.roles.includes(user?.role || '')) return null;
                 
@@ -156,13 +156,13 @@ export default function Sidebar() {
                 return (
                   <Link key={item.path} href={item.path}>
                     <div
-                      className={`flex items-center px-4 py-3 text-sm font-bold border-2 transition-colors ${
+                      className={`flex items-center px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 ${
                         active
-                          ? 'bg-blue-600 text-white border-blue-800 shadow-md'
-                          : 'text-gray-700 hover:bg-gray-200 border-gray-300 hover:border-gray-400'
+                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                          : 'text-gray-700'
                       }`}
                     >
-                      <Icon className="mr-3 h-5 w-5" />
+                      <Icon className="mr-3 h-4 w-4" />
                       {item.label}
                     </div>
                   </Link>
@@ -174,18 +174,18 @@ export default function Sidebar() {
       </nav>
 
       {/* User Profile & Logout */}
-      <div className="border-t-4 border-gray-400 p-4 bg-gray-100">
+      <div className="border-t border-gray-200 p-4">
         <div className="flex items-center space-x-3 mb-3">
-          <div className="h-10 w-10 bg-blue-200 border-2 border-blue-400 flex items-center justify-center">
-            <span className="text-sm font-black text-blue-800">
+          <div className="h-8 w-8 bg-blue-100 flex items-center justify-center">
+            <span className="text-xs font-medium text-blue-700">
               {getInitials(user?.firstName, user?.lastName)}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate">
+            <p className="text-sm font-medium text-gray-900 truncate">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-xs font-medium text-gray-600 truncate">
+            <p className="text-xs text-gray-500 truncate">
               {user?.email}
             </p>
           </div>
@@ -193,7 +193,9 @@ export default function Sidebar() {
         
         <Button
           onClick={handleLogout}
-          className="w-full justify-start bg-red-600 hover:bg-red-800 text-white font-bold border-2 border-red-800"
+          variant="outline"
+          size="sm"
+          className="w-full justify-start text-gray-600 hover:text-red-600 hover:border-red-300"
         >
           <LogOut className="mr-2 h-4 w-4" />
           Déconnexion
