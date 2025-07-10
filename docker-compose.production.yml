@@ -15,7 +15,7 @@ services:
       PORT: 3000
       USE_LOCAL_AUTH: "true"
     ports:
-      - "8080:3000"
+      - "3000:3000"
     networks:
       - nginx_default
     depends_on:

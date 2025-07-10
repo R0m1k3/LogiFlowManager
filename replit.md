@@ -249,9 +249,11 @@ Changelog:
 - July 10, 2025. **ERREUR DOCKERFILE RÉSOLUE** - Supprimé référence au dossier scripts/ inexistant causant erreur checksum
 - July 10, 2025. Build Docker corrigé, déploiement Portainer maintenant fonctionnel
 - July 10, 2025. **PORT INTERNE MODIFIÉ** - Changé port interne de 5000 vers 3000 pour éviter conflits
-- July 10, 2025. Configuration finale : 8080:3000 (externe:interne) compatible multi-applications serveur
+- July 10, 2025. **PORT EXTERNE SIMPLIFIÉ** - Changé configuration de 8080:3000 vers 3000:3000 pour cohérence
+- July 10, 2025. **SUPPRESSION NGINX** - Nettoyé toute la documentation nginx suite demande utilisateur accès direct seulement
+- July 10, 2025. Configuration finale : 3000:3000 (externe:interne) - accès direct sans reverse proxy
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-Deployment preference: Direct access without nginx/reverse proxy, port 8080 standard.
+Deployment preference: Direct access on port 3000, NO nginx/reverse proxy.

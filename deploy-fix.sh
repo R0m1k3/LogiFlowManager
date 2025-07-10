@@ -10,7 +10,7 @@ echo "=================================="
 
 # Variables
 COMPOSE_FILE="docker-compose.yml"
-APP_PORT="8080"
+APP_PORT="3000"
 DB_PORT="5434"
 
 # Fonction de log
@@ -144,8 +144,9 @@ echo ""
 echo "📋 Logs en temps réel :"
 echo "  docker-compose -f $COMPOSE_FILE logs -f"
 echo ""
-echo "🔧 Configuration Nginx :"
-echo "  Pointez votre reverse proxy vers: http://localhost:$APP_PORT"
+echo "🌐 Accès Direct :"
+echo "  Application accessible sur: http://localhost:$APP_PORT"
+echo "  Pas besoin de nginx ou reverse proxy"
 echo ""
 
 # 7. Test optionnel avec navigateur

@@ -17,25 +17,22 @@ docker-compose up -d
 
 ## 📋 Accès Application
 
-- **URL** : http://votre-serveur:8080
+- **URL** : http://votre-serveur:3000
 - **Admin** : admin/admin
 - **Base de données** : PostgreSQL sur port 5434
 - **Réseau** : nginx_default (externe)
 
-## 🔧 Configuration Nginx
+## 🔧 Accès Direct
 
-Copiez `nginx-logiflow.conf` dans votre configuration nginx et modifiez :
-```nginx
-upstream logiflow_backend {
-    server localhost:8080;
-}
-```
+L'application est accessible directement sur le port 3000 :
+- **Pas besoin de nginx ou reverse proxy**
+- **Accès direct** : http://votre-serveur:3000
 
 ## 📚 Documentation
 
 - **DEPLOY-FINAL.md** : Guide complet de déploiement
 - **deploy-fix.sh** : Script automatique de déploiement
-- **nginx-logiflow.conf** : Configuration nginx
+
 - **replit.md** : Architecture et historique du projet
 
 ## 🛠️ Développement

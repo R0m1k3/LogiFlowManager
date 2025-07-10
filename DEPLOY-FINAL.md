@@ -10,7 +10,7 @@
 - **Réseau** : nginx_default (réseau externe)
 
 ### ✅ Ports Configurés
-- **8080** : Application LogiFlow (accessible depuis l'extérieur)
+- **3000** : Application LogiFlow (accessible depuis l'extérieur)
 - **5434** : PostgreSQL (pour administration)
 - **3000** : Port interne application (dans le conteneur)
 
@@ -46,10 +46,10 @@ docker ps | grep logiflow
 docker port logiflow-app
 
 # Test de l'API
-curl -s http://localhost:8080/api/health | jq .
+curl -s http://localhost:3000/api/health | jq .
 
 # Test des routes debug
-curl -s http://localhost:8080/api/debug/status | jq .
+curl -s http://localhost:3000/api/debug/status | jq .
 ```
 
 ### 3. Logs de Diagnostic
@@ -64,86 +64,23 @@ docker logs logiflow-postgres --tail 20
 docker-compose -f docker-compose.production.yml logs -f
 ```
 
-## 🌐 Configuration Nginx/OpenResty
+## 🌐 Accès Direct (Pas de Reverse Proxy)
 
-### Configuration pour Reverse Proxy
+L'application est accessible **directement** sur le port 3000 :
 
-Créez ou modifiez votre configuration nginx :
-
-```nginx
-# /etc/nginx/sites-available/logiflow
-# ou dans votre configuration OpenResty existante
-
-upstream logiflow_backend {
-    server localhost:8080 max_fails=3 fail_timeout=30s;
-}
-
-server {
-    listen 80;
-    server_name votre-domaine.com;  # Remplacez par votre domaine
-
-    # Redirection vers HTTPS (optionnel)
-    # return 301 https://$server_name$request_uri;
-
-    location / {
-        proxy_pass http://logiflow_backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-        
-        # Buffers
-        proxy_buffering on;
-        proxy_buffer_size 4k;
-        proxy_buffers 8 4k;
-        proxy_busy_buffers_size 8k;
-    }
-
-    # Gestion des erreurs
-    error_page 502 503 504 /50x.html;
-    location = /50x.html {
-        root /usr/share/nginx/html;
-    }
-}
-
-# Configuration HTTPS (si certificat SSL)
-server {
-    listen 443 ssl http2;
-    server_name votre-domaine.com;
-
-    ssl_certificate /path/to/your/cert.pem;
-    ssl_certificate_key /path/to/your/key.pem;
-    
-    # Même configuration proxy qu'au-dessus
-    location / {
-        proxy_pass http://logiflow_backend;
-        # ... (même configuration)
-    }
-}
-```
-
-### Activation de la Configuration
 ```bash
-# Si nouveau fichier de site
-ln -s /etc/nginx/sites-available/logiflow /etc/nginx/sites-enabled/
+# URL d'accès direct
+http://votre-serveur:3000
 
-# Test de la configuration
-nginx -t
-
-# Redémarrage
-systemctl reload nginx
-# ou pour OpenResty
-systemctl reload openresty
+# Test de connectivité
+curl http://votre-serveur:3000/api/health
 ```
+
+### Avantages de l'Accès Direct
+- **Plus simple** : Pas de configuration nginx
+- **Moins de complexité** : Une seule couche réseau
+- **Debug facile** : Logs directement dans l'application
+- **Performance** : Pas de proxy intermédiaire
 
 ## 📊 Monitoring et Maintenance
 
@@ -156,7 +93,7 @@ docker stats logiflow-app logiflow-postgres
 docker system df
 
 # Santé de l'application
-watch -n 5 'curl -s http://localhost:8080/api/health | jq .'
+watch -n 5 'curl -s http://localhost:3000/api/health | jq .'
 ```
 
 ### Sauvegarde Base de Données
@@ -182,19 +119,18 @@ docker-compose -f docker-compose.production.yml restart logiflow-app
 docker-compose -f docker-compose.production.yml build --no-cache logiflow-app
 ```
 
-### Si erreur 502 depuis nginx
+### Si problème d'accès depuis l'extérieur
 ```bash
-# Vérifier que l'app répond
-curl http://localhost:8080/api/health
+# Vérifier que l'app répond localement
+curl http://localhost:3000/api/health
 
-# Vérifier la config nginx
-nginx -t
+# Vérifier le firewall (si nécessaire)
+ufw allow 3000
+# ou
+iptables -A INPUT -p tcp --dport 3000 -j ACCEPT
 
-# Logs nginx
-tail -f /var/log/nginx/error.log
-
-# Redémarrer nginx
-systemctl restart nginx
+# Vérifier les ports Docker
+docker port logiflow-app
 ```
 
 ### Si problème de base de données
@@ -214,15 +150,15 @@ docker exec logiflow-app curl http://localhost:3000/api/debug/db
 L'application est correctement déployée quand :
 
 1. **Conteneurs actifs** : `docker ps` montre les 2 conteneurs running
-2. **API accessible** : `curl http://localhost:8080/api/health` retourne du JSON
-3. **Base de données** : `curl http://localhost:8080/api/debug/db` montre connected: true
-4. **Interface web** : Accessible via nginx sur votre domaine
+2. **API accessible** : `curl http://localhost:3000/api/health` retourne du JSON
+3. **Base de données** : `curl http://localhost:3000/api/debug/db` montre connected: true
+4. **Interface web** : Accessible directement sur http://serveur:3000
 5. **Authentification** : Login admin/admin fonctionne
 
 ## 🎯 Accès à l'Application
 
-- **Direct** : http://172.20.0.14:8080
-- **Via nginx** : http://votre-domaine.com (après config nginx)
+- **Direct** : http://172.20.0.14:3000
+- **Accès direct** : http://votre-serveur:3000
 - **Admin** : Connexion avec admin/admin
 
 ## 📝 Notes Importantes

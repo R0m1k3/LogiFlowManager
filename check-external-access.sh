@@ -1,34 +1,34 @@
 #!/bin/bash
 
-echo "🔍 DIAGNOSTIC ACCÈS EXTERNE PORT 8080"
+echo "🔍 DIAGNOSTIC ACCÈS EXTERNE PORT 3000"
 echo "===================================="
 
 # 1. Vérifier le port mapping Docker
 echo "1. PORT MAPPING DOCKER:"
 docker port logiflow-app 2>/dev/null || echo "❌ Conteneur logiflow-app non trouvé"
 
-# 2. Vérifier que le port 8080 est bien écouté
+# 2. Vérifier que le port 3000 est bien écouté
 echo ""
 echo "2. PORTS EN ÉCOUTE SUR LE SYSTÈME:"
 if command -v ss &> /dev/null; then
-    ss -tulpn | grep :8080 || echo "❌ Port 8080 non en écoute"
+    ss -tulpn | grep :3000 || echo "❌ Port 3000 non en écoute"
 elif command -v netstat &> /dev/null; then
-    netstat -tulpn | grep :8080 || echo "❌ Port 8080 non en écoute"
+    netstat -tulpn | grep :3000 || echo "❌ Port 3000 non en écoute"
 else
     echo "❓ ss/netstat non disponible"
 fi
 
-# 3. Test connectivité locale port 8080
+# 3. Test connectivité locale port 3000
 echo ""
-echo "3. TEST CONNECTIVITÉ LOCALE PORT 8080:"
-if curl -s -f http://localhost:8080/api/health > /dev/null 2>&1; then
-    echo "✅ Port 8080 accessible localement"
+echo "3. TEST CONNECTIVITÉ LOCALE PORT 3000:"
+if curl -s -f http://localhost:3000/api/health > /dev/null 2>&1; then
+    echo "✅ Port 3000 accessible localement"
     echo "Réponse API:"
-    curl -s http://localhost:8080/api/health | jq . 2>/dev/null || curl -s http://localhost:8080/api/health
+    curl -s http://localhost:3000/api/health | jq . 2>/dev/null || curl -s http://localhost:3000/api/health
 else
-    echo "❌ Port 8080 NON accessible localement"
+    echo "❌ Port 3000 NON accessible localement"
     echo "Détail de l'erreur:"
-    curl -v http://localhost:8080/api/health 2>&1 | head -5
+    curl -v http://localhost:3000/api/health 2>&1 | head -5
 fi
 
 # 4. Test depuis IP externe (si disponible)
@@ -38,10 +38,10 @@ EXTERNAL_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "unknown")
 echo "IP du serveur: $EXTERNAL_IP"
 
 if [ "$EXTERNAL_IP" != "unknown" ]; then
-    if curl -s -f http://$EXTERNAL_IP:8080/api/health > /dev/null 2>&1; then
-        echo "✅ Port 8080 accessible depuis IP externe"
+    if curl -s -f http://$EXTERNAL_IP:3000/api/health > /dev/null 2>&1; then
+        echo "✅ Port 3000 accessible depuis IP externe"
     else
-        echo "❌ Port 8080 NON accessible depuis IP externe"
+        echo "❌ Port 3000 NON accessible depuis IP externe"
         echo "Cela indique un problème de firewall/iptables"
     fi
 fi
@@ -73,7 +73,7 @@ echo "6. CONFIGURATION DOCKER-COMPOSE:"
 if [ -f "docker-compose.yml" ]; then
     echo "✅ docker-compose.yml existe"
     echo "Port mapping configuré:"
-    grep -A2 -B2 "8080:3000" docker-compose.yml || echo "❌ Mapping 8080:3000 non trouvé"
+    grep -A2 -B2 "3000:3000" docker-compose.yml || echo "❌ Mapping 3000:3000 non trouvé"
     echo "Réseau configuré:"
     grep -A5 "networks:" docker-compose.yml || echo "❌ Configuration réseau non trouvée"
 else
@@ -84,17 +84,17 @@ echo ""
 echo "🔧 SOLUTIONS RECOMMANDÉES:"
 echo ""
 echo "SI PORT MAPPING MANQUANT:"
-echo "  - Vérifier docker-compose.yml contient: ports: - '8080:3000'"
+echo "  - Vérifier docker-compose.yml contient: ports: - '3000:3000'"
 echo "  - Redémarrer: docker-compose restart logiflow-app"
 echo ""
 echo "SI FIREWALL BLOQUE:"
-echo "  - ufw allow 8080"
-echo "  - ou: iptables -A INPUT -p tcp --dport 8080 -j ACCEPT"
+echo "  - ufw allow 3000"
+echo "  - ou: iptables -A INPUT -p tcp --dport 3000 -j ACCEPT"
 echo ""
 echo "SI RÉSEAU MANQUANT:"
 echo "  - docker network create nginx_default"
 echo "  - docker-compose restart"
 echo ""
-echo "SI NGINX PAS CONFIGURÉ:"
-echo "  - Configurer reverse proxy vers localhost:8080"
-echo "  - Voir nginx-logiflow.conf pour exemple"
+echo "ACCÈS DIRECT:"
+echo "  - Application accessible directement sur http://localhost:3000"
+echo "  - Pas besoin de nginx ou reverse proxy"
