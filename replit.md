@@ -252,6 +252,9 @@ Changelog:
 - July 10, 2025. **PORT EXTERNE SIMPLIFIÉ** - Changé configuration de 8080:3000 vers 3000:3000 pour cohérence
 - July 10, 2025. **SUPPRESSION NGINX** - Nettoyé toute la documentation nginx suite demande utilisateur accès direct seulement
 - July 10, 2025. Configuration finale : 3000:3000 (externe:interne) - accès direct sans reverse proxy
+- July 10, 2025. **ERREUR FRONTEND BUILD RÉSOLUE** - Corrigé chemin statique production : vite build → dist/public/ au lieu de dist/client/
+- July 10, 2025. Ajouté détection automatique des fichiers frontend avec logs détaillés pour diagnostic production
+- July 10, 2025. Serveur production maintenant trouve automatiquement index.html dans dist/public/ selon configuration Vite
 
 ## User Preferences
 

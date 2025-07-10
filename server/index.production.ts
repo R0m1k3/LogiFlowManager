@@ -70,22 +70,51 @@ app.use((req, res, next) => {
 
 // Fonction pour servir les fichiers statiques en production
 function serveStatic(app: express.Express) {
-  // En production, les fichiers sont dans dist/client
-  const distPath = path.resolve(process.cwd(), "dist/client");
+  // Vérifier les différents chemins possibles pour les fichiers frontend
+  const possiblePaths = [
+    path.resolve(process.cwd(), "dist/public"),
+    path.resolve(process.cwd(), "dist"),
+    path.resolve(process.cwd(), "dist/client")
+  ];
   
-  console.log(`[express] Serving static files from: ${distPath}`);
+  let distPath = "";
+  let indexPath = "";
   
-  // Servir les fichiers statiques depuis dist/client
+  // Trouver le bon chemin
+  for (const testPath of possiblePaths) {
+    const testIndex = path.resolve(testPath, "index.html");
+    if (fs.existsSync(testIndex)) {
+      distPath = testPath;
+      indexPath = testIndex;
+      break;
+    }
+  }
+  
+  if (!distPath) {
+    console.error(`[ERROR] Frontend files not found in any of these paths:`);
+    possiblePaths.forEach(p => {
+      console.error(`  - ${p} (exists: ${fs.existsSync(p)})`);
+      if (fs.existsSync(p)) {
+        console.error(`    Files: ${fs.readdirSync(p).join(', ')}`);
+      }
+    });
+    
+    // Servir une page d'erreur par défaut
+    app.get("*", (_req, res) => {
+      res.status(500).send("Frontend build files not found. Please rebuild the application.");
+    });
+    return;
+  }
+  
+  console.log(`[express] ✅ Serving static files from: ${distPath}`);
+  console.log(`[express] ✅ index.html found at: ${indexPath}`);
+  console.log(`[express] Available files:`, fs.readdirSync(distPath).join(', '));
+  
+  // Servir les fichiers statiques
   app.use(express.static(distPath));
   
   // Route catch-all pour le SPA
   app.get("*", (_req, res) => {
-    const indexPath = path.resolve(distPath, "index.html");
-    if (!fs.existsSync(indexPath)) {
-      console.error(`[ERROR] index.html not found at: ${indexPath}`);
-      res.status(404).send("Application not found");
-      return;
-    }
     res.sendFile(indexPath);
   });
 }

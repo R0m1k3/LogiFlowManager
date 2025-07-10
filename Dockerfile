@@ -29,6 +29,14 @@ RUN ls -la server/ && echo "Production files:" && ls -la server/*.production.*
 # Build frontend first
 RUN npx vite build
 
+# Vérifier que les fichiers sont construits
+RUN echo "=== BUILD VERIFICATION ===" && \
+    ls -la dist/ && \
+    echo "Frontend files in dist/public:" && \
+    ls -la dist/public/ && \
+    echo "index.html exists:" && \
+    ls -la dist/public/index.html
+
 # Build backend with production file only
 RUN npx esbuild server/index.production.ts \
     --platform=node \
