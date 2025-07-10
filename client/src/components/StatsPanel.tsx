@@ -11,8 +11,11 @@ export default function StatsPanel() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
 
+  // Construire l'URL avec les paramètres
+  const statsUrl = `/api/stats/monthly?year=${year}&month=${month}${selectedStoreId ? `&storeId=${selectedStoreId}` : ''}`;
+
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['/api/stats/monthly', { year, month, storeId: selectedStoreId }],
+    queryKey: [statsUrl, selectedStoreId], // Include selectedStoreId in key to force refetch
   });
 
   if (isLoading) {
