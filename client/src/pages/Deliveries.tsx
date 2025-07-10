@@ -38,7 +38,7 @@ export default function Deliveries() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [groupFilter, setGroupFilter] = useState("all");
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -124,9 +124,8 @@ export default function Deliveries() {
                          delivery.comments?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || delivery.status === statusFilter;
-    const matchesGroup = groupFilter === "all" || delivery.groupId.toString() === groupFilter;
     
-    return matchesSearch && matchesStatus && matchesGroup;
+    return matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status: string) => {
@@ -224,28 +223,7 @@ export default function Deliveries() {
             </SelectContent>
           </Select>
 
-          {user?.role === 'admin' && (
-            <Select value={groupFilter} onValueChange={setGroupFilter}>
-              <SelectTrigger className="w-48">
-                <Building className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filtrer par groupe" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les groupes</SelectItem>
-                {groups.map((group) => (
-                  <SelectItem key={group.id} value={group.id.toString()}>
-                    <div className="flex items-center space-x-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: group.color }}
-                      />
-                      <span>{group.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+
         </div>
       </div>
 
@@ -260,11 +238,11 @@ export default function Deliveries() {
             <Truck className="w-16 h-16 mb-4 text-gray-300" />
             <h3 className="text-lg font-medium mb-2">Aucune livraison trouvée</h3>
             <p className="text-center max-w-md">
-              {searchTerm || statusFilter !== "all" || groupFilter !== "all" 
+              {searchTerm || statusFilter !== "all"
                 ? "Aucune livraison ne correspond à vos critères de recherche."
                 : "Vous n'avez pas encore de livraisons. Créez votre première livraison pour commencer."}
             </p>
-            {canCreate && !searchTerm && statusFilter === "all" && groupFilter === "all" && (
+            {canCreate && !searchTerm && statusFilter === "all" && (
               <Button
                 onClick={() => setShowCreateModal(true)}
                 className="mt-4 bg-secondary hover:bg-green-700 text-white"
