@@ -6,15 +6,14 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
-    
     container_name: logiflow-app
     restart: unless-stopped
     environment:
+      NODE_ENV: production
       DATABASE_URL: postgresql://logiflow_admin:LogiFlow2025!@postgres:5432/logiflow_db
       SESSION_SECRET: LogiFlow_Super_Secret_Session_Key_2025_Production
       PORT: 5000
       USE_LOCAL_AUTH: "true"
-      NODE_ENV: production
     ports:
       - "8080:5000"
     networks:

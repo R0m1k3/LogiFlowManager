@@ -236,6 +236,12 @@ Changelog:
 - July 10, 2025. Configuration nginx-logiflow.conf pour reverse proxy vers port 8080 avec gestion erreurs et SSL
 - July 10, 2025. Documentation DEPLOY-FINAL.md complète avec monitoring, maintenance et résolution problèmes
 - July 10, 2025. Architecture finalisée: Docker Bridge network, PostgreSQL port 5434, Application port 8080, auth admin/admin
+- July 10, 2025. **NETTOYAGE COMPLET DU PROJET** - Suppression de tous les fichiers obsolètes et doublons
+- July 10, 2025. Supprimé 15+ fichiers de documentation redondants (TROUBLESHOOT-*, FIX-*, DEPLOY-QUICK-*, etc.)
+- July 10, 2025. Supprimé ancien docker-compose.yml et gardé seulement docker-compose.production.yml optimisé
+- July 10, 2025. Supprimé scripts/ et ssl/ folders, anciens fichiers de test et cookies
+- July 10, 2025. Créé README.md simplifié avec guide déploiement rapide
+- July 10, 2025. Projet nettoyé : 7 fichiers essentiels (docker-compose, deploy-fix.sh, docs, nginx config)
 
 ## User Preferences
 
