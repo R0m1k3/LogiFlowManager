@@ -231,6 +231,11 @@ Changelog:
 - July 10, 2025. Ajout système de logs détaillés avec tracking unique des requêtes pour debug production
 - July 10, 2025. Création routes debug (/api/debug/status, /api/debug/echo, /api/debug/db) pour diagnostic
 - July 10, 2025. Application Docker production fonctionnelle avec accès direct port 8080 sans reverse proxy
+- July 10, 2025. **CONFIGURATION PRODUCTION FINALISÉE** - Réseau Docker personnalisé, script déploiement automatique
+- July 10, 2025. Création script deploy-fix.sh automatisé avec vérifications complètes (conteneurs, ports, API, DB)
+- July 10, 2025. Configuration nginx-logiflow.conf pour reverse proxy vers port 8080 avec gestion erreurs et SSL
+- July 10, 2025. Documentation DEPLOY-FINAL.md complète avec monitoring, maintenance et résolution problèmes
+- July 10, 2025. Architecture finalisée: Docker Bridge network, PostgreSQL port 5434, Application port 8080, auth admin/admin
 
 ## User Preferences
 

@@ -17,6 +17,8 @@ services:
       NODE_ENV: production
     ports:
       - "8080:5000"
+    networks:
+      - logiflow-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,6 +39,8 @@ services:
       POSTGRES_PASSWORD: LogiFlow2025!
     ports:
       - "5434:5432"
+    networks:
+      - logiflow-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -49,3 +53,7 @@ services:
 volumes:
   postgres_data:
     driver: local
+
+networks:
+  logiflow-network:
+    driver: bridge
