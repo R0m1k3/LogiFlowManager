@@ -11,20 +11,24 @@ docker-compose -f docker-compose.production.yml down
 echo "2. Suppression de l'ancienne image..."
 docker rmi logiflow-app-logiflow-app 2>/dev/null || echo "Aucune ancienne image trouvée"
 
+# Supprimer le volume de base de données pour forcer la réinitialisation
+echo "3. Suppression du volume de base de données..."
+docker volume rm logiflow-app_postgres_data 2>/dev/null || echo "Volume déjà supprimé"
+
 # Rebuild avec cache forcé
-echo "3. Reconstruction de l'image avec corrections..."
+echo "4. Reconstruction de l'image avec corrections..."
 docker-compose -f docker-compose.production.yml build --no-cache
 
 # Redémarrer avec les nouvelles images
-echo "4. Démarrage avec nouvelles images..."
+echo "5. Démarrage avec nouvelles images..."
 docker-compose -f docker-compose.production.yml up -d
 
 # Attendre que les services soient prêts
-echo "5. Vérification des services..."
-sleep 10
+echo "6. Vérification des services..."
+sleep 15
 
 # Tester le health check
-echo "6. Test health check..."
+echo "7. Test health check..."
 curl -s http://localhost:5001/api/health || echo "Service pas encore prêt"
 
 echo ""
