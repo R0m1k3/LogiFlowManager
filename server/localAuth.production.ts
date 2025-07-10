@@ -138,8 +138,8 @@ export function setupLocalAuth(app: Express) {
     }
   ));
 
-  // Login route
-  app.post('/api/auth/login', (req, res, next) => {
+  // Login route handler function
+  const loginHandler = (req: any, res: any, next: any) => {
     passport.authenticate('local', (err: any, user: any, info: any) => {
       if (err) {
         return res.status(500).json({ message: 'Erreur serveur' });
@@ -148,7 +148,7 @@ export function setupLocalAuth(app: Express) {
         return res.status(401).json({ message: info?.message || 'Connexion échouée' });
       }
 
-      req.logIn(user, (err) => {
+      req.logIn(user, (err: any) => {
         if (err) {
           return res.status(500).json({ message: 'Erreur lors de la connexion' });
         }
@@ -156,21 +156,59 @@ export function setupLocalAuth(app: Express) {
           id: user.id,
           username: user.username,
           email: user.email,
-          name: user.name,
-          role: user.role
+          firstName: user.first_name || user.name,
+          lastName: user.last_name || user.name,
+          role: user.role,
+          passwordChanged: user.password_changed
         });
       });
     })(req, res, next);
-  });
+  };
 
-  // Logout route
-  app.post('/api/auth/logout', (req, res) => {
-    req.logout((err) => {
+  // Login routes (both paths for compatibility)
+  app.post('/api/login', loginHandler);
+  app.post('/api/auth/login', loginHandler);
+
+  // Logout handler function
+  const logoutHandler = (req: any, res: any) => {
+    req.logout((err: any) => {
       if (err) {
         return res.status(500).json({ message: 'Erreur lors de la déconnexion' });
       }
       res.json({ message: 'Déconnexion réussie' });
     });
+  };
+
+  // Logout routes (both paths for compatibility)
+  app.post('/api/logout', logoutHandler);
+  app.post('/api/auth/logout', logoutHandler);
+
+  // Get current user
+  app.get('/api/user', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Non authentifié' });
+    }
+    const user = req.user as any;
+    res.json({ 
+      id: user.id, 
+      username: user.username, 
+      email: user.email, 
+      firstName: user.first_name || user.name,
+      lastName: user.last_name || user.name,
+      role: user.role,
+      passwordChanged: user.password_changed
+    });
+  });
+
+  // Check if default credentials should be shown
+  app.get('/api/default-credentials-check', async (req, res) => {
+    try {
+      const adminUser = await db.select().from(users).where(eq(users.username, 'admin')).limit(1);
+      const showDefault = adminUser.length > 0 && !adminUser[0].password_changed;
+      res.json({ showDefault: !!showDefault });
+    } catch (error) {
+      res.json({ showDefault: true }); // Default to showing credentials if error
+    }
   });
 
   // Initialize default admin user

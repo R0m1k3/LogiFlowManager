@@ -258,6 +258,8 @@ Changelog:
 - July 10, 2025. **DÉPLOIEMENT PRODUCTION CONFIRMÉ RÉUSSI** - Application accessible sur logiflow.ffnancy.fr:3000
 - July 10, 2025. Tous modules opérationnels : Dashboard, Commandes, Livraisons, Rapprochement BL/Factures, Gestion utilisateurs
 - July 10, 2025. Authentification admin/admin fonctionnelle, base PostgreSQL connectée, architecture Docker stable
+- July 10, 2025. **ERREUR API LOGIN RÉSOLUE** - Ajouté routes manquantes /api/login, /api/user, /api/logout pour compatibilité frontend
+- July 10, 2025. Résolu "Cannot POST /api/login" en production - harmonisation routes développement/production
 
 ## User Preferences
 
