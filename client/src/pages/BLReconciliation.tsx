@@ -70,7 +70,7 @@ export default function BLReconciliation() {
   });
 
   const updateInvoiceMutation = useMutation({
-    mutationFn: async (data: { id: number; invoiceReference: string; invoiceAmount: number }) => {
+    mutationFn: async (data: { id: number; invoiceReference: string; invoiceAmount: string }) => {
       await apiRequest("PUT", `/api/deliveries/${data.id}`, {
         invoiceReference: data.invoiceReference,
         invoiceAmount: data.invoiceAmount,
@@ -153,7 +153,7 @@ export default function BLReconciliation() {
       updateInvoiceMutation.mutate({
         id: selectedDelivery.id,
         invoiceReference: data.invoiceReference,
-        invoiceAmount: parseFloat(data.invoiceAmount),
+        invoiceAmount: data.invoiceAmount, // Envoyer comme string
       });
     }
   };
