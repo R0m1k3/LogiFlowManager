@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Déploiement rapide avec corrections WebSocket"
+echo "🚀 Déploiement rapide avec corrections WebSocket + bcrypt"
 echo "=============================================="
 
 # Arrêter les conteneurs existants

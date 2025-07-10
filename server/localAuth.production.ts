@@ -2,11 +2,14 @@ import { Express } from "express";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import bcrypt from "bcrypt";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 import { users, type User } from "@shared/schema";
 import { eq } from "drizzle-orm";
 // Import de la DB de production
 import { db } from "./db.production";
+
+const scryptAsync = promisify(scrypt);
 
 declare global {
   namespace Express {
@@ -27,11 +30,16 @@ interface SelectUser {
 }
 
 export async function hashPassword(password: string) {
-  return await bcrypt.hash(password, 10);
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  return await bcrypt.compare(supplied, stored);
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
 async function createDefaultAdminUser() {
@@ -45,7 +53,7 @@ async function createDefaultAdminUser() {
       const hashedPassword = await hashPassword('admin');
       
       await db.insert(users).values({
-        id: `local_${Date.now()}`,
+        id: 'admin_local',
         username: 'admin',
         email: 'admin@logiflow.com',
         name: 'Administrateur',
