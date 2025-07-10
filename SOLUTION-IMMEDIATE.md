@@ -1,57 +1,74 @@
-# 🚀 SOLUTION IMMÉDIATE - Accès Direct LogiFlow
+# ⚡ SOLUTION IMMÉDIATE 502 - OpenResty
 
-## 🎯 Problème Identifié
-✅ **Application LogiFlow : PARFAITEMENT FONCTIONNELLE**
-❌ **Problème : Configuration reverse proxy**
+## 🎯 Action Rapide
 
-## ⚡ Solution Rapide - Accès Direct
+Exécutez ces commandes sur votre serveur `172.20.0.14` :
 
-### 1. Arrêter la configuration actuelle
 ```bash
+# 1. Redémarrage complet de l'application
+cd /path/to/logiflow
 docker-compose -f docker-compose.production.yml down
-```
+docker-compose -f docker-compose.production.yml up -d
 
-### 2. Démarrer avec accès direct
-```bash
-docker-compose -f docker-compose.direct.yml up -d --build
-```
+# 2. Attendre le démarrage
+sleep 30
 
-### 3. Accéder à l'application
-**URL Directe :** http://VOTRE_IP_SERVEUR:8080
-**Connexion :** admin / admin
-
-## 🔧 Avantages de cette Solution
-
-- ✅ **Port 8080** : Plus standard, évite les conflits
-- ✅ **Pas de reverse proxy** : Accès direct à l'application
-- ✅ **Configuration simplifiée** : Fonctionne immédiatement
-- ✅ **PostgreSQL séparé** : Port 5435 pour éviter les conflits
-
-## 📋 Vérification
-
-```bash
-# Vérifier que les conteneurs fonctionnent
-docker-compose -f docker-compose.direct.yml ps
-
-# Tester l'application directement
+# 3. Test direct
 curl http://localhost:8080/api/health
 
-# Voir les logs
-docker-compose -f docker-compose.direct.yml logs -f logiflow-app
+# 4. Si ça marche, redémarrer OpenResty
+systemctl restart openresty
 ```
 
-## ✅ Résultat Attendu
+## 🔧 Si Le Port 8080 N'est Pas Accessible
 
-- **Application accessible** : http://VOTRE_IP:8080
-- **Interface de connexion** : Formulaire admin/admin
-- **Dashboard complet** : Toutes les fonctionnalités LogiFlow
+**Vérifiez le mapping des ports dans docker-compose.production.yml :**
 
-## 🔄 Retour à la Configuration Normale
+```yaml
+services:
+  logiflow-app:
+    ports:
+      - "8080:5000"  # ← Cette ligne doit être présente
+```
 
-Une fois que vous confirmez que l'application fonctionne sur le port 8080, nous pourrons corriger votre reverse proxy pour utiliser cette URL comme target.
+## 📋 Configuration OpenResty
 
-## 📞 Next Steps
+Votre fichier de configuration OpenResty doit contenir :
 
-1. **Testez** : http://VOTRE_IP:8080
-2. **Confirmez** : L'application s'affiche correctement
-3. **Configuration nginx** : Nous ajusterons ensuite votre reverse proxy
+```nginx
+server {
+    listen 80;
+    server_name _;
+    
+    location / {
+        proxy_pass http://localhost:8080;  # Port exposé par Docker
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+## 🚨 Solution de Secours
+
+Si rien ne fonctionne, accès direct sans OpenResty :
+
+```bash
+# Arrêter OpenResty temporairement
+systemctl stop openresty
+
+# Modifier docker-compose.production.yml
+# Changer ports vers "80:5000"
+# Puis redémarrer
+docker-compose -f docker-compose.production.yml up -d
+```
+
+## ✅ Test de Validation
+
+```bash
+# Ces commandes doivent toutes fonctionner
+curl http://localhost:8080/api/health
+curl http://localhost:8080/api/debug/status
+curl http://172.20.0.14  # Depuis l'extérieur
+```
