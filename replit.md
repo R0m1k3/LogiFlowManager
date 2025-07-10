@@ -171,6 +171,7 @@ Changelog:
 - July 10, 2025. Enhanced deliveries table with BL tracking fields: blNumber, blAmount, invoiceReference, invoiceAmount, reconciled
 - July 10, 2025. Modified validation workflow to require BL information when validating deliveries
 - July 10, 2025. Renamed BL/Factures to "Rapprochement" and moved to main navigation menu
+- July 10, 2025. Modified validation workflow to automatically close detail modal after successful delivery validation
 
 ## User Preferences
 

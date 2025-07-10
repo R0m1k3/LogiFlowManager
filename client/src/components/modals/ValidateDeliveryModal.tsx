@@ -25,12 +25,14 @@ interface ValidateDeliveryModalProps {
   isOpen: boolean;
   onClose: () => void;
   delivery: any;
+  onValidated?: () => void; // Callback pour fermer le modal parent
 }
 
 export default function ValidateDeliveryModal({
   isOpen,
   onClose,
   delivery,
+  onValidated,
 }: ValidateDeliveryModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -59,6 +61,10 @@ export default function ValidateDeliveryModal({
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
       form.reset();
       onClose();
+      // Fermer aussi le modal parent si fourni
+      if (onValidated) {
+        onValidated();
+      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

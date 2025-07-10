@@ -391,6 +391,7 @@ export default function OrderDetailModal({
         isOpen={showValidateModal}
         onClose={() => setShowValidateModal(false)}
         delivery={item}
+        onValidated={onClose} // Fermer le modal de détail après validation
       />
     )}
     </>
