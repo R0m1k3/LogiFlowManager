@@ -49,9 +49,14 @@ export default function CreateDeliveryModal({
     queryKey: ['/api/groups'],
   });
 
-  const { data: orders = [] } = useQuery<OrderWithRelations[]>({
+  // Filtrer les commandes par fournisseur sélectionné
+  const { data: allOrders = [] } = useQuery<OrderWithRelations[]>({
     queryKey: ['/api/orders'],
   });
+
+  const availableOrders = allOrders.filter(order => 
+    formData.supplierId ? order.supplierId === parseInt(formData.supplierId) : true
+  );
 
   // Auto-sélectionner le magasin selon les règles
   useEffect(() => {
@@ -59,9 +64,8 @@ export default function CreateDeliveryModal({
       let defaultGroupId = "";
       
       if (user?.role === 'admin') {
-        // Pour l'admin : ne pas présélectionner automatiquement, laisser le choix
-        // L'admin doit sélectionner manuellement le magasin
-        defaultGroupId = "";
+        // Pour l'admin : utiliser le magasin sélectionné dans le header
+        defaultGroupId = selectedStoreId ? selectedStoreId.toString() : "";
       } else {
         // Pour les autres rôles : prendre le premier magasin attribué
         // (La logique existante filtre déjà les groupes selon les permissions)
@@ -73,6 +77,13 @@ export default function CreateDeliveryModal({
       }
     }
   }, [groups, selectedStoreId, user?.role, formData.groupId]);
+
+  // Réinitialiser la commande sélectionnée quand on change de fournisseur
+  useEffect(() => {
+    if (formData.supplierId) {
+      setFormData(prev => ({ ...prev, orderId: "" }));
+    }
+  }, [formData.supplierId]);
 
   const createDeliveryMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -133,8 +144,8 @@ export default function CreateDeliveryModal({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Filter orders that don't have deliveries yet
-  const availableOrders = orders.filter(order => 
+  // Filter orders by supplier and delivery status
+  const finalFilteredOrders = availableOrders.filter(order => 
     order.status !== 'delivered' && (!order.deliveries || order.deliveries.length === 0)
   );
 
@@ -146,22 +157,6 @@ export default function CreateDeliveryModal({
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="order">Commande liée (optionnel)</Label>
-            <Select value={formData.orderId} onValueChange={(value) => handleChange('orderId', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez une commande" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableOrders.map((order) => (
-                  <SelectItem key={order.id} value={order.id.toString()}>
-                    #{order.id} - {order.supplier.name} - {order.quantity}{order.unit === 'palettes' ? 'P' : 'C'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div>
             <Label htmlFor="supplier">Fournisseur *</Label>
             <Select value={formData.supplierId} onValueChange={(value) => handleChange('supplierId', value)}>
@@ -177,6 +172,29 @@ export default function CreateDeliveryModal({
               </SelectContent>
             </Select>
           </div>
+
+          {formData.supplierId && (
+            <div>
+              <Label htmlFor="order">Commande liée (optionnel)</Label>
+              <Select value={formData.orderId} onValueChange={(value) => handleChange('orderId', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez une commande de ce fournisseur" />
+                </SelectTrigger>
+                <SelectContent>
+                  {finalFilteredOrders.map((order) => (
+                    <SelectItem key={order.id} value={order.id.toString()}>
+                      #{order.id} - {order.supplier.name} - {format(new Date(order.plannedDate), 'dd/MM/yyyy')}
+                    </SelectItem>
+                  ))}
+                  {finalFilteredOrders.length === 0 && (
+                    <SelectItem value="" disabled>
+                      Aucune commande disponible pour ce fournisseur
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Sélecteur de magasin pour admin, affichage en lecture seule pour les autres */}
           {user?.role === 'admin' ? (

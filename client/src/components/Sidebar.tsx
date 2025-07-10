@@ -99,42 +99,6 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* User Profile */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-            {user?.profileImageUrl ? (
-              <img 
-                src={user.profileImageUrl} 
-                alt="Profile" 
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-white font-medium">
-                {getInitials(user?.firstName, user?.lastName)}
-              </span>
-            )}
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <p className="text-xs text-gray-500 capitalize">
-              {user?.role === "admin" ? "Administrateur" : 
-               user?.role === "manager" ? "Manager" : "Employé"}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="p-2 text-gray-400 hover:text-gray-600"
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
       {/* Navigation Menu */}
       <nav className="flex-1 p-4 space-y-2">
         {menuItems.map((item) => {
@@ -190,6 +154,42 @@ export default function Sidebar() {
           </div>
         )}
       </nav>
+
+      {/* User Profile at Bottom */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+            {user?.profileImageUrl ? (
+              <img 
+                src={user.profileImageUrl} 
+                alt="Profile" 
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-white font-medium">
+                {getInitials(user?.firstName, user?.lastName)}
+              </span>
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-900">
+              {user?.firstName} {user?.lastName}
+            </p>
+            <p className="text-xs text-gray-500 capitalize">
+              {user?.role === "admin" ? "Administrateur" : 
+               user?.role === "manager" ? "Manager" : "Employé"}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="p-2 text-gray-400 hover:text-gray-600"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
