@@ -28,6 +28,12 @@ docker-compose -f docker-compose.production.yml up -d
 docker-compose -f docker-compose.production.yml logs -f logiflow-app
 ```
 
+## 🌐 Accès Application
+
+**URL Directe :** http://VOTRE_IP_SERVEUR:8080  
+**Connexion :** admin / admin  
+**Pas de reverse proxy requis** - Accès direct simplifié
+
 ## ✅ Logs de Succès Attendus
 
 ```
@@ -42,7 +48,7 @@ Checking for default admin user...
 
 ## 🎯 Application Opérationnelle
 
-- **URL** : http://localhost:5001
+- **URL** : http://VOTRE_IP_SERVEUR:8080
 - **Connexion** : admin / admin
 - **Base de données** : PostgreSQL port 5434
 - **Auto-initialisation** : Tables créées automatiquement
@@ -72,7 +78,7 @@ docker-compose -f docker-compose.production.yml up -d
 
 3. **Vérifier la santé** :
 ```bash
-curl http://localhost:5001/api/health
+curl http://localhost:8080/api/health
 ```
 
 ## 🎊 Résultat Final

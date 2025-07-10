@@ -2,18 +2,13 @@ version: '3.8'
 
 services:
   logiflow-app:
-    # Pour le moment, build local jusqu'à ce que l'image GitHub soit disponible
     build:
       context: .
       dockerfile: Dockerfile
       target: production
-    # Une fois l'image GitHub publiée, décommentez cette ligne :
-    # image: ghcr.io/username/logiflow:latest
     
     container_name: logiflow-app
     restart: unless-stopped
-    networks:
-      - nginx_default
     environment:
       DATABASE_URL: postgresql://logiflow_admin:LogiFlow2025!@postgres:5432/logiflow_db
       SESSION_SECRET: LogiFlow_Super_Secret_Session_Key_2025_Production
@@ -21,7 +16,7 @@ services:
       USE_LOCAL_AUTH: "true"
       NODE_ENV: production
     ports:
-      - "5001:5000"
+      - "8080:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -31,15 +26,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
 
   postgres:
     image: postgres:15-alpine
     container_name: logiflow-postgres
     restart: unless-stopped
-    networks:
-      - nginx_default
     environment:
       POSTGRES_DB: logiflow_db
       POSTGRES_USER: logiflow_admin
@@ -58,7 +49,3 @@ services:
 volumes:
   postgres_data:
     driver: local
-
-networks:
-  nginx_default:
-    external: true

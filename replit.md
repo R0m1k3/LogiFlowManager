@@ -226,7 +226,9 @@ Changelog:
 - July 10, 2025. **DÉPLOIEMENT DOCKER FINALISÉ** - Toutes les erreurs de production résolues (WebSocket, bcrypt, schema, session)
 - July 10, 2025. Correction finale du schéma utilisateurs avec colonnes first_name/last_name pour compatibilité Drizzle ORM
 - July 10, 2025. **APPLICATION PRODUCTION PRÊTE** - Schéma SQL identique à Drizzle, auto-initialisation complète, admin/admin opérationnel
+- July 10, 2025. Suppression configuration nginx/reverse proxy - Déploiement direct sur port 8080 selon préférence utilisateur
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Deployment preference: Direct access without nginx/reverse proxy, port 8080 standard.
