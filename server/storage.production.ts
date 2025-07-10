@@ -279,12 +279,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGroups(): Promise<Group[]> {
-    return await db.select().from(groups).orderBy(groups.name);
+    console.log('🔍 Storage getGroups called');
+    
+    try {
+      const result = await db.select().from(groups).orderBy(groups.name);
+      console.log('✅ Groups query returned:', result.length, 'groups');
+      
+      if (result.length === 0) {
+        console.log('❌ No groups found in database');
+      } else {
+        console.log('✅ Groups found:', result.map(g => ({ id: g.id, name: g.name })));
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('❌ Error in getGroups:', error);
+      throw error;
+    }
   }
 
   async createGroup(group: InsertGroup): Promise<Group> {
-    const result = await db.insert(groups).values(group).returning();
-    return result[0];
+    console.log('🔍 Storage createGroup called with:', group);
+    
+    try {
+      const result = await db.insert(groups).values(group).returning();
+      console.log('✅ Group created in database:', result[0]);
+      return result[0];
+    } catch (error) {
+      console.error('❌ Error creating group in database:', error);
+      throw error;
+    }
   }
 
   async updateGroup(id: number, group: Partial<InsertGroup>): Promise<Group> {

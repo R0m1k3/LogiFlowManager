@@ -91,39 +91,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Groups routes
   app.get('/api/groups', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('🔍 Groups API called, user ID:', req.user?.id);
+      
       const userId = req.user.id;
       const user = await storage.getUserWithGroups(userId);
+      console.log('🔍 Current user found:', user ? { id: user.id, role: user.role } : 'null');
+      
       if (!user) {
+        console.log('❌ User not found');
         return res.status(404).json({ message: "User not found" });
       }
 
       // Admin sees all groups, others see only their assigned groups
       if (user.role === 'admin') {
+        console.log('✅ User is admin, fetching all groups...');
         const groups = await storage.getGroups();
+        console.log('✅ Groups fetched for admin, count:', groups.length);
         res.json(groups);
       } else {
+        console.log('✅ User is not admin, fetching user groups...');
         const userGroups = user.userGroups.map(ug => ug.group);
+        console.log('✅ User groups fetched, count:', userGroups.length);
         res.json(userGroups);
       }
     } catch (error) {
-      console.error("Error fetching groups:", error);
+      console.error("❌ Error fetching groups:", error);
       res.status(500).json({ message: "Failed to fetch groups" });
     }
   });
 
   app.post('/api/groups', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('🔍 Create group API called, user ID:', req.user?.id);
+      console.log('🔍 Group data to create:', req.body);
+      
       const userId = req.user.id;
       const user = await storage.getUser(userId);
+      console.log('🔍 Current user found:', user ? { id: user.id, role: user.role } : 'null');
+      
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        console.log('❌ Access denied - insufficient permissions');
         return res.status(403).json({ message: "Insufficient permissions" });
       }
 
       const data = insertGroupSchema.parse(req.body);
+      console.log('✅ Group data validated:', data);
+      
       const group = await storage.createGroup(data);
+      console.log('✅ Group created successfully:', group);
+      
       res.json(group);
     } catch (error) {
-      console.error("Error creating group:", error);
+      console.error("❌ Error creating group:", error);
       res.status(500).json({ message: "Failed to create group" });
     }
   });
