@@ -276,6 +276,10 @@ Changelog:
 - July 10, 2025. Remplacé JOIN complexe par requêtes séparées avec gestion d'erreur robuste dans getUsers()
 - July 10, 2025. Ajouté logs détaillés pour diagnostic de performance (7000ms -> requête optimisée)
 - July 10, 2025. Créé fix-users-api-production.sh pour correction spécifique du problème utilisateurs
+- July 10, 2025. **ERREUR DRIZZLE ORM RÉSOLUE** - Correction "Cannot convert undefined or null to object" dans getUserWithGroups()
+- July 10, 2025. Même problème SQL complexe dans getUserWithGroups() que dans getUsers() - requête simplifiée
+- July 10, 2025. Toutes les méthodes de récupération données (getUsers, getGroups, getUserWithGroups) maintenant simplifiées
+- July 10, 2025. Créé complete-fix-users.sh avec correction finale complète pour users et groups
 
 ## User Preferences
 

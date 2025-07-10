@@ -119,60 +119,58 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserWithGroups(id: string): Promise<UserWithGroups | undefined> {
-    const result = await db
-      .select({
-        id: users.id,
-        username: users.username,
-        email: users.email,
-        name: users.name,
-        role: users.role,
-        password: users.password,
-        passwordChanged: users.passwordChanged,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        userGroups: {
+    console.log('🔍 Storage getUserWithGroups called for:', id);
+    
+    try {
+      // First get the user
+      const user = await db.select().from(users).where(eq(users.id, id)).limit(1);
+      if (user.length === 0) {
+        console.log('❌ User not found:', id);
+        return undefined;
+      }
+      
+      console.log('✅ User found:', user[0].username);
+      
+      // Then get user groups separately
+      const userGroupsData = await db
+        .select({
           id: userGroups.id,
           userId: userGroups.userId,
           groupId: userGroups.groupId,
           assignedAt: userGroups.assignedAt,
-          group: {
-            id: groups.id,
-            name: groups.name,
-            color: groups.color,
-            createdAt: groups.createdAt,
-            updatedAt: groups.updatedAt,
-          }
-        }
-      })
-      .from(users)
-      .leftJoin(userGroups, eq(users.id, userGroups.userId))
-      .leftJoin(groups, eq(userGroups.groupId, groups.id))
-      .where(eq(users.id, id));
-
-    if (result.length === 0) return undefined;
-
-    const user = {
-      id: result[0].id,
-      username: result[0].username,
-      email: result[0].email,
-      name: result[0].name,
-      role: result[0].role,
-      password: result[0].password,
-      passwordChanged: result[0].passwordChanged,
-      createdAt: result[0].createdAt,
-      updatedAt: result[0].updatedAt,
-      userGroups: result
-        .filter(r => r.userGroups.id !== null)
-        .map(r => ({
-          id: r.userGroups.id!,
-          userId: r.userGroups.userId!,
-          groupId: r.userGroups.groupId!,
-          assignedAt: r.userGroups.assignedAt!,
-          group: r.userGroups.group!
-        }))
-    };
-
-    return user as UserWithGroups;
+          groupName: groups.name,
+          groupColor: groups.color,
+          groupCreatedAt: groups.createdAt,
+          groupUpdatedAt: groups.updatedAt,
+        })
+        .from(userGroups)
+        .leftJoin(groups, eq(userGroups.groupId, groups.id))
+        .where(eq(userGroups.userId, id));
+      
+      console.log('✅ User groups found:', userGroupsData.length);
+      
+      const userWithGroups: UserWithGroups = {
+        ...user[0],
+        userGroups: userGroupsData.map(ug => ({
+          id: ug.id,
+          userId: ug.userId,
+          groupId: ug.groupId,
+          assignedAt: ug.assignedAt,
+          group: ug.groupName ? {
+            id: ug.groupId,
+            name: ug.groupName,
+            color: ug.groupColor!,
+            createdAt: ug.groupCreatedAt!,
+            updatedAt: ug.groupUpdatedAt!,
+          } : undefined
+        })).filter(ug => ug.group !== undefined) as any[]
+      };
+      
+      return userWithGroups;
+    } catch (error) {
+      console.error('❌ Error in getUserWithGroups:', error);
+      throw error;
+    }
   }
 
   async getUsers(): Promise<UserWithGroups[]> {
