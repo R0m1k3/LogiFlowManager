@@ -224,26 +224,28 @@ export default function Deliveries() {
             </SelectContent>
           </Select>
 
-          <Select value={groupFilter} onValueChange={setGroupFilter}>
-            <SelectTrigger className="w-48">
-              <Building className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Filtrer par groupe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les groupes</SelectItem>
-              {groups.map((group) => (
-                <SelectItem key={group.id} value={group.id.toString()}>
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: group.color }}
-                    />
-                    <span>{group.name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {user?.role === 'admin' && (
+            <Select value={groupFilter} onValueChange={setGroupFilter}>
+              <SelectTrigger className="w-48">
+                <Building className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filtrer par groupe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les groupes</SelectItem>
+                {groups.map((group) => (
+                  <SelectItem key={group.id} value={group.id.toString()}>
+                    <div className="flex items-center space-x-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: group.color }}
+                      />
+                      <span>{group.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 

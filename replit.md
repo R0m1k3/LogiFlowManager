@@ -158,6 +158,8 @@ Changelog:
 - July 10, 2025. Statistics now update correctly when switching between stores
 - July 10, 2025. Fixed Orders and Deliveries pages to show complete history without date filtering
 - July 10, 2025. Calendar shows monthly data, Orders/Deliveries pages show all historical data
+- July 10, 2025. Hidden group/store filter in Orders and Deliveries pages for non-admin users
+- July 10, 2025. Simplified interface for employees and managers who only see their assigned stores
 
 ## User Preferences
 
