@@ -64,8 +64,8 @@ export default function CreateDeliveryModal({
       let defaultGroupId = "";
       
       if (user?.role === 'admin') {
-        // Pour l'admin : utiliser le magasin sélectionné dans le header
-        defaultGroupId = selectedStoreId ? selectedStoreId.toString() : "";
+        // Pour l'admin : utiliser le magasin sélectionné dans le header, sinon le premier de la liste
+        defaultGroupId = selectedStoreId ? selectedStoreId.toString() : groups[0].id.toString();
       } else {
         // Pour les autres rôles : prendre le premier magasin attribué
         // (La logique existante filtre déjà les groupes selon les permissions)
@@ -199,49 +199,25 @@ export default function CreateDeliveryModal({
             </div>
           )}
 
-          {/* Sélecteur de magasin pour admin, affichage en lecture seule pour les autres */}
-          {user?.role === 'admin' ? (
+          {/* Affichage du magasin sélectionné */}
+          {formData.groupId && (
             <div>
-              <Label htmlFor="group">Magasin/Groupe *</Label>
-              <Select value={formData.groupId} onValueChange={(value) => handleChange('groupId', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionnez un magasin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {groups.map((group) => (
-                    <SelectItem key={group.id} value={group.id.toString()}>
-                      <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: group.color }}
-                        />
-                        <span>{group.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            formData.groupId && (
-              <div>
-                <Label>Magasin/Groupe</Label>
-                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md border">
-                  {(() => {
-                    const selectedGroup = groups.find(g => g.id.toString() === formData.groupId);
-                    return selectedGroup ? (
-                      <>
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: selectedGroup.color }}
-                        />
-                        <span className="font-medium">{selectedGroup.name}</span>
-                      </>
-                    ) : null;
-                  })()}
-                </div>
+              <Label>Magasin/Groupe</Label>
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md border">
+                {(() => {
+                  const selectedGroup = groups.find(g => g.id.toString() === formData.groupId);
+                  return selectedGroup ? (
+                    <>
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: selectedGroup.color }}
+                      />
+                      <span className="font-medium">{selectedGroup.name}</span>
+                    </>
+                  ) : null;
+                })()}
               </div>
-            )
+            </div>
           )}
 
           <div>
