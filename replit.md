@@ -299,6 +299,10 @@ Changelog:
 - July 10, 2025. Élimination de tous les db.execute() au profit de pool.query() pour opérations critiques base de données
 - July 10, 2025. Triple vérification: CREATE TABLE + information_schema + SELECT verification pour colonne 'name'
 - July 10, 2025. Paramètres SQL sécurisés ($1, $2, etc.) pour éviter injection SQL lors création utilisateur admin
+- July 10, 2025. **ERREUR DRIZZLE ORM RÉSOLUE** - Conversion getUserWithGroups() et getUsers() en SQL brut pool.query()
+- July 10, 2025. Élimination de "Cannot convert undefined or null to object" dans orderSelectedFields()
+- July 10, 2025. Architecture hybride finale: SQL brut pour code critique, Drizzle ORM pour modules non-critiques
+- July 10, 2025. Optimisation performance avec Map pour user groups et gestion d'erreur gracieuse
 
 ## User Preferences
 

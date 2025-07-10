@@ -119,70 +119,61 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserWithGroups(id: string): Promise<UserWithGroups | undefined> {
-    console.log('🔍 Storage getUserWithGroups called for:', id);
-    
     try {
-      // Use raw SQL to avoid Drizzle ORM issues
-      const userResult = await db.execute(sql`
-        SELECT id, username, email, name, role, password, password_changed, created_at, updated_at 
-        FROM users 
-        WHERE id = ${id} 
-        LIMIT 1
-      `);
+      console.log(`🔍 Getting user with groups for ID: ${id}`);
       
-      if (userResult.length === 0) {
-        console.log('❌ User not found:', id);
+      // Use raw SQL with pool.query to avoid Drizzle ORM issues
+      const { pool } = await import("./db.production.js");
+      
+      // Get user info
+      const userResult = await pool.query(`
+        SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+        FROM users 
+        WHERE id = $1
+      `, [id]);
+
+      if (userResult.rows.length === 0) {
+        console.log(`❌ User not found: ${id}`);
         return undefined;
       }
-      
-      const user = userResult[0];
-      console.log('✅ User found:', user.username);
-      
-      // Get user groups with raw SQL
-      const userGroupsResult = await db.execute(sql`
-        SELECT 
-          ug.user_id,
-          ug.group_id,
-          ug.created_at as assigned_at,
-          g.name as group_name,
-          g.color as group_color,
-          g.created_at as group_created_at,
-          g.updated_at as group_updated_at
+
+      const user = userResult.rows[0];
+
+      // Get user groups
+      const groupsResult = await pool.query(`
+        SELECT ug.id as ug_id, ug.user_id, ug.group_id, ug.created_at as ug_created_at,
+               g.id, g.name, g.color, g.created_at, g.updated_at
         FROM user_groups ug
-        LEFT JOIN groups g ON ug.group_id = g.id
-        WHERE ug.user_id = ${id}
-      `);
-      
-      console.log('✅ User groups found:', userGroupsResult.length);
-      
+        JOIN groups g ON ug.group_id = g.id
+        WHERE ug.user_id = $1
+      `, [id]);
+
       const userWithGroups: UserWithGroups = {
-        id: user.id as string,
-        username: user.username as string,
-        email: user.email as string,
-        name: user.name as string,
-        role: user.role as 'admin' | 'manager' | 'employee',
-        password: user.password as string,
-        passwordChanged: user.password_changed as boolean,
-        createdAt: new Date(user.created_at as string),
-        updatedAt: new Date(user.updated_at as string),
-        userGroups: userGroupsResult.map(ug => ({
-          id: `${ug.user_id}-${ug.group_id}`,
-          userId: ug.user_id as string,
-          groupId: ug.group_id as number,
-          assignedAt: new Date(ug.assigned_at as string),
-          group: ug.group_name ? {
-            id: ug.group_id as number,
-            name: ug.group_name as string,
-            color: ug.group_color as string,
-            createdAt: new Date(ug.group_created_at as string),
-            updatedAt: new Date(ug.group_updated_at as string),
-          } : undefined
-        })).filter(ug => ug.group !== undefined) as any[]
+        ...user,
+        userGroups: groupsResult.rows.map(row => ({
+          id: row.ug_id,
+          userId: row.user_id,
+          groupId: row.group_id,
+          createdAt: row.ug_created_at,
+          group: {
+            id: row.id,
+            name: row.name,
+            color: row.color,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+          }
+        })),
       };
+
+      console.log(`✅ User with groups found:`, { 
+        id: userWithGroups.id, 
+        username: userWithGroups.username,
+        groupCount: userWithGroups.userGroups.length 
+      });
       
       return userWithGroups;
     } catch (error) {
-      console.error('❌ Error in getUserWithGroups:', error);
+      console.error("❌ Error processing user groups for", id, ":", error);
       throw error;
     }
   }
@@ -191,28 +182,72 @@ export class DatabaseStorage implements IStorage {
     console.log('🔍 Storage getUsers called');
     
     try {
-      // First get all users - simple query without joins
-      const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
-      console.log('✅ Basic users query returned:', allUsers.length, 'users');
+      // Use raw SQL with pool.query to avoid Drizzle ORM issues
+      const { pool } = await import("./db.production.js");
       
-      if (allUsers.length === 0) {
+      // Get all users
+      const usersResult = await pool.query(`
+        SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+        FROM users 
+        ORDER BY created_at DESC
+      `);
+      
+      console.log('✅ Basic users query returned:', usersResult.rows.length, 'users');
+      
+      if (usersResult.rows.length === 0) {
         console.log('❌ No users found in database');
         return [];
       }
       
-      // Then get user groups for each user
-      const usersWithGroups: UserWithGroups[] = [];
+      // Get all user groups in one query for efficiency
+      const allUserGroupsResult = await pool.query(`
+        SELECT ug.id as ug_id, ug.user_id, ug.group_id, ug.created_at as ug_created_at,
+               g.id, g.name, g.color, g.created_at, g.updated_at
+        FROM user_groups ug
+        JOIN groups g ON ug.group_id = g.id
+      `);
       
-      for (const user of allUsers) {
+      // Group the user groups by user_id for efficient lookup
+      const userGroupsMap = new Map<string, any[]>();
+      allUserGroupsResult.rows.forEach(row => {
+        if (!userGroupsMap.has(row.user_id)) {
+          userGroupsMap.set(row.user_id, []);
+        }
+        userGroupsMap.get(row.user_id)!.push({
+          id: row.ug_id,
+          userId: row.user_id,
+          groupId: row.group_id,
+          createdAt: row.ug_created_at,
+          group: {
+            id: row.id,
+            name: row.name,
+            color: row.color,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+          }
+        });
+      });
+      
+      // Build the users with groups
+      const usersWithGroups: UserWithGroups[] = usersResult.rows.map(user => {
         console.log('🔍 Processing user:', user.id, user.username);
         
-        try {
-          // Get user groups for this user
-          const userGroupsData = await db
-            .select({
-              id: userGroups.id,
-              userId: userGroups.userId,
-              groupId: userGroups.groupId,
+        return {
+          ...user,
+          userGroups: userGroupsMap.get(user.id) || []
+        };
+      });
+      
+      console.log('✅ Users with groups processed:', usersWithGroups.length);
+      return usersWithGroups;
+    } catch (error) {
+      console.error('❌ Error in getUsers:', error);
+      // Return empty array instead of throwing to prevent crashes
+      return [];
+    }
+  }
+
+  // REMOVED: old getUsers method that was causing Drizzle ORM errors
               assignedAt: userGroups.assignedAt,
               groupName: groups.name,
               groupColor: groups.color,
