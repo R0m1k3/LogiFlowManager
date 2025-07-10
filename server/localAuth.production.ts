@@ -60,7 +60,8 @@ async function createDefaultAdminUser() {
         id: 'admin_local',
         username: 'admin',
         email: 'admin@logiflow.com',
-        name: 'Administrateur',
+        firstName: 'Admin',
+        lastName: 'Système',
         role: 'admin',
         password: hashedPassword,
         passwordChanged: false

@@ -7,12 +7,14 @@ export async function initializeDatabase() {
     // Create users table
     await db.execute(`
       CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        name TEXT NOT NULL,
-        role TEXT NOT NULL CHECK (role IN ('admin', 'manager', 'employee')),
-        password TEXT NOT NULL,
+        id VARCHAR PRIMARY KEY,
+        username VARCHAR UNIQUE,
+        email VARCHAR UNIQUE,
+        first_name VARCHAR,
+        last_name VARCHAR,
+        profile_image_url VARCHAR,
+        password VARCHAR,
+        role VARCHAR NOT NULL DEFAULT 'employee',
         password_changed BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -23,8 +25,8 @@ export async function initializeDatabase() {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS groups (
         id SERIAL PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        color TEXT DEFAULT '#1976D2',
+        name VARCHAR NOT NULL,
+        color VARCHAR NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -34,10 +36,9 @@ export async function initializeDatabase() {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS suppliers (
         id SERIAL PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        contact TEXT,
-        email TEXT,
-        phone TEXT,
+        name VARCHAR NOT NULL,
+        contact VARCHAR,
+        phone VARCHAR,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -47,12 +48,14 @@ export async function initializeDatabase() {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
-        supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
-        group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-        planned_date TEXT NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'planned', 'received')),
-        notes TEXT,
-        created_by TEXT REFERENCES users(id) ON DELETE CASCADE,
+        supplier_id INTEGER NOT NULL,
+        group_id INTEGER NOT NULL,
+        planned_date DATE NOT NULL,
+        quantity INTEGER,
+        unit VARCHAR,
+        status VARCHAR NOT NULL DEFAULT 'pending',
+        comments TEXT,
+        created_by VARCHAR NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -62,20 +65,21 @@ export async function initializeDatabase() {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS deliveries (
         id SERIAL PRIMARY KEY,
-        order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
-        supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
-        group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-        scheduled_date TEXT NOT NULL,
-        quantity INTEGER,
-        unit TEXT,
-        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'delivered')),
-        notes TEXT,
-        bl_number TEXT,
+        order_id INTEGER,
+        supplier_id INTEGER NOT NULL,
+        group_id INTEGER NOT NULL,
+        planned_date DATE NOT NULL,
+        delivered_date TIMESTAMP,
+        quantity INTEGER NOT NULL,
+        unit VARCHAR NOT NULL,
+        status VARCHAR NOT NULL DEFAULT 'planned',
+        comments TEXT,
+        bl_number VARCHAR,
         bl_amount DECIMAL(10,2),
-        invoice_reference TEXT,
+        invoice_reference VARCHAR,
         invoice_amount DECIMAL(10,2),
         reconciled BOOLEAN DEFAULT FALSE,
-        created_by TEXT REFERENCES users(id) ON DELETE CASCADE,
+        created_by VARCHAR NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -84,11 +88,9 @@ export async function initializeDatabase() {
     // Create user_groups table
     await db.execute(`
       CREATE TABLE IF NOT EXISTS user_groups (
-        id SERIAL PRIMARY KEY,
-        user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
-        group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-        assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(user_id, group_id)
+        user_id VARCHAR NOT NULL,
+        group_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
