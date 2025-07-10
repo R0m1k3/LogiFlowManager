@@ -33,9 +33,20 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showGroupModal, setShowGroupModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithGroups | null>(null);
   const [userGroups, setUserGroups] = useState<number[]>([]);
+  
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    username: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    role: "employee" as const,
+  });
   
   // Form states for creating user
   const [newUser, setNewUser] = useState({
@@ -84,6 +95,39 @@ export default function UsersPage() {
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le rôle",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: { id: string; updates: any }) => {
+      await apiRequest("PUT", `/api/users/${data.id}`, data.updates);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Utilisateur mis à jour avec succès",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      setShowEditModal(false);
+      setSelectedUser(null);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Non autorisé",
+          description: "Vous êtes déconnecté. Reconnexion...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour l'utilisateur",
         variant: "destructive",
       });
     },
@@ -305,10 +349,46 @@ export default function UsersPage() {
     }
   };
 
-  const handleEditUser = (user: UserWithGroups) => {
-    setSelectedUser(user);
-    setUserGroups(user.userGroups.map(ug => ug.groupId));
+  const handleEditUser = (userData: UserWithGroups) => {
+    setSelectedUser(userData);
+    setEditForm({
+      username: userData.username || "",
+      firstName: userData.firstName || "",
+      lastName: userData.lastName || "",
+      email: userData.email || "",
+      password: "",
+      role: userData.role as "admin" | "manager" | "employee",
+    });
     setShowEditModal(true);
+  };
+
+  const handleGroupManager = (userData: UserWithGroups) => {
+    setSelectedUser(userData);
+    setUserGroups(userData.userGroups.map(ug => ug.groupId));
+    setShowGroupModal(true);
+  };
+
+  const handleSubmitEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+
+    const updates: any = {
+      username: editForm.username,
+      firstName: editForm.firstName,
+      lastName: editForm.lastName,
+      email: editForm.email,
+      role: editForm.role,
+    };
+
+    // Only include password if it's not empty
+    if (editForm.password.trim()) {
+      updates.password = editForm.password;
+    }
+
+    updateUserMutation.mutate({
+      id: selectedUser.id,
+      updates
+    });
   };
 
   const handleRoleChange = (userId: string, newRole: string) => {
@@ -549,8 +629,17 @@ export default function UsersPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEditUser(userData)}
+                              title="Modifier l'utilisateur"
                             >
                               <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleGroupManager(userData)}
+                              title="Gérer les groupes"
+                            >
+                              <Users className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -578,14 +667,132 @@ export default function UsersPage() {
         <Dialog open={showEditModal} onOpenChange={() => {
           setShowEditModal(false);
           setSelectedUser(null);
+        }}>
+          <DialogContent className="sm:max-w-lg" aria-describedby="edit-user-modal-description">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-medium">
+                Modifier l'utilisateur
+              </DialogTitle>
+              <p id="edit-user-modal-description" className="text-sm text-gray-600 mt-1">
+                Modifier les informations de l'utilisateur {selectedUser.firstName} {selectedUser.lastName}
+              </p>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmitEdit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-firstName">Prénom *</Label>
+                  <Input
+                    id="edit-firstName"
+                    value={editForm.firstName}
+                    onChange={(e) => setEditForm({...editForm, firstName: e.target.value})}
+                    placeholder="Prénom"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-lastName">Nom *</Label>
+                  <Input
+                    id="edit-lastName"
+                    value={editForm.lastName}
+                    onChange={(e) => setEditForm({...editForm, lastName: e.target.value})}
+                    placeholder="Nom"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-username">Identifiant *</Label>
+                <Input
+                  id="edit-username"
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                  placeholder="Identifiant de connexion"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-email">Email *</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                  placeholder="email@exemple.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-password">Nouveau mot de passe (optionnel)</Label>
+                <Input
+                  id="edit-password"
+                  type="password"
+                  value={editForm.password}
+                  onChange={(e) => setEditForm({...editForm, password: e.target.value})}
+                  placeholder="Laisser vide pour ne pas changer"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Minimum 6 caractères. Laissez vide pour conserver le mot de passe actuel.
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-role">Rôle *</Label>
+                <Select 
+                  value={editForm.role} 
+                  onValueChange={(value) => setEditForm({...editForm, role: value as any})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrateur</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="employee">Employé</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedUser(null);
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={updateUserMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {updateUserMutation.isPending ? "Mise à jour..." : "Mettre à jour"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Group Management Modal */}
+      {showGroupModal && selectedUser && (
+        <Dialog open={showGroupModal} onOpenChange={() => {
+          setShowGroupModal(false);
+          setSelectedUser(null);
           setUserGroups([]);
         }}>
-          <DialogContent className="sm:max-w-md" aria-describedby="edit-user-modal-description">
+          <DialogContent className="sm:max-w-md" aria-describedby="group-modal-description">
             <DialogHeader>
               <DialogTitle>
                 Gérer les Groupes - {selectedUser.firstName} {selectedUser.lastName}
               </DialogTitle>
-              <p id="edit-user-modal-description" className="text-sm text-gray-600 mt-1">
+              <p id="group-modal-description" className="text-sm text-gray-600 mt-1">
                 Assigner ou retirer cet utilisateur des groupes/magasins
               </p>
             </DialogHeader>
@@ -623,7 +830,7 @@ export default function UsersPage() {
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    setShowEditModal(false);
+                    setShowGroupModal(false);
                     setSelectedUser(null);
                     setUserGroups([]);
                   }}

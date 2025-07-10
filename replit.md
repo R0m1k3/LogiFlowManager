@@ -194,6 +194,10 @@ Changelog:
 - July 10, 2025. Added automatic default admin account creation on first startup
 - July 10, 2025. Implemented intelligent credential display/hiding based on password change status
 - July 10, 2025. Default admin account: admin/admin (credentials shown until password changed)
+- July 10, 2025. Enhanced user management with comprehensive editing capabilities
+- July 10, 2025. Added ability to modify username, password, name, email, and role for all users
+- July 10, 2025. Created separate modals for full user editing and group management
+- July 10, 2025. Added password change functionality with automatic marking of password status
 
 ## User Preferences
 

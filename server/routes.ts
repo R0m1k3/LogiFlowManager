@@ -726,13 +726,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updateUserSchema = z.object({
+        username: z.string().min(1).optional(),
         role: z.enum(['admin', 'manager', 'employee']).optional(),
         firstName: z.string().min(1).optional(),
         lastName: z.string().min(1).optional(),
         email: z.string().email().optional(),
+        password: z.string().min(6).optional(),
       });
 
       const userData = updateUserSchema.parse(req.body);
+      
+      // Hash password if provided
+      if (userData.password) {
+        const { hashPassword } = await import("./localAuth");
+        userData.password = await hashPassword(userData.password);
+        // Mark password as changed
+        (userData as any).passwordChanged = true;
+      }
+      
       const updatedUser = await storage.updateUser(req.params.id, userData);
 
       res.json(updatedUser);
