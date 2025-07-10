@@ -81,6 +81,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  console.log("🔧 ROUTES: Ensuring database is ready before auth...");
+  
+  // Double-check database is initialized before auth setup
+  try {
+    const { initializeDatabase } = await import("./initDatabase.production.js");
+    await initializeDatabase();
+    console.log("✅ ROUTES: Database confirmed ready");
+  } catch (error) {
+    console.error("❌ ROUTES: Database initialization failed:", error);
+    throw error;
+  }
+
   // Setup ONLY local authentication in production
   console.log('Using local authentication system');
   setupLocalAuth(app);

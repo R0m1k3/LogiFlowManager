@@ -291,6 +291,10 @@ Changelog:
 - July 10, 2025. **SOLUTION AUTO-RÉPARATION** - Modification initDatabase.production.ts pour détecter et ajouter automatiquement la colonne manquante
 - July 10, 2025. Script d'initialisation maintenant vérifie l'existence de la colonne 'name' et l'ajoute si nécessaire au démarrage
 - July 10, 2025. Migration automatique des données existantes avec COALESCE(username, email) pour remplir la colonne name
+- July 10, 2025. **SOLUTION RADICALE** - Triple vérification initialisation DB : index.production.ts + routes.production.ts + localAuth.production.ts
+- July 10, 2025. Ajout forceInitDatabase() qui force l'initialisation avant toute authentification ou route
+- July 10, 2025. Ordre d'exécution strict: DB ready → AUTH setup → ROUTES loading → SERVER start
+- July 10, 2025. Arrêt automatique (process.exit(1)) si l'initialisation échoue pour éviter états incohérents
 
 ## User Preferences
 

@@ -125,7 +125,50 @@ async function loadRoutes() {
   return registerRoutes;
 }
 
+// Force database initialization before anything else
+async function forceInitDatabase() {
+  console.log("🔧 FORCING DATABASE INITIALIZATION...");
+  
+  try {
+    // Import database functions
+    const { initializeDatabase } = await import("./initDatabase.production.js");
+    const { db } = await import("./db.production.js");
+    
+    // Force initialization
+    await initializeDatabase();
+    
+    // Verify the name column exists
+    console.log("🔧 Verifying name column...");
+    const columnCheck = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name = 'name'
+    `);
+    
+    if (columnCheck.length === 0) {
+      console.log("🚨 CRITICAL: Adding name column immediately...");
+      await db.execute(`ALTER TABLE users ADD COLUMN name VARCHAR(255)`);
+      await db.execute(`UPDATE users SET name = COALESCE(username, email) WHERE name IS NULL`);
+      console.log("✅ Name column added successfully");
+    } else {
+      console.log("✅ Name column verified present");
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("❌ CRITICAL DATABASE INIT ERROR:", error);
+    return false;
+  }
+}
+
 (async () => {
+  // Force database initialization FIRST
+  const dbReady = await forceInitDatabase();
+  if (!dbReady) {
+    console.error("❌ DATABASE INITIALIZATION FAILED - EXITING");
+    process.exit(1);
+  }
+  
   const registerRoutes = await loadRoutes();
   const server = await registerRoutes(app);
 
