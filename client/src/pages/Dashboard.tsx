@@ -99,67 +99,67 @@ export default function Dashboard() {
 
       {/* Alert */}
       {pendingOrdersCount > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center space-x-3">
-          <AlertTriangle className="h-5 w-5 text-orange-500" />
-          <span className="text-sm text-orange-700">
+        <div className="bg-orange-50 border-2 border-orange-300 p-4 flex items-center space-x-3">
+          <AlertTriangle className="h-5 w-5 text-orange-600" />
+          <span className="text-sm font-semibold text-orange-800">
             <strong>{pendingOrdersCount} commande(s) en attente</strong> nécessitent une planification
           </span>
         </div>
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-white border border-gray-200">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Livraisons ce mois</p>
-                <p className="text-3xl font-bold text-gray-900">{deliveredThisMonth}</p>
+                <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">Livraisons ce mois</p>
+                <p className="text-4xl font-black text-gray-900 mt-2">{deliveredThisMonth}</p>
               </div>
-              <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Truck className="h-6 w-6 text-green-600" />
+              <div className="h-14 w-14 bg-green-200 border-2 border-green-400 flex items-center justify-center">
+                <Truck className="h-8 w-8 text-green-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Commandes en attente</p>
-                <p className="text-3xl font-bold text-gray-900">{pendingOrdersCount}</p>
+                <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">Commandes en attente</p>
+                <p className="text-4xl font-black text-gray-900 mt-2">{pendingOrdersCount}</p>
               </div>
-              <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Clock className="h-6 w-6 text-orange-600" />
+              <div className="h-14 w-14 bg-orange-200 border-2 border-orange-400 flex items-center justify-center">
+                <Clock className="h-8 w-8 text-orange-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Délai moyen (jours)</p>
-                <p className="text-3xl font-bold text-gray-900">{averageDeliveryTime}</p>
+                <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">Délai moyen (jours)</p>
+                <p className="text-4xl font-black text-gray-900 mt-2">{averageDeliveryTime}</p>
               </div>
-              <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
+              <div className="h-14 w-14 bg-blue-200 border-2 border-blue-400 flex items-center justify-center">
+                <BarChart3 className="h-8 w-8 text-blue-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total palettes</p>
-                <p className="text-3xl font-bold text-gray-900">{totalPalettes}</p>
+                <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">Total palettes</p>
+                <p className="text-4xl font-black text-gray-900 mt-2">{totalPalettes}</p>
               </div>
-              <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Package className="h-6 w-6 text-purple-600" />
+              <div className="h-14 w-14 bg-purple-200 border-2 border-purple-400 flex items-center justify-center">
+                <Package className="h-8 w-8 text-purple-700" />
               </div>
             </div>
           </CardContent>
@@ -167,152 +167,155 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Dernières Commandes */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <FileText className="h-5 w-5 mr-2" />
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
+          <CardHeader className="pb-4 border-b-2 border-gray-200">
+            <CardTitle className="text-lg font-bold text-gray-900 flex items-center uppercase tracking-wide">
+              <FileText className="h-6 w-6 mr-3" />
               Dernières Commandes
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 p-6">
             {recentOrders.length > 0 ? recentOrders.map((order: any) => (
-              <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+              <div key={order.id} className="flex items-center justify-between p-4 bg-gray-100 border-l-4 border-blue-600">
+                <div className="flex items-center space-x-4">
+                  <div className="h-3 w-3 bg-blue-600"></div>
                   <div>
-                    <p className="font-medium text-gray-900">{order.supplier?.name}</p>
-                    <p className="text-sm text-gray-600">{order.group?.name}</p>
+                    <p className="font-bold text-gray-900">{order.supplier?.name}</p>
+                    <p className="text-sm font-medium text-gray-600">{order.group?.name}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <Badge variant={order.status === 'delivered' ? 'default' : order.status === 'planned' ? 'secondary' : 'destructive'}>
+                  <Badge 
+                    variant={order.status === 'delivered' ? 'default' : order.status === 'planned' ? 'secondary' : 'destructive'}
+                    className="font-bold uppercase text-xs"
+                  >
                     {order.status === 'delivered' ? 'Livrée' : order.status === 'planned' ? 'Planifiée' : 'En attente'}
                   </Badge>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs font-medium text-gray-500 mt-1">
                     {format(new Date(order.plannedDate), "d MMM", { locale: fr })}
                   </p>
                 </div>
               </div>
             )) : (
-              <p className="text-gray-500 text-center py-4">Aucune commande récente</p>
+              <p className="text-gray-600 text-center py-8 font-medium">Aucune commande récente</p>
             )}
           </CardContent>
         </Card>
 
         {/* Livraisons à Venir */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <Calendar className="h-5 w-5 mr-2" />
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
+          <CardHeader className="pb-4 border-b-2 border-gray-200">
+            <CardTitle className="text-lg font-bold text-gray-900 flex items-center uppercase tracking-wide">
+              <Calendar className="h-6 w-6 mr-3" />
               Livraisons à Venir
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 p-6">
             {upcomingDeliveries.length > 0 ? upcomingDeliveries.map((delivery: any) => (
-              <div key={delivery.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+              <div key={delivery.id} className="flex items-center justify-between p-4 bg-gray-100 border-l-4 border-green-600">
+                <div className="flex items-center space-x-4">
+                  <div className="h-3 w-3 bg-green-600"></div>
                   <div>
-                    <p className="font-medium text-gray-900">{delivery.supplier?.name}</p>
-                    <p className="text-sm text-gray-600">{delivery.group?.name}</p>
+                    <p className="font-bold text-gray-900">{delivery.supplier?.name}</p>
+                    <p className="text-sm font-medium text-gray-600">{delivery.group?.name}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium text-gray-900">
+                  <p className="font-bold text-gray-900 text-sm">
                     {delivery.quantity} {delivery.unit}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs font-medium text-gray-500 mt-1">
                     {format(new Date(delivery.plannedDate), "d MMM", { locale: fr })}
                   </p>
                 </div>
               </div>
             )) : (
-              <p className="text-gray-500 text-center py-4">Aucune livraison programmée</p>
+              <p className="text-gray-600 text-center py-8 font-medium">Aucune livraison programmée</p>
             )}
           </CardContent>
         </Card>
       </div>
 
       {/* Section Rapprochement BL */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Statut des livraisons */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <Package className="h-5 w-5 mr-2" />
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
+          <CardHeader className="pb-4 border-b-2 border-gray-200">
+            <CardTitle className="text-lg font-bold text-gray-900 flex items-center uppercase tracking-wide">
+              <Package className="h-6 w-6 mr-3" />
               Statut des Livraisons
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">En attente</span>
+          <CardContent className="space-y-4 p-6">
+            <div className="flex items-center justify-between p-2">
+              <div className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-orange-600 border border-orange-800"></div>
+                <span className="text-sm font-bold text-gray-700">En attente</span>
               </div>
-              <span className="font-medium text-orange-600">{allDeliveries.filter((d: any) => d.status === 'planned').length}</span>
+              <span className="font-black text-orange-700 text-lg">{allDeliveries.filter((d: any) => d.status === 'planned').length}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Livrées</span>
+            <div className="flex items-center justify-between p-2">
+              <div className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-green-600 border border-green-800"></div>
+                <span className="text-sm font-bold text-gray-700">Livrées</span>
               </div>
-              <span className="font-medium text-green-600">{allDeliveries.filter((d: any) => d.status === 'delivered').length}</span>
+              <span className="font-black text-green-700 text-lg">{allDeliveries.filter((d: any) => d.status === 'delivered').length}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Avec BL validé</span>
+            <div className="flex items-center justify-between p-2">
+              <div className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-blue-600 border border-blue-800"></div>
+                <span className="text-sm font-bold text-gray-700">Avec BL validé</span>
               </div>
-              <span className="font-medium text-blue-600">{allDeliveries.filter((d: any) => d.blNumber && d.status === 'delivered').length}</span>
+              <span className="font-black text-blue-700 text-lg">{allDeliveries.filter((d: any) => d.blNumber && d.status === 'delivered').length}</span>
             </div>
-            <div className="flex items-center justify-between border-t pt-2">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-gray-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">Total livraisons</span>
+            <div className="flex items-center justify-between border-t-2 border-gray-300 pt-3 mt-3 p-2">
+              <div className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-gray-600 border border-gray-800"></div>
+                <span className="text-sm font-black text-gray-900 uppercase">Total livraisons</span>
               </div>
-              <span className="font-bold">{allDeliveries.length}</span>
+              <span className="font-black text-xl text-gray-900">{allDeliveries.length}</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Statut des commandes */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <ShoppingCart className="h-5 w-5 mr-2" />
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
+          <CardHeader className="pb-4 border-b-2 border-gray-200">
+            <CardTitle className="text-lg font-bold text-gray-900 flex items-center uppercase tracking-wide">
+              <ShoppingCart className="h-6 w-6 mr-3" />
               Statut des Commandes
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">En attente</span>
+          <CardContent className="space-y-4 p-6">
+            <div className="flex items-center justify-between p-2">
+              <div className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-red-600 border border-red-800"></div>
+                <span className="text-sm font-bold text-gray-700">En attente</span>
               </div>
-              <span className="font-medium text-red-600">{ordersByStatus.pending}</span>
+              <span className="font-black text-red-700 text-lg">{ordersByStatus.pending}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Planifiées</span>
+            <div className="flex items-center justify-between p-2">
+              <div className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-orange-600 border border-orange-800"></div>
+                <span className="text-sm font-bold text-gray-700">Planifiées</span>
               </div>
-              <span className="font-medium text-orange-600">{ordersByStatus.planned}</span>
+              <span className="font-black text-orange-700 text-lg">{ordersByStatus.planned}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Terminées</span>
+            <div className="flex items-center justify-between p-2">
+              <div className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-green-600 border border-green-800"></div>
+                <span className="text-sm font-bold text-gray-700">Terminées</span>
               </div>
-              <span className="font-medium text-green-600">{ordersByStatus.delivered}</span>
+              <span className="font-black text-green-700 text-lg">{ordersByStatus.delivered}</span>
             </div>
-            <div className="flex items-center justify-between border-t pt-2">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-gray-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">Total commandes</span>
+            <div className="flex items-center justify-between border-t-2 border-gray-300 pt-3 mt-3 p-2">
+              <div className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-gray-600 border border-gray-800"></div>
+                <span className="text-sm font-black text-gray-900 uppercase">Total commandes</span>
               </div>
-              <span className="font-bold">{ordersByStatus.total}</span>
+              <span className="font-black text-xl text-gray-900">{ordersByStatus.total}</span>
             </div>
           </CardContent>
         </Card>

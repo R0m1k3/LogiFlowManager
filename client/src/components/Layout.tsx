@@ -46,28 +46,26 @@ export default function Layout({ children }: LayoutProps) {
         <Sidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Header with store selector for admin */}
-          <header className="h-16 bg-white dark:bg-gray-800 border-b border-border flex items-center justify-between px-6">
+          <header className="h-16 bg-white border-b-4 border-gray-400 flex items-center justify-between px-6 shadow-lg">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-foreground">LogiFlow</h1>
-              
-
+              <h1 className="text-xl font-black text-gray-900 uppercase tracking-wide">LogiFlow</h1>
             </div>
 
             {/* Store selector for admin - moved to top right */}
             {user?.role === 'admin' && stores.length > 0 && (
               <div className="flex items-center gap-2">
-                <Store className="h-4 w-4 text-muted-foreground" />
+                <Store className="h-5 w-5 text-gray-600" />
                 <Select
                   value={selectedStoreId?.toString() || "all"}
                   onValueChange={(value) => setSelectedStoreId(value === "all" ? null : parseInt(value))}
                 >
-                  <SelectTrigger className="w-64">
+                  <SelectTrigger className="w-64 border-2 border-gray-400 font-bold shadow-sm">
                     <SelectValue placeholder="Sélectionner un magasin" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border-2 border-gray-400">
                     <SelectItem value="all">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-green-500"></div>
+                        <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500"></div>
                         <span>Tous les magasins</span>
                       </div>
                     </SelectItem>
@@ -75,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
                       <SelectItem key={store.id} value={store.id.toString()}>
                         <div className="flex items-center gap-2">
                           <div 
-                            className="w-3 h-3 rounded-full" 
+                            className="w-3 h-3" 
                             style={{ backgroundColor: store.color }}
                           />
                           <span>{store.name}</span>

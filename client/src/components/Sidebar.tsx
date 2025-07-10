@@ -103,111 +103,102 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-72 bg-white shadow-lg flex flex-col">
-      {/* Logo Header */}
-      <div className="p-6 border-b border-gray-200">
+    <aside className="w-64 bg-white border-r-4 border-gray-400 flex flex-col shadow-xl">
+      {/* Logo */}
+      <div className="h-16 flex items-center justify-center border-b-4 border-gray-400 bg-blue-100">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-            <Store className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">LogiFlow</h1>
-            <p className="text-sm text-gray-500">La Foir'Fouille</p>
-          </div>
+          <Store className="h-8 w-8 text-blue-600" />
+          <span className="text-xl font-black text-gray-900 uppercase tracking-wide">LogiFlow</span>
         </div>
       </div>
 
-      {/* Navigation Menu */}
-      <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map((item) => {
-          if (!hasPermission(item.roles)) return null;
-          
-          const Icon = item.icon;
-          return (
-            <Link key={item.path} href={item.path}>
-              <Button
-                variant="ghost"
-                className={`w-full justify-start space-x-3 ${
-                  isActive(item.path) 
-                    ? "bg-primary text-white hover:bg-primary hover:text-white" 
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <Icon className={`w-5 h-5 ${
-                  item.path === "/orders" ? "text-primary" : 
-                  item.path === "/deliveries" ? "text-secondary" : ""
-                }`} />
-                <span>{item.label}</span>
-              </Button>
-            </Link>
-          );
-        })}
+      {/* Navigation */}
+      <nav className="flex-1 py-6 px-4 bg-gray-50">
+        <div className="space-y-3">
+          {menuItems.map((item) => {
+            if (!item.roles.includes(user?.role || '')) return null;
+            
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            
+            return (
+              <Link key={item.path} href={item.path}>
+                <div
+                  className={`flex items-center px-4 py-3 text-sm font-bold border-2 transition-colors ${
+                    active
+                      ? 'bg-blue-600 text-white border-blue-800 shadow-md'
+                      : 'text-gray-700 hover:bg-gray-200 border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <Icon className="mr-3 h-5 w-5" />
+                  {item.label}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
 
         {/* Management Section */}
-        {(user?.role === 'admin' || user?.role === 'manager') && (
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 px-3">
-              Gestion
-            </p>
-            {managementItems.map((item) => {
-              if (!hasPermission(item.roles)) return null;
-              
-              const Icon = item.icon;
-              return (
-                <Link key={item.path} href={item.path}>
-                  <Button
-                    variant="ghost"
-                    className={`w-full justify-start space-x-3 ${
-                      isActive(item.path) 
-                        ? "bg-primary text-white hover:bg-primary hover:text-white" 
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </Button>
-                </Link>
-              );
-            })}
-          </div>
+        {managementItems.some(item => item.roles.includes(user?.role || '')) && (
+          <>
+            <div className="mt-8 mb-4">
+              <h3 className="px-4 text-xs font-black text-gray-800 uppercase tracking-wider border-b-2 border-gray-300 pb-2">
+                Gestion
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {managementItems.map((item) => {
+                if (!item.roles.includes(user?.role || '')) return null;
+                
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                
+                return (
+                  <Link key={item.path} href={item.path}>
+                    <div
+                      className={`flex items-center px-4 py-3 text-sm font-bold border-2 transition-colors ${
+                        active
+                          ? 'bg-blue-600 text-white border-blue-800 shadow-md'
+                          : 'text-gray-700 hover:bg-gray-200 border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      <Icon className="mr-3 h-5 w-5" />
+                      {item.label}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
         )}
       </nav>
 
-      {/* User Profile at Bottom */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-            {user?.profileImageUrl ? (
-              <img 
-                src={user.profileImageUrl} 
-                alt="Profile" 
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-white font-medium">
-                {getInitials(user?.firstName, user?.lastName)}
-              </span>
-            )}
+      {/* User Profile & Logout */}
+      <div className="border-t-4 border-gray-400 p-4 bg-gray-100">
+        <div className="flex items-center space-x-3 mb-3">
+          <div className="h-10 w-10 bg-blue-200 border-2 border-blue-400 flex items-center justify-center">
+            <span className="text-sm font-black text-blue-800">
+              {getInitials(user?.firstName, user?.lastName)}
+            </span>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-gray-900 truncate">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-xs text-gray-500 capitalize">
-              {user?.role === "admin" ? "Administrateur" : 
-               user?.role === "manager" ? "Manager" : "Employé"}
+            <p className="text-xs font-medium text-gray-600 truncate">
+              {user?.email}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="p-2 text-gray-400 hover:text-gray-600"
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
         </div>
+        
+        <Button
+          onClick={handleLogout}
+          className="w-full justify-start bg-red-600 hover:bg-red-800 text-white font-bold border-2 border-red-800"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Déconnexion
+        </Button>
       </div>
-    </div>
+    </aside>
   );
 }

@@ -130,23 +130,23 @@ export default function Orders() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 p-6">
+      <div className="bg-white border-b-4 border-gray-400 p-6 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Package className="w-6 h-6 mr-2 text-primary" />
+            <h2 className="text-3xl font-black text-gray-900 flex items-center uppercase tracking-wide">
+              <Package className="w-8 h-8 mr-3 text-blue-600" />
               Gestion des Commandes
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-700 font-bold mt-2">
               {filteredOrders.length} commande{filteredOrders.length !== 1 ? 's' : ''}
             </p>
           </div>
           {canCreate && (
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="bg-primary hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-800 text-white font-bold border-2 border-blue-800 shadow-md px-6 py-3"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-5 h-5 mr-2" />
               Nouvelle Commande
             </Button>
           )}
@@ -154,34 +154,32 @@ export default function Orders() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-gray-100 border-b-2 border-gray-300 p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-64">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
               <Input
                 placeholder="Rechercher par fournisseur, groupe ou commentaire..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 border-2 border-gray-400 font-bold shadow-sm"
               />
             </div>
           </div>
           
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
-              <Filter className="w-4 h-4 mr-2" />
+            <SelectTrigger className="w-48 border-2 border-gray-400 font-bold shadow-sm">
+              <Filter className="w-5 h-5 mr-2" />
               <SelectValue placeholder="Filtrer par statut" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-2 border-gray-400">
               <SelectItem value="all">Tous les statuts</SelectItem>
               <SelectItem value="pending">En attente</SelectItem>
               <SelectItem value="planned">Planifié</SelectItem>
               <SelectItem value="delivered">Livré</SelectItem>
             </SelectContent>
           </Select>
-
-
         </div>
       </div>
 
@@ -212,22 +210,21 @@ export default function Orders() {
           </div>
         ) : (
           <div className="p-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white border-2 border-gray-400 shadow-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-200 border-b-2 border-gray-400">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-sm font-black text-gray-800 uppercase tracking-wider">
                         Fournisseur
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-sm font-black text-gray-800 uppercase tracking-wider">
                         Groupe
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-sm font-black text-gray-800 uppercase tracking-wider">
                         Date prévue
                       </th>
-
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-sm font-black text-gray-800 uppercase tracking-wider">
                         Statut
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
