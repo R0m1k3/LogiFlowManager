@@ -10,8 +10,21 @@ COPY package*.json ./
 # Install all dependencies (including dev dependencies needed for build)
 RUN npm ci && npm cache clean --force
 
-# Copy source code
-COPY . .
+# Copy source code (excluding .env to avoid conflicts)
+COPY package*.json ./
+COPY tsconfig.json ./
+COPY drizzle.config.ts ./
+COPY vite.config.ts ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
+COPY components.json ./
+COPY client/ client/
+COPY server/ server/
+COPY shared/ shared/
+COPY scripts/ scripts/
+
+# Vérifier la structure
+RUN ls -la server/ && echo "Production files:" && ls -la server/*.production.*
 
 # Build the application
 # Build frontend first
@@ -28,7 +41,9 @@ RUN npx esbuild server/index.production.ts \
     --external:@vitejs/* \
     --external:@replit/* \
     --external:tsx \
-    --external:openid-client
+    --external:openid-client \
+    --external:@neondatabase/serverless \
+    --external:ws
 
 # Production stage
 FROM node:20-alpine AS production

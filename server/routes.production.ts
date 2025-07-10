@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
 import { setupLocalAuth, requireAuth } from "./localAuth";
 import { 
   insertGroupSchema, 
@@ -12,6 +11,9 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Import du storage de production avec PostgreSQL standard
+  const { storage } = await import("./storage.production.js");
+
   // Health check endpoint for Docker
   app.get('/api/health', (req, res) => {
     res.status(200).json({

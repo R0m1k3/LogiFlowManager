@@ -3,8 +3,16 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 
-// Forcer l'authentification locale en production Docker
+// Forcer la configuration de production Docker
 process.env.USE_LOCAL_AUTH = "true";
+process.env.NODE_ENV = "production";
+
+// Vérifier et afficher la configuration de base de données
+console.log("Production Environment Configuration:");
+console.log("- NODE_ENV:", process.env.NODE_ENV);
+console.log("- USE_LOCAL_AUTH:", process.env.USE_LOCAL_AUTH);
+console.log("- DATABASE_URL:", process.env.DATABASE_URL ? "***configured***" : "NOT SET");
+console.log("- PORT:", process.env.PORT || 5000);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
