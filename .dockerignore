@@ -1,16 +1,5 @@
 # Dependencies
 node_modules/
-
-# Build outputs
-dist/
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# Logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -23,6 +12,24 @@ pids
 
 # Coverage directory used by tools like istanbul
 coverage/
+*.lcov
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Compiled binary addons
+build/Release
 
 # Dependency directories
 jspm_packages/
@@ -40,14 +47,16 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# IDE files
+# Development files
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS generated files
 .DS_Store
@@ -61,13 +70,27 @@ Thumbs.db
 # Git
 .git
 .gitignore
+README.md
 
-# Docker
-Dockerfile
-docker-compose.yml
+# Docker files
+Dockerfile*
+docker-compose*
 .dockerignore
 
-# Development files
+# Development assets
+attached_assets/
 uploads/
-*.md
-!README.md
+
+# Temporary files
+tmp/
+temp/
+
+# SSL certificates (if any)
+ssl/
+*.pem
+*.key
+*.crt
+
+# Backup files
+*.bak
+*.backup

@@ -1,45 +1,82 @@
 version: '3.8'
 
 services:
-  db:
+  # PostgreSQL Database
+  postgres:
     image: postgres:15-alpine
+    container_name: logiflow-db
     environment:
       POSTGRES_DB: logiflow
-      POSTGRES_USER: logiflow
-      POSTGRES_PASSWORD: logiflow_password
+      POSTGRES_USER: logiflow_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_123}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - logiflow-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U logiflow"]
+      test: ["CMD-SHELL", "pg_isready -U logiflow_user -d logiflow"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
 
+  # Application
   app:
-    build: .
-    depends_on:
-      db:
-        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: logiflow-app
     environment:
-      - NODE_ENV=production
-      - USE_LOCAL_AUTH=true
-      - DATABASE_URL=postgres://logiflow:logiflow_password@db:5432/logiflow
-      - SESSION_SECRET=your-super-secret-session-key-change-this-in-production
-      - PORT=5000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://logiflow_user:${POSTGRES_PASSWORD:-secure_password_123}@postgres:5432/logiflow
+      SESSION_SECRET: ${SESSION_SECRET:-your_super_secret_session_key_change_this_in_production}
+      PORT: 5000
+      # Force local authentication in Docker
+      USE_LOCAL_AUTH: "true"
     ports:
       - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - logiflow-network
     volumes:
-      - ./uploads:/app/uploads
+      - app_uploads:/app/uploads
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+
+  # Nginx Reverse Proxy (Optional - for production with SSL)
+  nginx:
+    image: nginx:alpine
+    container_name: logiflow-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - logiflow-network
     restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
+  app_uploads:
+    driver: local
+
+networks:
+  logiflow-network:
+    driver: bridge
