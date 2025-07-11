@@ -8,6 +8,8 @@ const defaultPermissions = [
   // Calendar permissions
   { name: "calendar_read", displayName: "Voir le calendrier", description: "Accès en lecture au calendrier", category: "calendar", action: "read", resource: "calendar" },
   { name: "calendar_create", displayName: "Créer dans le calendrier", description: "Créer des événements depuis le calendrier", category: "calendar", action: "create", resource: "calendar" },
+  { name: "calendar_update", displayName: "Modifier depuis le calendrier", description: "Modifier des événements depuis le calendrier", category: "calendar", action: "update", resource: "calendar" },
+  { name: "calendar_delete", displayName: "Supprimer depuis le calendrier", description: "Supprimer des événements depuis le calendrier", category: "calendar", action: "delete", resource: "calendar" },
   
   // Orders permissions
   { name: "orders_read", displayName: "Voir les commandes", description: "Accès en lecture aux commandes", category: "orders", action: "read", resource: "orders" },
@@ -77,7 +79,7 @@ const defaultRoles = [
     isActive: true,
     permissions: [
       "dashboard_read",
-      "calendar_read", "calendar_create",
+      "calendar_read", "calendar_create", "calendar_update", "calendar_delete",
       "orders_read", "orders_create", "orders_update", "orders_delete",
       "deliveries_read", "deliveries_create", "deliveries_update", "deliveries_delete", "deliveries_validate",
       "reconciliation_read", "reconciliation_update",
@@ -95,7 +97,7 @@ const defaultRoles = [
     isActive: true,
     permissions: [
       "dashboard_read",
-      "calendar_read",
+      "calendar_read", "calendar_create",
       "publicities_read"
     ]
   }
