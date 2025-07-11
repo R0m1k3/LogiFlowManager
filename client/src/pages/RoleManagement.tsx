@@ -165,13 +165,22 @@ export default function RoleManagement() {
         permissionIds: data.permissionIds,
       });
     },
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
       toast({
         title: "Succès",
         description: "Permissions mises à jour avec succès",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-      // Ne pas fermer le modal automatiquement
+      // Invalider et attendre la mise à jour des données
+      await queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      
+      // Mettre à jour l'état local du rôle sélectionné
+      const updatedRoles = await queryClient.getQueryData<RoleWithPermissions[]>(['/api/roles']);
+      if (updatedRoles && selectedRole) {
+        const updatedRole = updatedRoles.find(r => r.id === selectedRole.id);
+        if (updatedRole) {
+          setSelectedRole(updatedRole);
+        }
+      }
     },
     onError: (error: any) => {
       toast({
@@ -230,6 +239,18 @@ export default function RoleManagement() {
 
   const handlePermissionChange = (permissionIds: number[]) => {
     if (selectedRole) {
+      // Mettre à jour immédiatement l'état local pour un feedback visuel instantané
+      const updatedRolePermissions = permissionIds.map(permissionId => ({
+        roleId: selectedRole.id,
+        permissionId,
+      }));
+      
+      setSelectedRole({
+        ...selectedRole,
+        rolePermissions: updatedRolePermissions,
+      });
+
+      // Puis envoyer la mise à jour au serveur
       updateRolePermissionsMutation.mutate({
         roleId: selectedRole.id,
         permissionIds,
