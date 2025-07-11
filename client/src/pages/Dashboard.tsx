@@ -227,7 +227,7 @@ export default function Dashboard() {
                     {delivery.quantity} {delivery.unit}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {format(new Date(delivery.plannedDate), "d MMM", { locale: fr })}
+                    {format(new Date(delivery.scheduledDate), "d MMM", { locale: fr })}
                   </p>
                 </div>
               </div>

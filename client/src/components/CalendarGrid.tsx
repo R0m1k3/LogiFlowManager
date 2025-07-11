@@ -58,7 +58,7 @@ export default function CalendarGrid({
       isSameDay(new Date(order.plannedDate), date)
     );
     const dayDeliveries = deliveries.filter(delivery => 
-      isSameDay(new Date(delivery.plannedDate), date)
+      isSameDay(new Date(delivery.scheduledDate), date)
     );
     
     return { orders: dayOrders, deliveries: dayDeliveries };

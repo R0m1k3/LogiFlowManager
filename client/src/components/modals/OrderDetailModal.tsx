@@ -193,7 +193,7 @@ export default function OrderDetailModal({
                   Date prévue
                 </label>
                 <p className="text-gray-900">
-                  {format(new Date(item.plannedDate), 'dd MMMM yyyy', { locale: fr })}
+                  {format(new Date(isDelivery ? item.scheduledDate : item.plannedDate), 'dd MMMM yyyy', { locale: fr })}
                 </p>
               </div>
               {/* Afficher la quantité seulement pour les livraisons */}

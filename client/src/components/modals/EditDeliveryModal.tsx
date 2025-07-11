@@ -32,7 +32,7 @@ export default function EditDeliveryModal({
     supplierId: "",
     groupId: "",
     orderId: "",
-    plannedDate: "",
+    scheduledDate: "",
     quantity: "",
     unit: "palettes",
     comments: "",
@@ -63,7 +63,7 @@ export default function EditDeliveryModal({
         supplierId: delivery.supplierId.toString(),
         groupId: delivery.groupId.toString(),
         orderId: delivery.orderId ? delivery.orderId.toString() : "none",
-        plannedDate: format(new Date(delivery.plannedDate), 'yyyy-MM-dd'),
+        scheduledDate: format(new Date(delivery.scheduledDate), 'yyyy-MM-dd'),
         quantity: delivery.quantity.toString(),
         unit: delivery.unit,
         comments: delivery.comments || "",
@@ -109,7 +109,7 @@ export default function EditDeliveryModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.supplierId || !formData.groupId || !formData.plannedDate || !formData.quantity) {
+    if (!formData.supplierId || !formData.groupId || !formData.scheduledDate || !formData.quantity) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -122,7 +122,7 @@ export default function EditDeliveryModal({
       supplierId: parseInt(formData.supplierId),
       groupId: parseInt(formData.groupId),
       orderId: formData.orderId && formData.orderId !== "none" ? parseInt(formData.orderId) : null,
-      plannedDate: formData.plannedDate,
+      scheduledDate: formData.scheduledDate,
       quantity: parseInt(formData.quantity),
       unit: formData.unit,
       comments: formData.comments || undefined,
@@ -204,12 +204,12 @@ export default function EditDeliveryModal({
           )}
 
           <div>
-            <Label htmlFor="plannedDate">Date prévue *</Label>
+            <Label htmlFor="scheduledDate">Date prévue *</Label>
             <Input
-              id="plannedDate"
+              id="scheduledDate"
               type="date"
-              value={formData.plannedDate}
-              onChange={(e) => handleChange('plannedDate', e.target.value)}
+              value={formData.scheduledDate}
+              onChange={(e) => handleChange('scheduledDate', e.target.value)}
             />
           </div>
 

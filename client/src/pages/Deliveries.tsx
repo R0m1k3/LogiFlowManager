@@ -322,7 +322,7 @@ export default function Deliveries() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="flex items-center">
                             <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                            {format(new Date(delivery.plannedDate), 'dd MMM yyyy', { locale: fr })}
+                            {format(new Date(delivery.scheduledDate), 'dd MMM yyyy', { locale: fr })}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
