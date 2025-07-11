@@ -357,6 +357,7 @@ Changelog:
 - July 11, 2025. **PWA SUPPORT AJOUTÉ** - Manifest.json et meta theme-color pour installation en app
 - July 11, 2025. **ERREUR CONTRAINTE STATUT RÉSOLUE** - Script fix-production-final.sh pour corriger orders_status_check
 - July 11, 2025. **CONTRAINTES DATABASE CORRIGÉES** - Orders accepte maintenant ('pending', 'planned', 'delivered')
+- July 11, 2025. **VALIDATION FORMULAIRE UTILISATEUR CORRIGÉE** - Champs nom, prénom, email et mot de passe maintenant obligatoires
 
 ## User Preferences
 

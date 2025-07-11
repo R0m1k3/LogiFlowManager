@@ -897,6 +897,7 @@ export default function UsersPage() {
                     value={newUser.firstName}
                     onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
                     placeholder="Prénom"
+                    required
                   />
                 </div>
                 <div>
@@ -906,6 +907,7 @@ export default function UsersPage() {
                     value={newUser.lastName}
                     onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
                     placeholder="Nom"
+                    required
                   />
                 </div>
               </div>
@@ -918,6 +920,7 @@ export default function UsersPage() {
                   value={newUser.email}
                   onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                   placeholder="email@exemple.com"
+                  required
                 />
               </div>
 
@@ -929,6 +932,7 @@ export default function UsersPage() {
                   value={newUser.password}
                   onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                   placeholder="••••••••"
+                  required
                 />
                 <p className="text-sm text-muted-foreground mt-1">
                   Mot de passe pour se connecter à l'application
