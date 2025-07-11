@@ -329,6 +329,9 @@ Changelog:
 - July 11, 2025. **API STATS COMPLÈTEMENT CORRIGÉE** - Gestion complète paramètre storeId pour admin, logs détaillés, résolution erreur 500
 - July 11, 2025. **STATISTIQUES CALENDRIER FONCTIONNELLES** - Dashboard affiche maintenant 5 palettes et 3 colis au lieu de 0
 - July 11, 2025. **MODAL CRÉATION UTILISATEUR COMPLET** - Tous champs présents : Prénom, Nom, Email, Mot de passe, Rôle, Magasins assignés
+- July 11, 2025. **DONNÉES TEST PRODUCTION CRÉÉES** - Commandes et livraisons juillet 2025 pour validation statistiques (1 commande, 2 livraisons)
+- July 11, 2025. **ROUTES ASSIGNATION GROUPES AJOUTÉES** - API `/api/users/:userId/groups` compatible frontend, résolution erreur 404
+- July 11, 2025. **PROBLÈMES PRODUCTION RÉSOLUS** - errorMissingColumn, stats à 0, assignation utilisateurs/groupes fonctionnelle
 
 ## User Preferences
 
