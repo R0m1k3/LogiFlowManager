@@ -20,11 +20,11 @@ var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
-var __copyProps = (to, from, except, desc2) => {
+var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
       if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc2 = __getOwnPropDesc(from, key)) || desc2.enumerable });
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
   }
   return to;
 };
@@ -6976,39 +6976,53 @@ __export(storage_production_exports, {
   DatabaseStorage: () => DatabaseStorage,
   storage: () => storage
 });
-import { eq, and, inArray, desc, gte, lte, sql } from "drizzle-orm";
 var DatabaseStorage, storage;
 var init_storage_production = __esm({
   "server/storage.production.ts"() {
     "use strict";
-    init_schema();
-    init_db_production();
     DatabaseStorage = class {
       async getUser(id) {
-        const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+      FROM users WHERE id = $1 LIMIT 1
+    `, [id]);
+        return result.rows.length > 0 ? result.rows[0] : void 0;
       }
       async getUserByEmail(email) {
-        const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+      FROM users WHERE email = $1 LIMIT 1
+    `, [email]);
+        return result.rows.length > 0 ? result.rows[0] : void 0;
       }
       async getUserByUsername(username) {
-        const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+      FROM users WHERE username = $1 LIMIT 1
+    `, [username]);
+        return result.rows.length > 0 ? result.rows[0] : void 0;
       }
       async upsertUser(userData) {
         const existingUser = await this.getUserByEmail(userData.email);
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
         if (existingUser) {
-          const result = await db.update(users).set({
-            name: userData.name,
-            email: userData.email,
-            username: userData.username,
-            updatedAt: /* @__PURE__ */ new Date()
-          }).where(eq(users.id, existingUser.id)).returning();
-          return result[0];
+          const result = await pool2.query(`
+        UPDATE users 
+        SET name = $1, email = $2, username = $3, updated_at = $4
+        WHERE id = $5
+        RETURNING id, username, email, name, role, password, password_changed, created_at, updated_at
+      `, [userData.name, userData.email, userData.username, /* @__PURE__ */ new Date(), existingUser.id]);
+          return result.rows[0];
         } else {
-          const result = await db.insert(users).values(userData).returning();
-          return result[0];
+          const result = await pool2.query(`
+        INSERT INTO users (id, username, email, name, role, password, password_changed, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING id, username, email, name, role, password, password_changed, created_at, updated_at
+      `, [userData.id, userData.username, userData.email, userData.name, userData.role, userData.password, userData.passwordChanged, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date()]);
+          return result.rows[0];
         }
       }
       async getUserWithGroups(id) {
@@ -7115,31 +7129,46 @@ var init_storage_production = __esm({
         }
       }
       async createUser(userData) {
-        const result = await db.insert(users).values(userData).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      INSERT INTO users (id, username, email, name, role, password, password_changed, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id, username, email, name, role, password, password_changed, created_at, updated_at
+    `, [userData.id, userData.username, userData.email, userData.name, userData.role, userData.password, userData.passwordChanged, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date()]);
+        return result.rows[0];
       }
       async updateUser(id, userData) {
-        const result = await db.update(users).set({ ...userData, updatedAt: /* @__PURE__ */ new Date() }).where(eq(users.id, id)).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      UPDATE users 
+      SET name = COALESCE($1, name), email = COALESCE($2, email), username = COALESCE($3, username), 
+          role = COALESCE($4, role), password = COALESCE($5, password), 
+          password_changed = COALESCE($6, password_changed), updated_at = $7
+      WHERE id = $8
+      RETURNING id, username, email, name, role, password, password_changed, created_at, updated_at
+    `, [userData.name, userData.email, userData.username, userData.role, userData.password, userData.passwordChanged, /* @__PURE__ */ new Date(), id]);
+        return result.rows[0];
       }
       async deleteUser(id) {
-        await db.delete(userGroups).where(eq(userGroups.userId, id));
-        await db.delete(users).where(eq(users.id, id));
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        await pool2.query(`DELETE FROM user_groups WHERE user_id = $1`, [id]);
+        await pool2.query(`DELETE FROM users WHERE id = $1`, [id]);
       }
       async getGroups() {
         console.log("\u{1F50D} Storage getGroups called");
         try {
-          const result = await db.execute(sql`
+          const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+          const result = await pool2.query(`
         SELECT id, name, color, created_at, updated_at 
         FROM groups 
         ORDER BY name
       `);
-          console.log("\u2705 Groups query returned:", result.length, "groups");
-          if (result.length === 0) {
+          console.log("\u2705 Groups query returned:", result.rows.length, "groups");
+          if (result.rows.length === 0) {
             console.log("\u274C No groups found in database");
             return [];
           }
-          const groups2 = result.map((row) => ({
+          const groups2 = result.rows.map((row) => ({
             id: row.id,
             name: row.name,
             color: row.color,
@@ -7156,35 +7185,66 @@ var init_storage_production = __esm({
       async createGroup(group) {
         console.log("\u{1F50D} Storage createGroup called with:", group);
         try {
-          const result = await db.insert(groups).values(group).returning();
-          console.log("\u2705 Group created in database:", result[0]);
-          return result[0];
+          const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+          const result = await pool2.query(`
+        INSERT INTO groups (name, color, created_at, updated_at)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, name, color, created_at, updated_at
+      `, [group.name, group.color, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date()]);
+          console.log("\u2705 Group created in database:", result.rows[0]);
+          return result.rows[0];
         } catch (error) {
           console.error("\u274C Error creating group in database:", error);
           throw error;
         }
       }
       async updateGroup(id, group) {
-        const result = await db.update(groups).set({ ...group, updatedAt: /* @__PURE__ */ new Date() }).where(eq(groups.id, id)).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      UPDATE groups 
+      SET name = COALESCE($1, name), color = COALESCE($2, color), updated_at = $3
+      WHERE id = $4
+      RETURNING id, name, color, created_at, updated_at
+    `, [group.name, group.color, /* @__PURE__ */ new Date(), id]);
+        return result.rows[0];
       }
       async deleteGroup(id) {
-        await db.delete(userGroups).where(eq(userGroups.groupId, id));
-        await db.delete(groups).where(eq(groups.id, id));
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        await pool2.query(`DELETE FROM user_groups WHERE group_id = $1`, [id]);
+        await pool2.query(`DELETE FROM groups WHERE id = $1`, [id]);
       }
       async getSuppliers() {
-        return await db.select().from(suppliers).orderBy(suppliers.name);
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      SELECT id, name, contact, email, phone, created_at, updated_at
+      FROM suppliers 
+      ORDER BY name
+    `);
+        return result.rows;
       }
       async createSupplier(supplier) {
-        const result = await db.insert(suppliers).values(supplier).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      INSERT INTO suppliers (name, contact, email, phone, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, name, contact, email, phone, created_at, updated_at
+    `, [supplier.name, supplier.contact, supplier.email, supplier.phone, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date()]);
+        return result.rows[0];
       }
       async updateSupplier(id, supplier) {
-        const result = await db.update(suppliers).set({ ...supplier, updatedAt: /* @__PURE__ */ new Date() }).where(eq(suppliers.id, id)).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      UPDATE suppliers 
+      SET name = COALESCE($1, name), contact = COALESCE($2, contact), 
+          email = COALESCE($3, email), phone = COALESCE($4, phone), updated_at = $5
+      WHERE id = $6
+      RETURNING id, name, contact, email, phone, created_at, updated_at
+    `, [supplier.name, supplier.contact, supplier.email, supplier.phone, /* @__PURE__ */ new Date(), id]);
+        return result.rows[0];
       }
       async deleteSupplier(id) {
-        await db.delete(suppliers).where(eq(suppliers.id, id));
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        await pool2.query(`DELETE FROM suppliers WHERE id = $1`, [id]);
       }
       async getOrders(groupIds) {
         console.log("\u{1F50D} Storage getOrders called with groupIds:", groupIds);
@@ -7208,8 +7268,9 @@ var init_storage_production = __esm({
             params.push(groupIds);
           }
           sqlQuery += ` ORDER BY o.created_at DESC`;
-          const results = params.length > 0 ? await db.execute(sql`${sql.raw(sqlQuery)}`, params) : await db.execute(sql`${sql.raw(sqlQuery)}`);
-          const orders2 = results.map((row) => ({
+          const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+          const results = params.length > 0 ? await pool2.query(sqlQuery, params) : await pool2.query(sqlQuery);
+          const orders2 = results.rows.map((row) => ({
             id: row.id,
             supplierId: row.supplier_id,
             groupId: row.group_id,
@@ -7256,371 +7317,495 @@ var init_storage_production = __esm({
         }
       }
       async getOrdersByDateRange(startDate, endDate, groupIds) {
-        let query = db.select({
-          id: orders.id,
-          supplierId: orders.supplierId,
-          groupId: orders.groupId,
-          plannedDate: orders.plannedDate,
-          status: orders.status,
-          notes: orders.notes,
-          createdBy: orders.createdBy,
-          createdAt: orders.createdAt,
-          updatedAt: orders.updatedAt,
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        let sqlQuery = `
+      SELECT 
+        o.id, o.supplier_id, o.group_id, o.planned_date, o.status, o.comments, o.created_by, o.created_at, o.updated_at,
+        s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.email as supplier_email, s.phone as supplier_phone,
+        s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
+        g.id as group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
+        u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
+        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+      FROM orders o
+      INNER JOIN suppliers s ON o.supplier_id = s.id
+      INNER JOIN groups g ON o.group_id = g.id
+      INNER JOIN users u ON o.created_by = u.id
+      WHERE o.planned_date >= $1 AND o.planned_date <= $2
+    `;
+        const params = [startDate, endDate];
+        if (groupIds && groupIds.length > 0) {
+          sqlQuery += ` AND o.group_id = ANY($3)`;
+          params.push(groupIds);
+        }
+        sqlQuery += ` ORDER BY o.created_at DESC`;
+        const results = await pool2.query(sqlQuery, params);
+        return results.rows.map((row) => ({
+          id: row.id,
+          supplierId: row.supplier_id,
+          groupId: row.group_id,
+          plannedDate: row.planned_date,
+          status: row.status,
+          comments: row.comments,
+          createdBy: row.created_by,
+          createdAt: new Date(row.created_at),
+          updatedAt: new Date(row.updated_at),
           supplier: {
-            id: suppliers.id,
-            name: suppliers.name,
-            contact: suppliers.contact,
-            email: suppliers.email,
-            phone: suppliers.phone,
-            createdAt: suppliers.createdAt,
-            updatedAt: suppliers.updatedAt
+            id: row.supplier_id,
+            name: row.supplier_name,
+            contact: row.supplier_contact,
+            email: row.supplier_email,
+            phone: row.supplier_phone,
+            createdAt: new Date(row.supplier_created_at),
+            updatedAt: new Date(row.supplier_updated_at)
           },
           group: {
-            id: groups.id,
-            name: groups.name,
-            color: groups.color,
-            createdAt: groups.createdAt,
-            updatedAt: groups.updatedAt
+            id: row.group_id,
+            name: row.group_name,
+            color: row.group_color,
+            createdAt: new Date(row.group_created_at),
+            updatedAt: new Date(row.group_updated_at)
           },
           creator: {
-            id: users.id,
-            username: users.username,
-            email: users.email,
-            name: users.name,
-            role: users.role,
-            password: users.password,
-            passwordChanged: users.passwordChanged,
-            createdAt: users.createdAt,
-            updatedAt: users.updatedAt
-          }
-        }).from(orders).innerJoin(suppliers, eq(orders.supplierId, suppliers.id)).innerJoin(groups, eq(orders.groupId, groups.id)).innerJoin(users, eq(orders.createdBy, users.id)).where(
-          and(
-            gte(orders.plannedDate, startDate),
-            lte(orders.plannedDate, endDate),
-            groupIds && groupIds.length > 0 ? inArray(orders.groupId, groupIds) : void 0
-          )
-        );
-        const results = await query.orderBy(desc(orders.createdAt));
-        return results.map((result) => ({
-          ...result,
+            id: row.creator_id,
+            username: row.creator_username,
+            email: row.creator_email,
+            name: row.creator_name,
+            role: row.creator_role,
+            password: row.creator_password,
+            passwordChanged: row.creator_password_changed,
+            createdAt: new Date(row.creator_created_at),
+            updatedAt: new Date(row.creator_updated_at)
+          },
           deliveries: []
         }));
       }
       async getOrder(id) {
-        const result = await db.select({
-          id: orders.id,
-          supplierId: orders.supplierId,
-          groupId: orders.groupId,
-          plannedDate: orders.plannedDate,
-          status: orders.status,
-          notes: orders.notes,
-          createdBy: orders.createdBy,
-          createdAt: orders.createdAt,
-          updatedAt: orders.updatedAt,
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      SELECT 
+        o.id, o.supplier_id, o.group_id, o.planned_date, o.status, o.comments, o.created_by, o.created_at, o.updated_at,
+        s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.email as supplier_email, s.phone as supplier_phone,
+        s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
+        g.id as group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
+        u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
+        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+      FROM orders o
+      INNER JOIN suppliers s ON o.supplier_id = s.id
+      INNER JOIN groups g ON o.group_id = g.id
+      INNER JOIN users u ON o.created_by = u.id
+      WHERE o.id = $1
+      LIMIT 1
+    `, [id]);
+        if (result.rows.length === 0) return void 0;
+        const row = result.rows[0];
+        return {
+          id: row.id,
+          supplierId: row.supplier_id,
+          groupId: row.group_id,
+          plannedDate: row.planned_date,
+          status: row.status,
+          comments: row.comments,
+          createdBy: row.created_by,
+          createdAt: new Date(row.created_at),
+          updatedAt: new Date(row.updated_at),
           supplier: {
-            id: suppliers.id,
-            name: suppliers.name,
-            contact: suppliers.contact,
-            email: suppliers.email,
-            phone: suppliers.phone,
-            createdAt: suppliers.createdAt,
-            updatedAt: suppliers.updatedAt
+            id: row.supplier_id,
+            name: row.supplier_name,
+            contact: row.supplier_contact,
+            email: row.supplier_email,
+            phone: row.supplier_phone,
+            createdAt: new Date(row.supplier_created_at),
+            updatedAt: new Date(row.supplier_updated_at)
           },
           group: {
-            id: groups.id,
-            name: groups.name,
-            color: groups.color,
-            createdAt: groups.createdAt,
-            updatedAt: groups.updatedAt
+            id: row.group_id,
+            name: row.group_name,
+            color: row.group_color,
+            createdAt: new Date(row.group_created_at),
+            updatedAt: new Date(row.group_updated_at)
           },
           creator: {
-            id: users.id,
-            username: users.username,
-            email: users.email,
-            name: users.name,
-            role: users.role,
-            password: users.password,
-            passwordChanged: users.passwordChanged,
-            createdAt: users.createdAt,
-            updatedAt: users.updatedAt
-          }
-        }).from(orders).innerJoin(suppliers, eq(orders.supplierId, suppliers.id)).innerJoin(groups, eq(orders.groupId, groups.id)).innerJoin(users, eq(orders.createdBy, users.id)).where(eq(orders.id, id)).limit(1);
-        if (result.length === 0) return void 0;
-        return {
-          ...result[0],
+            id: row.creator_id,
+            username: row.creator_username,
+            email: row.creator_email,
+            name: row.creator_name,
+            role: row.creator_role,
+            password: row.creator_password,
+            passwordChanged: row.creator_password_changed,
+            createdAt: new Date(row.creator_created_at),
+            updatedAt: new Date(row.creator_updated_at)
+          },
           deliveries: []
         };
       }
       async createOrder(order) {
-        const result = await db.insert(orders).values(order).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      INSERT INTO orders (supplier_id, group_id, planned_date, status, comments, created_by, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, supplier_id, group_id, planned_date, status, comments, created_by, created_at, updated_at
+    `, [order.supplierId, order.groupId, order.plannedDate, order.status, order.comments, order.createdBy, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date()]);
+        return result.rows[0];
       }
       async updateOrder(id, order) {
-        const result = await db.update(orders).set({ ...order, updatedAt: /* @__PURE__ */ new Date() }).where(eq(orders.id, id)).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      UPDATE orders 
+      SET supplier_id = COALESCE($1, supplier_id), group_id = COALESCE($2, group_id), 
+          planned_date = COALESCE($3, planned_date), status = COALESCE($4, status), 
+          comments = COALESCE($5, comments), updated_at = $6
+      WHERE id = $7
+      RETURNING id, supplier_id, group_id, planned_date, status, comments, created_by, created_at, updated_at
+    `, [order.supplierId, order.groupId, order.plannedDate, order.status, order.comments, /* @__PURE__ */ new Date(), id]);
+        return result.rows[0];
       }
       async deleteOrder(id) {
-        await db.delete(orders).where(eq(orders.id, id));
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        await pool2.query(`DELETE FROM orders WHERE id = $1`, [id]);
       }
       async getDeliveries(groupIds) {
-        let query = db.select({
-          id: deliveries.id,
-          orderId: deliveries.orderId,
-          supplierId: deliveries.supplierId,
-          groupId: deliveries.groupId,
-          scheduledDate: deliveries.scheduledDate,
-          quantity: deliveries.quantity,
-          unit: deliveries.unit,
-          status: deliveries.status,
-          notes: deliveries.notes,
-          blNumber: deliveries.blNumber,
-          blAmount: deliveries.blAmount,
-          invoiceReference: deliveries.invoiceReference,
-          invoiceAmount: deliveries.invoiceAmount,
-          reconciled: deliveries.reconciled,
-          createdBy: deliveries.createdBy,
-          createdAt: deliveries.createdAt,
-          updatedAt: deliveries.updatedAt,
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        let sqlQuery = `
+      SELECT 
+        d.id, d.order_id, d.supplier_id, d.group_id, d.scheduled_date, d.quantity, d.unit, d.status, d.notes,
+        d.bl_number, d.bl_amount, d.invoice_reference, d.invoice_amount, d.reconciled, d.created_by, d.created_at, d.updated_at,
+        s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.email as supplier_email, s.phone as supplier_phone,
+        s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
+        g.id as group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
+        u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
+        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+      FROM deliveries d
+      INNER JOIN suppliers s ON d.supplier_id = s.id
+      INNER JOIN groups g ON d.group_id = g.id
+      INNER JOIN users u ON d.created_by = u.id
+    `;
+        const params = [];
+        if (groupIds && groupIds.length > 0) {
+          sqlQuery += ` WHERE d.group_id = ANY($1)`;
+          params.push(groupIds);
+        }
+        sqlQuery += ` ORDER BY d.created_at DESC`;
+        const results = params.length > 0 ? await pool2.query(sqlQuery, params) : await pool2.query(sqlQuery);
+        return results.rows.map((row) => ({
+          id: row.id,
+          orderId: row.order_id,
+          supplierId: row.supplier_id,
+          groupId: row.group_id,
+          scheduledDate: row.scheduled_date,
+          quantity: row.quantity,
+          unit: row.unit,
+          status: row.status,
+          notes: row.notes,
+          blNumber: row.bl_number,
+          blAmount: row.bl_amount,
+          invoiceReference: row.invoice_reference,
+          invoiceAmount: row.invoice_amount,
+          reconciled: row.reconciled,
+          createdBy: row.created_by,
+          createdAt: new Date(row.created_at),
+          updatedAt: new Date(row.updated_at),
           supplier: {
-            id: suppliers.id,
-            name: suppliers.name,
-            contact: suppliers.contact,
-            email: suppliers.email,
-            phone: suppliers.phone,
-            createdAt: suppliers.createdAt,
-            updatedAt: suppliers.updatedAt
+            id: row.supplier_id,
+            name: row.supplier_name,
+            contact: row.supplier_contact,
+            email: row.supplier_email,
+            phone: row.supplier_phone,
+            createdAt: new Date(row.supplier_created_at),
+            updatedAt: new Date(row.supplier_updated_at)
           },
           group: {
-            id: groups.id,
-            name: groups.name,
-            color: groups.color,
-            createdAt: groups.createdAt,
-            updatedAt: groups.updatedAt
+            id: row.group_id,
+            name: row.group_name,
+            color: row.group_color,
+            createdAt: new Date(row.group_created_at),
+            updatedAt: new Date(row.group_updated_at)
           },
           creator: {
-            id: users.id,
-            username: users.username,
-            email: users.email,
-            name: users.name,
-            role: users.role,
-            password: users.password,
-            passwordChanged: users.passwordChanged,
-            createdAt: users.createdAt,
-            updatedAt: users.updatedAt
-          }
-        }).from(deliveries).innerJoin(suppliers, eq(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq(deliveries.groupId, groups.id)).innerJoin(users, eq(deliveries.createdBy, users.id));
-        if (groupIds && groupIds.length > 0) {
-          query = query.where(inArray(deliveries.groupId, groupIds));
-        }
-        const results = await query.orderBy(desc(deliveries.createdAt));
-        return results.map((result) => ({
-          ...result,
+            id: row.creator_id,
+            username: row.creator_username,
+            email: row.creator_email,
+            name: row.creator_name,
+            role: row.creator_role,
+            password: row.creator_password,
+            passwordChanged: row.creator_password_changed,
+            createdAt: new Date(row.creator_created_at),
+            updatedAt: new Date(row.creator_updated_at)
+          },
           order: null
         }));
       }
       async getDeliveriesByDateRange(startDate, endDate, groupIds) {
-        let query = db.select({
-          id: deliveries.id,
-          orderId: deliveries.orderId,
-          supplierId: deliveries.supplierId,
-          groupId: deliveries.groupId,
-          scheduledDate: deliveries.scheduledDate,
-          quantity: deliveries.quantity,
-          unit: deliveries.unit,
-          status: deliveries.status,
-          notes: deliveries.notes,
-          blNumber: deliveries.blNumber,
-          blAmount: deliveries.blAmount,
-          invoiceReference: deliveries.invoiceReference,
-          invoiceAmount: deliveries.invoiceAmount,
-          reconciled: deliveries.reconciled,
-          createdBy: deliveries.createdBy,
-          createdAt: deliveries.createdAt,
-          updatedAt: deliveries.updatedAt,
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        let sqlQuery = `
+      SELECT 
+        d.id, d.order_id, d.supplier_id, d.group_id, d.scheduled_date, d.quantity, d.unit, d.status, d.notes,
+        d.bl_number, d.bl_amount, d.invoice_reference, d.invoice_amount, d.reconciled, d.created_by, d.created_at, d.updated_at,
+        s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.email as supplier_email, s.phone as supplier_phone,
+        s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
+        g.id as group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
+        u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
+        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+      FROM deliveries d
+      INNER JOIN suppliers s ON d.supplier_id = s.id
+      INNER JOIN groups g ON d.group_id = g.id
+      INNER JOIN users u ON d.created_by = u.id
+      WHERE d.scheduled_date >= $1 AND d.scheduled_date <= $2
+    `;
+        const params = [startDate, endDate];
+        if (groupIds && groupIds.length > 0) {
+          sqlQuery += ` AND d.group_id = ANY($3)`;
+          params.push(groupIds);
+        }
+        sqlQuery += ` ORDER BY d.created_at DESC`;
+        const results = await pool2.query(sqlQuery, params);
+        return results.rows.map((row) => ({
+          id: row.id,
+          orderId: row.order_id,
+          supplierId: row.supplier_id,
+          groupId: row.group_id,
+          scheduledDate: row.scheduled_date,
+          quantity: row.quantity,
+          unit: row.unit,
+          status: row.status,
+          notes: row.notes,
+          blNumber: row.bl_number,
+          blAmount: row.bl_amount,
+          invoiceReference: row.invoice_reference,
+          invoiceAmount: row.invoice_amount,
+          reconciled: row.reconciled,
+          createdBy: row.created_by,
+          createdAt: new Date(row.created_at),
+          updatedAt: new Date(row.updated_at),
           supplier: {
-            id: suppliers.id,
-            name: suppliers.name,
-            contact: suppliers.contact,
-            email: suppliers.email,
-            phone: suppliers.phone,
-            createdAt: suppliers.createdAt,
-            updatedAt: suppliers.updatedAt
+            id: row.supplier_id,
+            name: row.supplier_name,
+            contact: row.supplier_contact,
+            email: row.supplier_email,
+            phone: row.supplier_phone,
+            createdAt: new Date(row.supplier_created_at),
+            updatedAt: new Date(row.supplier_updated_at)
           },
           group: {
-            id: groups.id,
-            name: groups.name,
-            color: groups.color,
-            createdAt: groups.createdAt,
-            updatedAt: groups.updatedAt
+            id: row.group_id,
+            name: row.group_name,
+            color: row.group_color,
+            createdAt: new Date(row.group_created_at),
+            updatedAt: new Date(row.group_updated_at)
           },
           creator: {
-            id: users.id,
-            username: users.username,
-            email: users.email,
-            name: users.name,
-            role: users.role,
-            password: users.password,
-            passwordChanged: users.passwordChanged,
-            createdAt: users.createdAt,
-            updatedAt: users.updatedAt
-          }
-        }).from(deliveries).innerJoin(suppliers, eq(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq(deliveries.groupId, groups.id)).innerJoin(users, eq(deliveries.createdBy, users.id)).where(
-          and(
-            gte(deliveries.scheduledDate, startDate),
-            lte(deliveries.scheduledDate, endDate),
-            groupIds && groupIds.length > 0 ? inArray(deliveries.groupId, groupIds) : void 0
-          )
-        );
-        const results = await query.orderBy(desc(deliveries.createdAt));
-        return results.map((result) => ({
-          ...result,
+            id: row.creator_id,
+            username: row.creator_username,
+            email: row.creator_email,
+            name: row.creator_name,
+            role: row.creator_role,
+            password: row.creator_password,
+            passwordChanged: row.creator_password_changed,
+            createdAt: new Date(row.creator_created_at),
+            updatedAt: new Date(row.creator_updated_at)
+          },
           order: null
         }));
       }
       async getDelivery(id) {
-        const result = await db.select({
-          id: deliveries.id,
-          orderId: deliveries.orderId,
-          supplierId: deliveries.supplierId,
-          groupId: deliveries.groupId,
-          scheduledDate: deliveries.scheduledDate,
-          quantity: deliveries.quantity,
-          unit: deliveries.unit,
-          status: deliveries.status,
-          notes: deliveries.notes,
-          blNumber: deliveries.blNumber,
-          blAmount: deliveries.blAmount,
-          invoiceReference: deliveries.invoiceReference,
-          invoiceAmount: deliveries.invoiceAmount,
-          reconciled: deliveries.reconciled,
-          createdBy: deliveries.createdBy,
-          createdAt: deliveries.createdAt,
-          updatedAt: deliveries.updatedAt,
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      SELECT 
+        d.id, d.order_id, d.supplier_id, d.group_id, d.scheduled_date, d.quantity, d.unit, d.status, d.notes,
+        d.bl_number, d.bl_amount, d.invoice_reference, d.invoice_amount, d.reconciled, d.created_by, d.created_at, d.updated_at,
+        s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.email as supplier_email, s.phone as supplier_phone,
+        s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
+        g.id as group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
+        u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
+        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+      FROM deliveries d
+      INNER JOIN suppliers s ON d.supplier_id = s.id
+      INNER JOIN groups g ON d.group_id = g.id
+      INNER JOIN users u ON d.created_by = u.id
+      WHERE d.id = $1
+      LIMIT 1
+    `, [id]);
+        if (result.rows.length === 0) return void 0;
+        const row = result.rows[0];
+        return {
+          id: row.id,
+          orderId: row.order_id,
+          supplierId: row.supplier_id,
+          groupId: row.group_id,
+          scheduledDate: row.scheduled_date,
+          quantity: row.quantity,
+          unit: row.unit,
+          status: row.status,
+          notes: row.notes,
+          blNumber: row.bl_number,
+          blAmount: row.bl_amount,
+          invoiceReference: row.invoice_reference,
+          invoiceAmount: row.invoice_amount,
+          reconciled: row.reconciled,
+          createdBy: row.created_by,
+          createdAt: new Date(row.created_at),
+          updatedAt: new Date(row.updated_at),
           supplier: {
-            id: suppliers.id,
-            name: suppliers.name,
-            contact: suppliers.contact,
-            email: suppliers.email,
-            phone: suppliers.phone,
-            createdAt: suppliers.createdAt,
-            updatedAt: suppliers.updatedAt
+            id: row.supplier_id,
+            name: row.supplier_name,
+            contact: row.supplier_contact,
+            email: row.supplier_email,
+            phone: row.supplier_phone,
+            createdAt: new Date(row.supplier_created_at),
+            updatedAt: new Date(row.supplier_updated_at)
           },
           group: {
-            id: groups.id,
-            name: groups.name,
-            color: groups.color,
-            createdAt: groups.createdAt,
-            updatedAt: groups.updatedAt
+            id: row.group_id,
+            name: row.group_name,
+            color: row.group_color,
+            createdAt: new Date(row.group_created_at),
+            updatedAt: new Date(row.group_updated_at)
           },
           creator: {
-            id: users.id,
-            username: users.username,
-            email: users.email,
-            name: users.name,
-            role: users.role,
-            password: users.password,
-            passwordChanged: users.passwordChanged,
-            createdAt: users.createdAt,
-            updatedAt: users.updatedAt
-          }
-        }).from(deliveries).innerJoin(suppliers, eq(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq(deliveries.groupId, groups.id)).innerJoin(users, eq(deliveries.createdBy, users.id)).where(eq(deliveries.id, id)).limit(1);
-        if (result.length === 0) return void 0;
-        return {
-          ...result[0],
+            id: row.creator_id,
+            username: row.creator_username,
+            email: row.creator_email,
+            name: row.creator_name,
+            role: row.creator_role,
+            password: row.creator_password,
+            passwordChanged: row.creator_password_changed,
+            createdAt: new Date(row.creator_created_at),
+            updatedAt: new Date(row.creator_updated_at)
+          },
           order: null
         };
       }
       async createDelivery(delivery) {
-        const result = await db.insert(deliveries).values(delivery).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      INSERT INTO deliveries (order_id, supplier_id, group_id, scheduled_date, quantity, unit, status, notes, created_by, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING id, order_id, supplier_id, group_id, scheduled_date, quantity, unit, status, notes, bl_number, bl_amount, 
+                invoice_reference, invoice_amount, reconciled, created_by, created_at, updated_at
+    `, [
+          delivery.orderId,
+          delivery.supplierId,
+          delivery.groupId,
+          delivery.scheduledDate,
+          delivery.quantity,
+          delivery.unit,
+          delivery.status,
+          delivery.notes,
+          delivery.createdBy,
+          /* @__PURE__ */ new Date(),
+          /* @__PURE__ */ new Date()
+        ]);
+        return result.rows[0];
       }
       async updateDelivery(id, delivery) {
-        const result = await db.update(deliveries).set({ ...delivery, updatedAt: /* @__PURE__ */ new Date() }).where(eq(deliveries.id, id)).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      UPDATE deliveries 
+      SET order_id = COALESCE($1, order_id), supplier_id = COALESCE($2, supplier_id), group_id = COALESCE($3, group_id),
+          scheduled_date = COALESCE($4, scheduled_date), quantity = COALESCE($5, quantity), unit = COALESCE($6, unit),
+          status = COALESCE($7, status), notes = COALESCE($8, notes), updated_at = $9
+      WHERE id = $10
+      RETURNING id, order_id, supplier_id, group_id, scheduled_date, quantity, unit, status, notes, bl_number, bl_amount, 
+                invoice_reference, invoice_amount, reconciled, created_by, created_at, updated_at
+    `, [
+          delivery.orderId,
+          delivery.supplierId,
+          delivery.groupId,
+          delivery.scheduledDate,
+          delivery.quantity,
+          delivery.unit,
+          delivery.status,
+          delivery.notes,
+          /* @__PURE__ */ new Date(),
+          id
+        ]);
+        return result.rows[0];
       }
       async deleteDelivery(id) {
-        await db.delete(deliveries).where(eq(deliveries.id, id));
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        await pool2.query(`DELETE FROM deliveries WHERE id = $1`, [id]);
       }
       async validateDelivery(id, blData) {
-        await db.update(deliveries).set({
-          status: "delivered",
-          blNumber: blData?.blNumber,
-          blAmount: blData?.blAmount,
-          updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq(deliveries.id, id));
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        await pool2.query(`
+      UPDATE deliveries 
+      SET status = 'delivered', bl_number = $1, bl_amount = $2, updated_at = $3
+      WHERE id = $4
+    `, [blData?.blNumber, blData?.blAmount, /* @__PURE__ */ new Date(), id]);
       }
       async getUserGroups(userId) {
-        return await db.select().from(userGroups).where(eq(userGroups.userId, userId));
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      SELECT user_id, group_id, created_at
+      FROM user_groups 
+      WHERE user_id = $1
+    `, [userId]);
+        return result.rows.map((row) => ({
+          id: `${row.user_id}-${row.group_id}`,
+          userId: row.user_id,
+          groupId: row.group_id,
+          createdAt: row.created_at
+        }));
       }
       async assignUserToGroup(userGroup) {
-        const result = await db.insert(userGroups).values(userGroup).returning();
-        return result[0];
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+      INSERT INTO user_groups (user_id, group_id, created_at)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (user_id, group_id) DO NOTHING
+      RETURNING user_id, group_id, created_at
+    `, [userGroup.userId, userGroup.groupId, /* @__PURE__ */ new Date()]);
+        if (result.rows.length === 0) {
+          const existing = await pool2.query(`
+        SELECT user_id, group_id, created_at
+        FROM user_groups 
+        WHERE user_id = $1 AND group_id = $2
+      `, [userGroup.userId, userGroup.groupId]);
+          const row2 = existing.rows[0];
+          return {
+            id: `${row2.user_id}-${row2.group_id}`,
+            userId: row2.user_id,
+            groupId: row2.group_id,
+            createdAt: row2.created_at
+          };
+        }
+        const row = result.rows[0];
+        return {
+          id: `${row.user_id}-${row.group_id}`,
+          userId: row.user_id,
+          groupId: row.group_id,
+          createdAt: row.created_at
+        };
       }
       async removeUserFromGroup(userId, groupId) {
-        await db.delete(userGroups).where(
-          and(
-            eq(userGroups.userId, userId),
-            eq(userGroups.groupId, groupId)
-          )
-        );
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        await pool2.query(`
+      DELETE FROM user_groups 
+      WHERE user_id = $1 AND group_id = $2
+    `, [userId, groupId]);
       }
       async getMonthlyStats(year, month, groupIds) {
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
         const startDate = new Date(year, month - 1, 1).toISOString().split("T")[0];
         const endDate = new Date(year, month, 0).toISOString().split("T")[0];
-        let ordersQuery = db.select({ count: sql`count(*)` }).from(orders);
-        let deliveriesQuery = db.select({ count: sql`count(*)` }).from(deliveries);
-        let pendingOrdersQuery = db.select({ count: sql`count(*)` }).from(orders).where(eq(orders.status, "pending"));
+        let ordersCountQuery = `SELECT COUNT(*) as count FROM orders WHERE planned_date >= $1 AND planned_date <= $2`;
+        let deliveriesCountQuery = `SELECT COUNT(*) as count FROM deliveries WHERE scheduled_date >= $1 AND scheduled_date <= $2`;
+        let pendingOrdersCountQuery = `SELECT COUNT(*) as count FROM orders WHERE planned_date >= $1 AND planned_date <= $2 AND status = 'pending'`;
+        const params = [startDate, endDate];
         if (groupIds && groupIds.length > 0) {
-          ordersQuery = ordersQuery.where(
-            and(
-              gte(orders.plannedDate, startDate),
-              lte(orders.plannedDate, endDate),
-              inArray(orders.groupId, groupIds)
-            )
-          );
-          deliveriesQuery = deliveriesQuery.where(
-            and(
-              gte(deliveries.scheduledDate, startDate),
-              lte(deliveries.scheduledDate, endDate),
-              inArray(deliveries.groupId, groupIds)
-            )
-          );
-          pendingOrdersQuery = pendingOrdersQuery.where(
-            and(
-              gte(orders.plannedDate, startDate),
-              lte(orders.plannedDate, endDate),
-              inArray(orders.groupId, groupIds)
-            )
-          );
-        } else {
-          ordersQuery = ordersQuery.where(
-            and(
-              gte(orders.plannedDate, startDate),
-              lte(orders.plannedDate, endDate)
-            )
-          );
-          deliveriesQuery = deliveriesQuery.where(
-            and(
-              gte(deliveries.scheduledDate, startDate),
-              lte(deliveries.scheduledDate, endDate)
-            )
-          );
-          pendingOrdersQuery = pendingOrdersQuery.where(
-            and(
-              gte(orders.plannedDate, startDate),
-              lte(orders.plannedDate, endDate)
-            )
-          );
+          ordersCountQuery += ` AND group_id = ANY($3)`;
+          deliveriesCountQuery += ` AND group_id = ANY($3)`;
+          pendingOrdersCountQuery += ` AND group_id = ANY($3)`;
+          params.push(groupIds);
         }
         const [ordersResult, deliveriesResult, pendingOrdersResult] = await Promise.all([
-          ordersQuery,
-          deliveriesQuery,
-          pendingOrdersQuery
+          pool2.query(ordersCountQuery, params),
+          pool2.query(deliveriesCountQuery, params),
+          pool2.query(pendingOrdersCountQuery, params)
         ]);
         return {
-          ordersCount: Number(ordersResult[0]?.count || 0),
-          deliveriesCount: Number(deliveriesResult[0]?.count || 0),
-          pendingOrdersCount: Number(pendingOrdersResult[0]?.count || 0),
+          ordersCount: Number(ordersResult.rows[0]?.count || 0),
+          deliveriesCount: Number(deliveriesResult.rows[0]?.count || 0),
+          pendingOrdersCount: Number(pendingOrdersResult.rows[0]?.count || 0),
           averageDeliveryTime: 0,
           totalPalettes: 0,
           totalPackages: 0
@@ -7684,8 +7869,8 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/debug/db", async (req, res) => {
     try {
-      const { db: db2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
-      const result = await db2.execute("SELECT NOW() as now, version() as version");
+      const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+      const result = await pool2.query("SELECT NOW() as now, version() as version");
       res.json({
         connected: true,
         timestamp: result.rows[0].now,

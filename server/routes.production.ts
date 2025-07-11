@@ -65,8 +65,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/debug/db', async (req, res) => {
     try {
-      const { db } = await import('./db.production.js');
-      const result = await db.execute('SELECT NOW() as now, version() as version');
+      const { pool } = await import('./db.production.js');
+      const result = await pool.query('SELECT NOW() as now, version() as version');
       res.json({
         connected: true,
         timestamp: result.rows[0].now,

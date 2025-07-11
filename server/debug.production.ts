@@ -45,8 +45,8 @@ export function setupDebugRoutes(app: Express) {
   // Debug route to check database connection
   app.get('/api/debug/db', async (req, res) => {
     try {
-      const { db } = await import('./db.production');
-      const result = await db.execute('SELECT NOW() as now, version() as version');
+      const { pool } = await import('./db.production');
+      const result = await pool.query('SELECT NOW() as now, version() as version');
       res.json({
         connected: true,
         timestamp: result.rows[0].now,

@@ -5,9 +5,9 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { users, type User } from "@shared/schema";
-import { eq } from "drizzle-orm";
+// Removed Drizzle ORM import - using raw SQL only
 // Import de la DB de production
-import { db } from "./db.production";
+// Removed db import - using pool.query directly
 import { initializeDatabase } from "./initDatabase.production";
 import connectPgSimple from "connect-pg-simple";
 
