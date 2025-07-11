@@ -326,6 +326,9 @@ Changelog:
 - July 11, 2025. **HACHAGE MOTS DE PASSE AUTOMATIQUE** - Hash automatique lors création/modification utilisateur avec passwordChanged = true
 - July 11, 2025. **STATISTIQUES PALETTES FONCTIONNELLES** - Calcul correct depuis ordres et livraisons réelles (palettes = 5, colis = 3)
 - July 11, 2025. **ARCHITECTURE PRODUCTION FINALE** - Toutes les corrections intégrées dans routes.production.ts et storage.production.ts
+- July 11, 2025. **API STATS COMPLÈTEMENT CORRIGÉE** - Gestion complète paramètre storeId pour admin, logs détaillés, résolution erreur 500
+- July 11, 2025. **STATISTIQUES CALENDRIER FONCTIONNELLES** - Dashboard affiche maintenant 5 palettes et 3 colis au lieu de 0
+- July 11, 2025. **MODAL CRÉATION UTILISATEUR COMPLET** - Tous champs présents : Prénom, Nom, Email, Mot de passe, Rôle, Magasins assignés
 
 ## User Preferences
 

@@ -717,8 +717,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stats routes
   app.get('/api/stats/monthly', isAuthenticated, async (req: any, res) => {
     try {
-      const year = parseInt(req.query.year as string) || new Date().getFullYear();
-      const month = parseInt(req.query.month as string) || new Date().getMonth() + 1;
+      const { year, month, storeId } = req.query;
+      const currentYear = year ? parseInt(year as string) : new Date().getFullYear();
+      const currentMonth = month ? parseInt(month as string) : new Date().getMonth() + 1;
       
       const userId = req.user.id;
       const user = await storage.getUserWithGroups(userId);
@@ -727,14 +728,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let groupIds: number[] | undefined;
-      if (user.role !== 'admin') {
-        groupIds = user.userGroups.map(ug => ug.groupId);
+      
+      if (user.role === 'admin') {
+        // Admin can view all stores or filter by selected store
+        if (storeId && storeId !== 'all') {
+          groupIds = [parseInt(storeId as string)];
+        }
+        // If no storeId or storeId === 'all', groupIds remains undefined (all groups)
+      } else {
+        // Non-admin users: filter by their assigned groups
+        const userGroupIds = user.userGroups.map(ug => ug.groupId);
+        
+        // If a specific store is selected and user has access, filter by it
+        if (storeId && storeId !== 'all' && userGroupIds.includes(parseInt(storeId as string))) {
+          groupIds = [parseInt(storeId as string)];
+        } else {
+          groupIds = userGroupIds;
+        }
       }
 
-      const stats = await storage.getMonthlyStats(year, month, groupIds);
+      console.log('🔍 Stats API called:', { userId, year: currentYear, month: currentMonth, storeId, groupIds });
+      
+      const stats = await storage.getMonthlyStats(currentYear, currentMonth, groupIds);
+      
+      console.log('✅ Stats computed:', stats);
+      
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error("❌ Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
     }
   });
