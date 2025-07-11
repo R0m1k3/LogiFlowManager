@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import AuthInfo from "@/components/AuthInfo";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -334,7 +334,7 @@ export default function UsersPage() {
       return;
     }
 
-    if (USE_LOCAL_AUTH && !newUser.password) {
+    if (!newUser.password) {
       toast({
         title: "Erreur",
         description: "Le mot de passe est obligatoire",
@@ -919,28 +919,21 @@ export default function UsersPage() {
                   onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                   placeholder="email@exemple.com"
                 />
-                {!USE_LOCAL_AUTH && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    L'utilisateur se connectera avec son compte Replit associé à cet email
-                  </p>
-                )}
               </div>
 
-              {USE_LOCAL_AUTH && (
-                <div>
-                  <Label htmlFor="password">Mot de passe *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                    placeholder="••••••••"
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Mot de passe pour l'authentification locale
-                  </p>
-                </div>
-              )}
+              <div>
+                <Label htmlFor="password">Mot de passe *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                  placeholder="••••••••"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Mot de passe pour se connecter à l'application
+                </p>
+              </div>
 
               <div>
                 <Label htmlFor="role">Rôle</Label>
@@ -1010,8 +1003,7 @@ export default function UsersPage() {
                   {createUserMutation.isPending ? "Création..." : "Créer l'utilisateur"}
                 </Button>
               </div>
-              
-              <AuthInfo />
+
             </div>
           </DialogContent>
         </Dialog>

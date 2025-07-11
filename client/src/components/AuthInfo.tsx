@@ -3,7 +3,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function AuthInfo() {
-  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true';
+  // En production (pas sur Replit), toujours utiliser l'auth locale
+  const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('replit');
+  const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true' || isProduction;
 
   if (USE_LOCAL_AUTH) {
     return (
