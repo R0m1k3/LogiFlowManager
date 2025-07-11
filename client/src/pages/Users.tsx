@@ -371,11 +371,21 @@ export default function UsersPage() {
   };
 
   const handleEditUser = (userData: UserWithGroups) => {
-    setSelectedUser(userData);
+    // Convert the single 'name' field to firstName/lastName
+    const [firstName = '', ...lastNameParts] = (userData.name || '').split(' ');
+    const lastName = lastNameParts.join(' ');
+    
+    const userWithNames = {
+      ...userData,
+      firstName,
+      lastName
+    };
+    
+    setSelectedUser(userWithNames);
     setEditForm({
       username: userData.username || "",
-      firstName: userData.firstName || "",
-      lastName: userData.lastName || "",
+      firstName: firstName,
+      lastName: lastName,
       email: userData.email || "",
       password: "",
       role: userData.role as "admin" | "manager" | "employee",
@@ -581,13 +591,13 @@ export default function UsersPage() {
                                 />
                               ) : (
                                 <span className="text-white font-medium">
-                                  {getInitials(userData.firstName, userData.lastName)}
+                                  {getInitials(userData.name?.split(' ')[0] || '', userData.name?.split(' ').slice(1).join(' ') || '')}
                                 </span>
                               )}
                             </div>
                             <div>
                               <div className="text-sm font-medium text-gray-900 flex items-center">
-                                {userData.firstName} {userData.lastName}
+                                {userData.name || 'Nom non renseigné'}
                                 {userData.id === user?.id && (
                                   <Badge variant="outline" className="ml-2 text-xs">Vous</Badge>
                                 )}
@@ -695,7 +705,7 @@ export default function UsersPage() {
                 Modifier l'utilisateur
               </DialogTitle>
               <p id="edit-user-modal-description" className="text-sm text-gray-600 mt-1">
-                Modifier les informations de l'utilisateur {selectedUser.firstName} {selectedUser.lastName}
+                Modifier les informations de l'utilisateur {selectedUser.name || selectedUser.firstName + ' ' + selectedUser.lastName}
               </p>
             </DialogHeader>
             
