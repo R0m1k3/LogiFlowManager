@@ -407,10 +407,14 @@ Changelog:
 - July 11, 2025. **SYSTÈME DE GESTION DES RÔLES DYNAMIQUE IMPLÉMENTÉ** - Création complète du système de rôles et permissions
 - July 11, 2025. Tables roles, permissions, role_permissions créées avec colonnes appropriées
 - July 11, 2025. Interface RoleManagement.tsx développée avec CRUD complet pour les rôles
-- July 11, 2025. Permissions configurables par catégorie (Dashboard, Orders, Deliveries, Users, etc.)
+- July 11, 2025. Permissions configurables par catégorie (Dashboard, Calendar, Orders, Deliveries, Users, etc.)
 - July 11, 2025. Rôles par défaut initialisés automatiquement (admin, manager, employee)
 - July 11, 2025. Protection contre suppression des rôles système intégrée
 - July 11, 2025. API routes complètes pour gestion des rôles et permissions avec authentification admin
+- July 11, 2025. **PERMISSIONS CALENDRIER AJOUTÉES** - Ajout permissions "calendar_read" et "calendar_create" au système
+- July 11, 2025. Modal permissions reste ouvert pendant modifications multiples avec feedback visuel instantané
+- July 11, 2025. Ordre des permissions réorganisé : validate avant delete, groupes renommés en "magasins"
+- July 11, 2025. Attribution automatique permissions calendrier : admin (toutes), manager (voir+créer), employee (voir)
 
 ## User Preferences
 
