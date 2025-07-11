@@ -255,7 +255,7 @@ export default function Publicities() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {publicities
-                    .sort((a, b) => a.pubNumber.localeCompare(b.pubNumber))
+                    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
                     .map((publicity) => {
                       const now = new Date();
                       const start = new Date(publicity.startDate);

@@ -338,6 +338,7 @@ Changelog:
 - July 11, 2025. **PUBLICITÉS SANS MAGASINS** - Autorisation publicités sans magasins participants (publicité générale)
 - July 11, 2025. **INTERFACE AUCUN MAGASIN** - Affichage "Aucun magasin" en rouge clair au lieu de "Tous magasins"
 - July 11, 2025. **PERMISSIONS PUBLICITÉS RESTREINTES** - Seuls les admins peuvent créer/modifier/supprimer, employés et managers en lecture seule
+- July 11, 2025. **TRI PUBLICITÉS PAR DATE** - Tri automatique par date de début (plus récent en premier) remplaçant le tri par numéro PUB
 - July 11, 2025. **CRÉATION UTILISATEURS CORRIGÉE** - Mapping correct firstName/lastName → username/name, génération automatique username depuis email
 - July 11, 2025. **HACHAGE MOTS DE PASSE AUTOMATIQUE** - Hash automatique lors création/modification utilisateur avec passwordChanged = true
 - July 11, 2025. **STATISTIQUES PALETTES FONCTIONNELLES** - Calcul correct depuis ordres et livraisons réelles (palettes = 5, colis = 3)
