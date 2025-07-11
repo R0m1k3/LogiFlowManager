@@ -1,0 +1,56 @@
+✅ Groups fetched for admin, count: 3
+
+[wq636] <-- GET /api/groups 304 in 62ms :: [{"id":1,"name":"Frouard","color":"#1976D2","created_at":"2025-07-11T01:56:31.190Z","updated_at":"2…
+
+[29q4r] --> GET /api/deliveries
+
+[29q4r]     Host: logiflow.ffnancy.fr
+
+[29q4r]     IP: 172.20.0.8
+
+[29q4r]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[29q4r] <-- GET /api/deliveries 200 in 12ms :: [{"id":3,"orderId":null,"supplierId":2,"groupId":1,"scheduledDate":"2025-07-09","quantity":1,"unit"…
+
+[mpwsx] --> GET /api/deliveries
+
+[mpwsx]     Host: logiflow.ffnancy.fr
+
+[mpwsx]     IP: 172.20.0.8
+
+[mpwsx]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[mpwsx] <-- GET /api/deliveries 304 in 8ms :: []
+
+[46tj8a] --> POST /api/deliveries/3/validate
+
+[46tj8a]     Host: logiflow.ffnancy.fr
+
+[46tj8a]     IP: 172.20.0.8
+
+[46tj8a]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[46tj8a] <-- POST /api/deliveries/3/validate 200 in 39ms :: {"message":"Delivery validated successfully"}
+
+[tdbdy5] --> GET /api/deliveries
+
+[tdbdy5]     Host: logiflow.ffnancy.fr
+
+[tdbdy5]     IP: 172.20.0.8
+
+[tdbdy5]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[tdbdy5] <-- GET /api/deliveries 200 in 15ms :: [{"id":3,"orderId":null,"supplierId":2,"groupId":1,"scheduledDate":"2025-07-09","quantity":1,"unit"…
+
+[i2zqcn] --> HEAD /api/health
+
+[i2zqcn]     Host: localhost:3000
+
+[i2zqcn]     IP: 127.0.0.1
+
+[i2zqcn]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[i2zqcn] <-- HEAD /api/health 200 in 1ms :: {"status":"healthy","timestamp":"2025-07-11T02:15:56.091Z","environment":"production","auth":"local…
+
+
+      
