@@ -1,7 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./authSwitch";
+import { setupLocalAuth, requireAuth } from "./localAuth";
+
+// Alias pour compatibilité
+const isAuthenticated = requireAuth;
+const setupAuth = setupLocalAuth;
 import { 
   insertGroupSchema, 
   insertSupplierSchema, 

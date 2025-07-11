@@ -1,28 +1,39 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupSecurityHeaders, setupRateLimiting, setupInputSanitization } from "./security";
+import { setupCompression } from "./cache";
+import { monitor, setupMonitoringEndpoints } from "./monitoring";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
+// Sécurité et optimisation
+setupSecurityHeaders(app);
+setupRateLimiting(app);
+setupInputSanitization(app);
+setupCompression(app);
+
+// Monitoring des performances
+app.use(monitor.middleware());
+setupMonitoringEndpoints(app);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Logging optimisé (sans détails de réponse sensibles)
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
+      // Logging sécurisé sans données sensibles
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      
+      // Ne pas logger les données sensibles
+      if (path.includes('/login') || path.includes('/password')) {
+        logLine += ' :: [SENSITIVE DATA HIDDEN]';
       }
 
       if (logLine.length > 80) {

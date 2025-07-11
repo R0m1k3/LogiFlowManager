@@ -17,9 +17,12 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework
 - **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Replit Auth with OpenID Connect
+- **Authentication**: Local authentication with PostgreSQL storage
 - **Session Management**: PostgreSQL-backed sessions with connect-pg-simple
 - **API**: RESTful API with role-based access control
+- **Security**: Express-rate-limit, CSP headers, input sanitization
+- **Performance**: Memory caching, query optimization, monitoring
+- **Monitoring**: Real-time performance tracking with slow query detection
 
 ## Key Components
 
@@ -367,6 +370,13 @@ Changelog:
 - July 11, 2025. **VALIDATION LIVRAISONS BLOQUÉE** - Contrainte base production empêche statut "delivered", solution immédiate et automatique ajoutée
 - July 11, 2025. **DASHBOARD LIVRAISONS CORRIGÉ** - Incohérence champs plannedDate vs scheduledDate résolue dans Dashboard.tsx
 - July 11, 2025. **SCRIPT DEBUG LIVRAISONS** - Créé update-production-orders.sh pour diagnostiquer données livraisons en production
+- July 11, 2025. **OPTIMISATIONS SÉCURITÉ ET PERFORMANCE** - Implémentation complète des middlewares de sécurité et monitoring
+- July 11, 2025. **SYSTÈME DE MONITORING** - Ajout surveillance temps réel des performances avec alertes requêtes lentes
+- July 11, 2025. **SÉCURITÉ RENFORCÉE** - Headers sécurisés, rate limiting, sanitisation des entrées, CSP stricte
+- July 11, 2025. **CACHE INTELLIGENT** - Mise en cache des réponses API avec invalidation automatique
+- July 11, 2025. **NETTOYAGE FINAL** - Suppression fichiers temporaires, assets debug, optimisation structure projet
+- July 11, 2025. **CORRECTION IMPORTS** - Résolution erreur authSwitch.ts supprimé, harmonisation avec localAuth.ts
+- July 11, 2025. **LOGGING SÉCURISÉ** - Protection données sensibles dans logs, masquage automatique passwords/tokens
 
 ## User Preferences
 
