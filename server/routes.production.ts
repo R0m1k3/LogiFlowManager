@@ -330,6 +330,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete userData.lastName;
       }
       
+      // Hash password if provided
+      if (userData.password) {
+        const { hashPassword } = await import("./localAuth.production.js");
+        userData.password = await hashPassword(userData.password);
+        userData.passwordChanged = true; // Mark password as changed
+        console.log('🔒 Password hashed for user update');
+      }
+      
       const updatedUser = await storage.updateUser(id, userData);
       console.log('✅ User updated successfully:', updatedUser);
       

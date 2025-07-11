@@ -784,13 +784,37 @@ export class DatabaseStorage implements IStorage {
       WHERE status = 'pending' AND planned_date >= $1 AND planned_date <= $2${whereClause}
     `, params);
     
+    // Calculer les palettes et colis depuis les commandes et livraisons
+    const palettesOrdersResult = await pool.query(`
+      SELECT COALESCE(SUM(quantity), 0) as total FROM orders 
+      WHERE unit = 'palettes' AND planned_date >= $1 AND planned_date <= $2${whereClause}
+    `, params);
+    
+    const palettesDeliveriesResult = await pool.query(`
+      SELECT COALESCE(SUM(quantity), 0) as total FROM deliveries 
+      WHERE unit = 'palettes' AND scheduled_date >= $1 AND scheduled_date <= $2${whereClause}
+    `, params);
+    
+    const colisOrdersResult = await pool.query(`
+      SELECT COALESCE(SUM(quantity), 0) as total FROM orders 
+      WHERE unit = 'colis' AND planned_date >= $1 AND planned_date <= $2${whereClause}
+    `, params);
+    
+    const colisDeliveriesResult = await pool.query(`
+      SELECT COALESCE(SUM(quantity), 0) as total FROM deliveries 
+      WHERE unit = 'colis' AND scheduled_date >= $1 AND scheduled_date <= $2${whereClause}
+    `, params);
+    
+    const totalPalettes = parseInt(palettesOrdersResult.rows[0].total) + parseInt(palettesDeliveriesResult.rows[0].total);
+    const totalPackages = parseInt(colisOrdersResult.rows[0].total) + parseInt(colisDeliveriesResult.rows[0].total);
+    
     return {
       ordersCount: parseInt(ordersResult.rows[0].count),
       deliveriesCount: parseInt(deliveriesResult.rows[0].count),
       pendingOrdersCount: parseInt(pendingOrdersResult.rows[0].count),
       averageDeliveryTime: 0,
-      totalPalettes: 0,
-      totalPackages: 0,
+      totalPalettes,
+      totalPackages,
     };
   }
 }
