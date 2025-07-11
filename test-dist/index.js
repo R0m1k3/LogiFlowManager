@@ -6718,11 +6718,10 @@ async function initializeDatabase() {
     console.log("\u{1F527} Creating user_groups table...");
     await pool.query(`
       CREATE TABLE IF NOT EXISTS user_groups (
-        id SERIAL PRIMARY KEY,
         user_id VARCHAR NOT NULL,
         group_id INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(user_id, group_id)
+        PRIMARY KEY(user_id, group_id)
       )
     `);
     console.log("\u{1F527} Creating session table...");
@@ -7009,7 +7008,7 @@ var init_storage_production = __esm({
           }
           const user = userResult.rows[0];
           const groupsResult = await pool2.query(`
-        SELECT ug.id as ug_id, ug.user_id, ug.group_id, ug.created_at as ug_created_at,
+        SELECT ug.user_id, ug.group_id, ug.created_at as ug_created_at,
                g.id, g.name, g.color, g.created_at, g.updated_at
         FROM user_groups ug
         JOIN groups g ON ug.group_id = g.id
@@ -7018,7 +7017,8 @@ var init_storage_production = __esm({
           const userWithGroups = {
             ...user,
             userGroups: groupsResult.rows.map((row) => ({
-              id: row.ug_id,
+              id: `${row.user_id}-${row.group_id}`,
+              // Composite ID
               userId: row.user_id,
               groupId: row.group_id,
               createdAt: row.ug_created_at,
@@ -7057,7 +7057,7 @@ var init_storage_production = __esm({
             return [];
           }
           const allUserGroupsResult = await pool2.query(`
-        SELECT ug.id as ug_id, ug.user_id, ug.group_id, ug.created_at as ug_created_at,
+        SELECT ug.user_id, ug.group_id, ug.created_at as ug_created_at,
                g.id, g.name, g.color, g.created_at, g.updated_at
         FROM user_groups ug
         JOIN groups g ON ug.group_id = g.id
@@ -7068,7 +7068,8 @@ var init_storage_production = __esm({
               userGroupsMap.set(row.user_id, []);
             }
             userGroupsMap.get(row.user_id).push({
-              id: row.ug_id,
+              id: `${row.user_id}-${row.group_id}`,
+              // Composite ID
               userId: row.user_id,
               groupId: row.group_id,
               createdAt: row.ug_created_at,

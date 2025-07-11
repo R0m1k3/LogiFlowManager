@@ -1,0 +1,201 @@
+
+      
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async DatabaseStorage.getUserWithGroups (file:///app/dist/index.js:4973:32)
+
+    at async file:///app/dist/index.js:5661:20 {
+
+  length: 154,
+
+  severity: 'ERROR',
+
+  code: '42703',
+
+  detail: undefined,
+
+  hint: 'Perhaps you meant to reference the column "g.id".',
+
+  position: '17',
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'parse_relation.c',
+
+  line: '3665',
+
+  routine: 'errorMissingColumn'
+
+}
+
+❌ Error fetching groups: error: column ug.id does not exist
+
+    at /app/node_modules/pg-pool/index.js:45:11
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async DatabaseStorage.getUserWithGroups (file:///app/dist/index.js:4973:32)
+
+    at async file:///app/dist/index.js:5661:20 {
+
+  length: 154,
+
+  severity: 'ERROR',
+
+  code: '42703',
+
+  detail: undefined,
+
+  hint: 'Perhaps you meant to reference the column "g.id".',
+
+  position: '17',
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'parse_relation.c',
+
+  line: '3665',
+
+  routine: 'errorMissingColumn'
+
+}
+
+[dgzm7h] ERROR Response: 500 Internal Server Error
+
+[dgzm7h] <-- GET /api/groups 500 in 18ms :: {"message":"Failed to fetch groups"}
+
+[8hkdkm] --> POST /api/logout
+
+[8hkdkm]     Host: logiflow.ffnancy.fr
+
+[8hkdkm]     IP: 172.20.0.8
+
+[8hkdkm]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[8hkdkm] <-- POST /api/logout 200 in 45ms :: {"message":"Déconnexion réussie"}
+
+[rwfktf] --> GET /auth
+
+[rwfktf]     Host: logiflow.ffnancy.fr
+
+[rwfktf]     IP: 172.20.0.8
+
+[rwfktf]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[rwfktf] <-- GET /auth 200 in 12ms
+
+[zyryg] --> GET /api/user
+
+[zyryg]     Host: logiflow.ffnancy.fr
+
+[zyryg]     IP: 172.20.0.8
+
+[zyryg]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[zyryg] <-- GET /api/user 401 in 15ms :: {"message":"Non authentifié"}
+
+[zyryg] ERROR Response: 401 Unauthorized
+
+[w9v1kh] --> GET /api/default-credentials-check
+
+[w9v1kh]     Host: logiflow.ffnancy.fr
+
+[w9v1kh]     IP: 172.20.0.8
+
+[w9v1kh]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[w9v1kh] <-- GET /api/default-credentials-check 304 in 7ms :: {"showDefault":true}
+
+[b8rta8] --> POST /api/login
+
+[b8rta8]     Host: logiflow.ffnancy.fr
+
+[b8rta8]     IP: 172.20.0.8
+
+[b8rta8]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[b8rta8] ERROR Response: 500 Internal Server Error
+
+[b8rta8] <-- POST /api/login 500 in 8ms :: {"message":"Erreur serveur"}
+
+[m7y6ra] --> POST /api/login
+
+[m7y6ra]     Host: logiflow.ffnancy.fr
+
+[m7y6ra]     IP: 172.20.0.8
+
+[m7y6ra]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[m7y6ra] <-- POST /api/login 500 in 5ms :: {"message":"Erreur serveur"}
+
+[m7y6ra] ERROR Response: 500 Internal Server Error
+
+[on0mc] --> GET /
+
+[on0mc]     Host: logiflow.ffnancy.fr
+
+[on0mc]     IP: 172.20.0.8
+
+[on0mc]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Links (2.22; Linux X86_64; GNU C; text)"}
+
+[on0mc] <-- GET / 200 in 2ms
+
+[n850bd] --> GET /apple-touch-icon.png
+
+[n850bd]     Host: logiflow.ffnancy.fr
+
+[n850bd]     IP: 172.20.0.8
+
+[n850bd]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Links (2.22; Linux X86_64; GNU C; text)"}
+
+[n850bd] <-- GET /apple-touch-icon.png 200 in 2ms
+
+[zzrihk] --> POST /api/login
+
+[zzrihk]     Host: logiflow.ffnancy.fr
+
+[zzrihk]     IP: 172.20.0.8
+
+[zzrihk]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[zzrihk] ERROR Response: 500 Internal Server Error
+
+[zzrihk] <-- POST /api/login 500 in 6ms :: {"message":"Erreur serveur"}
+
+[vh9swf] --> HEAD /api/health
+
+[vh9swf]     Host: localhost:3000
+
+[vh9swf]     IP: 127.0.0.1
+
+[vh9swf]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[vh9swf] <-- HEAD /api/health 200 in 1ms :: {"status":"healthy","timestamp":"2025-07-10T23:59:15.616Z","environment":"production","auth":"local…

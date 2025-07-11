@@ -139,9 +139,9 @@ export class DatabaseStorage implements IStorage {
 
       const user = userResult.rows[0];
 
-      // Get user groups
+      // Get user groups (no ug.id since table might not have it)
       const groupsResult = await pool.query(`
-        SELECT ug.id as ug_id, ug.user_id, ug.group_id, ug.created_at as ug_created_at,
+        SELECT ug.user_id, ug.group_id, ug.created_at as ug_created_at,
                g.id, g.name, g.color, g.created_at, g.updated_at
         FROM user_groups ug
         JOIN groups g ON ug.group_id = g.id
@@ -151,7 +151,7 @@ export class DatabaseStorage implements IStorage {
       const userWithGroups: UserWithGroups = {
         ...user,
         userGroups: groupsResult.rows.map(row => ({
-          id: row.ug_id,
+          id: `${row.user_id}-${row.group_id}`, // Composite ID
           userId: row.user_id,
           groupId: row.group_id,
           createdAt: row.ug_created_at,
@@ -199,9 +199,9 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      // Get all user groups in one query for efficiency
+      // Get all user groups in one query for efficiency (no ug.id)
       const allUserGroupsResult = await pool.query(`
-        SELECT ug.id as ug_id, ug.user_id, ug.group_id, ug.created_at as ug_created_at,
+        SELECT ug.user_id, ug.group_id, ug.created_at as ug_created_at,
                g.id, g.name, g.color, g.created_at, g.updated_at
         FROM user_groups ug
         JOIN groups g ON ug.group_id = g.id
@@ -214,7 +214,7 @@ export class DatabaseStorage implements IStorage {
           userGroupsMap.set(row.user_id, []);
         }
         userGroupsMap.get(row.user_id)!.push({
-          id: row.ug_id,
+          id: `${row.user_id}-${row.group_id}`, // Composite ID
           userId: row.user_id,
           groupId: row.group_id,
           createdAt: row.ug_created_at,

@@ -310,6 +310,10 @@ Changelog:
 - July 10, 2025. **ERREUR SYNTAXE RÉSOLUE** - Nettoyage complet storage.production.ts, suppression code Drizzle ORM cassé
 - July 10, 2025. Test esbuild local réussi : 285.8kb bundle généré en 55ms sans erreur
 - July 10, 2025. **DOCKER BUILD FINALEMENT PRÊT** - Toutes erreurs syntaxe et build corrigées pour déploiement production
+- July 10, 2025. **ERREUR PRODUCTION CRITIQUE RÉSOLUE** - Correction PostgreSQL "column ug.id does not exist"
+- July 10, 2025. Table user_groups simplifiée : PRIMARY KEY(user_id, group_id) sans colonne id séparée
+- July 10, 2025. ID composite utilisé dans code : user_id + group_id pour relations utilisateur-groupe
+- July 10, 2025. Requêtes SQL corrigées pour éviter référence inexistante à ug.id
 
 ## User Preferences
 

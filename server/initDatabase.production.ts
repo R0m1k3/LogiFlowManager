@@ -117,15 +117,14 @@ export async function initializeDatabase() {
       )
     `);
 
-    // Create user_groups table using raw SQL
+    // Create user_groups table using raw SQL (without id column for simplicity)
     console.log("🔧 Creating user_groups table...");
     await pool.query(`
       CREATE TABLE IF NOT EXISTS user_groups (
-        id SERIAL PRIMARY KEY,
         user_id VARCHAR NOT NULL,
         group_id INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(user_id, group_id)
+        PRIMARY KEY(user_id, group_id)
       )
     `);
 
