@@ -258,10 +258,10 @@ export default function RoleManagement() {
     }
   };
 
-  // Filter roles
+  // Filter roles - with safety checks
   const filteredRoles = roles.filter(role =>
-    role.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    role.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (role.displayName || role.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (role.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Group permissions by category
@@ -342,7 +342,7 @@ export default function RoleManagement() {
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(role)}
                   <div>
-                    <CardTitle className="text-lg">{role.displayName}</CardTitle>
+                    <CardTitle className="text-lg">{role.displayName || role.name}</CardTitle>
                     <p className="text-sm text-gray-500">{role.name}</p>
                   </div>
                 </div>
@@ -368,7 +368,7 @@ export default function RoleManagement() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">Permissions:</span>
                 <Badge variant="outline">
-                  {role.rolePermissions.length}
+                  {role.rolePermissions?.length || 0}
                 </Badge>
               </div>
 
@@ -551,7 +551,7 @@ export default function RoleManagement() {
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {categoryPermissions.map((permission) => {
-                      const isChecked = selectedRole?.rolePermissions.some(
+                      const isChecked = selectedRole?.rolePermissions?.some(
                         rp => rp.permissionId === permission.id
                       ) || false;
 
@@ -563,7 +563,7 @@ export default function RoleManagement() {
                             onCheckedChange={(checked) => {
                               if (!selectedRole) return;
                               
-                              const currentPermissionIds = selectedRole.rolePermissions.map(rp => rp.permissionId);
+                              const currentPermissionIds = selectedRole.rolePermissions?.map(rp => rp.permissionId) || [];
                               let newPermissionIds;
                               
                               if (checked) {

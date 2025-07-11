@@ -16,7 +16,7 @@ import Groups from "@/pages/Groups";
 import Users from "@/pages/Users";
 import BLReconciliation from "@/pages/BLReconciliation";
 import Publicities from "@/pages/Publicities";
-import RoleManagementTest from "@/pages/RoleManagementTest";
+import RoleManagement from "@/pages/RoleManagement";
 import Layout from "@/components/Layout";
 
 function Router() {
@@ -50,7 +50,7 @@ function Router() {
           <Route path="/users" component={Users} />
           <Route path="/bl-reconciliation" component={BLReconciliation} />
           <Route path="/publicities" component={Publicities} />
-          <Route path="/roles" component={RoleManagementTest} />
+          <Route path="/roles" component={RoleManagement} />
         </Layout>
       )}
       <Route component={NotFound} />
