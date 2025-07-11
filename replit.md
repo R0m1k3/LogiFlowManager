@@ -331,6 +331,8 @@ Changelog:
 - July 11, 2025. **AUTO-INITIALISATION PUBLICITÉS CORRIGÉE** - Tables et index créés automatiquement au redémarrage Docker production
 - July 11, 2025. **ERREUR SQL PUBLICITÉS RÉSOLUE** - Correction INSERT setPublicityParticipations: colonnes/valeurs maintenant alignées
 - July 11, 2025. **DEBUG PUBLICITÉS AJOUTÉ** - Logs détaillés pour diagnostiquer pourquoi les publicités créées n'apparaissent pas dans la liste
+- July 11, 2025. **AFFICHAGE PUBLICITÉS MODERNISÉ** - Remplacement grille de cartes par liste tableau triée par numéro PUB
+- July 11, 2025. **CARTE DASHBOARD PUBLICITÉS** - Ajout section "Publicités à venir" dans le tableau de bord
 - July 11, 2025. **CRÉATION UTILISATEURS CORRIGÉE** - Mapping correct firstName/lastName → username/name, génération automatique username depuis email
 - July 11, 2025. **HACHAGE MOTS DE PASSE AUTOMATIQUE** - Hash automatique lors création/modification utilisateur avec passwordChanged = true
 - July 11, 2025. **STATISTIQUES PALETTES FONCTIONNELLES** - Calcul correct depuis ordres et livraisons réelles (palettes = 5, colis = 3)

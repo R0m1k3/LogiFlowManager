@@ -196,7 +196,7 @@ export default function Publicities() {
         </Card>
       </div>
 
-      {/* Publicities Grid */}
+      {/* Publicities List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -220,100 +220,134 @@ export default function Publicities() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {publicities.map((publicity) => {
-            const now = new Date();
-            const start = new Date(publicity.startDate);
-            const end = new Date(publicity.endDate);
-            const isActive = start <= now && now <= end;
-            const isUpcoming = start > now;
-            const isPast = end < now;
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      N° PUB
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Désignation
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Période
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Statut
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Magasins
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Créé par
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {publicities
+                    .sort((a, b) => a.pubNumber.localeCompare(b.pubNumber))
+                    .map((publicity) => {
+                      const now = new Date();
+                      const start = new Date(publicity.startDate);
+                      const end = new Date(publicity.endDate);
+                      const isActive = start <= now && now <= end;
+                      const isUpcoming = start > now;
+                      const isPast = end < now;
 
-            return (
-              <Card key={publicity.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{publicity.pubNumber}</CardTitle>
-                    <div className="flex items-center gap-1">
-                      {isActive && <Badge className="bg-green-100 text-green-800">En cours</Badge>}
-                      {isUpcoming && <Badge className="bg-blue-100 text-blue-800">À venir</Badge>}
-                      {isPast && <Badge variant="secondary">Terminée</Badge>}
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {publicity.designation}
-                  </p>
-                </CardHeader>
-                
-                <CardContent className="space-y-3">
-                  <div className="text-sm">
-                    <p className="text-gray-600">
-                      Du {format(new Date(publicity.startDate), "dd/MM/yyyy", { locale: fr })} 
-                      au {format(new Date(publicity.endDate), "dd/MM/yyyy", { locale: fr })}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Magasins participants :</p>
-                    <div className="flex flex-wrap gap-1">
-                      {publicity.participations.slice(0, 3).map((participation) => (
-                        <Badge key={participation.groupId} variant="outline" className="text-xs">
-                          <div 
-                            className="w-2 h-2 rounded-full mr-1" 
-                            style={{ backgroundColor: participation.group.color }}
-                          />
-                          {participation.group.name}
-                        </Badge>
-                      ))}
-                      {publicity.participations.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{publicity.participations.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleView(publicity)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      
-                      {canCreateOrEdit && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(publicity)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
-                      {canDelete && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(publicity)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <p className="text-xs text-gray-500">
-                      {publicity.creator.name || publicity.creator.username}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                      return (
+                        <tr key={publicity.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {publicity.pubNumber}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900 max-w-xs truncate">
+                              {publicity.designation}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600">
+                              {format(new Date(publicity.startDate), "dd/MM/yy", { locale: fr })} - {format(new Date(publicity.endDate), "dd/MM/yy", { locale: fr })}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {isActive && <Badge className="bg-green-100 text-green-800">En cours</Badge>}
+                            {isUpcoming && <Badge className="bg-blue-100 text-blue-800">À venir</Badge>}
+                            {isPast && <Badge variant="secondary">Terminée</Badge>}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap gap-1 max-w-xs">
+                              {publicity.participations.slice(0, 2).map((participation) => (
+                                <Badge key={participation.groupId} variant="outline" className="text-xs">
+                                  <div 
+                                    className="w-2 h-2 rounded-full mr-1" 
+                                    style={{ backgroundColor: participation.group.color }}
+                                  />
+                                  {participation.group.name}
+                                </Badge>
+                              ))}
+                              {publicity.participations.length > 2 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{publicity.participations.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600">
+                              {publicity.creator.name || publicity.creator.username}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleView(publicity)}
+                                title="Voir les détails"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              
+                              {canCreateOrEdit && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(publicity)}
+                                  title="Modifier"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              )}
+                              
+                              {canDelete && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete(publicity)}
+                                  className="text-red-600 hover:text-red-700"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Create Modal */}

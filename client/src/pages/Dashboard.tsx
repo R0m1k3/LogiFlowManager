@@ -4,9 +4,10 @@ import { useStore } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Package, ShoppingCart, TrendingUp, Clock, MapPin, User, AlertTriangle, CheckCircle, Truck, FileText, BarChart3 } from "lucide-react";
+import { Calendar, Package, ShoppingCart, TrendingUp, Clock, MapPin, User, AlertTriangle, CheckCircle, Truck, FileText, BarChart3, Megaphone } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import type { PublicityWithRelations } from "@shared/schema";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -48,6 +49,21 @@ export default function Dashboard() {
 
   const { data: allDeliveries = [] } = useQuery({
     queryKey: [deliveriesUrl, selectedStoreId],
+  });
+
+  // Récupérer les publicités à venir
+  const { data: upcomingPublicities = [] } = useQuery<PublicityWithRelations[]>({
+    queryKey: ['/api/publicities', new Date().getFullYear(), selectedStoreId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('year', new Date().getFullYear().toString());
+      if (selectedStoreId && user?.role === 'admin') {
+        params.append('storeId', selectedStoreId.toString());
+      }
+      const response = await fetch(`/api/publicities?${params}`, { credentials: 'include' });
+      if (!response.ok) return [];
+      return response.json();
+    },
   });
 
   // Données dérivées pour les sections
@@ -167,7 +183,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Dernières Commandes */}
         <Card className="bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
           <CardHeader className="pb-4 border-b border-gray-100">
@@ -233,6 +249,43 @@ export default function Dashboard() {
               </div>
             )) : (
               <p className="text-gray-600 text-center py-8">Aucune livraison programmée</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Publicités à Venir */}
+        <Card className="bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+          <CardHeader className="pb-4 border-b border-gray-100">
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
+              <Megaphone className="h-5 w-5 mr-3 text-purple-600" />
+              Publicités à Venir
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 p-6">
+            {upcomingPublicities
+              .filter((publicity: any) => new Date(publicity.startDate) > new Date())
+              .slice(0, 3)
+              .map((publicity: any) => (
+                <div key={publicity.id} className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors border-l-3 border-purple-500">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-2 w-2 bg-purple-500"></div>
+                    <div>
+                      <p className="font-medium text-gray-900">{publicity.pubNumber}</p>
+                      <p className="text-sm text-gray-600 truncate max-w-40">{publicity.designation}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge className="bg-blue-100 text-blue-800 text-xs">
+                      À venir
+                    </Badge>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {format(new Date(publicity.startDate), "d MMM", { locale: fr })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            {upcomingPublicities.filter((publicity: any) => new Date(publicity.startDate) > new Date()).length === 0 && (
+              <p className="text-gray-600 text-center py-8">Aucune publicité à venir</p>
             )}
           </CardContent>
         </Card>
