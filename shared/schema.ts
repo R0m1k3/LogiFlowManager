@@ -37,7 +37,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   password: varchar("password"), // For local auth only
-  role: varchar("role").notNull().default("employee"), // admin, manager, employee
+  role: varchar("role").notNull().default("employee"), // Legacy role field for compatibility
   passwordChanged: boolean("password_changed").default(false), // Track if default password was changed
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -129,6 +129,41 @@ export const publicityParticipations = pgTable("publicity_participations", {
   pk: primaryKey({ columns: [table.publicityId, table.groupId] })
 }));
 
+// Roles - Dynamic role management
+export const roles = pgTable("roles", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull().unique(),
+  displayName: varchar("display_name").notNull(),
+  description: text("description"),
+  color: varchar("color").default("#6b7280"), // Couleur d'affichage
+  isSystem: boolean("is_system").default(false), // Rôles système non supprimables
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Permissions - Available permissions in the system
+export const permissions = pgTable("permissions", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull().unique(),
+  displayName: varchar("display_name").notNull(),
+  description: text("description"),
+  category: varchar("category").notNull(), // dashboard, orders, deliveries, users, etc.
+  action: varchar("action").notNull(), // read, create, update, delete, validate
+  resource: varchar("resource").notNull(), // orders, deliveries, users, etc.
+  isSystem: boolean("is_system").default(true), // Permissions système
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Role Permissions - Many to many relationship
+export const rolePermissions = pgTable("role_permissions", {
+  roleId: integer("role_id").notNull(),
+  permissionId: integer("permission_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.roleId, table.permissionId] })
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userGroups: many(userGroups),
@@ -214,6 +249,26 @@ export const publicityParticipationsRelations = relations(publicityParticipation
   }),
 }));
 
+export const rolesRelations = relations(roles, ({ many }) => ({
+  users: many(users),
+  rolePermissions: many(rolePermissions),
+}));
+
+export const permissionsRelations = relations(permissions, ({ many }) => ({
+  rolePermissions: many(rolePermissions),
+}));
+
+export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
+  role: one(roles, {
+    fields: [rolePermissions.roleId],
+    references: [roles.id],
+  }),
+  permission: one(permissions, {
+    fields: [rolePermissions.permissionId],
+    references: [permissions.id],
+  }),
+}));
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   id: true,
@@ -264,6 +319,21 @@ export const insertPublicityParticipationSchema = createInsertSchema(publicityPa
   createdAt: true,
 });
 
+export const insertRoleSchema = createInsertSchema(roles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPermissionSchema = createInsertSchema(permissions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -311,4 +381,22 @@ export type InsertPublicityParticipation = z.infer<typeof insertPublicityPartici
 export type PublicityWithRelations = Publicity & {
   creator: User;
   participations: (PublicityParticipation & { group: Group })[];
+};
+
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = z.infer<typeof insertRoleSchema>;
+
+export type Permission = typeof permissions.$inferSelect;
+export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+
+export type RoleWithPermissions = Role & {
+  rolePermissions: (RolePermission & { permission: Permission })[];
+};
+
+export type UserWithRole = User & {
+  dynamicRole?: Role | null;
+  userGroups: (UserGroup & { group: Group })[];
 };

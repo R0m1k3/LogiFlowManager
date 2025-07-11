@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupLocalAuth, requireAuth } from "./localAuth";
+import { initializeRolesAndPermissions } from "./initRolesAndPermissions";
 
 // Alias pour compatibilité
 const isAuthenticated = requireAuth;
@@ -12,7 +13,9 @@ import {
   insertOrderSchema, 
   insertDeliverySchema,
   insertUserGroupSchema,
-  insertPublicitySchema
+  insertPublicitySchema,
+  insertRoleSchema,
+  insertPermissionSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -28,6 +31,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   // Auth middleware
   await setupAuth(app);
+
+  // Initialize roles and permissions on startup
+  try {
+    await initializeRolesAndPermissions();
+  } catch (error) {
+    console.error("Failed to initialize roles and permissions:", error);
+  }
 
   // Auth routes handled by authSwitch (local or Replit)
 
@@ -1005,6 +1015,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting publicity:", error);
       res.status(500).json({ message: "Failed to delete publicity" });
+    }
+  });
+
+  // Roles management routes
+  app.get('/api/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const roles = await storage.getRoles();
+      res.json(roles);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      res.status(500).json({ message: "Failed to fetch roles" });
+    }
+  });
+
+  app.post('/api/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const roleData = insertRoleSchema.parse(req.body);
+      const newRole = await storage.createRole(roleData);
+      res.json(newRole);
+    } catch (error) {
+      console.error("Error creating role:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid role data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create role" });
+    }
+  });
+
+  app.put('/api/roles/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const id = parseInt(req.params.id);
+      const roleData = insertRoleSchema.partial().parse(req.body);
+      const updatedRole = await storage.updateRole(id, roleData);
+      res.json(updatedRole);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid role data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
+  app.delete('/api/roles/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const id = parseInt(req.params.id);
+      const role = await storage.getRole(id);
+      
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+
+      if (role.isSystem) {
+        return res.status(400).json({ message: "Cannot delete system roles" });
+      }
+
+      await storage.deleteRole(id);
+      res.json({ message: "Role deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      res.status(500).json({ message: "Failed to delete role" });
+    }
+  });
+
+  // Permissions management routes
+  app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const permissions = await storage.getPermissions();
+      res.json(permissions);
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      res.status(500).json({ message: "Failed to fetch permissions" });
+    }
+  });
+
+  // Role permissions management
+  app.post('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const roleId = parseInt(req.params.id);
+      const { permissionIds } = req.body;
+
+      if (!Array.isArray(permissionIds)) {
+        return res.status(400).json({ message: "permissionIds must be an array" });
+      }
+
+      await storage.setRolePermissions(roleId, permissionIds);
+      res.json({ message: "Role permissions updated successfully" });
+    } catch (error) {
+      console.error("Error updating role permissions:", error);
+      res.status(500).json({ message: "Failed to update role permissions" });
     }
   });
 

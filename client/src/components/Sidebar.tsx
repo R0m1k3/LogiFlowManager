@@ -12,7 +12,8 @@ import {
   UserCog, 
   LogOut,
   FileText,
-  Megaphone
+  Megaphone,
+  Shield
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -101,6 +102,12 @@ export default function Sidebar() {
       path: "/users", 
       label: "Utilisateurs", 
       icon: UserCog, 
+      roles: ["admin"] 
+    },
+    { 
+      path: "/roles", 
+      label: "Gestion des Rôles", 
+      icon: Shield, 
       roles: ["admin"] 
     },
   ];
