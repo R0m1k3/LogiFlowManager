@@ -39,12 +39,14 @@ CREATE TABLE IF NOT EXISTS suppliers (
 -- Orders table
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
-    supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
-    group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-    planned_date TEXT NOT NULL,
-    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'planned', 'received')),
+    supplier_id INTEGER NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    planned_date DATE NOT NULL,
+    quantity INTEGER,
+    unit VARCHAR,
+    status VARCHAR NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'planned', 'delivered')),
     notes TEXT,
-    created_by TEXT REFERENCES users(id) ON DELETE CASCADE,
+    created_by VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -53,30 +55,30 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE TABLE IF NOT EXISTS deliveries (
     id SERIAL PRIMARY KEY,
     order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
-    supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
-    group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-    scheduled_date TEXT NOT NULL,
-    quantity INTEGER,
-    unit TEXT,
-    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'delivered')),
+    supplier_id INTEGER NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    scheduled_date DATE NOT NULL,
+    delivered_date TIMESTAMP,
+    quantity INTEGER NOT NULL,
+    unit VARCHAR NOT NULL CHECK (unit IN ('palettes', 'colis')),
+    status VARCHAR NOT NULL DEFAULT 'planned' CHECK (status IN ('planned', 'delivered')),
     notes TEXT,
-    bl_number TEXT,
+    bl_number VARCHAR,
     bl_amount DECIMAL(10,2),
-    invoice_reference TEXT,
+    invoice_reference VARCHAR,
     invoice_amount DECIMAL(10,2),
     reconciled BOOLEAN DEFAULT FALSE,
-    created_by TEXT REFERENCES users(id) ON DELETE CASCADE,
+    created_by VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- User Groups junction table
+-- User Groups junction table (composite primary key)
 CREATE TABLE IF NOT EXISTS user_groups (
-    id SERIAL PRIMARY KEY,
-    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
-    group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, group_id)
+    user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, group_id)
 );
 
 -- Sessions table for express-session
