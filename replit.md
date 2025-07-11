@@ -337,6 +337,9 @@ Changelog:
 - July 11, 2025. **BASE PRODUCTION PROPRE** - Suppression complète des données test persistantes, seules données réelles conservées
 - July 11, 2025. **ERREUR COLUMN QUANTITY RÉSOLUE** - Statistiques palettes/colis calculées depuis livraisons uniquement (commandes sans quantité)
 - July 11, 2025. **INITDATABASE.PRODUCTION.TS NETTOYÉ** - Dernière source de données test éliminée, plus aucune recréation automatique
+- July 11, 2025. **MODULE RAPPROCHEMENT CORRIGÉ** - Suppression admin, mise à jour factures, et gestion d'état mutations fonctionnelles
+- July 11, 2025. **PERMISSIONS SUPPRESSION ADMIN** - Admins peuvent maintenant supprimer toutes livraisons, boutons ajoutés interface
+- July 11, 2025. **BOUTONS + AJOUTER CORRIGÉS** - État disabled pendant mutations pour éviter disparition boutons
 
 ## User Preferences
 

@@ -736,7 +736,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Delivery not found" });
       }
 
-      if (user.role !== 'admin' && existingDelivery.createdBy !== userId) {
+      // Admins can delete any delivery, others can only delete their own
+      if (user.role !== 'admin' && user.role !== 'manager') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+      
+      if (user.role === 'manager' && existingDelivery.createdBy !== userId) {
         return res.status(403).json({ message: "Can only delete your own deliveries" });
       }
 

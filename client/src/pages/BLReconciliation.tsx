@@ -15,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useStore } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle, X } from "lucide-react";
+import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle, X, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format as formatDate } from "date-fns";
@@ -96,6 +96,7 @@ export default function BLReconciliation() {
         description: "Facture associée avec succès",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
       form.reset();
       setShowInvoiceModal(false);
       setSelectedDelivery(null);
@@ -152,6 +153,44 @@ export default function BLReconciliation() {
       });
     },
   });
+
+  const deleteDeliveryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/deliveries/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Livraison supprimée avec succès",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Non autorisé",
+          description: "Vous êtes déconnecté. Reconnexion...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la livraison",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteDelivery = (id: number) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette livraison ? Cette action est irréversible.")) {
+      deleteDeliveryMutation.mutate(id);
+    }
+  };
 
   const handleAddInvoice = (delivery: any) => {
     setSelectedDelivery(delivery);
@@ -379,7 +418,8 @@ export default function BLReconciliation() {
                           {delivery.invoiceReference || (
                             <button
                               onClick={() => handleAddInvoice(delivery)}
-                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-1 group"
+                              disabled={updateInvoiceMutation.isPending}
+                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-1 group disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Plus className="w-4 h-4" />
                               <span className="text-xs group-hover:underline">Ajouter</span>
@@ -393,7 +433,8 @@ export default function BLReconciliation() {
                             `${parseFloat(delivery.invoiceAmount).toFixed(2)} €` : 
                             <button
                               onClick={() => handleAddInvoice(delivery)}
-                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-1 group"
+                              disabled={updateInvoiceMutation.isPending}
+                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-1 group disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Plus className="w-4 h-4" />
                               <span className="text-xs group-hover:underline">Ajouter</span>
@@ -429,6 +470,7 @@ export default function BLReconciliation() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleAddInvoice(delivery)}
+                                  disabled={updateInvoiceMutation.isPending}
                                 >
                                   <Edit className="w-4 h-4 mr-1" />
                                   Modifier
@@ -446,6 +488,17 @@ export default function BLReconciliation() {
                                 </Button>
                               )}
                             </>
+                          )}
+                          {user?.role === 'admin' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteDelivery(delivery.id)}
+                              disabled={deleteDeliveryMutation.isPending}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           )}
                         </div>
                       </td>
