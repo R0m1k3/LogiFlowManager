@@ -363,6 +363,8 @@ Changelog:
 - July 11, 2025. **ERREUR PRODUCTION COLONNES MANQUANTES** - Créé script fix-production-complete.sh pour ajouter delivered_date et validated_at
 - July 11, 2025. **MIGRATION AUTOMATIQUE INTÉGRÉE** - Ajout migration des colonnes delivered_date/validated_at dans initDatabase.production.ts
 - July 11, 2025. **PROCHAINE MISE À JOUR DOCKER** - La migration s'exécutera automatiquement au prochain redémarrage du conteneur
+- July 11, 2025. **ERREUR CONTRAINTE ORDERS RÉSOLUE** - Créé fix-validation-date.sh pour corriger orders_status_check autorisant "delivered"
+- July 11, 2025. **VALIDATION LIVRAISONS BLOQUÉE** - Contrainte base production empêche statut "delivered", solution immédiate et automatique ajoutée
 
 ## User Preferences
 

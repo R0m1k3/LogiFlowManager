@@ -201,6 +201,23 @@ export async function initializeDatabase() {
         console.log('✅ [MIGRATION] Colonne validated_at déjà présente');
       }
       
+      // CORRECTION CONTRAINTE ORDERS - Permettre le statut "delivered"
+      console.log('🔧 [MIGRATION] Correction contrainte orders_status_check...');
+      try {
+        // Supprimer l'ancienne contrainte
+        await pool.query(`ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;`);
+        
+        // Ajouter la nouvelle contrainte avec "delivered"
+        await pool.query(`
+          ALTER TABLE orders ADD CONSTRAINT orders_status_check 
+          CHECK (status IN ('pending', 'planned', 'delivered'));
+        `);
+        
+        console.log('✅ [MIGRATION] Contrainte orders_status_check corrigée - "delivered" maintenant autorisé');
+      } catch (constraintError) {
+        console.warn('⚠️ [MIGRATION] Erreur contrainte orders:', constraintError.message);
+      }
+      
       console.log('✅ [MIGRATION] Migration automatique des colonnes terminée');
       
     } catch (migrationError) {
