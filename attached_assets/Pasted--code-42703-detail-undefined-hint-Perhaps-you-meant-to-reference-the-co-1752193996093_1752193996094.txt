@@ -1,0 +1,202 @@
+
+      
+  code: '42703',
+
+  detail: undefined,
+
+  hint: 'Perhaps you meant to reference the column "u.email".',
+
+  position: '228',
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'parse_relation.c',
+
+  line: '3665',
+
+  routine: 'errorMissingColumn'
+
+}
+
+Error fetching orders: error: column s.email does not exist
+
+    at /app/node_modules/pg-pool/index.js:45:11
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async DatabaseStorage.getOrders (file:///app/dist/index.js:5269:85)
+
+    at async file:///app/dist/index.js:6174:19 {
+
+  length: 160,
+
+  severity: 'ERROR',
+
+  code: '42703',
+
+  detail: undefined,
+
+  hint: 'Perhaps you meant to reference the column "u.email".',
+
+  position: '228',
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'parse_relation.c',
+
+  line: '3665',
+
+  routine: 'errorMissingColumn'
+
+}
+
+Error fetching deliveries: error: column d.scheduled_date does not exist
+
+    at /app/node_modules/pg-pool/index.js:45:11
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async DatabaseStorage.getDeliveries (file:///app/dist/index.js:5485:83)
+
+    at async file:///app/dist/index.js:6269:23 {
+
+  length: 114,
+
+  severity: 'ERROR',
+
+  code: '42703',
+
+  detail: undefined,
+
+  hint: undefined,
+
+  position: '69',
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'parse_relation.c',
+
+  line: '3665',
+
+  routine: 'errorMissingColumn'
+
+}
+
+[hw0nzb] <-- GET /api/orders 500 in 42ms :: {"message":"Failed to fetch orders"}
+
+[qt07e] <-- GET /api/deliveries 500 in 40ms :: {"message":"Failed to fetch deliveries"}
+
+[hw0nzb] ERROR Response: 500 Internal Server Error
+
+[qt07e] ERROR Response: 500 Internal Server Error
+
+[4gbgn] --> POST /api/suppliers
+
+[4gbgn]     Host: logiflow.ffnancy.fr
+
+[4gbgn]     IP: 172.20.0.8
+
+[4gbgn]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+Error creating supplier: error: column "email" of relation "suppliers" does not exist
+
+    at /app/node_modules/pg-pool/index.js:45:11
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async DatabaseStorage.createSupplier (file:///app/dist/index.js:5224:24)
+
+    at async file:///app/dist/index.js:5988:24 {
+
+  length: 127,
+
+  severity: 'ERROR',
+
+  code: '42703',
+
+  detail: undefined,
+
+  hint: undefined,
+
+  position: '46',
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'parse_target.c',
+
+  line: '1075',
+
+  routine: 'checkInsertTargets'
+
+}
+
+[4gbgn] ERROR Response: 500 Internal Server Error
+
+[4gbgn] <-- POST /api/suppliers 500 in 28ms :: {"message":"Failed to create supplier"}
+
+[1copag] --> HEAD /api/health
+
+[1copag]     Host: localhost:3000
+
+[1copag]     IP: 127.0.0.1
+
+[1copag]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[1copag] <-- HEAD /api/health 200 in 1ms :: {"status":"healthy","timestamp":"2025-07-11T00:32:49.725Z","environment":"production","auth":"local…
+
