@@ -11,7 +11,8 @@ import {
   Users, 
   UserCog, 
   LogOut,
-  FileText 
+  FileText,
+  Megaphone
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -73,6 +74,12 @@ export default function Sidebar() {
       path: "/bl-reconciliation", 
       label: "Rapprochement", 
       icon: FileText, 
+      roles: ["admin", "manager"] 
+    },
+    { 
+      path: "/publicities", 
+      label: "Publicités", 
+      icon: Megaphone, 
       roles: ["admin", "manager"] 
     },
   ];

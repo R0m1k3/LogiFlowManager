@@ -10,6 +10,7 @@ import {
   boolean,
   date,
   decimal,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -106,17 +107,41 @@ export const deliveries = pgTable("deliveries", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Publicities
+export const publicities = pgTable("publicities", {
+  id: serial("id").primaryKey(),
+  pubNumber: varchar("pub_number").notNull().unique(),
+  designation: text("designation").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  year: integer("year").notNull(),
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Publicity Participations
+export const publicityParticipations = pgTable("publicity_participations", {
+  publicityId: integer("publicity_id").notNull(),
+  groupId: integer("group_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.publicityId, table.groupId] })
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userGroups: many(userGroups),
   createdOrders: many(orders),
   createdDeliveries: many(deliveries),
+  createdPublicities: many(publicities),
 }));
 
 export const groupsRelations = relations(groups, ({ many }) => ({
   userGroups: many(userGroups),
   orders: many(orders),
   deliveries: many(deliveries),
+  publicityParticipations: many(publicityParticipations),
 }));
 
 export const userGroupsRelations = relations(userGroups, ({ one }) => ({
@@ -170,6 +195,25 @@ export const deliveriesRelations = relations(deliveries, ({ one }) => ({
   }),
 }));
 
+export const publicitiesRelations = relations(publicities, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [publicities.createdBy],
+    references: [users.id],
+  }),
+  participations: many(publicityParticipations),
+}));
+
+export const publicityParticipationsRelations = relations(publicityParticipations, ({ one }) => ({
+  publicity: one(publicities, {
+    fields: [publicityParticipations.publicityId],
+    references: [publicities.id],
+  }),
+  group: one(groups, {
+    fields: [publicityParticipations.groupId],
+    references: [groups.id],
+  }),
+}));
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   id: true,
@@ -210,6 +254,16 @@ export const insertUserGroupSchema = createInsertSchema(userGroups).omit({
   createdAt: true,
 });
 
+export const insertPublicitySchema = createInsertSchema(publicities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPublicityParticipationSchema = createInsertSchema(publicityParticipations).omit({
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -246,4 +300,15 @@ export type DeliveryWithRelations = Delivery & {
 
 export type UserWithGroups = User & {
   userGroups: (UserGroup & { group: Group })[];
+};
+
+export type Publicity = typeof publicities.$inferSelect;
+export type InsertPublicity = z.infer<typeof insertPublicitySchema>;
+
+export type PublicityParticipation = typeof publicityParticipations.$inferSelect;
+export type InsertPublicityParticipation = z.infer<typeof insertPublicityParticipationSchema>;
+
+export type PublicityWithRelations = Publicity & {
+  creator: User;
+  participations: (PublicityParticipation & { group: Group })[];
 };

@@ -5,6 +5,8 @@ import {
   orders,
   deliveries,
   userGroups,
+  publicities,
+  publicityParticipations,
   type User,
   type UpsertUser,
   type Group,
@@ -20,6 +22,11 @@ import {
   type OrderWithRelations,
   type DeliveryWithRelations,
   type UserWithGroups,
+  type Publicity,
+  type InsertPublicity,
+  type PublicityParticipation,
+  type InsertPublicityParticipation,
+  type PublicityWithRelations,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, desc, sql, gte, lte } from "drizzle-orm";
@@ -79,6 +86,17 @@ export interface IStorage {
     totalPalettes: number;
     totalPackages: number;
   }>;
+
+  // Publicity operations
+  getPublicities(year?: number, groupIds?: number[]): Promise<PublicityWithRelations[]>;
+  getPublicity(id: number): Promise<PublicityWithRelations | undefined>;
+  createPublicity(publicity: InsertPublicity): Promise<Publicity>;
+  updatePublicity(id: number, publicity: Partial<InsertPublicity>): Promise<Publicity>;
+  deletePublicity(id: number): Promise<void>;
+  
+  // Publicity participation operations
+  getPublicityParticipations(publicityId: number): Promise<PublicityParticipation[]>;
+  setPublicityParticipations(publicityId: number, groupIds: number[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -519,6 +537,155 @@ export class DatabaseStorage implements IStorage {
       totalPalettes: (orderStats?.totalPalettes || 0) + (deliveryStats?.totalPalettes || 0),
       totalPackages: (orderStats?.totalPackages || 0) + (deliveryStats?.totalPackages || 0),
     };
+  }
+
+  // Publicity operations
+  async getPublicities(year?: number, groupIds?: number[]): Promise<PublicityWithRelations[]> {
+    const query = db.select({
+      id: publicities.id,
+      pubNumber: publicities.pubNumber,
+      designation: publicities.designation,
+      startDate: publicities.startDate,
+      endDate: publicities.endDate,
+      year: publicities.year,
+      createdBy: publicities.createdBy,
+      createdAt: publicities.createdAt,
+      updatedAt: publicities.updatedAt,
+      creator: {
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role
+      }
+    })
+    .from(publicities)
+    .innerJoin(users, eq(publicities.createdBy, users.id))
+    .orderBy(desc(publicities.createdAt));
+
+    if (year) {
+      query.where(eq(publicities.year, year));
+    }
+
+    const results = await query;
+    
+    // Récupérer les participations séparément
+    const publicityIds = results.map(pub => pub.id);
+    const participations = publicityIds.length > 0 ? await db.select({
+      publicityId: publicityParticipations.publicityId,
+      groupId: publicityParticipations.groupId,
+      group: {
+        id: groups.id,
+        name: groups.name,
+        color: groups.color
+      }
+    })
+    .from(publicityParticipations)
+    .innerJoin(groups, eq(publicityParticipations.groupId, groups.id))
+    .where(inArray(publicityParticipations.publicityId, publicityIds)) : [];
+
+    // Associer les participations aux publicités
+    return results.map(pub => ({
+      ...pub,
+      participations: participations
+        .filter(p => p.publicityId === pub.id)
+        .map(p => ({ 
+          publicityId: p.publicityId, 
+          groupId: p.groupId, 
+          group: p.group,
+          createdAt: new Date()
+        }))
+    })) as PublicityWithRelations[];
+  }
+
+  async getPublicity(id: number): Promise<PublicityWithRelations | undefined> {
+    const publicity = await db.select({
+      id: publicities.id,
+      pubNumber: publicities.pubNumber,
+      designation: publicities.designation,
+      startDate: publicities.startDate,
+      endDate: publicities.endDate,
+      year: publicities.year,
+      createdBy: publicities.createdBy,
+      createdAt: publicities.createdAt,
+      updatedAt: publicities.updatedAt,
+      creator: {
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role
+      }
+    })
+    .from(publicities)
+    .innerJoin(users, eq(publicities.createdBy, users.id))
+    .where(eq(publicities.id, id))
+    .limit(1);
+
+    if (publicity.length === 0) return undefined;
+
+    const participations = await db.select({
+      publicityId: publicityParticipations.publicityId,
+      groupId: publicityParticipations.groupId,
+      group: {
+        id: groups.id,
+        name: groups.name,
+        color: groups.color
+      }
+    })
+    .from(publicityParticipations)
+    .innerJoin(groups, eq(publicityParticipations.groupId, groups.id))
+    .where(eq(publicityParticipations.publicityId, id));
+
+    return {
+      ...publicity[0],
+      participations: participations.map(p => ({ 
+        publicityId: p.publicityId, 
+        groupId: p.groupId, 
+        group: p.group,
+        createdAt: new Date()
+      }))
+    } as PublicityWithRelations;
+  }
+
+  async createPublicity(publicity: InsertPublicity): Promise<Publicity> {
+    const [newPublicity] = await db.insert(publicities).values(publicity).returning();
+    return newPublicity;
+  }
+
+  async updatePublicity(id: number, publicity: Partial<InsertPublicity>): Promise<Publicity> {
+    const [updatedPublicity] = await db.update(publicities)
+      .set({ ...publicity, updatedAt: new Date() })
+      .where(eq(publicities.id, id))
+      .returning();
+    return updatedPublicity;
+  }
+
+  async deletePublicity(id: number): Promise<void> {
+    await db.delete(publicities).where(eq(publicities.id, id));
+  }
+
+  async getPublicityParticipations(publicityId: number): Promise<PublicityParticipation[]> {
+    return await db.select()
+      .from(publicityParticipations)
+      .where(eq(publicityParticipations.publicityId, publicityId));
+  }
+
+  async setPublicityParticipations(publicityId: number, groupIds: number[]): Promise<void> {
+    // Supprimer les participations existantes
+    await db.delete(publicityParticipations)
+      .where(eq(publicityParticipations.publicityId, publicityId));
+
+    // Ajouter les nouvelles participations
+    if (groupIds.length > 0) {
+      const participations = groupIds.map(groupId => ({
+        publicityId,
+        groupId
+      }));
+      await db.insert(publicityParticipations).values(participations);
+    }
   }
 }
 

@@ -15,6 +15,7 @@ import Suppliers from "@/pages/Suppliers";
 import Groups from "@/pages/Groups";
 import Users from "@/pages/Users";
 import BLReconciliation from "@/pages/BLReconciliation";
+import Publicities from "@/pages/Publicities";
 import Layout from "@/components/Layout";
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/groups" component={Groups} />
           <Route path="/users" component={Users} />
           <Route path="/bl-reconciliation" component={BLReconciliation} />
+          <Route path="/publicities" component={Publicities} />
         </Layout>
       )}
       <Route component={NotFound} />

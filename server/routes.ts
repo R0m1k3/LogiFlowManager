@@ -11,7 +11,8 @@ import {
   insertSupplierSchema, 
   insertOrderSchema, 
   insertDeliverySchema,
-  insertUserGroupSchema
+  insertUserGroupSchema,
+  insertPublicitySchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -833,6 +834,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Publicity routes
+  app.get('/api/publicities', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { year, storeId } = req.query;
+      const filterYear = year ? parseInt(year as string) : undefined;
+
+      let groupIds: number[] | undefined;
+      
+      if (user.role === 'admin') {
+        // Admin can view all publicities or filter by selected store
+        groupIds = storeId ? [parseInt(storeId as string)] : undefined;
+      } else {
+        // Non-admin users: filter by their assigned groups
+        groupIds = user.userGroups.map(ug => ug.groupId);
+      }
+
+      const publicities = await storage.getPublicities(filterYear, groupIds);
+      res.json(publicities);
+    } catch (error) {
+      console.error("Error fetching publicities:", error);
+      res.status(500).json({ message: "Failed to fetch publicities" });
+    }
+  });
+
+  app.get('/api/publicities/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const id = parseInt(req.params.id);
+      const publicity = await storage.getPublicity(id);
+      
+      if (!publicity) {
+        return res.status(404).json({ message: "Publicity not found" });
+      }
+
+      // Check access permissions
+      if (user.role !== 'admin') {
+        const userGroupIds = user.userGroups.map(ug => ug.groupId);
+        const hasAccess = publicity.participations.some(p => userGroupIds.includes(p.groupId));
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      res.json(publicity);
+    } catch (error) {
+      console.error("Error fetching publicity:", error);
+      res.status(500).json({ message: "Failed to fetch publicity" });
+    }
+  });
+
+  app.post('/api/publicities', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check permissions (admin or manager)
+      if (user.role === 'employee') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const data = insertPublicitySchema.parse({
+        ...req.body,
+        createdBy: req.user.claims ? req.user.claims.sub : req.user.id
+      });
+
+      const { participatingGroups, ...publicityData } = req.body;
+
+      // Create publicity
+      const newPublicity = await storage.createPublicity(data);
+
+      // Set participations
+      if (participatingGroups && participatingGroups.length > 0) {
+        await storage.setPublicityParticipations(newPublicity.id, participatingGroups);
+      }
+
+      // Get the complete publicity with relations
+      const completePublicity = await storage.getPublicity(newPublicity.id);
+      res.json(completePublicity);
+    } catch (error) {
+      console.error("Error creating publicity:", error);
+      res.status(500).json({ message: "Failed to create publicity" });
+    }
+  });
+
+  app.put('/api/publicities/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check permissions (admin or manager)
+      if (user.role === 'employee') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      const { participatingGroups, ...publicityData } = req.body;
+
+      // Update publicity
+      const updatedPublicity = await storage.updatePublicity(id, publicityData);
+
+      // Update participations
+      if (participatingGroups !== undefined) {
+        await storage.setPublicityParticipations(id, participatingGroups);
+      }
+
+      // Get the complete publicity with relations
+      const completePublicity = await storage.getPublicity(id);
+      res.json(completePublicity);
+    } catch (error) {
+      console.error("Error updating publicity:", error);
+      res.status(500).json({ message: "Failed to update publicity" });
+    }
+  });
+
+  app.delete('/api/publicities/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check permissions (admin only for deletion)
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deletePublicity(id);
+      res.json({ message: "Publicity deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting publicity:", error);
+      res.status(500).json({ message: "Failed to delete publicity" });
     }
   });
 
