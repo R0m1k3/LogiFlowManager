@@ -418,10 +418,11 @@ Changelog:
 - July 11, 2025. **MISE EN ÉVIDENCE DATE ACTUELLE** - Ajout fond subtil bleu pour la date du jour dans le calendrier
 - July 11, 2025. Date du jour avec fond bg-blue-50, ring-1 ring-blue-200 et texte text-blue-700 font-semibold
 - July 11, 2025. Transition douce au survol avec hover:bg-blue-100 pour la date actuelle
-- July 11, 2025. **FILTRAGE PUBLICITÉS DASHBOARD** - Publicités à venir filtrées par magasin sélectionné
-- July 11, 2025. Si "Tous magasins" sélectionné : affichage de toutes les 3 prochaines publicités
-- July 11, 2025. Si magasin spécifique sélectionné : affichage des 3 prochaines publicités de ce magasin uniquement
-- July 11, 2025. Optimisation requête : filtrage et tri des publicités à venir directement dans queryFn
+- July 11, 2025. **AFFICHAGE PUBLICITÉS DASHBOARD AMÉLIORÉ** - Nouvelle approche pour les publicités à venir
+- July 11, 2025. Affichage des 3 prochaines publicités avec indication des magasins participants
+- July 11, 2025. Mise en évidence du magasin actuellement sélectionné en vert s'il participe
+- July 11, 2025. Indication "Aucun magasin" en rouge pour les publicités sans participants
+- July 11, 2025. Solution plus claire que le filtrage : l'utilisateur voit toutes les publicités avec participation visible
 
 ## User Preferences
 

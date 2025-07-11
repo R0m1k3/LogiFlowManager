@@ -51,9 +51,9 @@ export default function Dashboard() {
     queryKey: [deliveriesUrl, selectedStoreId],
   });
 
-  // Récupérer les publicités à venir (chercher dans 2024 ET 2025)
+  // Récupérer les publicités à venir (chercher dans 2024 ET 2025) - TOUTES les publicités
   const { data: upcomingPublicities = [] } = useQuery<PublicityWithRelations[]>({
-    queryKey: ['/api/publicities', 'upcoming', selectedStoreId],
+    queryKey: ['/api/publicities', 'upcoming'],
     queryFn: async () => {
       // Essayer d'abord 2024, puis 2025 pour avoir toutes les publicités
       const years = [2024, 2025];
@@ -62,11 +62,7 @@ export default function Dashboard() {
       for (const year of years) {
         const params = new URLSearchParams();
         params.append('year', year.toString());
-        
-        // Filtrer par magasin sélectionné pour les admins
-        if (selectedStoreId && user?.role === 'admin') {
-          params.append('storeId', selectedStoreId.toString());
-        }
+        // NE PAS filtrer par magasin - on veut toutes les publicités
         
         try {
           const response = await fetch(`/api/publicities?${params}`, { credentials: 'include' });
@@ -286,25 +282,55 @@ export default function Dashboard() {
           <CardContent className="space-y-3 p-6">
             {upcomingPublicities
               .slice(0, 3)
-              .map((publicity: any) => (
-                <div key={publicity.id} className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors border-l-3 border-purple-500">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-2 w-2 bg-purple-500"></div>
-                    <div>
-                      <p className="font-medium text-gray-900">{publicity.pubNumber}</p>
-                      <p className="text-sm text-gray-600 truncate max-w-40">{publicity.designation}</p>
+              .map((publicity: any) => {
+                const participatingStores = publicity.participations || [];
+                const isCurrentStoreParticipating = selectedStoreId && participatingStores.some((p: any) => p.groupId === parseInt(selectedStoreId));
+                
+                return (
+                  <div key={publicity.id} className="p-4 bg-gray-50 hover:bg-gray-100 transition-colors border-l-3 border-purple-500 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-2 w-2 bg-purple-500"></div>
+                        <div>
+                          <p className="font-medium text-gray-900">{publicity.pubNumber}</p>
+                          <p className="text-sm text-gray-600 truncate max-w-40">{publicity.designation}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge className="bg-blue-100 text-blue-800 text-xs">
+                          À venir
+                        </Badge>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {format(new Date(publicity.startDate), "d MMM", { locale: fr })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Magasins participants */}
+                    <div className="flex items-center space-x-2 text-xs">
+                      <span className="text-gray-500">Magasins:</span>
+                      {participatingStores.length === 0 ? (
+                        <span className="text-red-400">Aucun magasin</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {participatingStores.map((participation: any) => (
+                            <Badge 
+                              key={participation.groupId} 
+                              className={`text-xs ${
+                                selectedStoreId && participation.groupId === parseInt(selectedStoreId)
+                                  ? 'bg-green-100 text-green-800 border border-green-300'
+                                  : 'bg-gray-100 text-gray-700'
+                              }`}
+                            >
+                              {participation.group.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <Badge className="bg-blue-100 text-blue-800 text-xs">
-                      À venir
-                    </Badge>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {format(new Date(publicity.startDate), "d MMM", { locale: fr })}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             {upcomingPublicities.length === 0 && (
               <p className="text-gray-600 text-center py-8">Aucune publicité à venir</p>
             )}
