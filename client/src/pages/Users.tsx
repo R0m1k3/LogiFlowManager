@@ -102,16 +102,37 @@ export default function UsersPage() {
 
   const updateUserMutation = useMutation({
     mutationFn: async (data: { id: string; updates: any }) => {
-      await apiRequest("PUT", `/api/users/${data.id}`, data.updates);
+      const response = await apiRequest("PUT", `/api/users/${data.id}`, data.updates);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
       toast({
         title: "Succès",
         description: "Utilisateur mis à jour avec succès",
       });
+      
+      // Update the form with the response data before closing
+      if (updatedUser) {
+        setEditForm({
+          firstName: updatedUser.firstName || '',
+          lastName: updatedUser.lastName || '',
+          username: updatedUser.username || '',
+          email: updatedUser.email || '',
+          role: updatedUser.role || 'employee',
+          password: ''
+        });
+        
+        // Update selected user as well
+        setSelectedUser(prev => prev ? {...prev, ...updatedUser} : null);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      setShowEditModal(false);
-      setSelectedUser(null);
+      
+      // Delay modal close to show the updated data
+      setTimeout(() => {
+        setShowEditModal(false);
+        setSelectedUser(null);
+      }, 1000);
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
