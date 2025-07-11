@@ -6775,7 +6775,6 @@ var init_initDatabase_production = __esm({
 import passport from "passport";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { eq } from "drizzle-orm";
 import connectPgSimple from "connect-pg-simple";
 async function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -6843,13 +6842,19 @@ function setupLocalAuth(app2) {
   });
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await db.select().from(users).where(eq(users.id, id)).limit(1);
-      if (user.length > 0) {
-        done(null, user[0]);
-      } else {
-        done(null, false);
+      const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+      const result = await pool2.query(`
+        SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+        FROM users 
+        WHERE id = $1 
+        LIMIT 1
+      `, [id]);
+      if (result.rows.length === 0) {
+        return done(null, false);
       }
+      done(null, result.rows[0]);
     } catch (error) {
+      console.error("\u274C Error in deserializeUser:", error);
       done(error, null);
     }
   });
@@ -6857,16 +6862,24 @@ function setupLocalAuth(app2) {
     { usernameField: "username", passwordField: "password" },
     async (username, password, done) => {
       try {
-        const user = await db.select().from(users).where(eq(users.username, username)).limit(1);
-        if (user.length === 0) {
+        const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        const result = await pool2.query(`
+          SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+          FROM users 
+          WHERE username = $1 
+          LIMIT 1
+        `, [username]);
+        if (result.rows.length === 0) {
           return done(null, false, { message: "Utilisateur non trouv\xE9" });
         }
-        const isValidPassword = await comparePasswords(password, user[0].password);
+        const user = result.rows[0];
+        const isValidPassword = await comparePasswords(password, user.password);
         if (!isValidPassword) {
           return done(null, false, { message: "Mot de passe incorrect" });
         }
-        return done(null, user[0]);
+        return done(null, user);
       } catch (error) {
+        console.error("\u274C Error in LocalStrategy:", error);
         return done(error);
       }
     }
@@ -6924,10 +6937,17 @@ function setupLocalAuth(app2) {
   });
   app2.get("/api/default-credentials-check", async (req, res) => {
     try {
-      const adminUser = await db.select().from(users).where(eq(users.username, "admin")).limit(1);
-      const showDefault = adminUser.length > 0 && !adminUser[0].password_changed;
+      const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+      const result = await pool2.query(`
+        SELECT id, username, password_changed
+        FROM users 
+        WHERE username = $1 
+        LIMIT 1
+      `, ["admin"]);
+      const showDefault = result.rows.length > 0 && !result.rows[0].password_changed;
       res.json({ showDefault: !!showDefault });
     } catch (error) {
+      console.error("\u274C Error in default-credentials-check:", error);
       res.json({ showDefault: true });
     }
   });
@@ -6939,8 +6959,6 @@ var init_localAuth_production = __esm({
     "use strict";
     import_express_session = __toESM(require_express_session(), 1);
     import_passport_local = __toESM(require_lib2(), 1);
-    init_schema();
-    init_db_production();
     init_initDatabase_production();
     scryptAsync = promisify(scrypt);
     requireAuth = (req, res, next) => {
@@ -6958,7 +6976,7 @@ __export(storage_production_exports, {
   DatabaseStorage: () => DatabaseStorage,
   storage: () => storage
 });
-import { eq as eq2, and, inArray, desc, gte, lte, sql } from "drizzle-orm";
+import { eq, and, inArray, desc, gte, lte, sql } from "drizzle-orm";
 var DatabaseStorage, storage;
 var init_storage_production = __esm({
   "server/storage.production.ts"() {
@@ -6967,15 +6985,15 @@ var init_storage_production = __esm({
     init_db_production();
     DatabaseStorage = class {
       async getUser(id) {
-        const result = await db.select().from(users).where(eq2(users.id, id)).limit(1);
+        const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
         return result[0];
       }
       async getUserByEmail(email) {
-        const result = await db.select().from(users).where(eq2(users.email, email)).limit(1);
+        const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
         return result[0];
       }
       async getUserByUsername(username) {
-        const result = await db.select().from(users).where(eq2(users.username, username)).limit(1);
+        const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
         return result[0];
       }
       async upsertUser(userData) {
@@ -6986,7 +7004,7 @@ var init_storage_production = __esm({
             email: userData.email,
             username: userData.username,
             updatedAt: /* @__PURE__ */ new Date()
-          }).where(eq2(users.id, existingUser.id)).returning();
+          }).where(eq(users.id, existingUser.id)).returning();
           return result[0];
         } else {
           const result = await db.insert(users).values(userData).returning();
@@ -7101,12 +7119,12 @@ var init_storage_production = __esm({
         return result[0];
       }
       async updateUser(id, userData) {
-        const result = await db.update(users).set({ ...userData, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(users.id, id)).returning();
+        const result = await db.update(users).set({ ...userData, updatedAt: /* @__PURE__ */ new Date() }).where(eq(users.id, id)).returning();
         return result[0];
       }
       async deleteUser(id) {
-        await db.delete(userGroups).where(eq2(userGroups.userId, id));
-        await db.delete(users).where(eq2(users.id, id));
+        await db.delete(userGroups).where(eq(userGroups.userId, id));
+        await db.delete(users).where(eq(users.id, id));
       }
       async getGroups() {
         console.log("\u{1F50D} Storage getGroups called");
@@ -7147,12 +7165,12 @@ var init_storage_production = __esm({
         }
       }
       async updateGroup(id, group) {
-        const result = await db.update(groups).set({ ...group, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(groups.id, id)).returning();
+        const result = await db.update(groups).set({ ...group, updatedAt: /* @__PURE__ */ new Date() }).where(eq(groups.id, id)).returning();
         return result[0];
       }
       async deleteGroup(id) {
-        await db.delete(userGroups).where(eq2(userGroups.groupId, id));
-        await db.delete(groups).where(eq2(groups.id, id));
+        await db.delete(userGroups).where(eq(userGroups.groupId, id));
+        await db.delete(groups).where(eq(groups.id, id));
       }
       async getSuppliers() {
         return await db.select().from(suppliers).orderBy(suppliers.name);
@@ -7162,11 +7180,11 @@ var init_storage_production = __esm({
         return result[0];
       }
       async updateSupplier(id, supplier) {
-        const result = await db.update(suppliers).set({ ...supplier, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(suppliers.id, id)).returning();
+        const result = await db.update(suppliers).set({ ...supplier, updatedAt: /* @__PURE__ */ new Date() }).where(eq(suppliers.id, id)).returning();
         return result[0];
       }
       async deleteSupplier(id) {
-        await db.delete(suppliers).where(eq2(suppliers.id, id));
+        await db.delete(suppliers).where(eq(suppliers.id, id));
       }
       async getOrders(groupIds) {
         console.log("\u{1F50D} Storage getOrders called with groupIds:", groupIds);
@@ -7275,7 +7293,7 @@ var init_storage_production = __esm({
             createdAt: users.createdAt,
             updatedAt: users.updatedAt
           }
-        }).from(orders).innerJoin(suppliers, eq2(orders.supplierId, suppliers.id)).innerJoin(groups, eq2(orders.groupId, groups.id)).innerJoin(users, eq2(orders.createdBy, users.id)).where(
+        }).from(orders).innerJoin(suppliers, eq(orders.supplierId, suppliers.id)).innerJoin(groups, eq(orders.groupId, groups.id)).innerJoin(users, eq(orders.createdBy, users.id)).where(
           and(
             gte(orders.plannedDate, startDate),
             lte(orders.plannedDate, endDate),
@@ -7326,7 +7344,7 @@ var init_storage_production = __esm({
             createdAt: users.createdAt,
             updatedAt: users.updatedAt
           }
-        }).from(orders).innerJoin(suppliers, eq2(orders.supplierId, suppliers.id)).innerJoin(groups, eq2(orders.groupId, groups.id)).innerJoin(users, eq2(orders.createdBy, users.id)).where(eq2(orders.id, id)).limit(1);
+        }).from(orders).innerJoin(suppliers, eq(orders.supplierId, suppliers.id)).innerJoin(groups, eq(orders.groupId, groups.id)).innerJoin(users, eq(orders.createdBy, users.id)).where(eq(orders.id, id)).limit(1);
         if (result.length === 0) return void 0;
         return {
           ...result[0],
@@ -7338,11 +7356,11 @@ var init_storage_production = __esm({
         return result[0];
       }
       async updateOrder(id, order) {
-        const result = await db.update(orders).set({ ...order, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(orders.id, id)).returning();
+        const result = await db.update(orders).set({ ...order, updatedAt: /* @__PURE__ */ new Date() }).where(eq(orders.id, id)).returning();
         return result[0];
       }
       async deleteOrder(id) {
-        await db.delete(orders).where(eq2(orders.id, id));
+        await db.delete(orders).where(eq(orders.id, id));
       }
       async getDeliveries(groupIds) {
         let query = db.select({
@@ -7390,7 +7408,7 @@ var init_storage_production = __esm({
             createdAt: users.createdAt,
             updatedAt: users.updatedAt
           }
-        }).from(deliveries).innerJoin(suppliers, eq2(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq2(deliveries.groupId, groups.id)).innerJoin(users, eq2(deliveries.createdBy, users.id));
+        }).from(deliveries).innerJoin(suppliers, eq(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq(deliveries.groupId, groups.id)).innerJoin(users, eq(deliveries.createdBy, users.id));
         if (groupIds && groupIds.length > 0) {
           query = query.where(inArray(deliveries.groupId, groupIds));
         }
@@ -7446,7 +7464,7 @@ var init_storage_production = __esm({
             createdAt: users.createdAt,
             updatedAt: users.updatedAt
           }
-        }).from(deliveries).innerJoin(suppliers, eq2(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq2(deliveries.groupId, groups.id)).innerJoin(users, eq2(deliveries.createdBy, users.id)).where(
+        }).from(deliveries).innerJoin(suppliers, eq(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq(deliveries.groupId, groups.id)).innerJoin(users, eq(deliveries.createdBy, users.id)).where(
           and(
             gte(deliveries.scheduledDate, startDate),
             lte(deliveries.scheduledDate, endDate),
@@ -7505,7 +7523,7 @@ var init_storage_production = __esm({
             createdAt: users.createdAt,
             updatedAt: users.updatedAt
           }
-        }).from(deliveries).innerJoin(suppliers, eq2(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq2(deliveries.groupId, groups.id)).innerJoin(users, eq2(deliveries.createdBy, users.id)).where(eq2(deliveries.id, id)).limit(1);
+        }).from(deliveries).innerJoin(suppliers, eq(deliveries.supplierId, suppliers.id)).innerJoin(groups, eq(deliveries.groupId, groups.id)).innerJoin(users, eq(deliveries.createdBy, users.id)).where(eq(deliveries.id, id)).limit(1);
         if (result.length === 0) return void 0;
         return {
           ...result[0],
@@ -7517,11 +7535,11 @@ var init_storage_production = __esm({
         return result[0];
       }
       async updateDelivery(id, delivery) {
-        const result = await db.update(deliveries).set({ ...delivery, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(deliveries.id, id)).returning();
+        const result = await db.update(deliveries).set({ ...delivery, updatedAt: /* @__PURE__ */ new Date() }).where(eq(deliveries.id, id)).returning();
         return result[0];
       }
       async deleteDelivery(id) {
-        await db.delete(deliveries).where(eq2(deliveries.id, id));
+        await db.delete(deliveries).where(eq(deliveries.id, id));
       }
       async validateDelivery(id, blData) {
         await db.update(deliveries).set({
@@ -7529,10 +7547,10 @@ var init_storage_production = __esm({
           blNumber: blData?.blNumber,
           blAmount: blData?.blAmount,
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq2(deliveries.id, id));
+        }).where(eq(deliveries.id, id));
       }
       async getUserGroups(userId) {
-        return await db.select().from(userGroups).where(eq2(userGroups.userId, userId));
+        return await db.select().from(userGroups).where(eq(userGroups.userId, userId));
       }
       async assignUserToGroup(userGroup) {
         const result = await db.insert(userGroups).values(userGroup).returning();
@@ -7541,8 +7559,8 @@ var init_storage_production = __esm({
       async removeUserFromGroup(userId, groupId) {
         await db.delete(userGroups).where(
           and(
-            eq2(userGroups.userId, userId),
-            eq2(userGroups.groupId, groupId)
+            eq(userGroups.userId, userId),
+            eq(userGroups.groupId, groupId)
           )
         );
       }
@@ -7551,7 +7569,7 @@ var init_storage_production = __esm({
         const endDate = new Date(year, month, 0).toISOString().split("T")[0];
         let ordersQuery = db.select({ count: sql`count(*)` }).from(orders);
         let deliveriesQuery = db.select({ count: sql`count(*)` }).from(deliveries);
-        let pendingOrdersQuery = db.select({ count: sql`count(*)` }).from(orders).where(eq2(orders.status, "pending"));
+        let pendingOrdersQuery = db.select({ count: sql`count(*)` }).from(orders).where(eq(orders.status, "pending"));
         if (groupIds && groupIds.length > 0) {
           ordersQuery = ordersQuery.where(
             and(

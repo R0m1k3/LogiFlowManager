@@ -116,13 +116,21 @@ export function setupLocalAuth(app: Express) {
   // Deserialize user
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await db.select().from(users).where(eq(users.id, id)).limit(1);
-      if (user.length > 0) {
-        done(null, user[0]);
-      } else {
-        done(null, false);
+      // Use raw SQL to avoid Drizzle ORM issues
+      const { pool } = await import("./db.production.js");
+      const result = await pool.query(`
+        SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+        FROM users 
+        WHERE id = $1 
+        LIMIT 1
+      `, [id]);
+      
+      if (result.rows.length === 0) {
+        return done(null, false);
       }
+      done(null, result.rows[0]);
     } catch (error) {
+      console.error('❌ Error in deserializeUser:', error);
       done(error, null);
     }
   });
@@ -132,20 +140,29 @@ export function setupLocalAuth(app: Express) {
     { usernameField: 'username', passwordField: 'password' },
     async (username, password, done) => {
       try {
-        const user = await db.select().from(users).where(eq(users.username, username)).limit(1);
+        // Use raw SQL to avoid Drizzle ORM issues
+        const { pool } = await import("./db.production.js");
+        const result = await pool.query(`
+          SELECT id, username, email, name, role, password, password_changed, created_at, updated_at
+          FROM users 
+          WHERE username = $1 
+          LIMIT 1
+        `, [username]);
         
-        if (user.length === 0) {
+        if (result.rows.length === 0) {
           return done(null, false, { message: 'Utilisateur non trouvé' });
         }
 
-        const isValidPassword = await comparePasswords(password, user[0].password);
+        const user = result.rows[0];
+        const isValidPassword = await comparePasswords(password, user.password);
         
         if (!isValidPassword) {
           return done(null, false, { message: 'Mot de passe incorrect' });
         }
 
-        return done(null, user[0]);
+        return done(null, user);
       } catch (error) {
+        console.error('❌ Error in LocalStrategy:', error);
         return done(error);
       }
     }
@@ -216,10 +233,19 @@ export function setupLocalAuth(app: Express) {
   // Check if default credentials should be shown
   app.get('/api/default-credentials-check', async (req, res) => {
     try {
-      const adminUser = await db.select().from(users).where(eq(users.username, 'admin')).limit(1);
-      const showDefault = adminUser.length > 0 && !adminUser[0].password_changed;
+      // Use raw SQL to avoid Drizzle ORM issues
+      const { pool } = await import("./db.production.js");
+      const result = await pool.query(`
+        SELECT id, username, password_changed
+        FROM users 
+        WHERE username = $1 
+        LIMIT 1
+      `, ['admin']);
+      
+      const showDefault = result.rows.length > 0 && !result.rows[0].password_changed;
       res.json({ showDefault: !!showDefault });
     } catch (error) {
+      console.error('❌ Error in default-credentials-check:', error);
       res.json({ showDefault: true }); // Default to showing credentials if error
     }
   });
