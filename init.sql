@@ -94,22 +94,12 @@ CREATE TABLE IF NOT EXISTS user_groups (
     PRIMARY KEY (user_id, group_id)
 );
 
--- Insert default groups
-INSERT INTO groups (id, name, color) VALUES 
-    (1, 'Frouard', '#1976D2'),
-    (2, 'Nancy', '#388E3C'),
-    (3, 'Metz', '#F57C00')
-ON CONFLICT (name) DO NOTHING;
+-- Note: No default data inserted
+-- Groups and suppliers will be created by administrators as needed
 
--- Insert default suppliers
-INSERT INTO suppliers (id, name, contact, phone) VALUES 
-    (1, 'Fournisseur Test', 'Contact Principal', '03.83.00.00.00'),
-    (2, 'Logistique Pro', 'Service Commercial', '03.87.11.22.33')
-ON CONFLICT (name) DO NOTHING;
-
--- Reset sequences to correct values
-SELECT setval('groups_id_seq', (SELECT COALESCE(MAX(id), 0) FROM groups));
-SELECT setval('suppliers_id_seq', (SELECT COALESCE(MAX(id), 0) FROM suppliers));
+-- Reset sequences to correct values (only if data exists)
+SELECT setval('groups_id_seq', (SELECT COALESCE(MAX(id), 1) FROM groups));
+SELECT setval('suppliers_id_seq', (SELECT COALESCE(MAX(id), 1) FROM suppliers));
 
 -- Create performance indexes
 CREATE INDEX IF NOT EXISTS idx_orders_planned_date ON orders (planned_date);
@@ -151,8 +141,8 @@ BEGIN
     RAISE NOTICE '- deliveries (livraisons avec BL/factures)';
     RAISE NOTICE '- user_groups (clé composite)';
     RAISE NOTICE '==========================================';
-    RAISE NOTICE 'Groupes par défaut: Frouard, Nancy, Metz';
-    RAISE NOTICE 'Fournisseurs par défaut: 2 fournisseurs test';
+    RAISE NOTICE 'Aucune donnée de test insérée automatiquement';
+    RAISE NOTICE 'Groupes et fournisseurs à créer par l''administrateur';
     RAISE NOTICE 'Compte admin sera créé par l''application';
     RAISE NOTICE '==========================================';
 END $$;

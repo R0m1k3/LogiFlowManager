@@ -332,6 +332,9 @@ Changelog:
 - July 11, 2025. **DONNÉES TEST PRODUCTION CRÉÉES** - Commandes et livraisons juillet 2025 pour validation statistiques (1 commande, 2 livraisons)
 - July 11, 2025. **ROUTES ASSIGNATION GROUPES AJOUTÉES** - API `/api/users/:userId/groups` compatible frontend, résolution erreur 404
 - July 11, 2025. **PROBLÈMES PRODUCTION RÉSOLUS** - errorMissingColumn, stats à 0, assignation utilisateurs/groupes fonctionnelle
+- July 11, 2025. **DONNÉES TEST AUTOMATIQUES SUPPRIMÉES** - Élimination groupes/fournisseurs test (Frouard/Nancy/Metz) du init.sql
+- July 11, 2025. **INIT.SQL NETTOYÉ** - Plus de création automatique de données de test à chaque redémarrage/mise à jour
+- July 11, 2025. **BASE PRODUCTION PROPRE** - Suppression complète des données test persistantes, seules données réelles conservées
 
 ## User Preferences
 
