@@ -26,6 +26,9 @@ export default function Publicities() {
   const { selectedStoreId } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Seuls les admins peuvent modifier/supprimer
+  const canModify = user?.role === 'admin';
 
   // Generate year options (current year ± 5 years)
   const currentYear = new Date().getFullYear();
@@ -134,7 +137,7 @@ export default function Publicities() {
             </Select>
           </div>
 
-          {canCreateOrEdit && (
+          {canModify && (
             <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Nouvelle publicité
@@ -325,27 +328,27 @@ export default function Publicities() {
                                 <Eye className="h-4 w-4" />
                               </Button>
                               
-                              {canCreateOrEdit && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEdit(publicity)}
-                                  title="Modifier"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              )}
-                              
-                              {canDelete && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDelete(publicity)}
-                                  className="text-red-600 hover:text-red-700"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                              {canModify && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEdit(publicity)}
+                                    title="Modifier"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(publicity)}
+                                    className="text-red-600 hover:text-red-700"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </>
                               )}
                             </div>
                           </td>
