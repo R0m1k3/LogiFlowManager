@@ -292,8 +292,8 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
               ))}
             </div>
             {form.watch("participatingGroups").length === 0 && (
-              <div className="mt-3 p-3 bg-gray-50 rounded-lg text-center">
-                <p className="text-sm text-gray-600">Aucun magasin sélectionné - publicité générale</p>
+              <div className="mt-3 p-3 bg-red-50 rounded-lg text-center">
+                <p className="text-sm text-red-700">Aucun magasin sélectionné</p>
               </div>
             )}
           </CardContent>
