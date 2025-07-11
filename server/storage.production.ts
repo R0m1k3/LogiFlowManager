@@ -461,7 +461,7 @@ export class DatabaseStorage implements IStorage {
     
     let sqlQuery = `
       SELECT 
-        d.id, d.order_id, d.supplier_id, d.group_id, d.scheduled_date, d.delivered_date, d.validated_at, d.quantity, d.unit, d.status, d.notes,
+        d.id, d.order_id, d.supplier_id, d.group_id, d.scheduled_date, d.quantity, d.unit, d.status, d.notes,
         d.bl_number, d.bl_amount, d.invoice_reference, d.invoice_amount, d.reconciled, d.created_by, d.created_at, d.updated_at,
         s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone,
         s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
@@ -494,6 +494,8 @@ export class DatabaseStorage implements IStorage {
       supplierId: row.supplier_id as number,
       groupId: row.group_id as number,
       scheduledDate: row.scheduled_date as string,
+      deliveredDate: row.delivered_date ? new Date(row.delivered_date as string) : undefined,
+      validatedAt: row.validated_at ? new Date(row.validated_at as string) : undefined,
       quantity: row.quantity as number,
       unit: row.unit as string,
       status: row.status as string,
