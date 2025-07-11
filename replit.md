@@ -331,6 +331,8 @@ Changelog:
 - July 11, 2025. **DÉPLOIEMENT PRODUCTION PRÊT** - Créé script deploy-production-fix.sh automatique pour corriger la base et redémarrer l'application
 - July 11, 2025. **CORRECTION COMPLÈTE PRODUCTION** - Script fix-production-complete.sql corrige TOUS les problèmes de schéma (types, colonnes manquantes, migrations)
 - July 11, 2025. **DÉPLOIEMENT AUTOMATISÉ** - deploy-fix-complete.sh avec sauvegarde automatique, tests API et restauration en cas d'échec
+- July 11, 2025. **SCHÉMA COMPLET FINALISÉ** - init.sql recréé avec TOUTES les colonnes de shared/schema.ts : users complet, sessions, BL/factures, indexes
+- July 11, 2025. **COHÉRENCE TOTALE** - Tous les champs utilisés dans l'application maintenant présents dans init.sql (first_name, last_name, profile_image_url, etc.)
 
 ## User Preferences
 

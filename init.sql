@@ -1,16 +1,30 @@
 -- LogiFlow Database Schema Initialization for Production
+-- SCHÉMA COMPLET BASÉ SUR shared/schema.ts
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table
+-- Sessions table (for express-session storage)
+CREATE TABLE IF NOT EXISTS sessions (
+    sid VARCHAR NOT NULL COLLATE "default",
+    sess JSON NOT NULL,
+    expire TIMESTAMP(6) NOT NULL,
+    PRIMARY KEY (sid) NOT DEFERRABLE INITIALLY IMMEDIATE
+);
+
+CREATE INDEX IF NOT EXISTS IDX_session_expire ON sessions (expire);
+
+-- Users table (complete with all fields from schema)
 CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('admin', 'manager', 'employee')),
-    password TEXT NOT NULL,
+    id VARCHAR PRIMARY KEY NOT NULL,
+    username VARCHAR UNIQUE,
+    email VARCHAR UNIQUE,
+    name VARCHAR,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    profile_image_url VARCHAR,
+    password VARCHAR,
+    role VARCHAR NOT NULL DEFAULT 'employee' CHECK (role IN ('admin', 'manager', 'employee')),
     password_changed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -19,24 +33,23 @@ CREATE TABLE IF NOT EXISTS users (
 -- Groups table  
 CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    color TEXT DEFAULT '#1976D2',
+    name VARCHAR NOT NULL,
+    color VARCHAR NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Suppliers table
+-- Suppliers table (complete with all fields)
 CREATE TABLE IF NOT EXISTS suppliers (
     id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    contact TEXT,
-    email TEXT,
-    phone TEXT,
+    name VARCHAR NOT NULL,
+    contact VARCHAR,
+    phone VARCHAR,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Orders table
+-- Orders table (complete with all fields)
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     supplier_id INTEGER NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
@@ -51,7 +64,7 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Deliveries table
+-- Deliveries table (complete with all BL/reconciliation fields)
 CREATE TABLE IF NOT EXISTS deliveries (
     id SERIAL PRIMARY KEY,
     order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
@@ -73,7 +86,7 @@ CREATE TABLE IF NOT EXISTS deliveries (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- User Groups junction table (composite primary key)
+-- User Groups junction table (composite primary key - no ID)
 CREATE TABLE IF NOT EXISTS user_groups (
     user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
@@ -81,44 +94,65 @@ CREATE TABLE IF NOT EXISTS user_groups (
     PRIMARY KEY (user_id, group_id)
 );
 
--- Sessions table for express-session
-CREATE TABLE IF NOT EXISTS session (
-    sid VARCHAR NOT NULL COLLATE "default",
-    sess JSON NOT NULL,
-    expire TIMESTAMP(6) NOT NULL
-)
-WITH (OIDS=FALSE);
-
-ALTER TABLE session ADD CONSTRAINT session_pkey PRIMARY KEY (sid) NOT DEFERRABLE INITIALLY IMMEDIATE;
-
-CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire);
-
--- Insert default data
+-- Insert default groups
 INSERT INTO groups (id, name, color) VALUES 
     (1, 'Frouard', '#1976D2'),
     (2, 'Nancy', '#388E3C'),
     (3, 'Metz', '#F57C00')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (name) DO NOTHING;
 
-INSERT INTO suppliers (id, name, contact, email, phone) VALUES 
-    (1, 'Fournisseur Test', 'Contact Principal', 'contact@fournisseur.fr', '03.83.00.00.00'),
-    (2, 'Logistique Pro', 'Service Commercial', 'commercial@logistique-pro.fr', '03.87.11.22.33')
-ON CONFLICT (id) DO NOTHING;
+-- Insert default suppliers
+INSERT INTO suppliers (id, name, contact, phone) VALUES 
+    (1, 'Fournisseur Test', 'Contact Principal', '03.83.00.00.00'),
+    (2, 'Logistique Pro', 'Service Commercial', '03.87.11.22.33')
+ON CONFLICT (name) DO NOTHING;
 
 -- Reset sequences to correct values
-SELECT setval('groups_id_seq', (SELECT MAX(id) FROM groups));
-SELECT setval('suppliers_id_seq', (SELECT MAX(id) FROM suppliers));
+SELECT setval('groups_id_seq', (SELECT COALESCE(MAX(id), 0) FROM groups));
+SELECT setval('suppliers_id_seq', (SELECT COALESCE(MAX(id), 0) FROM suppliers));
 
 -- Create performance indexes
 CREATE INDEX IF NOT EXISTS idx_orders_planned_date ON orders (planned_date);
-CREATE INDEX IF NOT EXISTS idx_deliveries_scheduled_date ON deliveries (scheduled_date);
+CREATE INDEX IF NOT EXISTS idx_orders_supplier_id ON orders (supplier_id);
 CREATE INDEX IF NOT EXISTS idx_orders_group_id ON orders (group_id);
+CREATE INDEX IF NOT EXISTS idx_orders_created_by ON orders (created_by);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status);
+
+CREATE INDEX IF NOT EXISTS idx_deliveries_scheduled_date ON deliveries (scheduled_date);
+CREATE INDEX IF NOT EXISTS idx_deliveries_order_id ON deliveries (order_id);
+CREATE INDEX IF NOT EXISTS idx_deliveries_supplier_id ON deliveries (supplier_id);
 CREATE INDEX IF NOT EXISTS idx_deliveries_group_id ON deliveries (group_id);
+CREATE INDEX IF NOT EXISTS idx_deliveries_created_by ON deliveries (created_by);
+CREATE INDEX IF NOT EXISTS idx_deliveries_status ON deliveries (status);
+CREATE INDEX IF NOT EXISTS idx_deliveries_reconciled ON deliveries (reconciled);
+
 CREATE INDEX IF NOT EXISTS idx_user_groups_user_id ON user_groups (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_groups_group_id ON user_groups (group_id);
 
+CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
+
+CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers (name);
+CREATE INDEX IF NOT EXISTS idx_groups_name ON groups (name);
+
+-- Notification de fin
 DO $$
 BEGIN
-    RAISE NOTICE 'LogiFlow database schema initialized successfully';
-    RAISE NOTICE 'Default admin account will be created by application: admin/admin';
+    RAISE NOTICE '==========================================';
+    RAISE NOTICE 'LogiFlow SCHEMA COMPLET INITIALISÉ';
+    RAISE NOTICE '==========================================';
+    RAISE NOTICE 'Tables créées:';
+    RAISE NOTICE '- sessions (express-session)';
+    RAISE NOTICE '- users (avec tous les champs)';
+    RAISE NOTICE '- groups (magasins)';
+    RAISE NOTICE '- suppliers (fournisseurs)';
+    RAISE NOTICE '- orders (commandes avec notes)';
+    RAISE NOTICE '- deliveries (livraisons avec BL/factures)';
+    RAISE NOTICE '- user_groups (clé composite)';
+    RAISE NOTICE '==========================================';
+    RAISE NOTICE 'Groupes par défaut: Frouard, Nancy, Metz';
+    RAISE NOTICE 'Fournisseurs par défaut: 2 fournisseurs test';
+    RAISE NOTICE 'Compte admin sera créé par l''application';
+    RAISE NOTICE '==========================================';
 END $$;

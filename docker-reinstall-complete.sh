@@ -31,11 +31,17 @@ echo "🧹 Nettoyage du système Docker..."
 docker system prune -f
 
 # 5. Vérifier que init.sql est à jour
-echo "📋 Vérification de init.sql..."
-if grep -q "scheduled_date DATE NOT NULL" init.sql && grep -q "notes TEXT" init.sql; then
-    echo -e "${GREEN}✅ init.sql contient les bonnes colonnes${NC}"
+echo "📋 Vérification complète de init.sql..."
+if grep -q "scheduled_date DATE NOT NULL" init.sql && \
+   grep -q "notes TEXT" init.sql && \
+   grep -q "first_name VARCHAR" init.sql && \
+   grep -q "sessions" init.sql && \
+   grep -q "bl_number VARCHAR" init.sql && \
+   grep -q "PRIMARY KEY (user_id, group_id)" init.sql; then
+    echo -e "${GREEN}✅ init.sql contient TOUTES les colonnes nécessaires${NC}"
 else
-    echo -e "${RED}❌ init.sql n'est pas à jour !${NC}"
+    echo -e "${RED}❌ init.sql n'est pas complet !${NC}"
+    echo "Vérifiez que toutes les colonnes sont présentes"
     exit 1
 fi
 
@@ -62,18 +68,31 @@ docker logs logiflow-db | tail -10
 
 # 10. Vérifier le schéma créé
 echo ""
-echo "🔍 Vérification du schéma créé..."
+echo "🔍 Vérification complète du schéma créé..."
 docker exec logiflow-db psql -U logiflow_admin -d logiflow_db -c "
+SELECT 'SCHÉMA COMPLET VÉRIFIÉ:' as info;
+
+-- Vérifier les tables critiques
 SELECT 
-    'COLONNES CRITIQUES VÉRIFIÉES:' as info;
+    table_name, 
+    COUNT(*) as columns_count
+FROM information_schema.columns 
+WHERE table_name IN ('users', 'groups', 'suppliers', 'orders', 'deliveries', 'user_groups', 'sessions')
+GROUP BY table_name
+ORDER BY table_name;
+
+-- Vérifier les colonnes critiques
 SELECT 
+    'COLONNES CRITIQUES:' as section,
     table_name, 
     column_name, 
     data_type,
     is_nullable
 FROM information_schema.columns 
-WHERE table_name IN ('orders', 'deliveries') 
-AND column_name IN ('notes', 'scheduled_date', 'planned_date', 'quantity', 'unit')
+WHERE (table_name = 'orders' AND column_name IN ('notes', 'planned_date', 'quantity', 'unit'))
+   OR (table_name = 'deliveries' AND column_name IN ('notes', 'scheduled_date', 'bl_number', 'bl_amount'))
+   OR (table_name = 'users' AND column_name IN ('name', 'first_name', 'last_name', 'password'))
+   OR (table_name = 'user_groups' AND column_name IN ('user_id', 'group_id'))
 ORDER BY table_name, column_name;
 "
 
