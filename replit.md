@@ -328,6 +328,7 @@ Changelog:
 - July 11, 2025. **CORRECTION SQL ADAPTATIVE** - Code modifié pour s'adapter automatiquement aux colonnes disponibles (notes/comments, scheduled_date/planned_date)
 - July 11, 2025. **SCHÉMA COHÉRENT FINAL** - Unifié shared/schema.ts et storage.production.ts : notes (pas comments), scheduled_date (pas planned_date), clé composite user_groups
 - July 11, 2025. **ERREUR PRODUCTION COLONNE NOTES** - Base production manque colonne orders.notes causant erreur 500 - script apply-production-schema.sql créé
+- July 11, 2025. **DÉPLOIEMENT PRODUCTION PRÊT** - Créé script deploy-production-fix.sh automatique pour corriger la base et redémarrer l'application
 
 ## User Preferences
 
