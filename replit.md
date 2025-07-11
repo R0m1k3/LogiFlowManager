@@ -335,6 +335,7 @@ Changelog:
 - July 11, 2025. **CARTE DASHBOARD PUBLICITÉS** - Ajout section "Publicités à venir" dans le tableau de bord
 - July 11, 2025. **LOGIQUE ANNÉE PUBLICITÉS CORRIGÉE** - Suppression assignation automatique basée sur date début
 - July 11, 2025. **PLAN PUB 2025** - Publicités assignées manuellement à l'année du plan (2025), pas à l'année de la date
+- July 11, 2025. **PUBLICITÉS SANS MAGASINS** - Autorisation publicités sans magasins participants (publicité générale)
 - July 11, 2025. **CRÉATION UTILISATEURS CORRIGÉE** - Mapping correct firstName/lastName → username/name, génération automatique username depuis email
 - July 11, 2025. **HACHAGE MOTS DE PASSE AUTOMATIQUE** - Hash automatique lors création/modification utilisateur avec passwordChanged = true
 - July 11, 2025. **STATISTIQUES PALETTES FONCTIONNELLES** - Calcul correct depuis ordres et livraisons réelles (palettes = 5, colis = 3)

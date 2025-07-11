@@ -285,19 +285,27 @@ export default function Publicities() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-1 max-w-xs">
-                              {publicity.participations.slice(0, 2).map((participation) => (
-                                <Badge key={participation.groupId} variant="outline" className="text-xs">
-                                  <div 
-                                    className="w-2 h-2 rounded-full mr-1" 
-                                    style={{ backgroundColor: participation.group.color }}
-                                  />
-                                  {participation.group.name}
+                              {publicity.participations.length === 0 ? (
+                                <Badge variant="secondary" className="text-xs">
+                                  Tous magasins
                                 </Badge>
-                              ))}
-                              {publicity.participations.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{publicity.participations.length - 2}
-                                </Badge>
+                              ) : (
+                                <>
+                                  {publicity.participations.slice(0, 2).map((participation) => (
+                                    <Badge key={participation.groupId} variant="outline" className="text-xs">
+                                      <div 
+                                        className="w-2 h-2 rounded-full mr-1" 
+                                        style={{ backgroundColor: participation.group.color }}
+                                      />
+                                      {participation.group.name}
+                                    </Badge>
+                                  ))}
+                                  {publicity.participations.length > 2 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{publicity.participations.length - 2}
+                                    </Badge>
+                                  )}
+                                </>
                               )}
                             </div>
                           </td>
@@ -426,15 +434,19 @@ export default function Publicities() {
               <div>
                 <label className="text-sm font-medium text-gray-700">Magasins participants</label>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedPublicity.participations.map((participation) => (
-                    <Badge key={participation.groupId} variant="outline">
-                      <div 
-                        className="w-3 h-3 rounded-full mr-2" 
-                        style={{ backgroundColor: participation.group.color }}
-                      />
-                      {participation.group.name}
-                    </Badge>
-                  ))}
+                  {selectedPublicity.participations.length === 0 ? (
+                    <Badge variant="secondary">Tous les magasins</Badge>
+                  ) : (
+                    selectedPublicity.participations.map((participation) => (
+                      <Badge key={participation.groupId} variant="outline">
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2" 
+                          style={{ backgroundColor: participation.group.color }}
+                        />
+                        {participation.group.name}
+                      </Badge>
+                    ))
+                  )}
                 </div>
               </div>
 

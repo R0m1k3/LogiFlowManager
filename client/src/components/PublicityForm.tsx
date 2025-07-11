@@ -24,7 +24,7 @@ const publicityFormSchema = z.object({
   startDate: z.date({ required_error: "La date de début est requise" }),
   endDate: z.date({ required_error: "La date de fin est requise" }),
   year: z.number().min(2020).max(2030),
-  participatingGroups: z.array(z.number()).min(1, "Au moins un magasin doit participer"),
+  participatingGroups: z.array(z.number()), // Suppression de .min(1) pour permettre 0 magasin
 }).refine((data) => data.endDate >= data.startDate, {
   message: "La date de fin doit être postérieure à la date de début",
   path: ["endDate"]
@@ -260,6 +260,7 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
 
       <div className="space-y-3">
         <Label>Magasins participants</Label>
+        <p className="text-sm text-gray-600">Sélectionnez les magasins qui participent à cette publicité (optionnel)</p>
         <Card>
           <CardContent className="pt-4">
             <div className="grid grid-cols-2 gap-3">
@@ -290,6 +291,11 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
                 </div>
               ))}
             </div>
+            {form.watch("participatingGroups").length === 0 && (
+              <div className="mt-3 p-3 bg-gray-50 rounded-lg text-center">
+                <p className="text-sm text-gray-600">Aucun magasin sélectionné - publicité générale</p>
+              </div>
+            )}
           </CardContent>
         </Card>
         {form.formState.errors.participatingGroups && (
