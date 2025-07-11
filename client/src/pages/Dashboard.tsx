@@ -62,9 +62,12 @@ export default function Dashboard() {
       for (const year of years) {
         const params = new URLSearchParams();
         params.append('year', year.toString());
+        
+        // Filtrer par magasin sélectionné pour les admins
         if (selectedStoreId && user?.role === 'admin') {
           params.append('storeId', selectedStoreId.toString());
         }
+        
         try {
           const response = await fetch(`/api/publicities?${params}`, { credentials: 'include' });
           if (response.ok) {
@@ -76,7 +79,12 @@ export default function Dashboard() {
         }
       }
       
-      return allPublicities;
+      // Filtrer les publicités à venir et les trier par date
+      const futurePublicities = allPublicities
+        .filter((publicity: any) => new Date(publicity.startDate) > new Date())
+        .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      
+      return futurePublicities;
     },
   });
 
@@ -277,8 +285,6 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3 p-6">
             {upcomingPublicities
-              .filter((publicity: any) => new Date(publicity.startDate) > new Date())
-              .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
               .slice(0, 3)
               .map((publicity: any) => (
                 <div key={publicity.id} className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors border-l-3 border-purple-500">
@@ -299,7 +305,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
-            {upcomingPublicities.filter((publicity: any) => new Date(publicity.startDate) > new Date()).length === 0 && (
+            {upcomingPublicities.length === 0 && (
               <p className="text-gray-600 text-center py-8">Aucune publicité à venir</p>
             )}
           </CardContent>

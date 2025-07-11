@@ -863,6 +863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (storeId && storeId !== 'all') {
           groupIds = [parseInt(storeId as string)];
         }
+        // If no storeId or storeId === 'all', groupIds remains undefined (all groups)
       } else {
         // Non-admin users: filter by their assigned groups
         groupIds = user.userGroups.map(ug => ug.groupId);
