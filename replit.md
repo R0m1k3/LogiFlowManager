@@ -423,6 +423,12 @@ Changelog:
 - July 11, 2025. Mise en évidence du magasin actuellement sélectionné en vert s'il participe
 - July 11, 2025. Indication "Aucun magasin" en rouge pour les publicités sans participants
 - July 11, 2025. Solution plus claire que le filtrage : l'utilisateur voit toutes les publicités avec participation visible
+- July 11, 2025. **SYSTÈME DE GESTION DES RÔLES COMPLET POUR PRODUCTION** - Déploiement du système complet
+- July 11, 2025. Ajout de toutes les méthodes rôles/permissions dans storage.production.ts avec SQL brut
+- July 11, 2025. Ajout de toutes les routes API rôles/permissions dans routes.production.ts
+- July 11, 2025. Création script de déploiement automatique update-production-roles.sh
+- July 11, 2025. Documentation complète DEPLOY-ROLES-SYSTEM.md avec procédures et vérifications
+- July 11, 2025. Système prêt pour production avec toutes les fonctionnalités récentes intégrées
 
 ## User Preferences
 

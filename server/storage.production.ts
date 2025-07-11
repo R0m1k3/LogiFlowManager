@@ -1237,6 +1237,244 @@ export class DatabaseStorage implements IStorage {
       `, params);
     }
   }
+
+  // Role operations
+  async getRoles(): Promise<RoleWithPermissions[]> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      SELECT 
+        r.id, r.name, r.description, r.is_system, r.created_at, r.updated_at,
+        p.id as perm_id, p.name as perm_name, p.description as perm_description, 
+        p.category as perm_category, p.created_at as perm_created_at
+      FROM roles r
+      LEFT JOIN role_permissions rp ON r.id = rp.role_id
+      LEFT JOIN permissions p ON rp.permission_id = p.id
+      ORDER BY r.name, p.category, p.name
+    `);
+    
+    const rolesMap = new Map<number, any>();
+    
+    for (const row of result.rows) {
+      if (!rolesMap.has(row.id)) {
+        rolesMap.set(row.id, {
+          id: row.id as number,
+          name: row.name as string,
+          description: row.description as string,
+          isSystem: row.is_system as boolean,
+          createdAt: new Date(row.created_at as string),
+          updatedAt: new Date(row.updated_at as string),
+          rolePermissions: []
+        });
+      }
+      
+      if (row.perm_id) {
+        rolesMap.get(row.id)?.rolePermissions.push({
+          roleId: row.id as number,
+          permissionId: row.perm_id as number,
+          permission: {
+            id: row.perm_id as number,
+            name: row.perm_name as string,
+            description: row.perm_description as string,
+            category: row.perm_category as string,
+            createdAt: new Date(row.perm_created_at as string)
+          }
+        });
+      }
+    }
+    
+    return Array.from(rolesMap.values());
+  }
+
+  async getRole(id: number): Promise<RoleWithPermissions | undefined> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      SELECT 
+        r.id, r.name, r.description, r.is_system, r.created_at, r.updated_at,
+        p.id as perm_id, p.name as perm_name, p.description as perm_description, 
+        p.category as perm_category, p.created_at as perm_created_at
+      FROM roles r
+      LEFT JOIN role_permissions rp ON r.id = rp.role_id
+      LEFT JOIN permissions p ON rp.permission_id = p.id
+      WHERE r.id = $1
+      ORDER BY p.category, p.name
+    `, [id]);
+    
+    if (result.rows.length === 0) return undefined;
+    
+    const firstRow = result.rows[0];
+    const role = {
+      id: firstRow.id as number,
+      name: firstRow.name as string,
+      description: firstRow.description as string,
+      isSystem: firstRow.is_system as boolean,
+      createdAt: new Date(firstRow.created_at as string),
+      updatedAt: new Date(firstRow.updated_at as string),
+      rolePermissions: [] as any[]
+    };
+    
+    for (const row of result.rows) {
+      if (row.perm_id) {
+        role.rolePermissions.push({
+          roleId: row.id as number,
+          permissionId: row.perm_id as number,
+          permission: {
+            id: row.perm_id as number,
+            name: row.perm_name as string,
+            description: row.perm_description as string,
+            category: row.perm_category as string,
+            createdAt: new Date(row.perm_created_at as string)
+          }
+        });
+      }
+    }
+    
+    return role;
+  }
+
+  async createRole(role: InsertRole): Promise<Role> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      INSERT INTO roles (name, description, is_system, created_at, updated_at)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING *
+    `, [role.name, role.description, role.isSystem || false]);
+    
+    const row = result.rows[0];
+    return {
+      id: row.id as number,
+      name: row.name as string,
+      description: row.description as string,
+      isSystem: row.is_system as boolean,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+    };
+  }
+
+  async updateRole(id: number, role: Partial<InsertRole>): Promise<Role> {
+    const { pool } = await import("./db.production.js");
+    
+    const updates: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+    
+    if (role.name !== undefined) {
+      updates.push(`name = $${paramIndex++}`);
+      params.push(role.name);
+    }
+    if (role.description !== undefined) {
+      updates.push(`description = $${paramIndex++}`);
+      params.push(role.description);
+    }
+    if (role.isSystem !== undefined) {
+      updates.push(`is_system = $${paramIndex++}`);
+      params.push(role.isSystem);
+    }
+    
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    params.push(id);
+    
+    const result = await pool.query(`
+      UPDATE roles 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `, params);
+    
+    const row = result.rows[0];
+    return {
+      id: row.id as number,
+      name: row.name as string,
+      description: row.description as string,
+      isSystem: row.is_system as boolean,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+    };
+  }
+
+  async deleteRole(id: number): Promise<void> {
+    const { pool } = await import("./db.production.js");
+    
+    // Delete role permissions first
+    await pool.query(`DELETE FROM role_permissions WHERE role_id = $1`, [id]);
+    
+    // Delete role
+    await pool.query(`DELETE FROM roles WHERE id = $1`, [id]);
+  }
+
+  // Permission operations
+  async getPermissions(): Promise<Permission[]> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      SELECT id, name, description, category, created_at
+      FROM permissions
+      ORDER BY category, name
+    `);
+    
+    return result.rows.map(row => ({
+      id: row.id as number,
+      name: row.name as string,
+      description: row.description as string,
+      category: row.category as string,
+      createdAt: new Date(row.created_at as string),
+    }));
+  }
+
+  async createPermission(permission: InsertPermission): Promise<Permission> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      INSERT INTO permissions (name, description, category, created_at)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+      RETURNING *
+    `, [permission.name, permission.description, permission.category]);
+    
+    const row = result.rows[0];
+    return {
+      id: row.id as number,
+      name: row.name as string,
+      description: row.description as string,
+      category: row.category as string,
+      createdAt: new Date(row.created_at as string),
+    };
+  }
+
+  // Role-Permission operations
+  async getRolePermissions(roleId: number): Promise<RolePermission[]> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      SELECT role_id, permission_id
+      FROM role_permissions
+      WHERE role_id = $1
+    `, [roleId]);
+    
+    return result.rows.map(row => ({
+      roleId: row.role_id as number,
+      permissionId: row.permission_id as number,
+    }));
+  }
+
+  async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
+    const { pool } = await import("./db.production.js");
+    
+    // Delete existing permissions
+    await pool.query(`DELETE FROM role_permissions WHERE role_id = $1`, [roleId]);
+    
+    // Insert new permissions
+    if (permissionIds.length > 0) {
+      const values = permissionIds.map((permissionId, index) => `($1, $${index + 2})`).join(', ');
+      const params = [roleId, ...permissionIds];
+      
+      await pool.query(`
+        INSERT INTO role_permissions (role_id, permission_id)
+        VALUES ${values}
+      `, params);
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
