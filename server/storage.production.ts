@@ -957,6 +957,20 @@ export class DatabaseStorage implements IStorage {
   async getPublicities(year?: number, groupIds?: number[]): Promise<PublicityWithRelations[]> {
     const { pool } = await import("./db.production.js");
     
+    console.log('🔍 [PUBLICITÉS] Recherche publicités avec year:', year, 'groupIds:', groupIds);
+    
+    // D'abord vérifier ce qu'il y a dans la table publicities
+    const countResult = await pool.query(`SELECT COUNT(*) as count FROM publicities`);
+    console.log('🔍 [PUBLICITÉS] Nombre total de publicités en base:', countResult.rows[0]?.count);
+    
+    // Vérifier les utilisateurs
+    const usersResult = await pool.query(`SELECT id, username FROM users`);
+    console.log('🔍 [PUBLICITÉS] Utilisateurs en base:', usersResult.rows.map(u => `${u.id} (${u.username})`));
+    
+    // Vérifier les publicités avec leurs created_by
+    const publicitiesDebug = await pool.query(`SELECT id, pub_number, created_by FROM publicities`);
+    console.log('🔍 [PUBLICITÉS] Publicités avec créateurs:', publicitiesDebug.rows);
+    
     let sqlQuery = `
       SELECT 
         p.id, p.pub_number, p.designation, p.start_date, p.end_date, p.year, 
@@ -991,7 +1005,11 @@ export class DatabaseStorage implements IStorage {
     
     sqlQuery += ` ORDER BY p.created_at DESC`;
     
+    console.log('🔍 [PUBLICITÉS] Requête SQL:', sqlQuery);
+    console.log('🔍 [PUBLICITÉS] Paramètres:', params);
+    
     const result = await pool.query(sqlQuery, params);
+    console.log('🔍 [PUBLICITÉS] Résultats bruts:', result.rows.length, 'publicités trouvées');
     
     const publicities = await Promise.all(result.rows.map(async (row) => {
       // Get participations for this publicity
