@@ -300,9 +300,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
 
-      const userData = req.body;
+      console.log('🔍 Creating user with data:', req.body);
+      
+      // Convert frontend data to backend format
+      const userData = { ...req.body };
+      
+      // Generate username if not provided (usually email prefix)
+      if (!userData.username && userData.email) {
+        userData.username = userData.email.split('@')[0];
+      }
+      
+      // Convert firstName/lastName to name field
+      if (userData.firstName && userData.lastName) {
+        userData.name = `${userData.firstName} ${userData.lastName}`.trim();
+        delete userData.firstName;
+        delete userData.lastName;
+      }
+      
+      // Hash password if provided
+      if (userData.password) {
+        const { hashPassword } = await import("./localAuth.production.js");
+        userData.password = await hashPassword(userData.password);
+        userData.passwordChanged = false; // New users need to change password
+      }
+      
+      // Generate ID if not provided
+      if (!userData.id) {
+        userData.id = `user_${Date.now()}`;
+      }
+      
+      console.log('🔍 Processed user data:', userData);
+      
       const newUser = await storage.createUser(userData);
-      res.json(newUser);
+      
+      // Convert back for frontend response
+      const [firstName = '', ...lastNameParts] = (newUser.name || '').split(' ');
+      const lastName = lastNameParts.join(' ');
+      
+      res.json({
+        ...newUser,
+        firstName,
+        lastName
+      });
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(500).json({ message: "Failed to create user" });

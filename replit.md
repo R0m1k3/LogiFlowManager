@@ -321,6 +321,11 @@ Changelog:
 - July 11, 2025. **ARCHITECTURE FINALE STABLE** - PostgreSQL natif, authentification locale, Docker prêt pour redéploiement complet
 - July 11, 2025. **PRODUCTION PLEINEMENT OPÉRATIONNELLE** - Toutes les fonctionnalités testées et confirmées fonctionnelles en production
 - July 11, 2025. **LIVRAISONS ET COMMANDES CRÉÉES AVEC SUCCÈS** - API POST /api/deliveries et /api/orders retournent 200, données visibles dans l'interface
+- July 11, 2025. **CORRECTIONS CRITIQUES PRODUCTION** - Résolution problèmes création utilisateurs et statistiques palettes
+- July 11, 2025. **CRÉATION UTILISATEURS CORRIGÉE** - Mapping correct firstName/lastName → username/name, génération automatique username depuis email
+- July 11, 2025. **HACHAGE MOTS DE PASSE AUTOMATIQUE** - Hash automatique lors création/modification utilisateur avec passwordChanged = true
+- July 11, 2025. **STATISTIQUES PALETTES FONCTIONNELLES** - Calcul correct depuis ordres et livraisons réelles (palettes = 5, colis = 3)
+- July 11, 2025. **ARCHITECTURE PRODUCTION FINALE** - Toutes les corrections intégrées dans routes.production.ts et storage.production.ts
 
 ## User Preferences
 
