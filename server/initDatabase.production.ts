@@ -143,29 +143,14 @@ export async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire)
     `);
 
-    // Insert default groups using raw SQL
-    console.log("🔧 Inserting default groups...");
-    await pool.query(`
-      INSERT INTO groups (id, name, color) VALUES 
-        (1, 'Frouard', '#1976D2'),
-        (2, 'Nancy', '#388E3C'),
-        (3, 'Metz', '#F57C00')
-      ON CONFLICT (id) DO NOTHING
-    `);
+    // Note: No default test data inserted in production
+    // Groups and suppliers will be created by administrators as needed
+    console.log("✅ Database schema ready - no test data inserted");
 
-    // Insert default suppliers using raw SQL
-    console.log("🔧 Inserting default suppliers...");
-    await pool.query(`
-      INSERT INTO suppliers (id, name, contact, phone) VALUES 
-        (1, 'Fournisseur Test', 'Contact Principal', '03.83.00.00.00'),
-        (2, 'Logistique Pro', 'Service Commercial', '03.87.11.22.33')
-      ON CONFLICT (id) DO NOTHING
-    `);
-
-    // Reset sequences using raw SQL
+    // Reset sequences using raw SQL (only if data exists)
     console.log("🔧 Resetting sequences...");
-    await pool.query(`SELECT setval('groups_id_seq', (SELECT MAX(id) FROM groups))`);
-    await pool.query(`SELECT setval('suppliers_id_seq', (SELECT MAX(id) FROM suppliers))`);
+    await pool.query(`SELECT setval('groups_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM groups), 1))`);
+    await pool.query(`SELECT setval('suppliers_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM suppliers), 1))`);
 
     console.log("✅ Database schema initialized successfully");
   } catch (error) {

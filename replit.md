@@ -336,6 +336,7 @@ Changelog:
 - July 11, 2025. **INIT.SQL NETTOYÉ** - Plus de création automatique de données de test à chaque redémarrage/mise à jour
 - July 11, 2025. **BASE PRODUCTION PROPRE** - Suppression complète des données test persistantes, seules données réelles conservées
 - July 11, 2025. **ERREUR COLUMN QUANTITY RÉSOLUE** - Statistiques palettes/colis calculées depuis livraisons uniquement (commandes sans quantité)
+- July 11, 2025. **INITDATABASE.PRODUCTION.TS NETTOYÉ** - Dernière source de données test éliminée, plus aucune recréation automatique
 
 ## User Preferences
 
