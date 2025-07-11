@@ -343,6 +343,11 @@ Changelog:
 - July 11, 2025. **INTERFACE MODERNISÉE** - Boutons "+ Ajouter" remplacés par icônes propres avec tooltips
 - July 11, 2025. **MODAUX CONFIRMATION UNIFIÉS** - Toutes suppressions (Orders, Deliveries, Rapprochement) utilisent modal confirmation élégant
 - July 11, 2025. **CACHE INVALIDATION CORRIGÉE** - Ajout refetchQueries pour mise à jour temps réel des données rapprochement
+- July 11, 2025. **ERREUR DONNÉES RAPPROCHEMENT RÉSOLUE** - updateDelivery production corrigé pour supporter champs BL/facture
+- July 11, 2025. **DATE LIVRAISON AJOUTÉE** - Nouvelle colonne "Date Livraison" dans tableau rapprochement BL/Factures
+- July 11, 2025. **ICÔNES RAPPROCHEMENT AMÉLIORÉES** - Edit pour référence facture, Euro pour montant, taille optimisée
+- July 11, 2025. **LIAISONS ORDRE-LIVRAISON RESTAURÉES** - LEFT JOIN orders dans storage.production.ts pour relations correctes
+- July 11, 2025. **SCRIPT PRODUCTION FINAL** - fix-production-final.sh créé avec tests complets et validation automatique
 
 ## User Preferences
 

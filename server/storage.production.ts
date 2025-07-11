@@ -467,11 +467,13 @@ export class DatabaseStorage implements IStorage {
         s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
         g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
         u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
-        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at,
+        o.id as order_id_rel, o.planned_date as order_planned_date, o.status as order_status, o.notes as order_notes
       FROM deliveries d
       INNER JOIN suppliers s ON d.supplier_id = s.id
       INNER JOIN groups g ON d.group_id = g.id
       INNER JOIN users u ON d.created_by = u.id
+      LEFT JOIN orders o ON d.order_id = o.id
     `;
     
     const params = [];
@@ -693,15 +695,84 @@ export class DatabaseStorage implements IStorage {
 
   async updateDelivery(id: number, delivery: Partial<InsertDelivery>): Promise<Delivery> {
     const { pool } = await import("./db.production.js");
-    const result = await pool.query(`
+    
+    // Construire la requête dynamiquement selon les champs fournis
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+    
+    if (delivery.orderId !== undefined) {
+      fields.push(`order_id = $${paramIndex++}`);
+      values.push(delivery.orderId);
+    }
+    if (delivery.supplierId !== undefined) {
+      fields.push(`supplier_id = $${paramIndex++}`);
+      values.push(delivery.supplierId);
+    }
+    if (delivery.groupId !== undefined) {
+      fields.push(`group_id = $${paramIndex++}`);
+      values.push(delivery.groupId);
+    }
+    if (delivery.scheduledDate !== undefined) {
+      fields.push(`scheduled_date = $${paramIndex++}`);
+      values.push(delivery.scheduledDate);
+    }
+    if (delivery.quantity !== undefined) {
+      fields.push(`quantity = $${paramIndex++}`);
+      values.push(delivery.quantity);
+    }
+    if (delivery.unit !== undefined) {
+      fields.push(`unit = $${paramIndex++}`);
+      values.push(delivery.unit);
+    }
+    if (delivery.status !== undefined) {
+      fields.push(`status = $${paramIndex++}`);
+      values.push(delivery.status);
+    }
+    if (delivery.notes !== undefined) {
+      fields.push(`notes = $${paramIndex++}`);
+      values.push(delivery.notes);
+    }
+    // Champs BL et facture
+    if ((delivery as any).blNumber !== undefined) {
+      fields.push(`bl_number = $${paramIndex++}`);
+      values.push((delivery as any).blNumber);
+    }
+    if ((delivery as any).blAmount !== undefined) {
+      fields.push(`bl_amount = $${paramIndex++}`);
+      values.push((delivery as any).blAmount);
+    }
+    if ((delivery as any).invoiceReference !== undefined) {
+      fields.push(`invoice_reference = $${paramIndex++}`);
+      values.push((delivery as any).invoiceReference);
+    }
+    if ((delivery as any).invoiceAmount !== undefined) {
+      fields.push(`invoice_amount = $${paramIndex++}`);
+      values.push((delivery as any).invoiceAmount);
+    }
+    if ((delivery as any).reconciled !== undefined) {
+      fields.push(`reconciled = $${paramIndex++}`);
+      values.push((delivery as any).reconciled);
+    }
+    
+    // Toujours mettre à jour updated_at
+    fields.push(`updated_at = $${paramIndex++}`);
+    values.push(new Date());
+    
+    // Ajouter l'ID en dernière position
+    values.push(id);
+    
+    const query = `
       UPDATE deliveries 
-      SET order_id = COALESCE($1, order_id), supplier_id = COALESCE($2, supplier_id), 
-          group_id = COALESCE($3, group_id), scheduled_date = COALESCE($4, scheduled_date), 
-          quantity = COALESCE($5, quantity), unit = COALESCE($6, unit), 
-          status = COALESCE($7, status), notes = COALESCE($8, notes), updated_at = $9
-      WHERE id = $10
+      SET ${fields.join(', ')}
+      WHERE id = $${paramIndex}
       RETURNING *
-    `, [delivery.orderId, delivery.supplierId, delivery.groupId, delivery.scheduledDate, delivery.quantity, delivery.unit, delivery.status, delivery.notes, new Date(), id]);
+    `;
+    
+    console.log('🔄 updateDelivery SQL:', query);
+    console.log('🔄 updateDelivery VALUES:', values);
+    
+    const result = await pool.query(query, values);
     return result.rows[0];
   }
 

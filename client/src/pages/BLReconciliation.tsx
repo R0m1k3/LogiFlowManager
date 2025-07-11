@@ -371,6 +371,9 @@ export default function BLReconciliation() {
                     N° Bon de Livraison
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date Livraison
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date Validation
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -417,8 +420,13 @@ export default function BLReconciliation() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {delivery.deliveredDate ? 
-                            format(new Date(delivery.deliveredDate), 'dd/MM/yyyy', { locale: fr }) : 
+                          {format(new Date(delivery.scheduledDate), 'dd/MM/yyyy', { locale: fr })}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {delivery.validatedAt ? 
+                            format(new Date(delivery.validatedAt), 'dd/MM/yyyy', { locale: fr }) : 
                             '-'
                           }
                         </div>
@@ -434,10 +442,10 @@ export default function BLReconciliation() {
                             <button
                               onClick={() => handleAddInvoice(delivery)}
                               disabled={updateInvoiceMutation.isPending}
-                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-8 h-8 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-7 h-7 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Ajouter une référence facture"
                             >
-                              <Plus className="w-4 h-4" />
+                              <Edit className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -449,10 +457,10 @@ export default function BLReconciliation() {
                             <button
                               onClick={() => handleAddInvoice(delivery)}
                               disabled={updateInvoiceMutation.isPending}
-                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-8 h-8 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-7 h-7 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Ajouter un montant facture"
                             >
-                              <Plus className="w-4 h-4" />
+                              <Euro className="w-3.5 h-3.5" />
                             </button>
                           }
                         </div>
