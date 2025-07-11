@@ -14,9 +14,7 @@ import { Check, X } from "lucide-react";
 
 const validateDeliverySchema = z.object({
   blNumber: z.string().min(1, "Le numéro de BL est obligatoire"),
-  blAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "Le montant doit être un nombre positif",
-  }),
+  blAmount: z.string().optional(),
 });
 
 type ValidateDeliveryForm = z.infer<typeof validateDeliverySchema>;
@@ -47,10 +45,15 @@ export default function ValidateDeliveryModal({
 
   const validateDeliveryMutation = useMutation({
     mutationFn: async (data: ValidateDeliveryForm) => {
-      await apiRequest("POST", `/api/deliveries/${delivery.id}/validate`, {
+      const payload: any = {
         blNumber: data.blNumber,
-        blAmount: parseFloat(data.blAmount),
-      });
+      };
+      
+      if (data.blAmount && data.blAmount.trim() !== '') {
+        payload.blAmount = parseFloat(data.blAmount);
+      }
+      
+      await apiRequest("POST", `/api/deliveries/${delivery.id}/validate`, payload);
     },
     onSuccess: () => {
       toast({
@@ -142,12 +145,12 @@ export default function ValidateDeliveryModal({
               name="blAmount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Montant BL (€) *</FormLabel>
+                  <FormLabel>Montant BL (€) - Optionnel</FormLabel>
                   <FormControl>
                     <Input 
                       type="number"
                       step="0.01"
-                      placeholder="Ex: 1200.00"
+                      placeholder="Ex: 1200.00 (à remplir plus tard si nécessaire)"
                       {...field}
                     />
                   </FormControl>

@@ -36,6 +36,28 @@ export default function BLReconciliation() {
   const { selectedStoreId } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Redirection pour les employés
+  if (user?.role === 'employee') {
+    return (
+      <div className="p-6">
+        <div className="bg-orange-50 border-l-4 border-orange-400 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <FileText className="h-5 w-5 text-orange-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-orange-700">
+                <strong>Accès restreint</strong><br />
+                Seuls les managers et administrateurs peuvent accéder au module de rapprochement BL/Factures.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<any>(null);

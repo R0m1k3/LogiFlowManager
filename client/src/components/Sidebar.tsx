@@ -62,13 +62,13 @@ export default function Sidebar() {
       path: "/orders", 
       label: "Commandes", 
       icon: Package, 
-      roles: ["admin", "manager", "employee"] 
+      roles: ["admin", "manager"] 
     },
     { 
       path: "/deliveries", 
       label: "Livraisons", 
       icon: Truck, 
-      roles: ["admin", "manager", "employee"] 
+      roles: ["admin", "manager"] 
     },
     { 
       path: "/bl-reconciliation", 

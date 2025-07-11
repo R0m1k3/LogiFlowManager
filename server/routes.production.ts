@@ -764,7 +764,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { blNumber, blAmount } = req.body;
       
-      await storage.validateDelivery(id, { blNumber, blAmount });
+      if (!blNumber) {
+        return res.status(400).json({ message: "BL number is required" });
+      }
+      
+      // blAmount is optional, can be added later in reconciliation
+      const blData: any = { blNumber };
+      if (blAmount !== undefined && blAmount !== null && blAmount !== '') {
+        blData.blAmount = blAmount;
+      }
+      
+      await storage.validateDelivery(id, blData);
       res.json({ message: "Delivery validated successfully" });
     } catch (error) {
       console.error("Error validating delivery:", error);
