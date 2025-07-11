@@ -1,0 +1,132 @@
+Groups API called, user ID: admin_local
+
+🔍 Current user found: { id: 'admin_local', role: 'admin' }
+
+✅ User is admin, fetching all groups...
+
+✅ Groups fetched for admin, count: 5
+
+Error fetching orders: error: column o.notes does not exist
+
+    at /app/node_modules/pg-pool/index.js:45:11
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async DatabaseStorage.getOrdersByDateRange (file:///app/dist/index.js:5252:25)
+
+    at async file:///app/dist/index.js:6033:19 {
+
+  length: 105,
+
+  severity: 'ERROR',
+
+  code: '42703',
+
+  detail: undefined,
+
+  hint: undefined,
+
+  position: '83',
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'parse_relation.c',
+
+  line: '3665',
+
+  routine: 'errorMissingColumn'
+
+}
+
+[5rglcf] <-- GET /api/groups 304 in 79ms :: [{"id":6,"name":"Frouard","color":"#455A64","created_at":"2025-07-10T20:53:29.185Z","updated_at":"2…
+
+[hn9qal] ERROR Response: 500 Internal Server Error
+
+[hn9qal] <-- GET /api/orders 500 in 88ms :: {"message":"Failed to fetch orders"}
+
+[n2i5vk] --> GET /api/suppliers
+
+[n2i5vk]     Host: logiflow.ffnancy.fr
+
+[n2i5vk]     IP: 172.20.0.8
+
+[n2i5vk]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[n2i5vk] <-- GET /api/suppliers 304 in 8ms :: [{"id":22,"name":"Amefa","contact":"","phone":"","created_at":"2025-07-11T00:50:26.171Z","updated_a…
+
+[mag79g] --> POST /api/orders
+
+[mag79g]     Host: logiflow.ffnancy.fr
+
+[mag79g]     IP: 172.20.0.8
+
+[mag79g]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+Error creating order: error: column "notes" of relation "orders" does not exist
+
+    at /app/node_modules/pg-pool/index.js:45:11
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    at async DatabaseStorage.createOrder (file:///app/dist/index.js:5351:24)
+
+    at async file:///app/dist/index.js:6060:21 {
+
+  length: 124,
+
+  severity: 'ERROR',
+
+  code: '42703',
+
+  detail: undefined,
+
+  hint: undefined,
+
+  position: '73',
+
+  internalPosition: undefined,
+
+  internalQuery: undefined,
+
+  where: undefined,
+
+  schema: undefined,
+
+  table: undefined,
+
+  column: undefined,
+
+  dataType: undefined,
+
+  constraint: undefined,
+
+  file: 'parse_target.c',
+
+  line: '1075',
+
+  routine: 'checkInsertTargets'
+
+}
+
+[mag79g] <-- POST /api/orders 500 in 25ms :: {"message":"Failed to create order"}
+
+[mag79g] ERROR Response: 500 Internal Server Error
+
+
+      
+      
+    
