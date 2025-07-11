@@ -123,10 +123,12 @@ export default function BLReconciliation() {
         title: "Succès",
         description: "Facture associée avec succès",
       });
-      // Invalider toutes les clés de cache liées aux livraisons
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
-      queryClient.refetchQueries({ queryKey: ['/api/deliveries/bl', selectedStoreId, selectedDate] });
+      // Invalider tous les caches BL/Rapprochement avec toutes les variations de clés
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === '/api/deliveries/bl' || 
+          query.queryKey[0] === '/api/deliveries'
+      });
       form.reset();
       setShowInvoiceModal(false);
       setSelectedDelivery(null);
@@ -162,7 +164,12 @@ export default function BLReconciliation() {
         title: "Succès",
         description: "Rapprochement validé avec succès",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
+      // Invalider tous les caches BL/Rapprochement
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === '/api/deliveries/bl' || 
+          query.queryKey[0] === '/api/deliveries'
+      });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -193,8 +200,12 @@ export default function BLReconciliation() {
         title: "Succès",
         description: "Livraison supprimée avec succès",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      // Invalider tous les caches BL/Rapprochement
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === '/api/deliveries/bl' || 
+          query.queryKey[0] === '/api/deliveries'
+      });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

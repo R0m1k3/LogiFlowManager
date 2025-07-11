@@ -91,6 +91,12 @@ export default function Deliveries() {
       // Invalider tous les caches liés aux livraisons
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
       queryClient.invalidateQueries({ queryKey: [deliveriesUrl] });
+      // Invalider tous les caches BL/Rapprochement
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === '/api/deliveries/bl' || 
+          query.queryKey[0] === '/api/deliveries'
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
     },

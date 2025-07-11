@@ -60,9 +60,16 @@ export default function ValidateDeliveryModal({
         title: "Succès",
         description: "Livraison validée avec succès",
       });
+      // Invalider tous les caches liés aux livraisons
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
+      // Invalider tous les caches BL/Rapprochement avec toutes les variations de clés
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === '/api/deliveries/bl' || 
+          query.queryKey[0] === '/api/deliveries'
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
       form.reset();
       onClose();
       // Fermer aussi le modal parent si fourni
