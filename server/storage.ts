@@ -297,13 +297,13 @@ export class DatabaseStorage implements IStorage {
   async getDeliveriesByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<DeliveryWithRelations[]> {
     const whereCondition = groupIds 
       ? and(
-          gte(deliveries.plannedDate, startDate),
-          lte(deliveries.plannedDate, endDate),
+          gte(deliveries.scheduledDate, startDate),
+          lte(deliveries.scheduledDate, endDate),
           inArray(deliveries.groupId, groupIds)
         )
       : and(
-          gte(deliveries.plannedDate, startDate),
-          lte(deliveries.plannedDate, endDate)
+          gte(deliveries.scheduledDate, startDate),
+          lte(deliveries.scheduledDate, endDate)
         );
 
     const results = await db.query.deliveries.findMany({
@@ -449,13 +449,13 @@ export class DatabaseStorage implements IStorage {
 
     const deliveryWhere = groupIds 
       ? and(
-          gte(deliveries.plannedDate, startDate),
-          lte(deliveries.plannedDate, endDate),
+          gte(deliveries.scheduledDate, startDate),
+          lte(deliveries.scheduledDate, endDate),
           inArray(deliveries.groupId, groupIds)
         )
       : and(
-          gte(deliveries.plannedDate, startDate),
-          lte(deliveries.plannedDate, endDate)
+          gte(deliveries.scheduledDate, startDate),
+          lte(deliveries.scheduledDate, endDate)
         );
 
     // Get counts and totals
