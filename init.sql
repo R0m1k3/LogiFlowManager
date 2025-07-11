@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS deliveries (
     invoice_reference VARCHAR,
     invoice_amount DECIMAL(10,2),
     reconciled BOOLEAN DEFAULT FALSE,
+    validated_at TIMESTAMP,
     created_by VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

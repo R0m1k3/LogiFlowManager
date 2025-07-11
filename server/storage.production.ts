@@ -836,13 +836,13 @@ export class DatabaseStorage implements IStorage {
     if (blData) {
       await pool.query(`
         UPDATE deliveries 
-        SET status = 'delivered', bl_number = $1, bl_amount = $2, validated_at = $3, updated_at = $3
+        SET status = 'delivered', bl_number = $1, bl_amount = $2, updated_at = $3
         WHERE id = $4
       `, [blData.blNumber, blData.blAmount, new Date(), id]);
     } else {
       await pool.query(`
         UPDATE deliveries 
-        SET status = 'delivered', validated_at = $1, updated_at = $1
+        SET status = 'delivered', updated_at = $1
         WHERE id = $2
       `, [new Date(), id]);
     }
