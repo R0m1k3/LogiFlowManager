@@ -266,6 +266,15 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(id: string, userData: Partial<UpsertUser>): Promise<User> {
     const { pool } = await import("./db.production.js");
+    
+    // Handle firstName/lastName to name conversion if needed
+    let name = userData.name;
+    if (!name && (userData as any).firstName && (userData as any).lastName) {
+      name = `${(userData as any).firstName} ${(userData as any).lastName}`.trim();
+    }
+    
+    console.log('🔍 Updating user with data:', { id, name, email: userData.email, username: userData.username });
+    
     const result = await pool.query(`
       UPDATE users 
       SET name = COALESCE($1, name), email = COALESCE($2, email), username = COALESCE($3, username), 
@@ -273,7 +282,9 @@ export class DatabaseStorage implements IStorage {
           password_changed = COALESCE($6, password_changed), updated_at = $7
       WHERE id = $8
       RETURNING id, username, email, name, role, password, password_changed, created_at, updated_at
-    `, [userData.name, userData.email, userData.username, userData.role, userData.password, userData.passwordChanged, new Date(), id]);
+    `, [name, userData.email, userData.username, userData.role, userData.password, userData.passwordChanged, new Date(), id]);
+    
+    console.log('✅ User updated:', result.rows[0]);
     return result.rows[0];
   }
 

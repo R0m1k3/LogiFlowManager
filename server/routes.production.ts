@@ -312,14 +312,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/users/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.id);
-      if (!user || user.role !== 'admin') {
+      const id = req.params.id;
+      
+      // Allow users to update their own profile OR admins to update any profile
+      if (!user || (user.role !== 'admin' && user.id !== id)) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
 
-      const id = req.params.id;
-      const userData = req.body;
+      console.log('🔍 Updating user:', id, 'with data:', req.body);
+      
+      // Convert firstName/lastName to name field for database
+      const userData = { ...req.body };
+      if (userData.firstName && userData.lastName) {
+        userData.name = `${userData.firstName} ${userData.lastName}`.trim();
+        // Remove frontend-specific fields
+        delete userData.firstName;
+        delete userData.lastName;
+      }
+      
       const updatedUser = await storage.updateUser(id, userData);
-      res.json(updatedUser);
+      console.log('✅ User updated successfully:', updatedUser);
+      
+      // Convert back for frontend
+      const [firstName = '', ...lastNameParts] = (updatedUser.name || '').split(' ');
+      const lastName = lastNameParts.join(' ');
+      
+      res.json({
+        ...updatedUser,
+        firstName,
+        lastName
+      });
     } catch (error) {
       console.error("Error updating user:", error);
       res.status(500).json({ message: "Failed to update user" });

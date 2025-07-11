@@ -7168,6 +7168,11 @@ var init_storage_production = __esm({
       }
       async updateUser(id, userData) {
         const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
+        let name = userData.name;
+        if (!name && userData.firstName && userData.lastName) {
+          name = `${userData.firstName} ${userData.lastName}`.trim();
+        }
+        console.log("\u{1F50D} Updating user with data:", { id, name, email: userData.email, username: userData.username });
         const result = await pool2.query(`
       UPDATE users 
       SET name = COALESCE($1, name), email = COALESCE($2, email), username = COALESCE($3, username), 
@@ -7175,7 +7180,8 @@ var init_storage_production = __esm({
           password_changed = COALESCE($6, password_changed), updated_at = $7
       WHERE id = $8
       RETURNING id, username, email, name, role, password, password_changed, created_at, updated_at
-    `, [userData.name, userData.email, userData.username, userData.role, userData.password, userData.passwordChanged, /* @__PURE__ */ new Date(), id]);
+    `, [name, userData.email, userData.username, userData.role, userData.password, userData.passwordChanged, /* @__PURE__ */ new Date(), id]);
+        console.log("\u2705 User updated:", result.rows[0]);
         return result.rows[0];
       }
       async deleteUser(id) {
@@ -8101,13 +8107,26 @@ async function registerRoutes(app2) {
   app2.put("/api/users/:id", isAuthenticated, async (req, res) => {
     try {
       const user = await storage2.getUser(req.user.id);
-      if (!user || user.role !== "admin") {
+      const id = req.params.id;
+      if (!user || user.role !== "admin" && user.id !== id) {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
-      const id = req.params.id;
-      const userData = req.body;
+      console.log("\u{1F50D} Updating user:", id, "with data:", req.body);
+      const userData = { ...req.body };
+      if (userData.firstName && userData.lastName) {
+        userData.name = `${userData.firstName} ${userData.lastName}`.trim();
+        delete userData.firstName;
+        delete userData.lastName;
+      }
       const updatedUser = await storage2.updateUser(id, userData);
-      res.json(updatedUser);
+      console.log("\u2705 User updated successfully:", updatedUser);
+      const [firstName = "", ...lastNameParts] = (updatedUser.name || "").split(" ");
+      const lastName = lastNameParts.join(" ");
+      res.json({
+        ...updatedUser,
+        firstName,
+        lastName
+      });
     } catch (error) {
       console.error("Error updating user:", error);
       res.status(500).json({ message: "Failed to update user" });

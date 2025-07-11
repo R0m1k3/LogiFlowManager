@@ -319,6 +319,7 @@ Changelog:
 - July 11, 2025. Tous modules convertis : Users, Groups, Suppliers, Orders, Deliveries, UserGroups, Statistics
 - July 11, 2025. Build production stabilisé : 301KB bundle en 50ms, zéro erreur compilation, architecture 100% SQL native
 - July 11, 2025. **RÉSOLUTION DÉFINITIVE ERROR 500** - Architecture production pure PostgreSQL sans dépendances ORM problématiques
+- July 11, 2025. **CORRECTION ÉDITION PROFIL UTILISATEUR** - Autorisé modification du propre profil + conversion firstName/lastName vers name
 
 ## User Preferences
 
