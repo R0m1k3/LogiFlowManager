@@ -53,10 +53,10 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
       endDate: publicity?.endDate ? new Date(publicity.endDate) : undefined,
       year: publicity?.year || new Date().getFullYear(),
       participatingGroups: publicity?.participations?.map(p => p.groupId) || [],
-    }
+    },
   });
 
-  // Mettre à jour l'année automatiquement quand les dates changent
+  // Auto-update year when start date changes
   const watchedStartDate = form.watch("startDate");
   useEffect(() => {
     if (watchedStartDate) {
@@ -75,15 +75,13 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
           startDate: format(data.startDate, 'yyyy-MM-dd'),
           endDate: format(data.endDate, 'yyyy-MM-dd'),
           year: data.year,
-          participatingGroups: data.participatingGroups
-        })
+          participatingGroups: data.participatingGroups,
+        }),
       });
-      
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Erreur lors de la création');
       }
-      
       return response.json();
     },
     onSuccess: () => {
@@ -110,15 +108,13 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
           startDate: format(data.startDate, 'yyyy-MM-dd'),
           endDate: format(data.endDate, 'yyyy-MM-dd'),
           year: data.year,
-          participatingGroups: data.participatingGroups
-        })
+          participatingGroups: data.participatingGroups,
+        }),
       });
-      
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Erreur lors de la modification');
       }
-      
       return response.json();
     },
     onSuccess: () => {
@@ -142,28 +138,20 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
     }
   };
 
-  const handleGroupToggle = (groupId: number, checked: boolean) => {
-    const currentGroups = form.getValues("participatingGroups");
-    if (checked) {
-      form.setValue("participatingGroups", [...currentGroups, groupId]);
-    } else {
-      form.setValue("participatingGroups", currentGroups.filter(id => id !== groupId));
-    }
-  };
+  const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      {/* Informations de base */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="pubNumber">N° PUB *</Label>
+          <Label htmlFor="pubNumber">N° PUB</Label>
           <Input
             id="pubNumber"
-            placeholder="PUB-2025-001"
             {...form.register("pubNumber")}
+            placeholder="Ex: PUB2025-001"
           />
           {form.formState.errors.pubNumber && (
-            <p className="text-sm text-destructive">{form.formState.errors.pubNumber.message}</p>
+            <p className="text-sm text-red-600">{form.formState.errors.pubNumber.message}</p>
           )}
         </div>
 
@@ -172,28 +160,32 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
           <Input
             id="year"
             type="number"
-            disabled
             {...form.register("year", { valueAsNumber: true })}
+            min="2020"
+            max="2030"
           />
+          {form.formState.errors.year && (
+            <p className="text-sm text-red-600">{form.formState.errors.year.message}</p>
+          )}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="designation">Désignation *</Label>
+        <Label htmlFor="designation">Désignation</Label>
         <Textarea
           id="designation"
-          placeholder="Description de la campagne publicitaire..."
           {...form.register("designation")}
+          placeholder="Description de la campagne publicitaire"
+          rows={3}
         />
         {form.formState.errors.designation && (
-          <p className="text-sm text-destructive">{form.formState.errors.designation.message}</p>
+          <p className="text-sm text-red-600">{form.formState.errors.designation.message}</p>
         )}
       </div>
 
-      {/* Dates */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Date de début *</Label>
+          <Label>Date de début</Label>
           <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -204,13 +196,14 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {form.watch("startDate") 
-                  ? format(form.watch("startDate"), "dd/MM/yyyy", { locale: fr })
-                  : "Sélectionner une date"
-                }
+                {form.watch("startDate") ? (
+                  format(form.watch("startDate"), "dd/MM/yyyy", { locale: fr })
+                ) : (
+                  <span>Sélectionner une date</span>
+                )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
                 selected={form.watch("startDate")}
@@ -218,17 +211,19 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
                   form.setValue("startDate", date!);
                   setStartCalendarOpen(false);
                 }}
+                disabled={(date) => date < new Date("1900-01-01")}
                 initialFocus
+                locale={fr}
               />
             </PopoverContent>
           </Popover>
           {form.formState.errors.startDate && (
-            <p className="text-sm text-destructive">{form.formState.errors.startDate.message}</p>
+            <p className="text-sm text-red-600">{form.formState.errors.startDate.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label>Date de fin *</Label>
+          <Label>Date de fin</Label>
           <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -239,13 +234,14 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {form.watch("endDate") 
-                  ? format(form.watch("endDate"), "dd/MM/yyyy", { locale: fr })
-                  : "Sélectionner une date"
-                }
+                {form.watch("endDate") ? (
+                  format(form.watch("endDate"), "dd/MM/yyyy", { locale: fr })
+                ) : (
+                  <span>Sélectionner une date</span>
+                )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
                 selected={form.watch("endDate")}
@@ -253,61 +249,71 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
                   form.setValue("endDate", date!);
                   setEndCalendarOpen(false);
                 }}
+                disabled={(date) => {
+                  const startDate = form.watch("startDate");
+                  return date < new Date("1900-01-01") || (startDate && date < startDate);
+                }}
                 initialFocus
+                locale={fr}
               />
             </PopoverContent>
           </Popover>
           {form.formState.errors.endDate && (
-            <p className="text-sm text-destructive">{form.formState.errors.endDate.message}</p>
+            <p className="text-sm text-red-600">{form.formState.errors.endDate.message}</p>
           )}
         </div>
       </div>
 
-      {/* Sélection des magasins */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Magasins participants *</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            {groups.map((group) => (
-              <div key={group.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`group-${group.id}`}
-                  checked={form.watch("participatingGroups").includes(group.id)}
-                  onCheckedChange={(checked) => handleGroupToggle(group.id, !!checked)}
-                />
-                <Label
-                  htmlFor={`group-${group.id}`}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <div
-                    className="w-3 h-3 rounded"
-                    style={{ backgroundColor: group.color }}
+      <div className="space-y-3">
+        <Label>Magasins participants</Label>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-2 gap-3">
+              {groups.map((group) => (
+                <div key={group.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`group-${group.id}`}
+                    checked={form.watch("participatingGroups").includes(group.id)}
+                    onCheckedChange={(checked) => {
+                      const current = form.watch("participatingGroups");
+                      if (checked) {
+                        form.setValue("participatingGroups", [...current, group.id]);
+                      } else {
+                        form.setValue("participatingGroups", current.filter(id => id !== group.id));
+                      }
+                    }}
                   />
-                  {group.name}
-                </Label>
-              </div>
-            ))}
-          </div>
-          {form.formState.errors.participatingGroups && (
-            <p className="text-sm text-destructive mt-2">
-              {form.formState.errors.participatingGroups.message}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+                  <Label
+                    htmlFor={`group-${group.id}`}
+                    className="flex items-center space-x-2 cursor-pointer"
+                  >
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: group.color }}
+                    />
+                    <span>{group.name}</span>
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        {form.formState.errors.participatingGroups && (
+          <p className="text-sm text-red-600">{form.formState.errors.participatingGroups.message}</p>
+        )}
+      </div>
 
-      {/* Actions */}
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onSuccess}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onSuccess}
+          disabled={isLoading}
+        >
           Annuler
         </Button>
-        <Button 
-          type="submit" 
-          disabled={createMutation.isPending || updateMutation.isPending}
-        >
-          {createMutation.isPending || updateMutation.isPending ? (
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               {publicity ? 'Modification...' : 'Création...'}

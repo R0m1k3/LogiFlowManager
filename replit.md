@@ -47,6 +47,8 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 - **Suppliers**: Supplier contact information and management
 - **Groups**: Store/location groupings with color coding
 - **User Groups**: Many-to-many relationship for access control
+- **Publicities**: Advertising campaign management with year-based organization
+- **Publicity Participations**: Many-to-many relationship between campaigns and stores
 
 ### Permission System
 - **Admin**: Full access to all features, user management, and store switching
@@ -338,6 +340,14 @@ Changelog:
 - July 11, 2025. **DONNÉES TEST AUTOMATIQUES SUPPRIMÉES** - Élimination groupes/fournisseurs test (Frouard/Nancy/Metz) du init.sql
 - July 11, 2025. **INIT.SQL NETTOYÉ** - Plus de création automatique de données de test à chaque redémarrage/mise à jour
 - July 11, 2025. **BASE PRODUCTION PROPRE** - Suppression complète des données test persistantes, seules données réelles conservées
+- July 11, 2025. **MODULE PUBLICITÉS PRODUCTION PRÊT** - Implémentation complète du module Publicités pour déploiement
+- July 11, 2025. Ajout routes API publicités dans routes.production.ts avec authentification et permissions (admin/manager)
+- July 11, 2025. Implémentation méthodes stockage publicités dans storage.production.ts avec SQL brut pour production
+- July 11, 2025. Création tables SQL publicities et publicity_participations dans init.sql avec index de performance
+- July 11, 2025. Interface utilisateur complète Publicities.tsx avec gestion CRUD, filtres par année et permissions
+- July 11, 2025. Formulaire PublicityForm.tsx avec sélection magasins participants et validation dates
+- July 11, 2025. Navigation intégrée dans sidebar avec icône Megaphone et permissions role-based
+- July 11, 2025. Module prêt pour déploiement Docker avec toutes les dépendances production configurées
 - July 11, 2025. **ERREUR COLUMN QUANTITY RÉSOLUE** - Statistiques palettes/colis calculées depuis livraisons uniquement (commandes sans quantité)
 - July 11, 2025. **INITDATABASE.PRODUCTION.TS NETTOYÉ** - Dernière source de données test éliminée, plus aucune recréation automatique
 - July 11, 2025. **MODULE RAPPROCHEMENT CORRIGÉ** - Suppression admin, mise à jour factures, et gestion d'état mutations fonctionnelles

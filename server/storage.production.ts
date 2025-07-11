@@ -952,6 +952,287 @@ export class DatabaseStorage implements IStorage {
       totalPackages,
     };
   }
+
+  // Publicity operations
+  async getPublicities(year?: number, groupIds?: number[]): Promise<PublicityWithRelations[]> {
+    const { pool } = await import("./db.production.js");
+    
+    let sqlQuery = `
+      SELECT 
+        p.id, p.pub_number, p.designation, p.start_date, p.end_date, p.year, 
+        p.created_by, p.created_at, p.updated_at,
+        u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
+        u.password as creator_password, u.password_changed as creator_password_changed, 
+        u.created_at as creator_created_at, u.updated_at as creator_updated_at
+      FROM publicities p
+      INNER JOIN users u ON p.created_by = u.id
+    `;
+    
+    const params: any[] = [];
+    const conditions: string[] = [];
+    
+    if (year) {
+      conditions.push(`p.year = $${params.length + 1}`);
+      params.push(year);
+    }
+    
+    if (groupIds && groupIds.length > 0) {
+      conditions.push(`p.id IN (
+        SELECT DISTINCT pp.publicity_id 
+        FROM publicity_participations pp 
+        WHERE pp.group_id = ANY($${params.length + 1})
+      )`);
+      params.push(groupIds);
+    }
+    
+    if (conditions.length > 0) {
+      sqlQuery += ` WHERE ${conditions.join(' AND ')}`;
+    }
+    
+    sqlQuery += ` ORDER BY p.created_at DESC`;
+    
+    const result = await pool.query(sqlQuery, params);
+    
+    const publicities = await Promise.all(result.rows.map(async (row) => {
+      // Get participations for this publicity
+      const participationsResult = await pool.query(`
+        SELECT 
+          pp.publicity_id, pp.group_id, pp.created_at,
+          g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
+        FROM publicity_participations pp
+        INNER JOIN groups g ON pp.group_id = g.id
+        WHERE pp.publicity_id = $1
+      `, [row.id]);
+      
+      return {
+        id: row.id as number,
+        pubNumber: row.pub_number as string,
+        designation: row.designation as string,
+        startDate: row.start_date as string,
+        endDate: row.end_date as string,
+        year: row.year as number,
+        createdBy: row.created_by as string,
+        createdAt: new Date(row.created_at as string),
+        updatedAt: new Date(row.updated_at as string),
+        creator: {
+          id: row.created_by as string,
+          username: row.creator_username as string,
+          email: row.creator_email as string,
+          name: row.creator_name as string,
+          role: row.creator_role as 'admin' | 'manager' | 'employee',
+          password: row.creator_password as string,
+          passwordChanged: row.creator_password_changed as boolean,
+          createdAt: new Date(row.creator_created_at as string),
+          updatedAt: new Date(row.creator_updated_at as string),
+        },
+        participations: participationsResult.rows.map(pRow => ({
+          publicityId: pRow.publicity_id as number,
+          groupId: pRow.group_id as number,
+          createdAt: new Date(pRow.created_at as string),
+          group: {
+            id: pRow.group_id as number,
+            name: pRow.group_name as string,
+            color: pRow.group_color as string,
+            createdAt: new Date(pRow.group_created_at as string),
+            updatedAt: new Date(pRow.group_updated_at as string),
+          }
+        }))
+      };
+    }));
+    
+    return publicities as PublicityWithRelations[];
+  }
+
+  async getPublicity(id: number): Promise<PublicityWithRelations | undefined> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      SELECT 
+        p.id, p.pub_number, p.designation, p.start_date, p.end_date, p.year, 
+        p.created_by, p.created_at, p.updated_at,
+        u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
+        u.password as creator_password, u.password_changed as creator_password_changed, 
+        u.created_at as creator_created_at, u.updated_at as creator_updated_at
+      FROM publicities p
+      INNER JOIN users u ON p.created_by = u.id
+      WHERE p.id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) return undefined;
+    
+    const row = result.rows[0];
+    
+    // Get participations
+    const participationsResult = await pool.query(`
+      SELECT 
+        pp.publicity_id, pp.group_id, pp.created_at,
+        g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
+      FROM publicity_participations pp
+      INNER JOIN groups g ON pp.group_id = g.id
+      WHERE pp.publicity_id = $1
+    `, [id]);
+    
+    return {
+      id: row.id as number,
+      pubNumber: row.pub_number as string,
+      designation: row.designation as string,
+      startDate: row.start_date as string,
+      endDate: row.end_date as string,
+      year: row.year as number,
+      createdBy: row.created_by as string,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+      creator: {
+        id: row.created_by as string,
+        username: row.creator_username as string,
+        email: row.creator_email as string,
+        name: row.creator_name as string,
+        role: row.creator_role as 'admin' | 'manager' | 'employee',
+        password: row.creator_password as string,
+        passwordChanged: row.creator_password_changed as boolean,
+        createdAt: new Date(row.creator_created_at as string),
+        updatedAt: new Date(row.creator_updated_at as string),
+      },
+      participations: participationsResult.rows.map(pRow => ({
+        publicityId: pRow.publicity_id as number,
+        groupId: pRow.group_id as number,
+        createdAt: new Date(pRow.created_at as string),
+        group: {
+          id: pRow.group_id as number,
+          name: pRow.group_name as string,
+          color: pRow.group_color as string,
+          createdAt: new Date(pRow.group_created_at as string),
+          updatedAt: new Date(pRow.group_updated_at as string),
+        }
+      }))
+    } as PublicityWithRelations;
+  }
+
+  async createPublicity(publicity: InsertPublicity): Promise<Publicity> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      INSERT INTO publicities (pub_number, designation, start_date, end_date, year, created_by, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING *
+    `, [
+      publicity.pubNumber,
+      publicity.designation,
+      publicity.startDate,
+      publicity.endDate,
+      publicity.year,
+      publicity.createdBy
+    ]);
+    
+    const row = result.rows[0];
+    return {
+      id: row.id as number,
+      pubNumber: row.pub_number as string,
+      designation: row.designation as string,
+      startDate: row.start_date as string,
+      endDate: row.end_date as string,
+      year: row.year as number,
+      createdBy: row.created_by as string,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+    } as Publicity;
+  }
+
+  async updatePublicity(id: number, publicity: Partial<InsertPublicity>): Promise<Publicity> {
+    const { pool } = await import("./db.production.js");
+    
+    const updates: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+    
+    if (publicity.pubNumber !== undefined) {
+      updates.push(`pub_number = $${paramIndex++}`);
+      params.push(publicity.pubNumber);
+    }
+    if (publicity.designation !== undefined) {
+      updates.push(`designation = $${paramIndex++}`);
+      params.push(publicity.designation);
+    }
+    if (publicity.startDate !== undefined) {
+      updates.push(`start_date = $${paramIndex++}`);
+      params.push(publicity.startDate);
+    }
+    if (publicity.endDate !== undefined) {
+      updates.push(`end_date = $${paramIndex++}`);
+      params.push(publicity.endDate);
+    }
+    if (publicity.year !== undefined) {
+      updates.push(`year = $${paramIndex++}`);
+      params.push(publicity.year);
+    }
+    
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    params.push(id);
+    
+    const result = await pool.query(`
+      UPDATE publicities 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `, params);
+    
+    const row = result.rows[0];
+    return {
+      id: row.id as number,
+      pubNumber: row.pub_number as string,
+      designation: row.designation as string,
+      startDate: row.start_date as string,
+      endDate: row.end_date as string,
+      year: row.year as number,
+      createdBy: row.created_by as string,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+    } as Publicity;
+  }
+
+  async deletePublicity(id: number): Promise<void> {
+    const { pool } = await import("./db.production.js");
+    
+    // Delete participations first (cascade should handle this, but explicit is better)
+    await pool.query(`DELETE FROM publicity_participations WHERE publicity_id = $1`, [id]);
+    
+    // Delete publicity
+    await pool.query(`DELETE FROM publicities WHERE id = $1`, [id]);
+  }
+
+  async getPublicityParticipations(publicityId: number): Promise<PublicityParticipation[]> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      SELECT publicity_id, group_id, created_at
+      FROM publicity_participations
+      WHERE publicity_id = $1
+    `, [publicityId]);
+    
+    return result.rows.map(row => ({
+      publicityId: row.publicity_id as number,
+      groupId: row.group_id as number,
+      createdAt: new Date(row.created_at as string),
+    })) as PublicityParticipation[];
+  }
+
+  async setPublicityParticipations(publicityId: number, groupIds: number[]): Promise<void> {
+    const { pool } = await import("./db.production.js");
+    
+    // Delete existing participations
+    await pool.query(`DELETE FROM publicity_participations WHERE publicity_id = $1`, [publicityId]);
+    
+    // Insert new participations
+    if (groupIds.length > 0) {
+      const values = groupIds.map((groupId, index) => `($1, $${index + 2})`).join(', ');
+      const params = [publicityId, ...groupIds];
+      
+      await pool.query(`
+        INSERT INTO publicity_participations (publicity_id, group_id, created_at)
+        VALUES ${values}
+      `, params);
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

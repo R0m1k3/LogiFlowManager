@@ -95,12 +95,34 @@ CREATE TABLE IF NOT EXISTS user_groups (
     PRIMARY KEY (user_id, group_id)
 );
 
+-- Publicities table
+CREATE TABLE IF NOT EXISTS publicities (
+    id SERIAL PRIMARY KEY,
+    pub_number VARCHAR NOT NULL,
+    designation TEXT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    year INTEGER NOT NULL,
+    created_by VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Publicity Participations junction table 
+CREATE TABLE IF NOT EXISTS publicity_participations (
+    publicity_id INTEGER NOT NULL REFERENCES publicities(id) ON DELETE CASCADE,
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (publicity_id, group_id)
+);
+
 -- Note: No default data inserted
 -- Groups and suppliers will be created by administrators as needed
 
 -- Reset sequences to correct values (only if data exists)
 SELECT setval('groups_id_seq', (SELECT COALESCE(MAX(id), 1) FROM groups));
 SELECT setval('suppliers_id_seq', (SELECT COALESCE(MAX(id), 1) FROM suppliers));
+SELECT setval('publicities_id_seq', (SELECT COALESCE(MAX(id), 1) FROM publicities));
 
 -- Create performance indexes
 CREATE INDEX IF NOT EXISTS idx_orders_planned_date ON orders (planned_date);
@@ -127,6 +149,14 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
 CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers (name);
 CREATE INDEX IF NOT EXISTS idx_groups_name ON groups (name);
 
+-- Publicity indexes
+CREATE INDEX IF NOT EXISTS idx_publicities_year ON publicities (year);
+CREATE INDEX IF NOT EXISTS idx_publicities_start_date ON publicities (start_date);
+CREATE INDEX IF NOT EXISTS idx_publicities_end_date ON publicities (end_date);
+CREATE INDEX IF NOT EXISTS idx_publicities_created_by ON publicities (created_by);
+CREATE INDEX IF NOT EXISTS idx_publicity_participations_publicity_id ON publicity_participations (publicity_id);
+CREATE INDEX IF NOT EXISTS idx_publicity_participations_group_id ON publicity_participations (group_id);
+
 -- Notification de fin
 DO $$
 BEGIN
@@ -141,6 +171,8 @@ BEGIN
     RAISE NOTICE '- orders (commandes avec notes)';
     RAISE NOTICE '- deliveries (livraisons avec BL/factures)';
     RAISE NOTICE '- user_groups (clé composite)';
+    RAISE NOTICE '- publicities (campagnes publicitaires)';
+    RAISE NOTICE '- publicity_participations (magasins participants)';
     RAISE NOTICE '==========================================';
     RAISE NOTICE 'Aucune donnée de test insérée automatiquement';
     RAISE NOTICE 'Groupes et fournisseurs à créer par l''administrateur';

@@ -1,204 +1,289 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useStore } from "@/components/Layout";
+import { Plus, Calendar, Edit, Trash2, Eye, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Search, Plus, Edit, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/components/Layout";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import type { PublicityWithRelations, Group } from "@shared/schema";
 import PublicityForm from "@/components/PublicityForm";
-import type { PublicityWithRelations } from "@shared/schema";
 
 export default function Publicities() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingPublicity, setEditingPublicity] = useState<PublicityWithRelations | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedPublicity, setSelectedPublicity] = useState<PublicityWithRelations | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
+  const { user } = useAuth();
   const { selectedStoreId } = useStore();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Générer les années disponibles (actuelle + 2 prochaines)
-  const availableYears = Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i);
+  // Generate year options (current year ± 5 years)
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
   const { data: publicities = [], isLoading } = useQuery({
     queryKey: ['/api/publicities', selectedYear, selectedStoreId],
-    queryFn: async () => {
+    queryFn: () => {
       const params = new URLSearchParams();
-      if (selectedYear) params.set('year', selectedYear.toString());
-      if (selectedStoreId) params.set('storeId', selectedStoreId.toString());
-      
-      const response = await fetch(`/api/publicities?${params}`);
-      if (!response.ok) throw new Error('Erreur lors de la récupération des publicités');
-      return response.json() as PublicityWithRelations[];
-    }
+      params.append('year', selectedYear.toString());
+      if (selectedStoreId) {
+        params.append('storeId', selectedStoreId.toString());
+      }
+      return fetch(`/api/publicities?${params}`).then(res => res.json());
+    },
   });
 
-  const { data: groups = [] } = useQuery({
+  const { data: groups = [] } = useQuery<Group[]>({
     queryKey: ['/api/groups'],
-    queryFn: async () => {
-      const response = await fetch('/api/groups');
-      if (!response.ok) throw new Error('Erreur lors de la récupération des groupes');
-      return response.json();
-    }
+    enabled: !!user,
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/publicities/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Erreur lors de la suppression');
+      const response = await fetch(`/api/publicities/${id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erreur lors de la suppression');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/publicities'] });
+      toast({ description: "Publicité supprimée avec succès" });
+      setIsDeleteModalOpen(false);
+      setSelectedPublicity(null);
+    },
+    onError: (error: Error) => {
+      toast({ 
+        variant: "destructive",
+        description: error.message || "Erreur lors de la suppression" 
+      });
     }
   });
 
-  // Filtrer les publicités par terme de recherche
-  const filteredPublicities = publicities.filter(pub => 
-    pub.pubNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pub.designation.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleEdit = (publicity: PublicityWithRelations) => {
-    setEditingPublicity(publicity);
-    setIsFormOpen(true);
+  const handleView = (publicity: PublicityWithRelations) => {
+    setSelectedPublicity(publicity);
+    setIsViewModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette publicité ?')) {
-      deleteMutation.mutate(id);
+  const handleEdit = (publicity: PublicityWithRelations) => {
+    setSelectedPublicity(publicity);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (publicity: PublicityWithRelations) => {
+    setSelectedPublicity(publicity);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedPublicity) {
+      deleteMutation.mutate(selectedPublicity.id);
     }
   };
 
-  const handleFormClose = () => {
-    setIsFormOpen(false);
-    setEditingPublicity(null);
+  const closeModals = () => {
+    setIsCreateModalOpen(false);
+    setIsEditModalOpen(false);
+    setIsViewModalOpen(false);
+    setIsDeleteModalOpen(false);
+    setSelectedPublicity(null);
   };
 
+  const canCreateOrEdit = user?.role === 'admin' || user?.role === 'manager';
+  const canDelete = user?.role === 'admin';
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Publicités</h1>
-          <p className="text-muted-foreground">Gestion des campagnes publicitaires et participation des magasins</p>
+          <h1 className="text-2xl font-semibold text-gray-900">Publicités</h1>
+          <p className="text-gray-600">Gestion des campagnes publicitaires</p>
         </div>
-        
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouvelle Publicité
+
+        <div className="flex items-center gap-3">
+          {/* Year Filter */}
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-500" />
+            <Select
+              value={selectedYear.toString()}
+              onValueChange={(value) => setSelectedYear(parseInt(value))}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {canCreateOrEdit && (
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nouvelle publicité
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl rounded-2xl border shadow-lg">
-            <DialogHeader>
-              <DialogTitle>
-                {editingPublicity ? 'Modifier la publicité' : 'Nouvelle publicité'}
-              </DialogTitle>
-            </DialogHeader>
-            <PublicityForm 
-              publicity={editingPublicity} 
-              groups={groups}
-              onSuccess={handleFormClose}
-            />
-          </DialogContent>
-        </Dialog>
+          )}
+        </div>
       </div>
 
-      {/* Filtres */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total {selectedYear}</p>
+                <p className="text-2xl font-semibold">{publicities.length}</p>
+              </div>
             </div>
-            
-            <div className="flex items-center gap-2 flex-1">
-              <Search className="h-4 w-4" />
-              <Input
-                placeholder="Rechercher par N° PUB ou désignation..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-md"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Table des publicités */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Publicités {selectedYear} ({filteredPublicities.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">En cours</p>
+                <p className="text-2xl font-semibold">
+                  {publicities.filter(p => {
+                    const now = new Date();
+                    const start = new Date(p.startDate);
+                    const end = new Date(p.endDate);
+                    return start <= now && now <= end;
+                  }).length}
+                </p>
+              </div>
             </div>
-          ) : filteredPublicities.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Aucune publicité trouvée pour {selectedYear}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">À venir</p>
+                <p className="text-2xl font-semibold">
+                  {publicities.filter(p => new Date(p.startDate) > new Date()).length}
+                </p>
+              </div>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>N° PUB</TableHead>
-                  <TableHead>Désignation</TableHead>
-                  <TableHead>Période</TableHead>
-                  <TableHead>Magasins participants</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPublicities.map((publicity) => (
-                  <TableRow key={publicity.id}>
-                    <TableCell className="font-mono">{publicity.pubNumber}</TableCell>
-                    <TableCell className="font-medium">{publicity.designation}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        Du {format(new Date(publicity.startDate), 'dd/MM/yyyy', { locale: fr })}
-                        <br />
-                        au {format(new Date(publicity.endDate), 'dd/MM/yyyy', { locale: fr })}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {publicity.participations.map((participation) => (
-                          <Badge 
-                            key={participation.groupId} 
-                            variant="secondary"
-                            style={{ backgroundColor: participation.group.color + '20', color: participation.group.color }}
-                          >
-                            {participation.group.name}
-                          </Badge>
-                        ))}
-                        {publicity.participations.length === 0 && (
-                          <span className="text-muted-foreground text-sm">Aucun magasin</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Publicities Grid */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : publicities.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Aucune publicité pour {selectedYear}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Commencez par créer votre première campagne publicitaire.
+            </p>
+            {canCreateOrEdit && (
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Créer une publicité
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {publicities.map((publicity) => {
+            const now = new Date();
+            const start = new Date(publicity.startDate);
+            const end = new Date(publicity.endDate);
+            const isActive = start <= now && now <= end;
+            const isUpcoming = start > now;
+            const isPast = end < now;
+
+            return (
+              <Card key={publicity.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{publicity.pubNumber}</CardTitle>
+                    <div className="flex items-center gap-1">
+                      {isActive && <Badge className="bg-green-100 text-green-800">En cours</Badge>}
+                      {isUpcoming && <Badge className="bg-blue-100 text-blue-800">À venir</Badge>}
+                      {isPast && <Badge variant="secondary">Terminée</Badge>}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {publicity.designation}
+                  </p>
+                </CardHeader>
+                
+                <CardContent className="space-y-3">
+                  <div className="text-sm">
+                    <p className="text-gray-600">
+                      Du {format(new Date(publicity.startDate), "dd/MM/yyyy", { locale: fr })} 
+                      au {format(new Date(publicity.endDate), "dd/MM/yyyy", { locale: fr })}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Magasins participants :</p>
+                    <div className="flex flex-wrap gap-1">
+                      {publicity.participations.slice(0, 3).map((participation) => (
+                        <Badge key={participation.groupId} variant="outline" className="text-xs">
+                          <div 
+                            className="w-2 h-2 rounded-full mr-1" 
+                            style={{ backgroundColor: participation.group.color }}
+                          />
+                          {participation.group.name}
+                        </Badge>
+                      ))}
+                      {publicity.participations.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{publicity.participations.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleView(publicity)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      
+                      {canCreateOrEdit && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -206,23 +291,166 @@ export default function Publicities() {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
+                      )}
+                      
+                      {canDelete && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDelete(publicity.id)}
-                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDelete(publicity)}
+                          className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-gray-500">
+                      {publicity.creator.name || publicity.creator.username}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Create Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Créer une nouvelle publicité</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations de la campagne publicitaire et sélectionnez les magasins participants.
+            </DialogDescription>
+          </DialogHeader>
+          <PublicityForm
+            groups={groups}
+            onSuccess={closeModals}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier la publicité</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations de la campagne publicitaire.
+            </DialogDescription>
+          </DialogHeader>
+          <PublicityForm
+            publicity={selectedPublicity}
+            groups={groups}
+            onSuccess={closeModals}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* View Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Détails de la publicité</DialogTitle>
+            <DialogDescription>
+              Informations complètes de la campagne publicitaire.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPublicity && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">N° PUB</label>
+                  <p className="text-lg">{selectedPublicity.pubNumber}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Année</label>
+                  <p className="text-lg">{selectedPublicity.year}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700">Désignation</label>
+                <p className="mt-1">{selectedPublicity.designation}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Date de début</label>
+                  <p>{format(new Date(selectedPublicity.startDate), "dd/MM/yyyy", { locale: fr })}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Date de fin</label>
+                  <p>{format(new Date(selectedPublicity.endDate), "dd/MM/yyyy", { locale: fr })}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700">Magasins participants</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedPublicity.participations.map((participation) => (
+                    <Badge key={participation.groupId} variant="outline">
+                      <div 
+                        className="w-3 h-3 rounded-full mr-2" 
+                        style={{ backgroundColor: participation.group.color }}
+                      />
+                      {participation.group.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                <div>
+                  <label className="font-medium">Créé par</label>
+                  <p>{selectedPublicity.creator.name || selectedPublicity.creator.username}</p>
+                </div>
+                <div>
+                  <label className="font-medium">Créé le</label>
+                  <p>{format(selectedPublicity.createdAt, "dd/MM/yyyy à HH:mm", { locale: fr })}</p>
+                </div>
+              </div>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer la publicité</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer cette publicité ? Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPublicity && (
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="font-medium">{selectedPublicity.pubNumber}</p>
+                <p className="text-sm text-gray-600">{selectedPublicity.designation}</p>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+                  Annuler
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={confirmDelete}
+                  disabled={deleteMutation.isPending}
+                >
+                  {deleteMutation.isPending ? 'Suppression...' : 'Supprimer'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
