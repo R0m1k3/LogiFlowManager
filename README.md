@@ -1,55 +1,49 @@
 # LogiFlow - Gestion Commandes & Livraisons
 
-Application web de gestion logistique pour La Foir'Fouille avec système de calendrier intégré et gestion multi-magasins.
+## Description
+Application web de gestion logistique pour La Foir'Fouille avec système de commandes, livraisons et rapprochement BL/Factures.
 
-## 🚀 Déploiement Production
+## Technologies
+- **Frontend**: React 18 + TypeScript + Tailwind CSS
+- **Backend**: Node.js + Express + PostgreSQL  
+- **Auth**: Système local avec rôles (Admin/Manager/Employee)
+- **Build**: Vite + esbuild
+- **Déploiement**: Docker
 
-### Déploiement Rapide
-```bash
-./deploy-fix.sh
-```
-
-### Déploiement Manuel
-```bash
-docker-compose build --no-cache
-docker-compose up -d
-```
-
-## 📋 Accès Application
-
-- **URL** : http://votre-serveur:3000
-- **Admin** : admin/admin
-- **Base de données** : PostgreSQL sur port 5434
-- **Réseau** : nginx_default (externe)
-
-## 🔧 Accès Direct
-
-L'application est accessible directement sur le port 3000 :
-- **Pas besoin de nginx ou reverse proxy**
-- **Accès direct** : http://votre-serveur:3000
-
-## 📚 Documentation
-
-- **DEPLOY-FINAL.md** : Guide complet de déploiement
-- **deploy-fix.sh** : Script automatique de déploiement
-
-- **replit.md** : Architecture et historique du projet
-
-## 🛠️ Développement
+## Installation Développement
 
 ```bash
 npm install
 npm run dev
 ```
 
-L'application sera accessible sur http://localhost:5000
+## Déploiement Production
 
-## 📊 Fonctionnalités
+```bash
+# Build et lancement
+docker-compose up -d
 
-- ✅ Gestion des commandes et livraisons
-- ✅ Calendrier interactif mensuel
-- ✅ Système multi-magasins
-- ✅ Gestion des utilisateurs avec rôles
-- ✅ Rapprochement BL/Factures
-- ✅ Statistiques et tableau de bord
-- ✅ Authentification locale sécurisée
+# Accès: http://votre-serveur:3000
+# Connexion: admin / admin
+```
+
+## Structure
+
+- `client/` - Interface React
+- `server/` - API Express  
+- `shared/` - Types partagés
+- `Dockerfile` - Configuration Docker
+- `docker-compose.yml` - Orchestration
+- `init.sql` - Schema PostgreSQL
+
+## Fonctionnalités
+
+✅ Dashboard avec statistiques  
+✅ Gestion commandes et livraisons  
+✅ Calendrier interactif  
+✅ Rapprochement BL/Factures  
+✅ Gestion utilisateurs et magasins  
+✅ Système de rôles et permissions  
+
+## Support
+Voir `replit.md` pour la documentation technique complète.
