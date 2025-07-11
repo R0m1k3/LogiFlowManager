@@ -104,7 +104,7 @@ export async function initializeDatabase() {
         scheduled_date VARCHAR NOT NULL,
         quantity INTEGER,
         unit VARCHAR,
-        status VARCHAR NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'delivered')),
+        status VARCHAR NOT NULL DEFAULT 'planned' CHECK (status IN ('planned', 'delivered')),
         notes TEXT,
         bl_number VARCHAR,
         bl_amount DECIMAL(10,2),
