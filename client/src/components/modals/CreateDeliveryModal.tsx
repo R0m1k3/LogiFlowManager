@@ -140,6 +140,7 @@ export default function CreateDeliveryModal({
       scheduledDate: formData.scheduledDate,
       quantity: parseInt(formData.quantity),
       unit: formData.unit,
+      status: "planned",
       notes: formData.notes || undefined,
       createdBy: user?.id,
     });
