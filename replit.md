@@ -365,6 +365,8 @@ Changelog:
 - July 11, 2025. **PROCHAINE MISE À JOUR DOCKER** - La migration s'exécutera automatiquement au prochain redémarrage du conteneur
 - July 11, 2025. **ERREUR CONTRAINTE ORDERS RÉSOLUE** - Créé fix-validation-date.sh pour corriger orders_status_check autorisant "delivered"
 - July 11, 2025. **VALIDATION LIVRAISONS BLOQUÉE** - Contrainte base production empêche statut "delivered", solution immédiate et automatique ajoutée
+- July 11, 2025. **DASHBOARD LIVRAISONS CORRIGÉ** - Incohérence champs plannedDate vs scheduledDate résolue dans Dashboard.tsx
+- July 11, 2025. **SCRIPT DEBUG LIVRAISONS** - Créé update-production-orders.sh pour diagnostiquer données livraisons en production
 
 ## User Preferences
 

@@ -57,7 +57,7 @@ export default function Dashboard() {
   
   const upcomingDeliveries = allDeliveries
     .filter((d: any) => d.status === 'planned')
-    .sort((a: any, b: any) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime())
+    .sort((a: any, b: any) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
     .slice(0, 2);
 
   // Calculs pour les statistiques
