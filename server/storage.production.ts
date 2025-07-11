@@ -532,7 +532,17 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(row.creator_created_at as string),
         updatedAt: new Date(row.creator_updated_at as string),
       },
-      order: null
+      order: row.order_id_rel ? {
+        id: row.order_id_rel as number,
+        supplierId: row.supplier_id as number,
+        groupId: row.group_id as number,
+        plannedDate: row.order_planned_date as string,
+        status: row.order_status as string,
+        notes: row.order_notes as string,
+        createdBy: row.created_by as string,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } : null
     })) as DeliveryWithRelations[];
   }
 
@@ -547,11 +557,13 @@ export class DatabaseStorage implements IStorage {
         s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
         g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
         u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
-        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at,
+        o.id as order_id_rel, o.planned_date as order_planned_date, o.status as order_status, o.notes as order_notes
       FROM deliveries d
       INNER JOIN suppliers s ON d.supplier_id = s.id
       INNER JOIN groups g ON d.group_id = g.id
       INNER JOIN users u ON d.created_by = u.id
+      LEFT JOIN orders o ON d.order_id = o.id
       WHERE d.scheduled_date >= $1 AND d.scheduled_date <= $2
     `;
     
@@ -609,7 +621,17 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(row.creator_created_at as string),
         updatedAt: new Date(row.creator_updated_at as string),
       },
-      order: null
+      order: row.order_id_rel ? {
+        id: row.order_id_rel as number,
+        supplierId: row.supplier_id as number,
+        groupId: row.group_id as number,
+        plannedDate: row.order_planned_date as string,
+        status: row.order_status as string,
+        notes: row.order_notes as string,
+        createdBy: row.created_by as string,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } : null
     })) as DeliveryWithRelations[];
   }
 
@@ -624,11 +646,13 @@ export class DatabaseStorage implements IStorage {
         s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
         g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
         u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
-        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at
+        u.password as creator_password, u.password_changed as creator_password_changed, u.created_at as creator_created_at, u.updated_at as creator_updated_at,
+        o.id as order_id_rel, o.planned_date as order_planned_date, o.status as order_status, o.notes as order_notes
       FROM deliveries d
       INNER JOIN suppliers s ON d.supplier_id = s.id
       INNER JOIN groups g ON d.group_id = g.id
       INNER JOIN users u ON d.created_by = u.id
+      LEFT JOIN orders o ON d.order_id = o.id
       WHERE d.id = $1
     `, [id]);
     
@@ -679,7 +703,17 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(row.creator_created_at as string),
         updatedAt: new Date(row.creator_updated_at as string),
       },
-      order: null
+      order: row.order_id_rel ? {
+        id: row.order_id_rel as number,
+        supplierId: row.supplier_id as number,
+        groupId: row.group_id as number,
+        plannedDate: row.order_planned_date as string,
+        status: row.order_status as string,
+        notes: row.order_notes as string,
+        createdBy: row.created_by as string,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } : null
     } as DeliveryWithRelations;
   }
 
@@ -690,6 +724,17 @@ export class DatabaseStorage implements IStorage {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `, [delivery.orderId, delivery.supplierId, delivery.groupId, delivery.scheduledDate, delivery.quantity, delivery.unit, delivery.status || 'planned', delivery.notes, delivery.createdBy, new Date(), new Date()]);
+    
+    // Si la livraison est liée à une commande, mettre à jour le statut de la commande
+    if (delivery.orderId) {
+      console.log('🔗 Mise à jour du statut de la commande liée lors de création:', delivery.orderId);
+      await pool.query(`
+        UPDATE orders 
+        SET status = 'planned', updated_at = $1
+        WHERE id = $2
+      `, [new Date(), delivery.orderId]);
+    }
+    
     return result.rows[0];
   }
 
@@ -783,18 +828,33 @@ export class DatabaseStorage implements IStorage {
 
   async validateDelivery(id: number, blData?: { blNumber: string; blAmount: number }): Promise<void> {
     const { pool } = await import("./db.production.js");
+    
+    // D'abord récupérer la livraison pour obtenir l'order_id
+    const deliveryResult = await pool.query(`SELECT order_id FROM deliveries WHERE id = $1`, [id]);
+    const delivery = deliveryResult.rows[0];
+    
     if (blData) {
       await pool.query(`
         UPDATE deliveries 
-        SET status = 'delivered', bl_number = $1, bl_amount = $2, updated_at = $3
+        SET status = 'delivered', bl_number = $1, bl_amount = $2, validated_at = $3, updated_at = $3
         WHERE id = $4
       `, [blData.blNumber, blData.blAmount, new Date(), id]);
     } else {
       await pool.query(`
         UPDATE deliveries 
-        SET status = 'delivered', updated_at = $1
+        SET status = 'delivered', validated_at = $1, updated_at = $1
         WHERE id = $2
       `, [new Date(), id]);
+    }
+    
+    // Si la livraison est liée à une commande, mettre à jour le statut de la commande
+    if (delivery && delivery.order_id) {
+      console.log('🔗 Mise à jour du statut de la commande liée:', delivery.order_id);
+      await pool.query(`
+        UPDATE orders 
+        SET status = 'delivered', updated_at = $1
+        WHERE id = $2
+      `, [new Date(), delivery.order_id]);
     }
   }
 

@@ -348,6 +348,11 @@ Changelog:
 - July 11, 2025. **ICÔNES RAPPROCHEMENT AMÉLIORÉES** - Edit pour référence facture, Euro pour montant, taille optimisée
 - July 11, 2025. **LIAISONS ORDRE-LIVRAISON RESTAURÉES** - LEFT JOIN orders dans storage.production.ts pour relations correctes
 - July 11, 2025. **SCRIPT PRODUCTION FINAL** - fix-production-final.sh créé avec tests complets et validation automatique
+- July 11, 2025. **VALIDATION COMMANDES CORRIGÉE** - validateDelivery met à jour automatiquement le statut de la commande liée
+- July 11, 2025. **CRÉATION LIVRAISONS AMÉLIORÉE** - createDelivery met à jour le statut commande à 'planned' lors de liaison
+- July 11, 2025. **FAVICON LOGIFLOW AJOUTÉ** - Icône camion logistique bleu dans index.html avec meta description SEO
+- July 11, 2025. **CHAMPS ORDER RELATIONS COMPLÉTÉS** - Toutes requêtes deliveries incluent maintenant order_id_rel et données commande
+- July 11, 2025. **MODAUX LIAISONS FONCTIONNELS** - Relations commande-livraison maintenant visibles dans les modaux de détail
 
 ## User Preferences
 
