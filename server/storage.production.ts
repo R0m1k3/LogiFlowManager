@@ -798,6 +798,12 @@ export class DatabaseStorage implements IStorage {
     if ((delivery as any).reconciled !== undefined) {
       fields.push(`reconciled = $${paramIndex++}`);
       values.push((delivery as any).reconciled);
+      
+      // Si on valide le rapprochement, ajouter la date de validation
+      if ((delivery as any).reconciled === true) {
+        fields.push(`validated_at = $${paramIndex++}`);
+        values.push(new Date());
+      }
     }
     
     // Toujours mettre à jour updated_at
@@ -838,13 +844,13 @@ export class DatabaseStorage implements IStorage {
     if (blData) {
       await pool.query(`
         UPDATE deliveries 
-        SET status = 'delivered', bl_number = $1, bl_amount = $2, delivered_date = $3, validated_at = $3, updated_at = $3
+        SET status = 'delivered', bl_number = $1, bl_amount = $2, delivered_date = $3, updated_at = $3
         WHERE id = $4
       `, [blData.blNumber, blData.blAmount, now, id]);
     } else {
       await pool.query(`
         UPDATE deliveries 
-        SET status = 'delivered', delivered_date = $1, validated_at = $1, updated_at = $1
+        SET status = 'delivered', delivered_date = $1, updated_at = $1
         WHERE id = $2
       `, [now, id]);
     }

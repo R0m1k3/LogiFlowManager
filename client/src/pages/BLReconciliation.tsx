@@ -425,8 +425,8 @@ export default function BLReconciliation() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {delivery.validatedAt ? 
-                            format(new Date(delivery.validatedAt), 'dd/MM/yyyy', { locale: fr }) : 
+                          {delivery.reconciled && delivery.updatedAt ? 
+                            format(new Date(delivery.updatedAt), 'dd/MM/yyyy', { locale: fr }) : 
                             '-'
                           }
                         </div>
