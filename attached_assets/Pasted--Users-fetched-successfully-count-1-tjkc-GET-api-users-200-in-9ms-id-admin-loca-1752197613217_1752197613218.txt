@@ -1,0 +1,132 @@
+✅ Users fetched successfully, count: 1
+
+[tjkc] <-- GET /api/users 200 in 9ms :: [{"id":"admin_local","username":"admin","email":"admin@logiflow.com","name":"Admin Système","role":…
+
+[fjgfre] --> HEAD /api/health
+
+[fjgfre]     Host: localhost:3000
+
+[fjgfre]     IP: 127.0.0.1
+
+[fjgfre]     Headers: {"user-agent":"Wget/1.25.0"}
+
+[fjgfre] <-- HEAD /api/health 200 in 2ms :: {"status":"healthy","timestamp":"2025-07-11T01:32:59.891Z","environment":"production","auth":"local…
+
+[1nrlq9] --> GET /api/suppliers
+
+[1nrlq9]     Host: logiflow.ffnancy.fr
+
+[1nrlq9]     IP: 172.20.0.8
+
+[1nrlq9]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[1nrlq9] <-- GET /api/suppliers 200 in 17ms :: [{"id":1,"name":"Fournisseur Test","contact":"Contact Principal","phone":"03.83.00.00.00","created_…
+
+[igbrbk] --> POST /api/orders
+
+[igbrbk]     Host: logiflow.ffnancy.fr
+
+[igbrbk]     IP: 172.20.0.8
+
+[igbrbk]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[igbrbk] <-- POST /api/orders 200 in 19ms :: {"id":1,"supplier_id":1,"group_id":1,"planned_date":"2025-07-02","status":"pending","notes":null,"c…
+
+[insbc] --> GET /api/orders
+
+[insbc]     Host: logiflow.ffnancy.fr
+
+[insbc]     IP: 172.20.0.8
+
+[insbc]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+[insbc] <-- GET /api/orders 200 in 21ms :: [{"id":1,"supplierId":1,"groupId":1,"plannedDate":"2025-07-02","status":"pending","notes":null,"cre…
+
+[353c6o] --> POST /api/deliveries
+
+[353c6o]     Host: logiflow.ffnancy.fr
+
+[353c6o]     IP: 172.20.0.8
+
+[353c6o]     Headers: {"x-forwarded-for":"82.65.11.128","x-real-ip":"82.65.11.128","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb"}
+
+Error creating delivery: _ZodError: [
+
+  {
+
+    "code": "invalid_type",
+
+    "expected": "string",
+
+    "received": "undefined",
+
+    "path": [
+
+      "scheduledDate"
+
+    ],
+
+    "message": "Required"
+
+  }
+
+]
+
+    at get error [as error] (file:///app/dist/index.js:707:27)
+
+    at _ZodObject.parse (file:///app/dist/index.js:759:22)
+
+    at file:///app/dist/index.js:6148:41
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+
+  issues: [
+
+    {
+
+      code: 'invalid_type',
+
+      expected: 'string',
+
+      received: 'undefined',
+
+      path: [Array],
+
+      message: 'Required'
+
+    }
+
+  ],
+
+  addIssue: [Function (anonymous)],
+
+  addIssues: [Function (anonymous)],
+
+  errors: [
+
+    {
+
+      code: 'invalid_type',
+
+      expected: 'string',
+
+      received: 'undefined',
+
+      path: [Array],
+
+      message: 'Required'
+
+    }
+
+  ]
+
+}
+
+[353c6o] ERROR Response: 500 Internal Server Error
+
+[353c6o] <-- POST /api/deliveries 500 in 41ms :: {"message":"Failed to create delivery"}
+
+
+      
+      
+    

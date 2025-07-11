@@ -34,10 +34,10 @@ export default function CreateDeliveryModal({
     orderId: "",
     supplierId: "",
     groupId: "",
-    plannedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : "",
+    scheduledDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : "",
     quantity: "",
     unit: "palettes",
-    comments: "",
+    notes: "",
   });
 
   const { data: suppliers = [] } = useQuery<Supplier[]>({
@@ -124,7 +124,7 @@ export default function CreateDeliveryModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.supplierId || !formData.groupId || !formData.plannedDate || !formData.quantity) {
+    if (!formData.supplierId || !formData.groupId || !formData.scheduledDate || !formData.quantity) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -137,10 +137,11 @@ export default function CreateDeliveryModal({
       orderId: formData.orderId && formData.orderId !== "none" ? parseInt(formData.orderId) : undefined,
       supplierId: parseInt(formData.supplierId),
       groupId: parseInt(formData.groupId),
-      plannedDate: formData.plannedDate,
+      scheduledDate: formData.scheduledDate,
       quantity: parseInt(formData.quantity),
       unit: formData.unit,
-      comments: formData.comments || undefined,
+      notes: formData.notes || undefined,
+      createdBy: user?.id,
     });
   };
 
@@ -224,12 +225,12 @@ export default function CreateDeliveryModal({
           )}
 
           <div>
-            <Label htmlFor="plannedDate">Date prévue *</Label>
+            <Label htmlFor="scheduledDate">Date prévue *</Label>
             <Input
-              id="plannedDate"
+              id="scheduledDate"
               type="date"
-              value={formData.plannedDate}
-              onChange={(e) => handleChange('plannedDate', e.target.value)}
+              value={formData.scheduledDate}
+              onChange={(e) => handleChange('scheduledDate', e.target.value)}
               required
             />
           </div>
@@ -261,11 +262,11 @@ export default function CreateDeliveryModal({
           </div>
 
           <div>
-            <Label htmlFor="comments">Commentaires</Label>
+            <Label htmlFor="notes">Commentaires</Label>
             <Textarea
-              id="comments"
-              value={formData.comments}
-              onChange={(e) => handleChange('comments', e.target.value)}
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => handleChange('notes', e.target.value)}
               placeholder="Commentaires additionnels..."
               rows={3}
             />
