@@ -322,6 +322,7 @@ Changelog:
 - July 11, 2025. **CORRECTION ÉDITION PROFIL UTILISATEUR** - Autorisé modification du propre profil + conversion firstName/lastName vers name
 - July 11, 2025. **NETTOYAGE COMPLET DU PROJET** - Suppression de tous les fichiers obsolètes (20+ scripts, documentation redondante, assets temporaires)
 - July 11, 2025. **CORRECTION ERREURS SQL PRODUCTION** - Résolution des erreurs column s.email/d.scheduled_date avec reconstruction complète storage.production.ts
+- July 11, 2025. **CORRECTION URGENTE ug.assigned_at** - Supprimé référence à la colonne assigned_at manquante dans user_groups
 
 ## User Preferences
 

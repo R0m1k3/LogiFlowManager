@@ -54,7 +54,7 @@ export class DatabaseStorage implements IStorage {
       
       // Separate query for user groups
       const groupsResult = await pool.query(`
-        SELECT ug.user_id, ug.group_id, ug.assigned_at, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
+        SELECT ug.user_id, ug.group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
         FROM user_groups ug
         INNER JOIN groups g ON ug.group_id = g.id
         WHERE ug.user_id = $1
@@ -63,7 +63,7 @@ export class DatabaseStorage implements IStorage {
       const userGroups = groupsResult.rows.map(row => ({
         userId: row.user_id,
         groupId: row.group_id,
-        assignedAt: new Date(row.assigned_at),
+        assignedAt: new Date(),
         group: {
           id: row.group_id,
           name: row.group_name,
@@ -93,7 +93,7 @@ export class DatabaseStorage implements IStorage {
       
       // Get all user groups
       const groupsResult = await pool.query(`
-        SELECT ug.user_id, ug.group_id, ug.assigned_at, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
+        SELECT ug.user_id, ug.group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
         FROM user_groups ug
         INNER JOIN groups g ON ug.group_id = g.id
       `);
@@ -107,7 +107,7 @@ export class DatabaseStorage implements IStorage {
         groupsByUser.get(row.user_id)!.push({
           userId: row.user_id,
           groupId: row.group_id,
-          assignedAt: new Date(row.assigned_at),
+          assignedAt: new Date(),
           group: {
             id: row.group_id,
             name: row.group_name,
@@ -736,10 +736,10 @@ export class DatabaseStorage implements IStorage {
   async assignUserToGroup(userGroup: InsertUserGroup): Promise<UserGroup> {
     const { pool } = await import("./db.production.js");
     const result = await pool.query(`
-      INSERT INTO user_groups (user_id, group_id, assigned_at)
-      VALUES ($1, $2, $3)
+      INSERT INTO user_groups (user_id, group_id)
+      VALUES ($1, $2)
       RETURNING *
-    `, [userGroup.userId, userGroup.groupId, new Date()]);
+    `, [userGroup.userId, userGroup.groupId]);
     return result.rows[0];
   }
 

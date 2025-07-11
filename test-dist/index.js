@@ -7052,7 +7052,7 @@ var init_storage_production = __esm({
           if (userResult.rows.length === 0) return void 0;
           const user = userResult.rows[0];
           const groupsResult = await pool2.query(`
-        SELECT ug.user_id, ug.group_id, ug.assigned_at, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
+        SELECT ug.user_id, ug.group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
         FROM user_groups ug
         INNER JOIN groups g ON ug.group_id = g.id
         WHERE ug.user_id = $1
@@ -7060,7 +7060,7 @@ var init_storage_production = __esm({
           const userGroups2 = groupsResult.rows.map((row) => ({
             userId: row.user_id,
             groupId: row.group_id,
-            assignedAt: new Date(row.assigned_at),
+            assignedAt: /* @__PURE__ */ new Date(),
             group: {
               id: row.group_id,
               name: row.group_name,
@@ -7084,7 +7084,7 @@ var init_storage_production = __esm({
           const usersResult = await pool2.query(`SELECT * FROM users ORDER BY created_at DESC`);
           const users2 = usersResult.rows;
           const groupsResult = await pool2.query(`
-        SELECT ug.user_id, ug.group_id, ug.assigned_at, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
+        SELECT ug.user_id, ug.group_id, g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at
         FROM user_groups ug
         INNER JOIN groups g ON ug.group_id = g.id
       `);
@@ -7096,7 +7096,7 @@ var init_storage_production = __esm({
             groupsByUser.get(row.user_id).push({
               userId: row.user_id,
               groupId: row.group_id,
-              assignedAt: new Date(row.assigned_at),
+              assignedAt: /* @__PURE__ */ new Date(),
               group: {
                 id: row.group_id,
                 name: row.group_name,
@@ -7666,10 +7666,10 @@ var init_storage_production = __esm({
       async assignUserToGroup(userGroup) {
         const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
         const result = await pool2.query(`
-      INSERT INTO user_groups (user_id, group_id, assigned_at)
-      VALUES ($1, $2, $3)
+      INSERT INTO user_groups (user_id, group_id)
+      VALUES ($1, $2)
       RETURNING *
-    `, [userGroup.userId, userGroup.groupId, /* @__PURE__ */ new Date()]);
+    `, [userGroup.userId, userGroup.groupId]);
         return result.rows[0];
       }
       async removeUserFromGroup(userId, groupId) {
