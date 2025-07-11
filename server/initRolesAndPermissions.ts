@@ -15,8 +15,8 @@ const defaultPermissions = [
   { name: "deliveries_read", displayName: "Voir les livraisons", description: "Accès en lecture aux livraisons", category: "deliveries", action: "read", resource: "deliveries" },
   { name: "deliveries_create", displayName: "Créer des livraisons", description: "Créer de nouvelles livraisons", category: "deliveries", action: "create", resource: "deliveries" },
   { name: "deliveries_update", displayName: "Modifier les livraisons", description: "Modifier les livraisons existantes", category: "deliveries", action: "update", resource: "deliveries" },
-  { name: "deliveries_delete", displayName: "Supprimer les livraisons", description: "Supprimer des livraisons", category: "deliveries", action: "delete", resource: "deliveries" },
   { name: "deliveries_validate", displayName: "Valider les livraisons", description: "Valider les livraisons et saisir les BL", category: "deliveries", action: "validate", resource: "deliveries" },
+  { name: "deliveries_delete", displayName: "Supprimer les livraisons", description: "Supprimer des livraisons", category: "deliveries", action: "delete", resource: "deliveries" },
   
   // BL Reconciliation permissions
   { name: "reconciliation_read", displayName: "Voir le rapprochement", description: "Accès en lecture au rapprochement BL/Factures", category: "reconciliation", action: "read", resource: "reconciliation" },
@@ -29,10 +29,10 @@ const defaultPermissions = [
   { name: "users_delete", displayName: "Supprimer les utilisateurs", description: "Supprimer des utilisateurs", category: "users", action: "delete", resource: "users" },
   
   // Groups permissions
-  { name: "groups_read", displayName: "Voir les groupes", description: "Accès en lecture aux groupes/magasins", category: "groups", action: "read", resource: "groups" },
-  { name: "groups_create", displayName: "Créer des groupes", description: "Créer de nouveaux groupes/magasins", category: "groups", action: "create", resource: "groups" },
-  { name: "groups_update", displayName: "Modifier les groupes", description: "Modifier les groupes/magasins existants", category: "groups", action: "update", resource: "groups" },
-  { name: "groups_delete", displayName: "Supprimer les groupes", description: "Supprimer des groupes/magasins", category: "groups", action: "delete", resource: "groups" },
+  { name: "groups_read", displayName: "Voir les magasins", description: "Accès en lecture aux groupes/magasins", category: "groups", action: "read", resource: "groups" },
+  { name: "groups_create", displayName: "Créer des magasins", description: "Créer de nouveaux groupes/magasins", category: "groups", action: "create", resource: "groups" },
+  { name: "groups_update", displayName: "Modifier les magasins", description: "Modifier les groupes/magasins existants", category: "groups", action: "update", resource: "groups" },
+  { name: "groups_delete", displayName: "Supprimer les magasins", description: "Supprimer des groupes/magasins", category: "groups", action: "delete", resource: "groups" },
   
   // Suppliers permissions
   { name: "suppliers_read", displayName: "Voir les fournisseurs", description: "Accès en lecture aux fournisseurs", category: "suppliers", action: "read", resource: "suppliers" },
