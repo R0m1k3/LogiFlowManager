@@ -340,6 +340,9 @@ Changelog:
 - July 11, 2025. **MODULE RAPPROCHEMENT CORRIGÉ** - Suppression admin, mise à jour factures, et gestion d'état mutations fonctionnelles
 - July 11, 2025. **PERMISSIONS SUPPRESSION ADMIN** - Admins peuvent maintenant supprimer toutes livraisons, boutons ajoutés interface
 - July 11, 2025. **BOUTONS + AJOUTER CORRIGÉS** - État disabled pendant mutations pour éviter disparition boutons
+- July 11, 2025. **INTERFACE MODERNISÉE** - Boutons "+ Ajouter" remplacés par icônes propres avec tooltips
+- July 11, 2025. **MODAUX CONFIRMATION UNIFIÉS** - Toutes suppressions (Orders, Deliveries, Rapprochement) utilisent modal confirmation élégant
+- July 11, 2025. **CACHE INVALIDATION CORRIGÉE** - Ajout refetchQueries pour mise à jour temps réel des données rapprochement
 
 ## User Preferences
 

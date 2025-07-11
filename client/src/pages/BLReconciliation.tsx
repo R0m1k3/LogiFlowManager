@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format as formatDate } from "date-fns";
 import { DayPicker } from "react-day-picker";
+import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
 
 const invoiceSchema = z.object({
   invoiceReference: z.string().min(1, "La référence facture est obligatoire"),
@@ -40,6 +41,8 @@ export default function BLReconciliation() {
   const [selectedDelivery, setSelectedDelivery] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deliveryToDelete, setDeliveryToDelete] = useState<any>(null);
 
   // Récupérer les livraisons validées avec BL
   const { data: deliveriesWithBL = [], isLoading } = useQuery({
@@ -85,18 +88,23 @@ export default function BLReconciliation() {
 
   const updateInvoiceMutation = useMutation({
     mutationFn: async (data: { id: number; invoiceReference: string; invoiceAmount: string }) => {
-      await apiRequest("PUT", `/api/deliveries/${data.id}`, {
+      console.log('🔄 Updating invoice data:', data);
+      const response = await apiRequest("PUT", `/api/deliveries/${data.id}`, {
         invoiceReference: data.invoiceReference,
         invoiceAmount: data.invoiceAmount,
       });
+      console.log('✅ Invoice update response:', response);
+      return response;
     },
     onSuccess: () => {
       toast({
         title: "Succès",
         description: "Facture associée avec succès",
       });
+      // Invalider toutes les clés de cache liées aux livraisons
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries/bl'] });
       queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      queryClient.refetchQueries({ queryKey: ['/api/deliveries/bl', selectedStoreId, selectedDate] });
       form.reset();
       setShowInvoiceModal(false);
       setSelectedDelivery(null);
@@ -186,9 +194,16 @@ export default function BLReconciliation() {
     },
   });
 
-  const handleDeleteDelivery = (id: number) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette livraison ? Cette action est irréversible.")) {
-      deleteDeliveryMutation.mutate(id);
+  const handleDeleteDelivery = (delivery: any) => {
+    setDeliveryToDelete(delivery);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteDelivery = () => {
+    if (deliveryToDelete) {
+      deleteDeliveryMutation.mutate(deliveryToDelete.id);
+      setShowDeleteModal(false);
+      setDeliveryToDelete(null);
     }
   };
 
@@ -419,10 +434,10 @@ export default function BLReconciliation() {
                             <button
                               onClick={() => handleAddInvoice(delivery)}
                               disabled={updateInvoiceMutation.isPending}
-                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-1 group disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-8 h-8 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Ajouter une référence facture"
                             >
                               <Plus className="w-4 h-4" />
-                              <span className="text-xs group-hover:underline">Ajouter</span>
                             </button>
                           )}
                         </div>
@@ -434,10 +449,10 @@ export default function BLReconciliation() {
                             <button
                               onClick={() => handleAddInvoice(delivery)}
                               disabled={updateInvoiceMutation.isPending}
-                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-1 group disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-8 h-8 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Ajouter un montant facture"
                             >
                               <Plus className="w-4 h-4" />
-                              <span className="text-xs group-hover:underline">Ajouter</span>
                             </button>
                           }
                         </div>
@@ -493,7 +508,7 @@ export default function BLReconciliation() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleDeleteDelivery(delivery.id)}
+                              onClick={() => handleDeleteDelivery(delivery)}
                               disabled={deleteDeliveryMutation.isPending}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             >
@@ -615,6 +630,20 @@ export default function BLReconciliation() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeliveryToDelete(null);
+        }}
+        onConfirm={confirmDeleteDelivery}
+        title="Supprimer la livraison"
+        description="Êtes-vous sûr de vouloir supprimer cette livraison du module rapprochement ?"
+        itemName={deliveryToDelete ? `${deliveryToDelete.supplier?.name} - BL ${deliveryToDelete.blNumber}` : undefined}
+        isLoading={deleteDeliveryMutation.isPending}
+      />
     </div>
   );
 }

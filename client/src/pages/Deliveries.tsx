@@ -28,6 +28,7 @@ import { fr } from "date-fns/locale";
 import CreateDeliveryModal from "@/components/modals/CreateDeliveryModal";
 import EditDeliveryModal from "@/components/modals/EditDeliveryModal";
 import OrderDetailModal from "@/components/modals/OrderDetailModal";
+import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
 import type { DeliveryWithRelations } from "@shared/schema";
 
 export default function Deliveries() {
@@ -42,7 +43,9 @@ export default function Deliveries() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryWithRelations | null>(null);
+  const [deliveryToDelete, setDeliveryToDelete] = useState<DeliveryWithRelations | null>(null);
 
   // Construire l'URL pour l'historique complet sans filtrage par date
   const deliveriesUrl = `/api/deliveries${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
@@ -167,9 +170,16 @@ export default function Deliveries() {
     }
   };
 
-  const handleDeleteDelivery = (id: number) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette livraison ?")) {
-      deleteMutation.mutate(id);
+  const handleDeleteDelivery = (delivery: DeliveryWithRelations) => {
+    setDeliveryToDelete(delivery);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteDelivery = () => {
+    if (deliveryToDelete) {
+      deleteMutation.mutate(deliveryToDelete.id);
+      setShowDeleteModal(false);
+      setDeliveryToDelete(null);
     }
   };
 
@@ -382,7 +392,7 @@ export default function Deliveries() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeleteDelivery(delivery.id)}
+                                onClick={() => handleDeleteDelivery(delivery)}
                                 className="text-red-600 hover:text-red-700"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -424,6 +434,20 @@ export default function Deliveries() {
           item={selectedDelivery}
         />
       )}
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeliveryToDelete(null);
+        }}
+        onConfirm={confirmDeleteDelivery}
+        title="Supprimer la livraison"
+        description="Êtes-vous sûr de vouloir supprimer cette livraison ?"
+        itemName={deliveryToDelete ? `${deliveryToDelete.supplier?.name} - ${format(new Date(deliveryToDelete.scheduledDate), 'dd/MM/yyyy', { locale: fr })}` : undefined}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

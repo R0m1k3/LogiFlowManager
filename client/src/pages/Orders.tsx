@@ -26,6 +26,7 @@ import { fr } from "date-fns/locale";
 import CreateOrderModal from "@/components/modals/CreateOrderModal";
 import EditOrderModal from "@/components/modals/EditOrderModal";
 import OrderDetailModal from "@/components/modals/OrderDetailModal";
+import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
 import type { OrderWithRelations } from "@shared/schema";
 
 export default function Orders() {
@@ -40,7 +41,9 @@ export default function Orders() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithRelations | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<OrderWithRelations | null>(null);
 
   // Construire l'URL pour l'historique complet sans filtrage par date
   const ordersUrl = `/api/orders${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
@@ -117,9 +120,16 @@ export default function Orders() {
     setShowEditModal(true);
   };
 
-  const handleDeleteOrder = (id: number) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
-      deleteMutation.mutate(id);
+  const handleDeleteOrder = (order: OrderWithRelations) => {
+    setOrderToDelete(order);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteOrder = () => {
+    if (orderToDelete) {
+      deleteMutation.mutate(orderToDelete.id);
+      setShowDeleteModal(false);
+      setOrderToDelete(null);
     }
   };
 
@@ -298,7 +308,7 @@ export default function Orders() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeleteOrder(order.id)}
+                                onClick={() => handleDeleteOrder(order)}
                                 className="text-red-600 hover:text-red-700"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -340,6 +350,20 @@ export default function Orders() {
           item={selectedOrder}
         />
       )}
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setOrderToDelete(null);
+        }}
+        onConfirm={confirmDeleteOrder}
+        title="Supprimer la commande"
+        description="Êtes-vous sûr de vouloir supprimer cette commande ?"
+        itemName={orderToDelete ? `${orderToDelete.supplier?.name} - ${format(new Date(orderToDelete.plannedDate), 'dd/MM/yyyy', { locale: fr })}` : undefined}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }
