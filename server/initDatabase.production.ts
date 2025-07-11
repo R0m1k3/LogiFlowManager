@@ -143,6 +143,41 @@ export async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire)
     `);
 
+    // AJOUT TABLES PUBLICITÉS
+    console.log("🔧 Creating publicities table...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS publicities (
+        id SERIAL PRIMARY KEY,
+        pub_number VARCHAR NOT NULL,
+        designation TEXT NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        year INTEGER NOT NULL,
+        created_by VARCHAR NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log("🔧 Creating publicity_participations table...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS publicity_participations (
+        publicity_id INTEGER NOT NULL,
+        group_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (publicity_id, group_id)
+      )
+    `);
+
+    // Index pour les publicités
+    console.log("🔧 Creating publicity indexes...");
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_publicities_year ON publicities (year)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_publicities_start_date ON publicities (start_date)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_publicities_end_date ON publicities (end_date)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_publicities_created_by ON publicities (created_by)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_publicity_participations_publicity_id ON publicity_participations (publicity_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_publicity_participations_group_id ON publicity_participations (group_id)`);
+
     // Note: No default test data inserted in production
     // Groups and suppliers will be created by administrators as needed
     console.log("✅ Database schema ready - no test data inserted");
@@ -151,6 +186,7 @@ export async function initializeDatabase() {
     console.log("🔧 Resetting sequences...");
     await pool.query(`SELECT setval('groups_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM groups), 1))`);
     await pool.query(`SELECT setval('suppliers_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM suppliers), 1))`);
+    await pool.query(`SELECT setval('publicities_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM publicities), 1))`);
 
     // NOUVELLE MIGRATION AUTOMATIQUE - Ajout colonnes delivered_date et validated_at
     console.log('🔄 [MIGRATION] Vérification des colonnes delivered_date et validated_at...');
