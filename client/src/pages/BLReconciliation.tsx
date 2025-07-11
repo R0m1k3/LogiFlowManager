@@ -22,14 +22,18 @@ import { format as formatDate } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
 
-const invoiceSchema = z.object({
+const reconciliationSchema = z.object({
+  blNumber: z.string().min(1, "Le numéro de BL est obligatoire"),
+  blAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    message: "Le montant BL doit être un nombre positif",
+  }),
   invoiceReference: z.string().min(1, "La référence facture est obligatoire"),
   invoiceAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "Le montant doit être un nombre positif",
+    message: "Le montant facture doit être un nombre positif",
   }),
 });
 
-type InvoiceForm = z.infer<typeof invoiceSchema>;
+type ReconciliationForm = z.infer<typeof reconciliationSchema>;
 
 export default function BLReconciliation() {
   const { user } = useAuth();
@@ -59,7 +63,7 @@ export default function BLReconciliation() {
   }
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showReconciliationModal, setShowReconciliationModal] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -100,28 +104,32 @@ export default function BLReconciliation() {
     },
   });
 
-  const form = useForm<InvoiceForm>({
-    resolver: zodResolver(invoiceSchema),
+  const form = useForm<ReconciliationForm>({
+    resolver: zodResolver(reconciliationSchema),
     defaultValues: {
+      blNumber: "",
+      blAmount: "",
       invoiceReference: "",
       invoiceAmount: "",
     },
   });
 
-  const updateInvoiceMutation = useMutation({
-    mutationFn: async (data: { id: number; invoiceReference: string; invoiceAmount: string }) => {
-      console.log('🔄 Updating invoice data:', data);
+  const updateReconciliationMutation = useMutation({
+    mutationFn: async (data: { id: number; blNumber: string; blAmount: string; invoiceReference: string; invoiceAmount: string }) => {
+      console.log('🔄 Updating reconciliation data:', data);
       const response = await apiRequest("PUT", `/api/deliveries/${data.id}`, {
+        blNumber: data.blNumber,
+        blAmount: data.blAmount,
         invoiceReference: data.invoiceReference,
         invoiceAmount: data.invoiceAmount,
       });
-      console.log('✅ Invoice update response:', response);
+      console.log('✅ Reconciliation update response:', response);
       return response;
     },
     onSuccess: () => {
       toast({
         title: "Succès",
-        description: "Facture associée avec succès",
+        description: "Données de rapprochement mises à jour avec succès",
       });
       // Invalider tous les caches BL/Rapprochement avec toutes les variations de clés
       queryClient.invalidateQueries({ 
@@ -130,7 +138,7 @@ export default function BLReconciliation() {
           query.queryKey[0] === '/api/deliveries'
       });
       form.reset();
-      setShowInvoiceModal(false);
+      setShowReconciliationModal(false);
       setSelectedDelivery(null);
     },
     onError: (error) => {
@@ -147,7 +155,7 @@ export default function BLReconciliation() {
       }
       toast({
         title: "Erreur",
-        description: "Impossible d'associer la facture",
+        description: "Impossible de mettre à jour les données de rapprochement",
         variant: "destructive",
       });
     },
@@ -240,21 +248,25 @@ export default function BLReconciliation() {
     }
   };
 
-  const handleAddInvoice = (delivery: any) => {
+  const handleEditReconciliation = (delivery: any) => {
     setSelectedDelivery(delivery);
     form.reset({
+      blNumber: delivery.blNumber || "",
+      blAmount: delivery.blAmount || "",
       invoiceReference: delivery.invoiceReference || "",
       invoiceAmount: delivery.invoiceAmount || "",
     });
-    setShowInvoiceModal(true);
+    setShowReconciliationModal(true);
   };
 
-  const onSubmit = (data: InvoiceForm) => {
+  const onSubmit = (data: ReconciliationForm) => {
     if (selectedDelivery) {
-      updateInvoiceMutation.mutate({
+      updateReconciliationMutation.mutate({
         id: selectedDelivery.id,
+        blNumber: data.blNumber,
+        blAmount: data.blAmount,
         invoiceReference: data.invoiceReference,
-        invoiceAmount: data.invoiceAmount, // Envoyer comme string
+        invoiceAmount: data.invoiceAmount,
       });
     }
   };
@@ -473,8 +485,8 @@ export default function BLReconciliation() {
                         <div className="text-sm text-gray-900">
                           {delivery.invoiceReference || (
                             <button
-                              onClick={() => handleAddInvoice(delivery)}
-                              disabled={updateInvoiceMutation.isPending}
+                              onClick={() => handleEditReconciliation(delivery)}
+                              disabled={updateReconciliationMutation.isPending}
                               className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-7 h-7 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Ajouter une référence facture"
                             >
@@ -488,8 +500,8 @@ export default function BLReconciliation() {
                           {delivery.invoiceAmount ? 
                             `${parseFloat(delivery.invoiceAmount).toFixed(2)} €` : 
                             <button
-                              onClick={() => handleAddInvoice(delivery)}
-                              disabled={updateInvoiceMutation.isPending}
+                              onClick={() => handleEditReconciliation(delivery)}
+                              disabled={updateReconciliationMutation.isPending}
                               className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-7 h-7 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Ajouter un montant facture"
                             >
@@ -521,17 +533,15 @@ export default function BLReconciliation() {
                           {getStatusBadge(delivery)}
                           {!delivery.reconciled && (
                             <>
-                              {(delivery.invoiceReference || delivery.invoiceAmount) && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleAddInvoice(delivery)}
-                                  disabled={updateInvoiceMutation.isPending}
-                                >
-                                  <Edit className="w-4 h-4 mr-1" />
-                                  Modifier
-                                </Button>
-                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditReconciliation(delivery)}
+                                disabled={updateReconciliationMutation.isPending}
+                              >
+                                <Edit className="w-4 h-4 mr-1" />
+                                Modifier
+                              </Button>
                               {canValidate(delivery) && (
                                 <Button
                                   size="sm"
@@ -567,84 +577,125 @@ export default function BLReconciliation() {
         )}
       </div>
 
-      {/* Invoice Modal */}
-      <Dialog open={showInvoiceModal} onOpenChange={setShowInvoiceModal}>
-        <DialogContent className="sm:max-w-md" aria-describedby="invoice-modal-description">
+      {/* Reconciliation Modal */}
+      <Dialog open={showReconciliationModal} onOpenChange={setShowReconciliationModal}>
+        <DialogContent className="sm:max-w-lg" aria-describedby="reconciliation-modal-description">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
-              <Euro className="w-5 h-5 text-primary" />
-              <span>
-                {selectedDelivery?.invoiceReference ? 'Modifier' : 'Ajouter'} la facture
-              </span>
+              <FileText className="w-5 h-5 text-primary" />
+              <span>Modifier les données de rapprochement</span>
             </DialogTitle>
-            <p id="invoice-modal-description" className="text-sm text-gray-600 mt-1">
-              Saisir les informations de la facture pour le rapprochement
+            <p id="reconciliation-modal-description" className="text-sm text-gray-600 mt-1">
+              Modifier les informations du bon de livraison et de la facture
             </p>
           </DialogHeader>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Informations BL */}
+              {/* Informations générales */}
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <h4 className="font-medium text-gray-900">Bon de livraison</h4>
+                <h4 className="font-medium text-gray-900">Informations générales</h4>
                 <div className="text-sm text-gray-600">
-                  <p><strong>N° BL:</strong> {selectedDelivery?.blNumber}</p>
-                  <p><strong>Montant BL:</strong> {selectedDelivery?.blAmount} €</p>
                   <p><strong>Fournisseur:</strong> {selectedDelivery?.supplier?.name}</p>
+                  <p><strong>Magasin:</strong> {selectedDelivery?.group?.name}</p>
                 </div>
               </div>
 
-              {/* Référence facture */}
-              <FormField
-                control={form.control}
-                name="invoiceReference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Référence Facture *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Ex: FAC-2024-001"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Données BL */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900 border-b pb-2">Bon de livraison</h4>
+                
+                <FormField
+                  control={form.control}
+                  name="blNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Numéro de BL *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Ex: BL-2024-001"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Montant facture */}
-              <FormField
-                control={form.control}
-                name="invoiceAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Montant Facture (€) *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        step="0.01"
-                        placeholder="Ex: 1250.50"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="blAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Montant BL (€) *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          step="0.01"
+                          placeholder="Ex: 1250.50"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Données facture */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900 border-b pb-2">Facture</h4>
+                
+                <FormField
+                  control={form.control}
+                  name="invoiceReference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Référence Facture *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Ex: FAC-2024-001"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="invoiceAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Montant Facture (€) *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          step="0.01"
+                          placeholder="Ex: 1250.50"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               {/* Aperçu de l'écart */}
-              {form.watch("invoiceAmount") && selectedDelivery?.blAmount && (
+              {form.watch("blAmount") && form.watch("invoiceAmount") && (
                 <div className="bg-blue-50 rounded-lg p-4 space-y-2">
                   <h4 className="font-medium text-gray-900">Aperçu de l'écart</h4>
                   <div className="text-sm">
-                    <p><strong>Montant BL:</strong> {parseFloat(selectedDelivery.blAmount).toFixed(2)} €</p>
+                    <p><strong>Montant BL:</strong> {parseFloat(form.watch("blAmount") || "0").toFixed(2)} €</p>
                     <p><strong>Montant Facture:</strong> {parseFloat(form.watch("invoiceAmount") || "0").toFixed(2)} €</p>
                     <p className={`font-medium ${
-                      Math.abs(parseFloat(selectedDelivery.blAmount) - parseFloat(form.watch("invoiceAmount") || "0")) < 0.01 
+                      Math.abs(parseFloat(form.watch("blAmount") || "0") - parseFloat(form.watch("invoiceAmount") || "0")) < 0.01 
                         ? 'text-green-600' 
                         : 'text-red-600'
                     }`}>
-                      <strong>Écart:</strong> {(parseFloat(selectedDelivery.blAmount) - parseFloat(form.watch("invoiceAmount") || "0")).toFixed(2)} €
+                      <strong>Écart:</strong> {(parseFloat(form.watch("blAmount") || "0") - parseFloat(form.watch("invoiceAmount") || "0")).toFixed(2)} €
                     </p>
                   </div>
                 </div>
@@ -655,16 +706,16 @@ export default function BLReconciliation() {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => setShowInvoiceModal(false)}
-                  disabled={updateInvoiceMutation.isPending}
+                  onClick={() => setShowReconciliationModal(false)}
+                  disabled={updateReconciliationMutation.isPending}
                 >
                   Annuler
                 </Button>
                 <Button 
                   type="submit"
-                  disabled={updateInvoiceMutation.isPending}
+                  disabled={updateReconciliationMutation.isPending}
                 >
-                  {updateInvoiceMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+                  {updateReconciliationMutation.isPending ? "Enregistrement..." : "Enregistrer"}
                 </Button>
               </div>
             </form>
