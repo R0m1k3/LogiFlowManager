@@ -361,6 +361,8 @@ Changelog:
 - July 11, 2025. **DATE VALIDATION LIVRAISONS CORRIGÉE** - Ajout champs deliveredDate et validatedAt dans schéma et validateDelivery()
 - July 11, 2025. **DATE VALIDATION RAPPROCHEMENT CORRIGÉE** - La date de validation s'affiche uniquement après validation du rapprochement BL/Factures
 - July 11, 2025. **ERREUR PRODUCTION COLONNES MANQUANTES** - Créé script fix-production-complete.sh pour ajouter delivered_date et validated_at
+- July 11, 2025. **MIGRATION AUTOMATIQUE INTÉGRÉE** - Ajout migration des colonnes delivered_date/validated_at dans initDatabase.production.ts
+- July 11, 2025. **PROCHAINE MISE À JOUR DOCKER** - La migration s'exécutera automatiquement au prochain redémarrage du conteneur
 
 ## User Preferences
 

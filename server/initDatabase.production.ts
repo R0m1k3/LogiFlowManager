@@ -152,6 +152,62 @@ export async function initializeDatabase() {
     await pool.query(`SELECT setval('groups_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM groups), 1))`);
     await pool.query(`SELECT setval('suppliers_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM suppliers), 1))`);
 
+    // NOUVELLE MIGRATION AUTOMATIQUE - Ajout colonnes delivered_date et validated_at
+    console.log('🔄 [MIGRATION] Vérification des colonnes delivered_date et validated_at...');
+    
+    try {
+      // Vérifier si delivered_date existe
+      const deliveredDateCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'deliveries' AND column_name = 'delivered_date'
+        );
+      `);
+      
+      // Vérifier si validated_at existe
+      const validatedAtCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'deliveries' AND column_name = 'validated_at'
+        );
+      `);
+      
+      const hasDeliveredDate = deliveredDateCheck.rows[0]?.exists || false;
+      const hasValidatedAt = validatedAtCheck.rows[0]?.exists || false;
+      
+      // Ajouter delivered_date si elle n'existe pas
+      if (!hasDeliveredDate) {
+        console.log('🔧 [MIGRATION] Ajout de la colonne delivered_date...');
+        await pool.query(`ALTER TABLE deliveries ADD COLUMN delivered_date TIMESTAMP;`);
+        console.log('✅ [MIGRATION] Colonne delivered_date ajoutée avec succès');
+        
+        // Migrer les données existantes
+        await pool.query(`
+          UPDATE deliveries 
+          SET delivered_date = updated_at 
+          WHERE status = 'delivered' AND delivered_date IS NULL;
+        `);
+        console.log('✅ [MIGRATION] Données delivered_date migrées');
+      } else {
+        console.log('✅ [MIGRATION] Colonne delivered_date déjà présente');
+      }
+      
+      // Ajouter validated_at si elle n'existe pas
+      if (!hasValidatedAt) {
+        console.log('🔧 [MIGRATION] Ajout de la colonne validated_at...');
+        await pool.query(`ALTER TABLE deliveries ADD COLUMN validated_at TIMESTAMP;`);
+        console.log('✅ [MIGRATION] Colonne validated_at ajoutée avec succès');
+      } else {
+        console.log('✅ [MIGRATION] Colonne validated_at déjà présente');
+      }
+      
+      console.log('✅ [MIGRATION] Migration automatique des colonnes terminée');
+      
+    } catch (migrationError) {
+      console.warn('⚠️ [MIGRATION] Erreur lors de la migration automatique:', migrationError.message);
+      // Ne pas faire échouer l'initialisation pour une erreur de migration
+    }
+
     console.log("✅ Database schema initialized successfully");
   } catch (error) {
     if (error.message?.includes('already exists')) {
