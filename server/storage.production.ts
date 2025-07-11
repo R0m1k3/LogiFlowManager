@@ -1228,7 +1228,7 @@ export class DatabaseStorage implements IStorage {
       const params = [publicityId, ...groupIds];
       
       await pool.query(`
-        INSERT INTO publicity_participations (publicity_id, group_id, created_at)
+        INSERT INTO publicity_participations (publicity_id, group_id)
         VALUES ${values}
       `, params);
     }
