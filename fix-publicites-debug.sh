@@ -24,9 +24,10 @@ echo "📋 Derniers logs (20 lignes):"
 docker-compose logs --tail=20
 
 echo ""
-echo "✅ Correction appliquée !"
-echo "👉 Maintenant, testez la création d'une publicité"
-echo "👉 Les logs de debug apparaîtront dans les logs Docker"
+echo "✅ Correction DEBUG appliquée !"
+echo "👉 Maintenant, accédez à la page Publicités"
+echo "👉 Les logs vont montrer les années stockées en base"
+echo "👉 Nous pourrons voir pourquoi le filtre année=2025 ne fonctionne pas"
 echo ""
 echo "Pour voir les logs en temps réel :"
 echo "docker-compose logs -f"
