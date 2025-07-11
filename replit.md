@@ -400,6 +400,10 @@ Changelog:
 - July 11, 2025. **NETTOYAGE FINAL** - Suppression fichiers temporaires, assets debug, optimisation structure projet
 - July 11, 2025. **CORRECTION IMPORTS** - Résolution erreur authSwitch.ts supprimé, harmonisation avec localAuth.ts
 - July 11, 2025. **LOGGING SÉCURISÉ** - Protection données sensibles dans logs, masquage automatique passwords/tokens
+- July 11, 2025. **ERREURS CONTRAINTES UTILISATEURS CORRIGÉES** - Amélioration gestion erreurs création utilisateurs avec messages spécifiques
+- July 11, 2025. **MESSAGES D'ERREUR INFORMATIFS** - Détection erreurs contraintes unique username/email avec messages clairs en français
+- July 11, 2025. **GÉNÉRATION USERNAME UNIQUE** - Ajout timestamp pour éviter collisions lors création automatique username depuis email
+- July 11, 2025. **FRONTEND ERREURS AMÉLIORÉ** - Affichage messages d'erreur spécifiques de l'API au lieu de messages génériques
 
 ## User Preferences
 

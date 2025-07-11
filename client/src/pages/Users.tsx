@@ -134,7 +134,7 @@ export default function UsersPage() {
         setSelectedUser(null);
       }, 1000);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       if (isUnauthorizedError(error)) {
         toast({
           title: "Non autorisé",
@@ -146,9 +146,12 @@ export default function UsersPage() {
         }, 500);
         return;
       }
+      
+      // Show specific error message from API if available
+      const errorMessage = error?.response?.data?.message || "Impossible de mettre à jour l'utilisateur";
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour l'utilisateur",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -169,7 +172,7 @@ export default function UsersPage() {
       const response = await apiRequest("POST", "/api/users", payload);
       return response;
     },
-    onError: (error) => {
+    onError: (error: any) => {
       if (isUnauthorizedError(error)) {
         toast({
           title: "Non autorisé",
@@ -181,9 +184,12 @@ export default function UsersPage() {
         }, 500);
         return;
       }
+      
+      // Show specific error message from API if available
+      const errorMessage = error?.response?.data?.message || "Impossible de créer l'utilisateur";
       toast({
         title: "Erreur",
-        description: "Impossible de créer l'utilisateur",
+        description: errorMessage,
         variant: "destructive",
       });
     },

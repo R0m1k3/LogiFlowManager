@@ -731,9 +731,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(newUser);
     } catch (error) {
       console.error("Error creating user:", error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid user data", errors: error.errors });
       }
+      
+      // Handle specific database constraint errors
+      if (error.code === '23505') {
+        if (error.constraint === 'users_username_key') {
+          return res.status(409).json({ 
+            message: "Un utilisateur avec ce nom d'utilisateur existe déjà. Veuillez choisir un autre nom d'utilisateur." 
+          });
+        }
+        if (error.constraint === 'users_email_key') {
+          return res.status(409).json({ 
+            message: "Un utilisateur avec cette adresse email existe déjà." 
+          });
+        }
+      }
+      
       res.status(500).json({ message: "Failed to create user" });
     }
   });

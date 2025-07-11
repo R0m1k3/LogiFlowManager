@@ -305,9 +305,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Convert frontend data to backend format
       const userData = { ...req.body };
       
-      // Generate username if not provided (usually email prefix)
+      // Generate unique username if not provided (usually email prefix with timestamp)
       if (!userData.username && userData.email) {
-        userData.username = userData.email.split('@')[0];
+        const baseUsername = userData.email.split('@')[0];
+        userData.username = `${baseUsername}_${Date.now()}`;
       }
       
       // Convert firstName/lastName to name field
@@ -344,6 +345,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error creating user:", error);
+      
+      // Handle specific database constraint errors
+      if (error.code === '23505') {
+        if (error.constraint === 'users_username_key') {
+          return res.status(409).json({ 
+            message: "Un utilisateur avec ce nom d'utilisateur existe déjà. Veuillez choisir un autre nom d'utilisateur." 
+          });
+        }
+        if (error.constraint === 'users_email_key') {
+          return res.status(409).json({ 
+            message: "Un utilisateur avec cette adresse email existe déjà." 
+          });
+        }
+      }
+      
       res.status(500).json({ message: "Failed to create user" });
     }
   });
