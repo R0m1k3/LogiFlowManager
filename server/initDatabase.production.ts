@@ -178,6 +178,49 @@ export async function initializeDatabase() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_publicity_participations_publicity_id ON publicity_participations (publicity_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_publicity_participations_group_id ON publicity_participations (group_id)`);
 
+    // AJOUT TABLES SYSTÈME DE RÔLES ET PERMISSIONS
+    console.log("🔧 Creating roles table...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS roles (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR NOT NULL UNIQUE,
+        description TEXT,
+        is_system BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log("🔧 Creating permissions table...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS permissions (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR NOT NULL UNIQUE,
+        description TEXT,
+        category VARCHAR NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log("🔧 Creating role_permissions table...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS role_permissions (
+        role_id INTEGER NOT NULL,
+        permission_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (role_id, permission_id)
+      )
+    `);
+
+    // Index pour les rôles et permissions
+    console.log("🔧 Creating roles and permissions indexes...");
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_roles_name ON roles (name)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_roles_is_system ON roles (is_system)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_permissions_name ON permissions (name)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_permissions_category ON permissions (category)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions (role_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions (permission_id)`);
+
     // Note: No default test data inserted in production
     // Groups and suppliers will be created by administrators as needed
     console.log("✅ Database schema ready - no test data inserted");
@@ -187,6 +230,8 @@ export async function initializeDatabase() {
     await pool.query(`SELECT setval('groups_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM groups), 1))`);
     await pool.query(`SELECT setval('suppliers_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM suppliers), 1))`);
     await pool.query(`SELECT setval('publicities_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM publicities), 1))`);
+    await pool.query(`SELECT setval('roles_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM roles), 1))`);
+    await pool.query(`SELECT setval('permissions_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM permissions), 1))`);
 
     // NOUVELLE MIGRATION AUTOMATIQUE - Ajout colonnes delivered_date et validated_at
     console.log('🔄 [MIGRATION] Vérification des colonnes delivered_date et validated_at...');

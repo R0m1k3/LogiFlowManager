@@ -137,6 +137,11 @@ async function forceInitDatabase() {
     // Force initialization
     await initializeDatabase();
     
+    // Initialize roles and permissions
+    console.log("🔧 INITIALIZING ROLES AND PERMISSIONS...");
+    const { initializeRolesAndPermissions } = await import("./initRolesAndPermissions.production.js");
+    await initializeRolesAndPermissions();
+    
     // Verify the name column exists
     console.log("🔧 Verifying name column...");
     const columnCheck = await db.execute(`

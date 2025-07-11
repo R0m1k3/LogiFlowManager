@@ -116,13 +116,43 @@ CREATE TABLE IF NOT EXISTS publicity_participations (
     PRIMARY KEY (publicity_id, group_id)
 );
 
+-- Roles table (for dynamic role management)
+CREATE TABLE IF NOT EXISTS roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL UNIQUE,
+    description TEXT,
+    is_system BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Permissions table (for fine-grained permissions)
+CREATE TABLE IF NOT EXISTS permissions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL UNIQUE,
+    description TEXT,
+    category VARCHAR NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Role Permissions junction table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS role_permissions (
+    role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    permission_id INTEGER NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (role_id, permission_id)
+);
+
 -- Note: No default data inserted
 -- Groups and suppliers will be created by administrators as needed
+-- Roles and permissions will be initialized by the application
 
 -- Reset sequences to correct values (only if data exists)
 SELECT setval('groups_id_seq', (SELECT COALESCE(MAX(id), 1) FROM groups));
 SELECT setval('suppliers_id_seq', (SELECT COALESCE(MAX(id), 1) FROM suppliers));
 SELECT setval('publicities_id_seq', (SELECT COALESCE(MAX(id), 1) FROM publicities));
+SELECT setval('roles_id_seq', (SELECT COALESCE(MAX(id), 1) FROM roles));
+SELECT setval('permissions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM permissions));
 
 -- Create performance indexes
 CREATE INDEX IF NOT EXISTS idx_orders_planned_date ON orders (planned_date);
@@ -157,6 +187,14 @@ CREATE INDEX IF NOT EXISTS idx_publicities_created_by ON publicities (created_by
 CREATE INDEX IF NOT EXISTS idx_publicity_participations_publicity_id ON publicity_participations (publicity_id);
 CREATE INDEX IF NOT EXISTS idx_publicity_participations_group_id ON publicity_participations (group_id);
 
+-- Roles and permissions indexes
+CREATE INDEX IF NOT EXISTS idx_roles_name ON roles (name);
+CREATE INDEX IF NOT EXISTS idx_roles_is_system ON roles (is_system);
+CREATE INDEX IF NOT EXISTS idx_permissions_name ON permissions (name);
+CREATE INDEX IF NOT EXISTS idx_permissions_category ON permissions (category);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions (role_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions (permission_id);
+
 -- Notification de fin
 DO $$
 BEGIN
@@ -173,9 +211,13 @@ BEGIN
     RAISE NOTICE '- user_groups (clé composite)';
     RAISE NOTICE '- publicities (campagnes publicitaires)';
     RAISE NOTICE '- publicity_participations (magasins participants)';
+    RAISE NOTICE '- roles (rôles système et personnalisés)';
+    RAISE NOTICE '- permissions (permissions granulaires)';
+    RAISE NOTICE '- role_permissions (liaisons rôles-permissions)';
     RAISE NOTICE '==========================================';
     RAISE NOTICE 'Aucune donnée de test insérée automatiquement';
     RAISE NOTICE 'Groupes et fournisseurs à créer par l''administrateur';
     RAISE NOTICE 'Compte admin sera créé par l''application';
+    RAISE NOTICE 'Rôles et permissions seront initialisés par l''application';
     RAISE NOTICE '==========================================';
 END $$;
