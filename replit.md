@@ -325,6 +325,7 @@ Changelog:
 - July 11, 2025. **CORRECTION URGENTE ug.assigned_at** - Supprimé référence à la colonne assigned_at manquante dans user_groups
 - July 11, 2025. **SUPPRESSION REPLIT AUTH EN PRODUCTION** - Éliminé toutes références Replit du modal création utilisateur en production
 - July 11, 2025. **SCHÉMA SQL PRODUCTION INCOHÉRENT** - Colonnes manquantes détectées : orders.notes, deliveries.scheduled_date - scripts SQL de correction créés
+- July 11, 2025. **CORRECTION SQL ADAPTATIVE** - Code modifié pour s'adapter automatiquement aux colonnes disponibles (notes/comments, scheduled_date/planned_date)
 
 ## User Preferences
 
