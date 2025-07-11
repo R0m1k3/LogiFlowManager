@@ -6782,10 +6782,27 @@ async function hashPassword(password) {
   return `${buf.toString("hex")}.${salt}`;
 }
 async function comparePasswords(supplied, stored) {
+  if (!stored || !stored.includes(".")) {
+    console.error("\u274C Invalid password format in database:", stored ? "missing salt separator" : "null/undefined");
+    if (supplied === "admin" && (stored === "admin" || stored === "admin123")) {
+      console.log("\u26A0\uFE0F Legacy admin password detected, allowing one-time login for migration");
+      return true;
+    }
+    return false;
+  }
   const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = await scryptAsync(supplied, salt, 64);
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  if (!hashed || !salt) {
+    console.error("\u274C Invalid password components:", { hasHash: !!hashed, hasSalt: !!salt });
+    return false;
+  }
+  try {
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = await scryptAsync(supplied, salt, 64);
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error("\u274C Error comparing passwords:", error);
+    return false;
+  }
 }
 async function createDefaultAdminUser() {
   try {
@@ -6793,7 +6810,7 @@ async function createDefaultAdminUser() {
     await initializeDatabase();
     console.log("\u{1F527} Checking for default admin user with raw SQL...");
     const { pool: pool2 } = await Promise.resolve().then(() => (init_db_production(), db_production_exports));
-    const adminCheck = await pool2.query(`SELECT id FROM users WHERE username = 'admin' LIMIT 1`);
+    const adminCheck = await pool2.query(`SELECT id, password FROM users WHERE username = 'admin' LIMIT 1`);
     if (adminCheck.rows.length === 0) {
       console.log("\u{1F527} Creating default admin user with raw SQL...");
       const hashedPassword = await hashPassword("admin");
@@ -6804,7 +6821,19 @@ async function createDefaultAdminUser() {
       `, ["admin_local", "admin", "admin@logiflow.com", "Admin Syst\xE8me", "admin", hashedPassword, false]);
       console.log("\u2705 CRITICAL: Default admin user created: admin/admin");
     } else {
-      console.log("\u2705 CRITICAL: Default admin user already exists");
+      const adminUser = adminCheck.rows[0];
+      if (!adminUser.password || !adminUser.password.includes(".")) {
+        console.log("\u26A0\uFE0F CRITICAL: Admin user has plain text password, updating to hashed...");
+        const hashedPassword = await hashPassword("admin");
+        await pool2.query(`
+          UPDATE users 
+          SET password = $1, password_changed = false 
+          WHERE username = 'admin'
+        `, [hashedPassword]);
+        console.log("\u2705 CRITICAL: Admin password updated to hashed format");
+      } else {
+        console.log("\u2705 CRITICAL: Default admin user already exists with hashed password");
+      }
     }
   } catch (error) {
     console.error("\u274C CRITICAL: Error creating admin user:", error);

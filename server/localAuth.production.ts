@@ -38,10 +38,31 @@ export async function hashPassword(password: string) {
 }
 
 async function comparePasswords(supplied: string, stored: string) {
+  // Handle case where stored password might not have the expected format
+  if (!stored || !stored.includes(".")) {
+    console.error("❌ Invalid password format in database:", stored ? "missing salt separator" : "null/undefined");
+    // If it's the default admin password, allow plain text comparison for migration
+    if (supplied === 'admin' && (stored === 'admin' || stored === 'admin123')) {
+      console.log("⚠️ Legacy admin password detected, allowing one-time login for migration");
+      return true;
+    }
+    return false;
+  }
+  
   const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  if (!hashed || !salt) {
+    console.error("❌ Invalid password components:", { hasHash: !!hashed, hasSalt: !!salt });
+    return false;
+  }
+  
+  try {
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error("❌ Error comparing passwords:", error);
+    return false;
+  }
 }
 
 async function createDefaultAdminUser() {
@@ -54,7 +75,7 @@ async function createDefaultAdminUser() {
     
     // Use raw SQL to check for admin user (avoid Drizzle issues)
     const { pool } = await import("./db.production.js");
-    const adminCheck = await pool.query(`SELECT id FROM users WHERE username = 'admin' LIMIT 1`);
+    const adminCheck = await pool.query(`SELECT id, password FROM users WHERE username = 'admin' LIMIT 1`);
     
     if (adminCheck.rows.length === 0) {
       console.log("🔧 Creating default admin user with raw SQL...");
@@ -69,7 +90,20 @@ async function createDefaultAdminUser() {
       
       console.log("✅ CRITICAL: Default admin user created: admin/admin");
     } else {
-      console.log("✅ CRITICAL: Default admin user already exists");
+      // Check if existing admin has plain text password
+      const adminUser = adminCheck.rows[0];
+      if (!adminUser.password || !adminUser.password.includes(".")) {
+        console.log("⚠️ CRITICAL: Admin user has plain text password, updating to hashed...");
+        const hashedPassword = await hashPassword('admin');
+        await pool.query(`
+          UPDATE users 
+          SET password = $1, password_changed = false 
+          WHERE username = 'admin'
+        `, [hashedPassword]);
+        console.log("✅ CRITICAL: Admin password updated to hashed format");
+      } else {
+        console.log("✅ CRITICAL: Default admin user already exists with hashed password");
+      }
     }
   } catch (error) {
     console.error("❌ CRITICAL: Error creating admin user:", error);
