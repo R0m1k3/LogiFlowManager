@@ -171,7 +171,7 @@ export default function RoleManagement() {
         description: "Permissions mises à jour avec succès",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-      setShowPermissionsModal(false);
+      // Ne pas fermer le modal automatiquement
     },
     onError: (error: any) => {
       toast({
