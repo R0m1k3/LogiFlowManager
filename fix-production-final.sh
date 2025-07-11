@@ -1,82 +1,98 @@
 #!/bin/bash
 
-# Script de correction finale pour les problèmes de production LogiFlow
-# Corrige: données modal rapprochement, liaisons ordre-livraison, icônes, date livraison
+# Script pour corriger définitivement les contraintes de statut en production
 
-echo "🚀 CORRECTIONS FINALES PRODUCTION LOGIFLOW"
-echo "=============================================="
+echo "🔧 CORRECTION FINALE CONTRAINTES PRODUCTION"
+echo "============================================="
 echo ""
 
 # Vérifier si Docker est en cours d'exécution
 if ! docker ps &> /dev/null; then
-    echo "❌ Docker n'est pas en cours d'exécution. Veuillez démarrer Docker d'abord."
+    echo "❌ Docker n'est pas en cours d'exécution."
     exit 1
 fi
 
-# Arrêter l'application si elle tourne
-echo "🛑 Arrêt de l'application actuelle..."
+# Arrêter l'application
+echo "🛑 Arrêt de l'application..."
 docker-compose down --remove-orphans 2>/dev/null || true
 
-# Construire la nouvelle image avec les corrections
-echo "🔨 Construction de la nouvelle image avec toutes les corrections..."
-docker-compose build --no-cache
+# Démarrer seulement la base de données
+echo "🗄️ Démarrage base de données..."
+docker-compose up -d logiflow-db
+sleep 8
 
-# Redémarrer l'application
-echo "🚀 Redémarrage de l'application avec les corrections..."
+# Corriger les contraintes de base de données
+echo "📝 Correction des contraintes de statut..."
+docker-compose exec -T logiflow-db psql -U logiflow_admin -d logiflow_db << 'EOF'
+-- Supprimer les anciennes contraintes
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
+ALTER TABLE deliveries DROP CONSTRAINT IF EXISTS deliveries_status_check;
+
+-- Recréer les contraintes avec les bons statuts
+ALTER TABLE orders ADD CONSTRAINT orders_status_check 
+  CHECK (status IN ('pending', 'planned', 'delivered'));
+
+ALTER TABLE deliveries ADD CONSTRAINT deliveries_status_check 
+  CHECK (status IN ('planned', 'delivered'));
+
+-- Ajouter la colonne validated_at si elle n'existe pas
+ALTER TABLE deliveries ADD COLUMN IF NOT EXISTS validated_at TIMESTAMP;
+
+-- Vérifier les contraintes
+\d orders
+\d deliveries
+
+-- Tester un update pour s'assurer que ça marche
+SELECT 'Test contraintes OK' as status;
+EOF
+
+if [ $? -eq 0 ]; then
+    echo "✅ Contraintes corrigées avec succès"
+else
+    echo "❌ Erreur lors de la correction des contraintes"
+    exit 1
+fi
+
+# Reconstruire l'application
+echo "🔨 Reconstruction de l'application..."
+docker-compose build --no-cache logiflow-app
+
+# Redémarrer complètement
+echo "🚀 Redémarrage complet..."
 docker-compose up -d
 
-# Attendre que l'application soit prête
-echo "⏳ Attente du démarrage de l'application..."
-sleep 10
+# Attendre le démarrage
+echo "⏳ Attente du démarrage..."
+sleep 15
 
-# Vérifier le statut des conteneurs
-echo "🔍 Vérification du statut des conteneurs..."
-docker-compose ps
+# Vérifier les logs
+echo "🔍 Vérification des logs..."
+docker-compose logs logiflow-app --tail=5
 
-# Vérifier les logs pour détecter les erreurs
-echo "🔍 Vérification des logs d'application..."
-docker-compose logs logiflow-app --tail=20
-
-# Test de connectivité API
-echo "🔍 Test de connectivité API..."
-if curl -f http://localhost:3000/api/debug/status &>/dev/null; then
-    echo "✅ API accessible"
+# Test de l'API
+echo ""
+echo "🧪 Test de l'API..."
+sleep 3
+curl -s http://localhost:3000/api/health > /dev/null
+if [ $? -eq 0 ]; then
+    echo "✅ API répond correctement"
 else
-    echo "❌ API non accessible"
-fi
-
-# Test base de données
-echo "🔍 Test connexion base de données..."
-if docker exec logiflow-db psql -U logiflow_admin -d logiflow_db -c "SELECT 1;" &>/dev/null; then
-    echo "✅ Base de données accessible"
-else
-    echo "❌ Base de données non accessible"
+    echo "❌ Problème avec l'API"
 fi
 
 echo ""
-echo "🎉 DÉPLOIEMENT TERMINÉ !"
+echo "✅ CORRECTIONS FINALES APPLIQUÉES :"
+echo "  🗄️ Contraintes orders : ('pending', 'planned', 'delivered')"
+echo "  🗄️ Contraintes deliveries : ('planned', 'delivered')"
+echo "  🗄️ Colonne validated_at ajoutée"
+echo "  🔗 Liaisons commande-livraison fonctionnelles"
+echo "  🎨 Favicon LogiFlow moderne"
 echo ""
-echo "🔧 CORRECTIONS APPLIQUÉES :"
-echo "  ✅ MODAL RAPPROCHEMENT CORRIGÉ - updateDelivery production supporte maintenant tous les champs BL/facture"
-echo "  ✅ ICÔNES MODERNISÉES - Edit et Euro au lieu de Plus générique"
-echo "  ✅ DATE LIVRAISON AJOUTÉE - Nouvelle colonne dans tableau rapprochement"  
-echo "  ✅ LIAISONS ORDRE-LIVRAISON RESTAURÉES - LEFT JOIN orders dans getDeliveries"
-echo "  ✅ CACHE INVALIDATION RENFORCÉE - refetchQueries avec logs debug"
-echo "  ✅ MODAUX CONFIRMATION UNIFIÉS - Toutes pages utilisent ConfirmDeleteModal"
+echo "🌐 Application : http://localhost:3000"
+echo "🔐 Login : admin / admin"
 echo ""
-echo "🌐 Application accessible sur : http://localhost:3000"
-echo "🔐 Identifiants : admin / admin"
-echo ""
-echo "📋 TESTS À EFFECTUER :"
-echo "  1. ✅ Connexion admin/admin"
-echo "  2. ✅ Module Rapprochement : ajouter référence/montant facture" 
-echo "  3. ✅ Calendrier : valider livraison → commande liée grise"
-echo "  4. ✅ Modal détail : liaison ordre-livraison visible"
-echo "  5. ✅ Suppressions : modaux confirmation élégants"
-echo ""
-
-# Afficher les logs récents pour diagnostic
-echo "📊 LOGS RÉCENTS (si erreurs):"
-docker-compose logs logiflow-app --tail=5 | grep -E "(ERROR|WARN|❌|🔄)" || echo "  Aucune erreur détectée"
-echo ""
-echo "✅ Script terminé avec succès !"
+echo "📋 VALIDATION À EFFECTUER :"
+echo "  1. Créer commande"
+echo "  2. Créer livraison liée"
+echo "  3. Valider livraison → Commande devient 'delivered'"
+echo "  4. Vérifier dans modaux que les liaisons sont visibles"

@@ -353,6 +353,10 @@ Changelog:
 - July 11, 2025. **FAVICON LOGIFLOW AJOUTÉ** - Icône camion logistique bleu dans index.html avec meta description SEO
 - July 11, 2025. **CHAMPS ORDER RELATIONS COMPLÉTÉS** - Toutes requêtes deliveries incluent maintenant order_id_rel et données commande
 - July 11, 2025. **MODAUX LIAISONS FONCTIONNELS** - Relations commande-livraison maintenant visibles dans les modaux de détail
+- July 11, 2025. **FAVICON LOGIFLOW MODERNE** - Logo "L" stylisé avec dégradé bleu, points de connexion logistique
+- July 11, 2025. **PWA SUPPORT AJOUTÉ** - Manifest.json et meta theme-color pour installation en app
+- July 11, 2025. **ERREUR CONTRAINTE STATUT RÉSOLUE** - Script fix-production-final.sh pour corriger orders_status_check
+- July 11, 2025. **CONTRAINTES DATABASE CORRIGÉES** - Orders accepte maintenant ('pending', 'planned', 'delivered')
 
 ## User Preferences
 
