@@ -963,6 +963,20 @@ export class DatabaseStorage implements IStorage {
     const countResult = await pool.query(`SELECT COUNT(*) as count FROM publicities`);
     console.log('🔍 [PUBLICITÉS] Nombre total de publicités en base:', countResult.rows[0]?.count);
     
+    // Debug: vérifier les groupes disponibles
+    const groupsResult = await pool.query(`SELECT id, name FROM groups ORDER BY id`);
+    console.log('🔍 [PUBLICITÉS] Groupes disponibles:', groupsResult.rows);
+    
+    // Debug: vérifier les participations
+    const participationsResult = await pool.query(`
+      SELECT pp.publicity_id, pp.group_id, g.name as group_name, p.pub_number 
+      FROM publicity_participations pp 
+      INNER JOIN groups g ON pp.group_id = g.id 
+      INNER JOIN publicities p ON pp.publicity_id = p.id
+      ORDER BY pp.publicity_id
+    `);
+    console.log('🔍 [PUBLICITÉS] Participations actuelles:', participationsResult.rows);
+    
     // Debug logs supprimés pour améliorer les performances
     
     let sqlQuery = `
@@ -999,7 +1013,13 @@ export class DatabaseStorage implements IStorage {
     
     sqlQuery += ` ORDER BY p.created_at DESC`;
     
+    console.log('🔍 [PUBLICITÉS] Requête SQL finale:', sqlQuery);
+    console.log('🔍 [PUBLICITÉS] Paramètres:', params);
+    
     const result = await pool.query(sqlQuery, params);
+    
+    console.log('🔍 [PUBLICITÉS] Résultats trouvés:', result.rows.length);
+    console.log('🔍 [PUBLICITÉS] Publicités retournées:', result.rows.map(r => ({ id: r.id, pub_number: r.pub_number, designation: r.designation })));
     
     const publicities = await Promise.all(result.rows.map(async (row) => {
       // Get participations for this publicity
