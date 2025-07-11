@@ -461,7 +461,7 @@ export class DatabaseStorage implements IStorage {
     
     let sqlQuery = `
       SELECT 
-        d.id, d.order_id, d.supplier_id, d.group_id, d.scheduled_date, d.quantity, d.unit, d.status, d.notes,
+        d.id, d.order_id, d.supplier_id, d.group_id, d.scheduled_date, d.delivered_date, d.validated_at, d.quantity, d.unit, d.status, d.notes,
         d.bl_number, d.bl_amount, d.invoice_reference, d.invoice_amount, d.reconciled, d.created_by, d.created_at, d.updated_at,
         s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone,
         s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
@@ -833,18 +833,20 @@ export class DatabaseStorage implements IStorage {
     const deliveryResult = await pool.query(`SELECT order_id FROM deliveries WHERE id = $1`, [id]);
     const delivery = deliveryResult.rows[0];
     
+    const now = new Date();
+    
     if (blData) {
       await pool.query(`
         UPDATE deliveries 
-        SET status = 'delivered', bl_number = $1, bl_amount = $2, updated_at = $3
+        SET status = 'delivered', bl_number = $1, bl_amount = $2, delivered_date = $3, validated_at = $3, updated_at = $3
         WHERE id = $4
-      `, [blData.blNumber, blData.blAmount, new Date(), id]);
+      `, [blData.blNumber, blData.blAmount, now, id]);
     } else {
       await pool.query(`
         UPDATE deliveries 
-        SET status = 'delivered', updated_at = $1
+        SET status = 'delivered', delivered_date = $1, validated_at = $1, updated_at = $1
         WHERE id = $2
-      `, [new Date(), id]);
+      `, [now, id]);
     }
     
     // Si la livraison est liée à une commande, mettre à jour le statut de la commande
@@ -854,7 +856,7 @@ export class DatabaseStorage implements IStorage {
         UPDATE orders 
         SET status = 'delivered', updated_at = $1
         WHERE id = $2
-      `, [new Date(), delivery.order_id]);
+      `, [now, delivery.order_id]);
     }
   }
 

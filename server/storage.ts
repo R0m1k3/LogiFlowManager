@@ -373,11 +373,14 @@ export class DatabaseStorage implements IStorage {
     const delivery = await this.getDelivery(id);
     if (!delivery) throw new Error("Delivery not found");
     
+    const now = new Date();
+    
     // Prepare update data
     const updateData: any = { 
       status: "delivered",
-      deliveredDate: new Date(),
-      updatedAt: new Date()
+      deliveredDate: now,
+      validatedAt: now,
+      updatedAt: now
     };
     
     // Add BL data if provided
@@ -398,7 +401,7 @@ export class DatabaseStorage implements IStorage {
         .update(orders)
         .set({ 
           status: "delivered",
-          updatedAt: new Date()
+          updatedAt: now
         })
         .where(eq(orders.id, delivery.orderId));
     }
