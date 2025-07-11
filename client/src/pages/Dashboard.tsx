@@ -51,18 +51,32 @@ export default function Dashboard() {
     queryKey: [deliveriesUrl, selectedStoreId],
   });
 
-  // Récupérer les publicités à venir
+  // Récupérer les publicités à venir (chercher dans 2024 ET 2025)
   const { data: upcomingPublicities = [] } = useQuery<PublicityWithRelations[]>({
-    queryKey: ['/api/publicities', new Date().getFullYear(), selectedStoreId],
+    queryKey: ['/api/publicities', 'upcoming', selectedStoreId],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('year', new Date().getFullYear().toString());
-      if (selectedStoreId && user?.role === 'admin') {
-        params.append('storeId', selectedStoreId.toString());
+      // Essayer d'abord 2024, puis 2025 pour avoir toutes les publicités
+      const years = [2024, 2025];
+      let allPublicities: PublicityWithRelations[] = [];
+      
+      for (const year of years) {
+        const params = new URLSearchParams();
+        params.append('year', year.toString());
+        if (selectedStoreId && user?.role === 'admin') {
+          params.append('storeId', selectedStoreId.toString());
+        }
+        try {
+          const response = await fetch(`/api/publicities?${params}`, { credentials: 'include' });
+          if (response.ok) {
+            const yearPublicities = await response.json();
+            allPublicities = [...allPublicities, ...yearPublicities];
+          }
+        } catch (error) {
+          console.log(`Erreur lors de la récupération des publicités ${year}:`, error);
+        }
       }
-      const response = await fetch(`/api/publicities?${params}`, { credentials: 'include' });
-      if (!response.ok) return [];
-      return response.json();
+      
+      return allPublicities;
     },
   });
 

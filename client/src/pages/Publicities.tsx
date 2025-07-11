@@ -15,7 +15,7 @@ import type { PublicityWithRelations, Group } from "@shared/schema";
 import PublicityForm from "@/components/PublicityForm";
 
 export default function Publicities() {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Année courante par défaut
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -33,13 +33,33 @@ export default function Publicities() {
 
   const { data: publicities = [], isLoading } = useQuery({
     queryKey: ['/api/publicities', selectedYear, selectedStoreId],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams();
       params.append('year', selectedYear.toString());
       if (selectedStoreId) {
         params.append('storeId', selectedStoreId.toString());
       }
-      return fetch(`/api/publicities?${params}`).then(res => res.json());
+      const response = await fetch(`/api/publicities?${params}`);
+      const data = await response.json();
+      
+      // Si aucune publicité pour l'année sélectionnée ET c'est la première fois, essayer l'année précédente
+      if (data.length === 0 && selectedYear === new Date().getFullYear()) {
+        const prevYearParams = new URLSearchParams();
+        prevYearParams.append('year', (selectedYear - 1).toString());
+        if (selectedStoreId) {
+          prevYearParams.append('storeId', selectedStoreId.toString());
+        }
+        const prevYearResponse = await fetch(`/api/publicities?${prevYearParams}`);
+        const prevYearData = await prevYearResponse.json();
+        
+        // S'il y a des données l'année précédente, changer automatiquement l'année
+        if (prevYearData.length > 0) {
+          setSelectedYear(selectedYear - 1);
+          return prevYearData;
+        }
+      }
+      
+      return data;
     },
   });
 

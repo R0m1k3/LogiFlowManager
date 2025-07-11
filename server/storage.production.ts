@@ -963,13 +963,7 @@ export class DatabaseStorage implements IStorage {
     const countResult = await pool.query(`SELECT COUNT(*) as count FROM publicities`);
     console.log('🔍 [PUBLICITÉS] Nombre total de publicités en base:', countResult.rows[0]?.count);
     
-    // Vérifier les utilisateurs
-    const usersResult = await pool.query(`SELECT id, username FROM users`);
-    console.log('🔍 [PUBLICITÉS] Utilisateurs en base:', usersResult.rows.map(u => `${u.id} (${u.username})`));
-    
-    // Vérifier les publicités avec leurs created_by ET leur année
-    const publicitiesDebug = await pool.query(`SELECT id, pub_number, created_by, year, start_date, end_date FROM publicities`);
-    console.log('🔍 [PUBLICITÉS] Publicités avec créateurs et années:', publicitiesDebug.rows);
+    // Debug logs supprimés pour améliorer les performances
     
     let sqlQuery = `
       SELECT 
@@ -1005,30 +999,7 @@ export class DatabaseStorage implements IStorage {
     
     sqlQuery += ` ORDER BY p.created_at DESC`;
     
-    console.log('🔍 [PUBLICITÉS] Requête SQL:', sqlQuery);
-    console.log('🔍 [PUBLICITÉS] Paramètres:', params);
-    
     const result = await pool.query(sqlQuery, params);
-    console.log('🔍 [PUBLICITÉS] Résultats bruts:', result.rows.length, 'publicités trouvées');
-    
-    // DIAGNOSTIC SPÉCIAL : tester sans filtre année pour voir toutes les publicités
-    if (result.rows.length === 0 && year) {
-      console.log('🔧 [DIAGNOSTIC] Test sans filtre année pour voir toutes les publicités...');
-      const testQuery = `
-        SELECT 
-          p.id, p.pub_number, p.designation, p.start_date, p.end_date, p.year, 
-          p.created_by, p.created_at, p.updated_at,
-          u.username as creator_username, u.email as creator_email, u.name as creator_name, u.role as creator_role,
-          u.password as creator_password, u.password_changed as creator_password_changed, 
-          u.created_at as creator_created_at, u.updated_at as creator_updated_at
-        FROM publicities p
-        INNER JOIN users u ON p.created_by = u.id
-        ORDER BY p.created_at DESC
-      `;
-      const testResult = await pool.query(testQuery);
-      console.log('🔧 [DIAGNOSTIC] Sans filtre année, trouvé:', testResult.rows.length, 'publicités');
-      console.log('🔧 [DIAGNOSTIC] Années trouvées:', testResult.rows.map(r => `ID ${r.id}: année ${r.year} (type: ${typeof r.year})`));
-    }
     
     const publicities = await Promise.all(result.rows.map(async (row) => {
       // Get participations for this publicity
