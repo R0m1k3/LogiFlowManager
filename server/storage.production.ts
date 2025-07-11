@@ -228,8 +228,7 @@ export class DatabaseStorage implements IStorage {
       
       let sqlQuery = `
         SELECT 
-          o.id, o.supplier_id, o.group_id, o.planned_date, o.status, 
-          COALESCE(o.notes, o.comments, '') as notes, o.created_by, o.created_at, o.updated_at,
+          o.id, o.supplier_id, o.group_id, o.planned_date, o.status, o.notes, o.created_by, o.created_at, o.updated_at,
           s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone,
           s.created_at as supplier_created_at, s.updated_at as supplier_updated_at,
           g.name as group_name, g.color as group_color, g.created_at as group_created_at, g.updated_at as group_updated_at,
@@ -431,75 +430,24 @@ export class DatabaseStorage implements IStorage {
 
   async createOrder(order: InsertOrder): Promise<Order> {
     const { pool } = await import("./db.production.js");
-    
-    // Vérifier si la colonne notes existe
-    const columnsResult = await pool.query(`
-      SELECT column_name FROM information_schema.columns 
-      WHERE table_name = 'orders' AND column_name IN ('notes', 'comments')
-    `);
-    const availableColumns = columnsResult.rows.map(row => row.column_name);
-    const hasNotesOrComments = availableColumns.length > 0;
-    
-    let sql, values;
-    
-    if (hasNotesOrComments) {
-      const notesColumn = availableColumns.includes('notes') ? 'notes' : 'comments';
-      sql = `
-        INSERT INTO orders (supplier_id, group_id, planned_date, status, ${notesColumn}, created_by, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING *
-      `;
-      values = [order.supplierId, order.groupId, order.plannedDate, order.status, order.notes, order.createdBy, new Date(), new Date()];
-    } else {
-      sql = `
-        INSERT INTO orders (supplier_id, group_id, planned_date, status, created_by, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *
-      `;
-      values = [order.supplierId, order.groupId, order.plannedDate, order.status, order.createdBy, new Date(), new Date()];
-    }
-    
-    const result = await pool.query(sql, values);
+    const result = await pool.query(`
+      INSERT INTO orders (supplier_id, group_id, planned_date, status, notes, created_by, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `, [order.supplierId, order.groupId, order.plannedDate, order.status || 'pending', order.notes, order.createdBy, new Date(), new Date()]);
     return result.rows[0];
   }
 
   async updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order> {
     const { pool } = await import("./db.production.js");
-    
-    // Vérifier si la colonne notes existe
-    const columnsResult = await pool.query(`
-      SELECT column_name FROM information_schema.columns 
-      WHERE table_name = 'orders' AND column_name IN ('notes', 'comments')
-    `);
-    const availableColumns = columnsResult.rows.map(row => row.column_name);
-    const hasNotesOrComments = availableColumns.length > 0;
-    
-    let sql, values;
-    
-    if (hasNotesOrComments) {
-      const notesColumn = availableColumns.includes('notes') ? 'notes' : 'comments';
-      sql = `
-        UPDATE orders 
-        SET supplier_id = COALESCE($1, supplier_id), group_id = COALESCE($2, group_id), 
-            planned_date = COALESCE($3, planned_date), status = COALESCE($4, status), 
-            ${notesColumn} = COALESCE($5, ${notesColumn}), updated_at = $6
-        WHERE id = $7
-        RETURNING *
-      `;
-      values = [order.supplierId, order.groupId, order.plannedDate, order.status, order.notes, new Date(), id];
-    } else {
-      sql = `
-        UPDATE orders 
-        SET supplier_id = COALESCE($1, supplier_id), group_id = COALESCE($2, group_id), 
-            planned_date = COALESCE($3, planned_date), status = COALESCE($4, status), 
-            updated_at = $5
-        WHERE id = $6
-        RETURNING *
-      `;
-      values = [order.supplierId, order.groupId, order.plannedDate, order.status, new Date(), id];
-    }
-    
-    const result = await pool.query(sql, values);
+    const result = await pool.query(`
+      UPDATE orders 
+      SET supplier_id = COALESCE($1, supplier_id), group_id = COALESCE($2, group_id), 
+          planned_date = COALESCE($3, planned_date), status = COALESCE($4, status), 
+          notes = COALESCE($5, notes), updated_at = $6
+      WHERE id = $7
+      RETURNING *
+    `, [order.supplierId, order.groupId, order.plannedDate, order.status, order.notes, new Date(), id]);
     return result.rows[0];
   }
 
@@ -735,44 +683,11 @@ export class DatabaseStorage implements IStorage {
 
   async createDelivery(delivery: InsertDelivery): Promise<Delivery> {
     const { pool } = await import("./db.production.js");
-    
-    // Vérifier les colonnes disponibles pour deliveries
-    const columnsResult = await pool.query(`
-      SELECT column_name FROM information_schema.columns 
-      WHERE table_name = 'deliveries' AND column_name IN ('scheduled_date', 'planned_date', 'notes', 'comments')
-    `);
-    const availableColumns = columnsResult.rows.map(row => row.column_name);
-    
-    const dateColumn = availableColumns.includes('scheduled_date') ? 'scheduled_date' : 
-                      availableColumns.includes('planned_date') ? 'planned_date' : null;
-    
-    const notesColumn = availableColumns.includes('notes') ? 'notes' : 
-                       availableColumns.includes('comments') ? 'comments' : null;
-    
-    if (!dateColumn) {
-      throw new Error('No date column found in deliveries table');
-    }
-    
-    let sql = `INSERT INTO deliveries (order_id, supplier_id, group_id, ${dateColumn}, quantity, unit, status`;
-    let values = [delivery.orderId, delivery.supplierId, delivery.groupId, delivery.scheduledDate, delivery.quantity, delivery.unit, delivery.status];
-    let paramCount = 7;
-    
-    if (notesColumn) {
-      sql += `, ${notesColumn}`;
-      values.push(delivery.notes);
-      paramCount++;
-    }
-    
-    sql += `, created_by, created_at, updated_at) VALUES (`;
-    for (let i = 1; i <= paramCount; i++) {
-      sql += `$${i}`;
-      if (i < paramCount) sql += ', ';
-    }
-    sql += `, $${paramCount + 1}, $${paramCount + 2}, $${paramCount + 3}) RETURNING *`;
-    
-    values.push(delivery.createdBy, new Date(), new Date());
-    
-    const result = await pool.query(sql, values);
+    const result = await pool.query(`
+      INSERT INTO deliveries (order_id, supplier_id, group_id, scheduled_date, quantity, unit, status, notes, created_by, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *
+    `, [delivery.orderId, delivery.supplierId, delivery.groupId, delivery.scheduledDate, delivery.quantity, delivery.unit, delivery.status || 'planned', delivery.notes, delivery.createdBy, new Date(), new Date()]);
     return result.rows[0];
   }
 

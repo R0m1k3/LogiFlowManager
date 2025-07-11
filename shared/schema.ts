@@ -77,7 +77,7 @@ export const orders = pgTable("orders", {
   quantity: integer("quantity"), // Optional - will be set when delivery is linked
   unit: varchar("unit"), // Optional - 'palettes' or 'colis'
   status: varchar("status").notNull().default("pending"), // pending, planned, delivered
-  comments: text("comments"),
+  notes: text("notes"),
   createdBy: varchar("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -89,12 +89,12 @@ export const deliveries = pgTable("deliveries", {
   orderId: integer("order_id"), // optional link to order
   supplierId: integer("supplier_id").notNull(),
   groupId: integer("group_id").notNull(),
-  plannedDate: date("planned_date").notNull(),
+  scheduledDate: date("scheduled_date").notNull(),
   deliveredDate: timestamp("delivered_date"),
   quantity: integer("quantity").notNull(),
   unit: varchar("unit").notNull(), // 'palettes' or 'colis'
   status: varchar("status").notNull().default("planned"), // planned, delivered
-  comments: text("comments"),
+  notes: text("notes"),
   // Champs pour le rapprochement BL/Factures
   blNumber: varchar("bl_number"), // Numéro de Bon de Livraison
   blAmount: decimal("bl_amount", { precision: 10, scale: 2 }), // Montant BL
