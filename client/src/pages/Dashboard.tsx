@@ -278,6 +278,7 @@ export default function Dashboard() {
           <CardContent className="space-y-3 p-6">
             {upcomingPublicities
               .filter((publicity: any) => new Date(publicity.startDate) > new Date())
+              .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
               .slice(0, 3)
               .map((publicity: any) => (
                 <div key={publicity.id} className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors border-l-3 border-purple-500">
