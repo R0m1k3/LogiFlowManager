@@ -415,6 +415,9 @@ Changelog:
 - July 11, 2025. Modal permissions reste ouvert pendant modifications multiples avec feedback visuel instantané
 - July 11, 2025. Ordre des permissions réorganisé : validate avant delete, groupes renommés en "magasins"
 - July 11, 2025. Attribution permissions calendrier : admin (toutes), manager (toutes), employee (voir+créer seulement)
+- July 11, 2025. **MISE EN ÉVIDENCE DATE ACTUELLE** - Ajout fond subtil bleu pour la date du jour dans le calendrier
+- July 11, 2025. Date du jour avec fond bg-blue-50, ring-1 ring-blue-200 et texte text-blue-700 font-semibold
+- July 11, 2025. Transition douce au survol avec hover:bg-blue-100 pour la date actuelle
 
 ## User Preferences
 

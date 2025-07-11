@@ -1,4 +1,4 @@
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -83,13 +83,16 @@ export default function CalendarGrid({
       <div className="grid grid-cols-7">
         {paddedDays.map((date, index) => {
           const isCurrentMonth = isSameMonth(date, currentDate);
+          const isTodayDate = isToday(date);
           const { orders: dayOrders, deliveries: dayDeliveries } = getItemsForDate(date);
           
           return (
             <div
               key={index}
               className={`h-32 border-r border-b border-gray-100 relative group cursor-pointer transition-colors ${
-                isCurrentMonth
+                isTodayDate
+                  ? "bg-blue-50 hover:bg-blue-100 ring-1 ring-blue-200"
+                  : isCurrentMonth
                   ? "bg-white hover:bg-gray-50"
                   : "bg-gray-50"
               }`}
@@ -97,7 +100,9 @@ export default function CalendarGrid({
             >
               <div className="p-2">
                 <span className={`text-sm font-medium ${
-                  isCurrentMonth ? "text-gray-900" : "text-gray-400"
+                  isTodayDate 
+                    ? "text-blue-700 font-semibold" 
+                    : isCurrentMonth ? "text-gray-900" : "text-gray-400"
                 }`}>
                   {format(date, 'd')}
                 </span>
