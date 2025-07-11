@@ -360,6 +360,7 @@ Changelog:
 - July 11, 2025. **VALIDATION FORMULAIRE UTILISATEUR CORRIGÉE** - Champs nom, prénom, email et mot de passe maintenant obligatoires
 - July 11, 2025. **DATE VALIDATION LIVRAISONS CORRIGÉE** - Ajout champs deliveredDate et validatedAt dans schéma et validateDelivery()
 - July 11, 2025. **DATE VALIDATION RAPPROCHEMENT CORRIGÉE** - La date de validation s'affiche uniquement après validation du rapprochement BL/Factures
+- July 11, 2025. **ERREUR PRODUCTION COLONNES MANQUANTES** - Créé script fix-production-complete.sh pour ajouter delivered_date et validated_at
 
 ## User Preferences
 
