@@ -51,18 +51,12 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
       designation: publicity?.designation || "",
       startDate: publicity?.startDate ? new Date(publicity.startDate) : undefined,
       endDate: publicity?.endDate ? new Date(publicity.endDate) : undefined,
-      year: publicity?.year || new Date().getFullYear(),
+      year: publicity?.year || 2025, // Par défaut 2025 pour le plan pub
       participatingGroups: publicity?.participations?.map(p => p.groupId) || [],
     },
   });
 
-  // Auto-update year when start date changes
-  const watchedStartDate = form.watch("startDate");
-  useEffect(() => {
-    if (watchedStartDate) {
-      form.setValue("year", watchedStartDate.getFullYear());
-    }
-  }, [watchedStartDate, form]);
+  // L'année est définie manuellement par l'utilisateur, pas automatiquement par la date
 
   const createMutation = useMutation({
     mutationFn: async (data: PublicityFormData) => {

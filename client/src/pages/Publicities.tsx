@@ -40,26 +40,7 @@ export default function Publicities() {
         params.append('storeId', selectedStoreId.toString());
       }
       const response = await fetch(`/api/publicities?${params}`);
-      const data = await response.json();
-      
-      // Si aucune publicité pour l'année sélectionnée ET c'est la première fois, essayer l'année précédente
-      if (data.length === 0 && selectedYear === new Date().getFullYear()) {
-        const prevYearParams = new URLSearchParams();
-        prevYearParams.append('year', (selectedYear - 1).toString());
-        if (selectedStoreId) {
-          prevYearParams.append('storeId', selectedStoreId.toString());
-        }
-        const prevYearResponse = await fetch(`/api/publicities?${prevYearParams}`);
-        const prevYearData = await prevYearResponse.json();
-        
-        // S'il y a des données l'année précédente, changer automatiquement l'année
-        if (prevYearData.length > 0) {
-          setSelectedYear(selectedYear - 1);
-          return prevYearData;
-        }
-      }
-      
-      return data;
+      return response.json();
     },
   });
 
