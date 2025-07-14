@@ -13,7 +13,8 @@ import {
   LogOut,
   FileText,
   Megaphone,
-  Shield
+  Shield,
+  Database
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -108,6 +109,12 @@ export default function Sidebar() {
       path: "/roles", 
       label: "Gestion des Rôles", 
       icon: Shield, 
+      roles: ["admin"] 
+    },
+    { 
+      path: "/nocodb-config", 
+      label: "Configuration NocoDB", 
+      icon: Database, 
       roles: ["admin"] 
     },
   ];

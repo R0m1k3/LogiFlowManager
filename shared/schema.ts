@@ -164,6 +164,19 @@ export const rolePermissions = pgTable("role_permissions", {
   pk: primaryKey({ columns: [table.roleId, table.permissionId] })
 }));
 
+// NocoDB configuration
+export const nocodbConfig = pgTable("nocodb_config", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(), // Nom de la configuration
+  baseUrl: varchar("base_url").notNull(), // URL de l'instance NocoDB
+  apiToken: varchar("api_token").notNull(), // Personal API Token
+  description: text("description"), // Description de la configuration
+  isActive: boolean("is_active").default(true), // Configuration active ou non
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userGroups: many(userGroups),
@@ -334,6 +347,12 @@ export const insertRolePermissionSchema = createInsertSchema(rolePermissions).om
   createdAt: true,
 });
 
+export const insertNocodbConfigSchema = createInsertSchema(nocodbConfig).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -395,6 +414,9 @@ export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 export type RoleWithPermissions = Role & {
   rolePermissions: (RolePermission & { permission: Permission })[];
 };
+
+export type NocodbConfig = typeof nocodbConfig.$inferSelect;
+export type InsertNocodbConfig = z.infer<typeof insertNocodbConfigSchema>;
 
 export type UserWithRole = User & {
   dynamicRole?: Role | null;

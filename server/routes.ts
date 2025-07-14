@@ -1115,6 +1115,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NocoDB Configuration routes
+  app.get('/api/nocodb-config', requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const configs = await storage.getNocodbConfigs();
+      res.json(configs);
+    } catch (error) {
+      console.error('Error fetching NocoDB configs:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des configurations' });
+    }
+  });
+
+  app.get('/api/nocodb-config/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const id = parseInt(req.params.id);
+      const config = await storage.getNocodbConfig(id);
+      
+      if (!config) {
+        return res.status(404).json({ message: 'Configuration non trouvée' });
+      }
+
+      res.json(config);
+    } catch (error) {
+      console.error('Error fetching NocoDB config:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération de la configuration' });
+    }
+  });
+
+  app.post('/api/nocodb-config', requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const configData = {
+        ...req.body,
+        createdBy: req.user.id,
+      };
+
+      const config = await storage.createNocodbConfig(configData);
+      res.status(201).json(config);
+    } catch (error) {
+      console.error('Error creating NocoDB config:', error);
+      res.status(500).json({ message: 'Erreur lors de la création de la configuration' });
+    }
+  });
+
+  app.put('/api/nocodb-config/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const id = parseInt(req.params.id);
+      const config = await storage.updateNocodbConfig(id, req.body);
+      res.json(config);
+    } catch (error) {
+      console.error('Error updating NocoDB config:', error);
+      res.status(500).json({ message: 'Erreur lors de la mise à jour de la configuration' });
+    }
+  });
+
+  app.delete('/api/nocodb-config/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteNocodbConfig(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting NocoDB config:', error);
+      res.status(500).json({ message: 'Erreur lors de la suppression de la configuration' });
+    }
+  });
+
   // Role permissions management
   app.post('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
     try {

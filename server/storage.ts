@@ -37,6 +37,9 @@ import {
   type RolePermission,
   type InsertRolePermission,
   type RoleWithPermissions,
+  nocodbConfig,
+  type NocodbConfig,
+  type InsertNocodbConfig,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, desc, sql, gte, lte } from "drizzle-orm";
@@ -122,6 +125,13 @@ export interface IStorage {
   // Role-Permission operations
   getRolePermissions(roleId: number): Promise<RolePermission[]>;
   setRolePermissions(roleId: number, permissionIds: number[]): Promise<void>;
+  
+  // NocoDB Configuration operations
+  getNocodbConfigs(): Promise<NocodbConfig[]>;
+  getNocodbConfig(id: number): Promise<NocodbConfig | undefined>;
+  createNocodbConfig(config: InsertNocodbConfig): Promise<NocodbConfig>;
+  updateNocodbConfig(id: number, config: Partial<InsertNocodbConfig>): Promise<NocodbConfig>;
+  deleteNocodbConfig(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -792,6 +802,33 @@ export class DatabaseStorage implements IStorage {
       }));
       await db.insert(rolePermissions).values(permissions);
     }
+  }
+
+  // NocoDB Configuration operations
+  async getNocodbConfigs(): Promise<NocodbConfig[]> {
+    return await db.select().from(nocodbConfig).orderBy(desc(nocodbConfig.createdAt));
+  }
+
+  async getNocodbConfig(id: number): Promise<NocodbConfig | undefined> {
+    const configs = await db.select().from(nocodbConfig).where(eq(nocodbConfig.id, id));
+    return configs[0];
+  }
+
+  async createNocodbConfig(config: InsertNocodbConfig): Promise<NocodbConfig> {
+    const [newConfig] = await db.insert(nocodbConfig).values(config).returning();
+    return newConfig;
+  }
+
+  async updateNocodbConfig(id: number, config: Partial<InsertNocodbConfig>): Promise<NocodbConfig> {
+    const [updatedConfig] = await db.update(nocodbConfig)
+      .set({ ...config, updatedAt: new Date() })
+      .where(eq(nocodbConfig.id, id))
+      .returning();
+    return updatedConfig;
+  }
+
+  async deleteNocodbConfig(id: number): Promise<void> {
+    await db.delete(nocodbConfig).where(eq(nocodbConfig.id, id));
   }
 }
 
