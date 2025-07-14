@@ -443,6 +443,10 @@ Changelog:
 - July 14, 2025. Script fix-websocket-production.sh créé pour corriger le problème sans supprimer la production existante
 - July 14, 2025. **PROBLÈME WEBSOCKET RÉSOLU** - Application production utilisera PostgreSQL standard au lieu de wss://postgres/v2
 - July 14, 2025. **ERREUR BCRYPT CORRIGÉE** - Dockerfile mis à jour avec --packages=external pour inclure toutes les dépendances Node.js
+- July 14, 2025. **PRÉSERVATION DONNÉES PRODUCTION** - Script fix-websocket-production.sh modifié pour préserver les données existantes
+- July 14, 2025. Sauvegarde automatique avant mise à jour, arrêt seulement de l'application (DB conservée)
+- July 14, 2025. Script restore-data.sh créé pour restaurer depuis une sauvegarde si nécessaire
+- July 14, 2025. **MISE À JOUR SÉCURISÉE** - Vos données existantes seront préservées lors du redéploiement
 - July 11, 2025. **SYSTÈME DE GESTION DES RÔLES COMPLET POUR PRODUCTION** - Déploiement du système complet
 - July 11, 2025. Ajout de toutes les méthodes rôles/permissions dans storage.production.ts avec SQL brut
 - July 11, 2025. Ajout de toutes les routes API rôles/permissions dans routes.production.ts

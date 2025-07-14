@@ -44,6 +44,9 @@ RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm
 # Production stage
 FROM node:20-alpine AS production
 
+# Install build tools and PostgreSQL client for bcrypt and health checks
+RUN apk add --no-cache postgresql-client python3 make g++
+
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
@@ -51,9 +54,9 @@ RUN addgroup -g 1001 -S nodejs && \
 # Set working directory
 WORKDIR /app
 
-# Install production dependencies only
+# Install ALL dependencies (including bcrypt) for production
 COPY --from=build /app/package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --production=false && npm cache clean --force
 
 # Copy built application from build stage
 COPY --from=build --chown=nextjs:nodejs /app/dist ./dist
