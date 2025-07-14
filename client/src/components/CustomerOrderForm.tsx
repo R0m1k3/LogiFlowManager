@@ -27,6 +27,8 @@ import { insertCustomerOrderSchema, type CustomerOrderWithRelations, type Group,
 const customerOrderFormSchema = insertCustomerOrderSchema.extend({
   deposit: z.string().optional(),
   gencode: z.string().min(1, "Le gencode est obligatoire"),
+  supplierId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val),
+  groupId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val),
 });
 
 type CustomerOrderFormData = z.infer<typeof customerOrderFormSchema>;
@@ -95,12 +97,11 @@ export function CustomerOrderForm({
       return;
     }
     
-    // Convert deposit string to number and ensure proper types
+    // Convert deposit to number - Zod already handled the other conversions
     const submitData = {
       ...data,
       deposit: data.deposit ? parseFloat(data.deposit) : 0,
-      groupId: parseInt(groupId.toString()),
-      supplierId: parseInt(data.supplierId.toString()),
+      groupId: typeof groupId === 'number' ? groupId : parseInt(groupId.toString()),
     };
     console.log("Processed submit data:", submitData);
     onSubmit(submitData);
