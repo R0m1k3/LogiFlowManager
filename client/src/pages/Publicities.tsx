@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useStore } from "@/components/Layout";
-import { format, startOfMonth, endOfMonth, eachWeekOfInterval, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isWithinInterval } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachWeekOfInterval, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isWithinInterval, startOfYear, endOfYear, getWeek, getMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { PublicityWithRelations, Group } from "@shared/schema";
 import PublicityForm from "@/components/PublicityForm";
@@ -109,6 +109,34 @@ export default function Publicities() {
       })
     };
   };
+
+  // Year overview - Generate weeks for the selected year
+  const getYearWeeks = () => {
+    const yearStart = startOfYear(new Date(selectedYear, 0, 1));
+    const yearEnd = endOfYear(new Date(selectedYear, 11, 31));
+    
+    const weeks = eachWeekOfInterval(
+      { start: yearStart, end: yearEnd },
+      { weekStartsOn: 1 }
+    );
+
+    return weeks.map(weekStart => {
+      const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+      const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
+      const month = getMonth(weekStart);
+      const participation = getWeekParticipation(weekStart, weekEnd);
+      
+      return {
+        weekStart,
+        weekEnd,
+        weekNumber,
+        month,
+        ...participation
+      };
+    });
+  };
+
+  const yearWeeks = getYearWeeks();
 
   const handleView = (publicity: PublicityWithRelations) => {
     setSelectedPublicity(publicity);
@@ -273,6 +301,98 @@ export default function Publicities() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Year Overview - Weekly Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Vue d'ensemble {selectedYear} - Semaines avec publicités
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Months Grid */}
+            <div className="grid grid-cols-12 gap-2">
+              {Array.from({ length: 12 }, (_, monthIndex) => {
+                const monthName = format(new Date(2024, monthIndex, 1), 'MMM', { locale: fr });
+                const monthWeeks = yearWeeks.filter(week => week.month === monthIndex);
+                
+                return (
+                  <div key={monthIndex} className="space-y-2">
+                    <div className="text-xs font-medium text-gray-600 text-center">
+                      {monthName}
+                    </div>
+                    <div className="space-y-1">
+                      {monthWeeks.map((week, weekIndex) => {
+                        const hasPublicity = week.publicities.length > 0;
+                        const storeColors = week.storeColors;
+                        
+                        return (
+                          <div
+                            key={`${monthIndex}-${weekIndex}-${week.weekNumber}`}
+                            className={`
+                              h-6 rounded border text-xs flex items-center justify-center cursor-pointer
+                              ${hasPublicity 
+                                ? 'bg-blue-50 border-blue-200 text-blue-800' 
+                                : 'bg-gray-50 border-gray-200 text-gray-500'
+                              }
+                              hover:shadow-sm transition-shadow
+                            `}
+                            title={`Semaine ${week.weekNumber} - ${hasPublicity ? `${week.publicities.length} publicité(s)` : 'Aucune publicité'}`}
+                          >
+                            <span className="text-xs font-medium">{week.weekNumber}</span>
+                            {hasPublicity && (
+                              <div className="flex gap-0.5 ml-1">
+                                {storeColors.slice(0, 2).map((color, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="w-1 h-1 rounded-full"
+                                    style={{ backgroundColor: color }}
+                                  />
+                                ))}
+                                {storeColors.length > 2 && (
+                                  <div className="w-1 h-1 rounded-full bg-gray-400" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Legend */}
+            <div className="flex items-center justify-between text-sm text-gray-600 pt-2 border-t">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded"></div>
+                  <span>Semaine avec publicité</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-50 border border-gray-200 rounded"></div>
+                  <span>Semaine sans publicité</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {groups.slice(0, 3).map(group => (
+                    <div 
+                      key={group.id}
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: group.color }}
+                    />
+                  ))}
+                </div>
+                <span>Indicateurs magasins</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Content */}
       {isLoading ? (

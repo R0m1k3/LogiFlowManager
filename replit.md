@@ -455,6 +455,14 @@ Changelog:
 - July 14, 2025. Résolution critique : TanStack Query corrigé pour affichage des commandes, getCustomerOrders et getCustomerOrder incluent quantity
 - July 14, 2025. Workflow changement statut opérationnel : "En attente de Commande" → "Commande en Cours" → "Disponible" → "Retiré"/"Annulé"
 - July 14, 2025. Module production-ready : créations, modifications, suppressions, notifications client, impression étiquettes avec quantité
+- July 14, 2025. **MODULE PUBLICITÉS AMÉLIORÉ** - Correction sélection année indépendante et ajout vue calendrier complète
+- July 14, 2025. Résolution problème année formulaire : champ année maintenant indépendant du filtre principal
+- July 14, 2025. Ajout sélecteur vue liste/calendrier avec boutons toggle moderne
+- July 14, 2025. Création vue calendrier mensuelle avec grille des jours et indicateurs visuels
+- July 14, 2025. Implémentation tableau vue d'ensemble annuelle avec semaines colorées
+- July 14, 2025. Affichage semaines avec publicités organisées par mois avec codes couleur magasins
+- July 14, 2025. Légendes explicatives et tooltips informatifs sur toutes les vues
+- July 14, 2025. Interface optimisée avec navigation fluide entre vues liste et calendrier
 
 ## User Preferences
 
