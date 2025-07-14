@@ -18,7 +18,7 @@ import {
   Truck,
   Palette
 } from "lucide-react";
-import type { Group } from "@shared/schema";
+import type { Group, NocodbConfig } from "@shared/schema";
 
 const colorOptions = [
   { value: '#1976D2', label: 'Bleu' },
@@ -45,10 +45,18 @@ export default function Groups() {
   const [formData, setFormData] = useState({
     name: "",
     color: "#1976D2",
+    nocodbConfigId: "",
+    nocodbTableId: "",
+    nocodbTableName: "",
+    invoiceColumnName: "Ref Facture",
   });
 
   const { data: groups = [], isLoading } = useQuery<Group[]>({
     queryKey: ['/api/groups'],
+  });
+
+  const { data: nocodbConfigs = [] } = useQuery<NocodbConfig[]>({
+    queryKey: ['/api/nocodb-config'],
   });
 
   const { data: orders = [] } = useQuery({
@@ -73,7 +81,14 @@ export default function Groups() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
       setShowCreateModal(false);
-      setFormData({ name: "", color: "#1976D2" });
+      setFormData({
+        name: "",
+        color: "#1976D2",
+        nocodbConfigId: "",
+        nocodbTableId: "",
+        nocodbTableName: "",
+        invoiceColumnName: "Ref Facture",
+      });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -110,7 +125,14 @@ export default function Groups() {
       queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
       setShowEditModal(false);
       setSelectedGroup(null);
-      setFormData({ name: "", color: "#1976D2" });
+      setFormData({
+        name: "",
+        color: "#1976D2",
+        nocodbConfigId: "",
+        nocodbTableId: "",
+        nocodbTableName: "",
+        invoiceColumnName: "Ref Facture",
+      });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -179,7 +201,14 @@ export default function Groups() {
   };
 
   const handleCreate = () => {
-    setFormData({ name: "", color: "#1976D2" });
+    setFormData({
+      name: "",
+      color: "#1976D2",
+      nocodbConfigId: "",
+      nocodbTableId: "",
+      nocodbTableName: "",
+      invoiceColumnName: "Ref Facture",
+    });
     setShowCreateModal(true);
   };
 
@@ -188,6 +217,10 @@ export default function Groups() {
     setFormData({
       name: group.name,
       color: group.color,
+      nocodbConfigId: group.nocodbConfigId?.toString() || "",
+      nocodbTableId: group.nocodbTableId || "",
+      nocodbTableName: group.nocodbTableName || "",
+      invoiceColumnName: group.invoiceColumnName || "Ref Facture",
     });
     setShowEditModal(true);
   };
@@ -221,10 +254,16 @@ export default function Groups() {
       return;
     }
 
+    // Prepare data with proper type conversion
+    const submitData = {
+      ...formData,
+      nocodbConfigId: formData.nocodbConfigId ? parseInt(formData.nocodbConfigId) : null,
+    };
+
     if (selectedGroup) {
-      updateMutation.mutate(formData);
+      updateMutation.mutate(submitData);
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submitData);
     }
   };
 
@@ -390,7 +429,14 @@ export default function Groups() {
         setShowCreateModal(false);
         setShowEditModal(false);
         setSelectedGroup(null);
-        setFormData({ name: "", color: "#1976D2" });
+        setFormData({
+          name: "",
+          color: "#1976D2",
+          nocodbConfigId: "",
+          nocodbTableId: "",
+          nocodbTableName: "",
+          invoiceColumnName: "Ref Facture",
+        });
       }}>
         <DialogContent className="sm:max-w-md" aria-describedby="group-modal-description">
           <DialogHeader>
@@ -448,6 +494,68 @@ export default function Groups() {
               </div>
             </div>
 
+            {/* Section Configuration NocoDB */}
+            <div className="border-t pt-4 space-y-4">
+              <div className="flex items-center space-x-2 mb-3">
+                <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                <h3 className="font-medium text-gray-900">Configuration NocoDB (Optionnel)</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Configurez la vérification automatique des références de facture dans une table NocoDB.
+              </p>
+
+              <div>
+                <Label htmlFor="nocodbConfig">Configuration NocoDB</Label>
+                <select
+                  id="nocodbConfig"
+                  value={formData.nocodbConfigId}
+                  onChange={(e) => handleChange('nocodbConfigId', e.target.value)}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Aucune configuration</option>
+                  {nocodbConfigs.map(config => (
+                    <option key={config.id} value={config.id.toString()}>
+                      {config.name} - {config.baseUrl}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {formData.nocodbConfigId && (
+                <>
+                  <div>
+                    <Label htmlFor="nocodbTableId">ID de la table</Label>
+                    <Input
+                      id="nocodbTableId"
+                      value={formData.nocodbTableId}
+                      onChange={(e) => handleChange('nocodbTableId', e.target.value)}
+                      placeholder="m_xxxxxxxxxxxx (ID de la table NocoDB)"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="nocodbTableName">Nom de la table</Label>
+                    <Input
+                      id="nocodbTableName"
+                      value={formData.nocodbTableName}
+                      onChange={(e) => handleChange('nocodbTableName', e.target.value)}
+                      placeholder="Nom de la table (pour affichage)"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="invoiceColumnName">Nom de la colonne des références facture</Label>
+                    <Input
+                      id="invoiceColumnName"
+                      value={formData.invoiceColumnName}
+                      onChange={(e) => handleChange('invoiceColumnName', e.target.value)}
+                      placeholder="Ref Facture"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
             <div className="flex items-center space-x-3 pt-4">
               <Button 
                 type="button" 
@@ -456,7 +564,14 @@ export default function Groups() {
                   setShowCreateModal(false);
                   setShowEditModal(false);
                   setSelectedGroup(null);
-                  setFormData({ name: "", color: "#1976D2" });
+                  setFormData({
+                    name: "",
+                    color: "#1976D2",
+                    nocodbConfigId: "",
+                    nocodbTableId: "",
+                    nocodbTableName: "",
+                    invoiceColumnName: "Ref Facture",
+                  });
                 }}
               >
                 Annuler

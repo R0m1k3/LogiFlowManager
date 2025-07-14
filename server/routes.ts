@@ -1115,6 +1115,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Invoice verification routes
+  app.post('/api/verify-invoice', isAuthenticated, async (req: any, res) => {
+    try {
+      const { groupId, invoiceReference } = req.body;
+      
+      if (!groupId || !invoiceReference) {
+        return res.status(400).json({ message: "groupId and invoiceReference are required" });
+      }
+
+      const { verifyInvoiceReference } = await import('./nocodbService.js');
+      const result = await verifyInvoiceReference(groupId, invoiceReference);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error verifying invoice:", error);
+      res.status(500).json({ message: "Failed to verify invoice" });
+    }
+  });
+
+  app.post('/api/verify-invoices', isAuthenticated, async (req: any, res) => {
+    try {
+      const { invoiceReferences } = req.body;
+      
+      if (!Array.isArray(invoiceReferences)) {
+        return res.status(400).json({ message: "invoiceReferences must be an array" });
+      }
+
+      const { verifyMultipleInvoiceReferences } = await import('./nocodbService.js');
+      const results = await verifyMultipleInvoiceReferences(invoiceReferences);
+      
+      res.json(results);
+    } catch (error) {
+      console.error("Error verifying invoices:", error);
+      res.status(500).json({ message: "Failed to verify invoices" });
+    }
+  });
+
   // NocoDB Configuration routes
   app.get('/api/nocodb-config', isAuthenticated, async (req: any, res) => {
     try {

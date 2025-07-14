@@ -69,6 +69,7 @@ export default function BLReconciliation() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deliveryToDelete, setDeliveryToDelete] = useState<any>(null);
+  const [invoiceVerifications, setInvoiceVerifications] = useState<Record<number, { exists: boolean; error?: string }>>({});
 
   // Récupérer les livraisons validées avec BL
   const { data: deliveriesWithBL = [], isLoading } = useQuery({
@@ -100,6 +101,36 @@ export default function BLReconciliation() {
       console.log('All deliveries received:', deliveries);
       const filtered = deliveries.filter((d: any) => d.blNumber && d.status === 'delivered');
       console.log('Filtered deliveries for BL reconciliation:', filtered);
+      
+      // Verify invoice references for deliveries with invoice data
+      if (filtered.length > 0) {
+        const invoiceReferencesToVerify = filtered
+          .filter((delivery: any) => delivery.invoiceReference && delivery.groupId)
+          .map((delivery: any) => ({
+            groupId: delivery.groupId,
+            invoiceReference: delivery.invoiceReference,
+            deliveryId: delivery.id,
+          }));
+        
+        if (invoiceReferencesToVerify.length > 0) {
+          try {
+            const verificationResponse = await fetch('/api/verify-invoices', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ invoiceReferences: invoiceReferencesToVerify }),
+            });
+            
+            if (verificationResponse.ok) {
+              const verificationResults = await verificationResponse.json();
+              setInvoiceVerifications(verificationResults);
+            }
+          } catch (error) {
+            console.error('Error verifying invoice references:', error);
+          }
+        }
+      }
+      
       return filtered.sort((a: any, b: any) => new Date(b.deliveredDate).getTime() - new Date(a.deliveredDate).getTime());
     },
   });
@@ -486,7 +517,32 @@ export default function BLReconciliation() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {delivery.invoiceReference || (
+                          {delivery.invoiceReference ? (
+                            <div className="flex items-center space-x-2">
+                              <span>{delivery.invoiceReference}</span>
+                              {invoiceVerifications[delivery.id] && (
+                                <div className="flex items-center space-x-1">
+                                  {invoiceVerifications[delivery.id].exists ? (
+                                    <Badge 
+                                      variant="outline" 
+                                      className="bg-green-50 text-green-700 border-green-200 text-xs px-2 py-0.5"
+                                    >
+                                      <CheckCircle className="w-3 h-3 mr-1" />
+                                      envoyé
+                                    </Badge>
+                                  ) : (
+                                    <Badge 
+                                      variant="outline" 
+                                      className="bg-red-50 text-red-700 border-red-200 text-xs px-2 py-0.5"
+                                    >
+                                      <X className="w-3 h-3 mr-1" />
+                                      non trouvé
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
                             <button
                               onClick={() => handleEditReconciliation(delivery)}
                               disabled={updateReconciliationMutation.isPending}

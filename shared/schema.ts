@@ -48,6 +48,11 @@ export const groups = pgTable("groups", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   color: varchar("color").notNull(), // hex color code
+  // Configuration NocoDB pour vérification automatique des factures
+  nocodbConfigId: integer("nocodb_config_id"), // Référence vers la configuration NocoDB
+  nocodbTableId: varchar("nocodb_table_id"), // ID de la table dans NocoDB
+  nocodbTableName: varchar("nocodb_table_name"), // Nom de la table dans NocoDB
+  invoiceColumnName: varchar("invoice_column_name").default("Ref Facture"), // Nom de la colonne contenant les références de facture
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -185,11 +190,15 @@ export const usersRelations = relations(users, ({ many }) => ({
   createdPublicities: many(publicities),
 }));
 
-export const groupsRelations = relations(groups, ({ many }) => ({
+export const groupsRelations = relations(groups, ({ one, many }) => ({
   userGroups: many(userGroups),
   orders: many(orders),
   deliveries: many(deliveries),
   publicityParticipations: many(publicityParticipations),
+  nocodbConfig: one(nocodbConfig, {
+    fields: [groups.nocodbConfigId],
+    references: [nocodbConfig.id],
+  }),
 }));
 
 export const userGroupsRelations = relations(userGroups, ({ one }) => ({
