@@ -463,25 +463,82 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDeliveriesByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<any[]> {
-    let query = `
-      SELECT d.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
-             u.username as creator_username, o.planned_date as order_planned_date
-      FROM deliveries d
-      JOIN suppliers s ON d.supplier_id = s.id
-      JOIN groups g ON d.group_id = g.id
-      JOIN users u ON d.created_by = u.id
-      LEFT JOIN orders o ON d.order_id = o.id
-      WHERE d.scheduled_date BETWEEN $1 AND $2
-    `;
+    let whereClause = 'WHERE d.scheduled_date BETWEEN $1 AND $2';
+    let params = [startDate, endDate];
     
     if (groupIds && groupIds.length > 0) {
-      query += ` AND d.group_id = ANY($3)`;
-      const result = await pool.query(query + ' ORDER BY d.created_at DESC', [startDate, endDate, groupIds]);
-      return result.rows;
-    } else {
-      const result = await pool.query(query + ' ORDER BY d.created_at DESC', [startDate, endDate]);
-      return result.rows;
+      whereClause += ' AND d.group_id = ANY($3)';
+      params.push(groupIds);
     }
+    
+    const result = await pool.query(`
+      SELECT d.*, 
+             s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone,
+             g.id as group_id, g.name as group_name, g.color as group_color,
+             u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name,
+             o.id as order_id_rel, o.planned_date as order_planned_date, o.status as order_status
+      FROM deliveries d
+      LEFT JOIN suppliers s ON d.supplier_id = s.id
+      LEFT JOIN groups g ON d.group_id = g.id
+      LEFT JOIN users u ON d.created_by = u.id
+      LEFT JOIN orders o ON d.order_id = o.id
+      ${whereClause}
+      ORDER BY d.created_at DESC
+    `, params);
+    
+    console.log('🚛 getDeliveriesByDateRange debug:', { startDate, endDate, groupIds, deliveryCount: result.rows.length });
+    
+    // Transformer pour correspondre exactement à la structure Drizzle
+    return (result.rows || []).map(row => ({
+      id: row.id,
+      orderId: row.order_id,
+      supplierId: row.supplier_id,
+      groupId: row.group_id,
+      scheduledDate: row.scheduled_date,
+      quantity: row.quantity,
+      unit: row.unit,
+      status: row.status,
+      notes: row.notes,
+      blNumber: row.bl_number,
+      blAmount: row.bl_amount,
+      invoiceReference: row.invoice_reference,
+      invoiceAmount: row.invoice_amount,
+      reconciled: row.reconciled,
+      deliveredDate: row.delivered_date,
+      validatedAt: row.validated_at,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      supplier: row.supplier_name ? {
+        id: row.supplier_id,
+        name: row.supplier_name,
+        contact: row.supplier_contact || '',
+        phone: row.supplier_phone || '',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      } : null,
+      group: row.group_name ? {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color || '#666666',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      } : null,
+      creator: row.creator_username ? {
+        id: row.creator_id,
+        username: row.creator_username,
+        email: row.creator_email || '',
+        name: row.creator_name || row.creator_username,
+        firstName: row.creator_name || row.creator_username,
+        lastName: '',
+        role: 'admin'
+      } : null,
+      order: row.order_id_rel ? {
+        id: row.order_id_rel,
+        plannedDate: row.order_planned_date,
+        status: row.order_status
+      } : null
+    }));
   }
 
   async getDelivery(id: number): Promise<any> {

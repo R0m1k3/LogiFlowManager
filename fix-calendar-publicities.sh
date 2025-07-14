@@ -48,6 +48,13 @@ ORDERS_JULY=$(curl -s "http://localhost:3000/api/orders?startDate=2025-07-01&end
   --connect-timeout 10 | jq length 2>/dev/null || echo "0")
 echo "   Commandes juillet 2025: $ORDERS_JULY"
 
+# Test API Deliveries avec dates
+echo "🎯 Test API Deliveries (range juillet 2025):"
+DELIVERIES_JULY=$(curl -s "http://localhost:3000/api/deliveries?startDate=2025-07-01&endDate=2025-07-31" \
+  -H "Cookie: connect.sid=test" \
+  --connect-timeout 10 | jq length 2>/dev/null || echo "0")
+echo "   Livraisons juillet 2025: $DELIVERIES_JULY"
+
 # Test API Rôles et Permissions
 echo "🎯 Test API Rôles:"
 ROLES_COUNT=$(curl -s "http://localhost:3000/api/roles" \
@@ -76,10 +83,10 @@ echo "================================================================="
 if [ "$HEALTH" = "ok" ]; then
     echo -e "${GREEN}✅ MISE À JOUR RÉUSSIE !${NC}"
     echo -e "${GREEN}   🔗 Application: http://localhost:3000${NC}"
-    echo -e "${GREEN}   📅 Calendrier: Commandes maintenant visibles${NC}"
+    echo -e "${GREEN}   📅 Calendrier: Commandes ET Livraisons maintenant visibles${NC}"
     echo -e "${GREEN}   🎯 Publicités: Filtre par année + semaines lundi-dimanche${NC}"
     echo -e "${GREEN}   🔐 Rôles: React Error #310 résolu + permissions complètes${NC}"
-    echo -e "${GREEN}   📊 Tests: Publicités $PUBLICITIES_2025/$PUBLICITIES_2026, Commandes $ORDERS_JULY, Rôles $ROLES_COUNT${NC}"
+    echo -e "${GREEN}   📊 Tests: Pub $PUBLICITIES_2025/$PUBLICITIES_2026, Cmd $ORDERS_JULY, Liv $DELIVERIES_JULY, Rôles $ROLES_COUNT${NC}"
 else
     echo -e "${RED}❌ PROBLÈME DÉTECTÉ${NC}"
     echo -e "${RED}   Vérifiez les logs: docker logs logiflow_app${NC}"

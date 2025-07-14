@@ -62,6 +62,13 @@ export default function CalendarGrid({
       console.log('📅 All orders dates:', orders.map(o => ({ id: o.id, plannedDate: o.plannedDate, supplier: o.supplier?.name })));
     }
     
+    // Debug: Log des livraisons reçues (seulement une fois)
+    if (deliveries.length > 0 && date.getDate() === 1) {
+      console.log('🚛 CalendarGrid Debug - Deliveries received:', deliveries.length);
+      console.log('🚛 First delivery structure:', deliveries[0]);
+      console.log('🚛 All deliveries dates:', deliveries.map(d => ({ id: d.id, scheduledDate: d.scheduledDate, supplier: d.supplier?.name })));
+    }
+    
     const dayOrders = orders.filter(order => {
       // Protection contre undefined/null
       if (!order || !order.supplier) {
@@ -86,13 +93,26 @@ export default function CalendarGrid({
     });
     
     const dayDeliveries = deliveries.filter(delivery => {
+      // Protection contre undefined/null
       if (!delivery || !delivery.supplier) {
-        console.warn('📅 Invalid delivery found:', delivery);
+        console.warn('🚛 Invalid delivery found:', delivery);
         return false;
       }
       
-      const deliveryDate = safeDate(delivery.scheduledDate);
-      return deliveryDate && isSameDay(deliveryDate, date);
+      // Essayer plusieurs champs de date possibles
+      const deliveryDate = safeDate(delivery.scheduledDate || delivery.deliveryDate || delivery.createdAt);
+      const matches = deliveryDate && isSameDay(deliveryDate, date);
+      
+      if (matches) {
+        console.log('🚛 Delivery matches date:', {
+          deliveryId: delivery.id,
+          supplier: delivery.supplier?.name,
+          scheduledDate: delivery.scheduledDate,
+          matchingDate: format(date, 'yyyy-MM-dd')
+        });
+      }
+      
+      return matches;
     });
     
     return { orders: dayOrders, deliveries: dayDeliveries };

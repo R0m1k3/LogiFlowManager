@@ -575,14 +575,15 @@ Changelog:
 - July 14, 2025. Pages corrigés: Dashboard, Orders, Deliveries, BLReconciliation, PublicityForm avec protection dates
 - July 14, 2025. Élimination complète des format(new Date()) et new Date().getTime() non protégés
 - July 14, 2025. **APPLICATION 100% PROTÉGÉE** - Plus d'erreur "Invalid time value" possible en production
-- July 14, 2025. **CALENDRIER PRODUCTION CORRIGÉ** - Résolution affichage commandes invisibles en production
-- July 14, 2025. Harmonisation getOrdersByDateRange() avec structure Drizzle (supplier, group, creator objets imbriqués)
+- July 14, 2025. **CALENDRIER PRODUCTION CORRIGÉ** - Résolution affichage commandes ET livraisons invisibles en production
+- July 14, 2025. Harmonisation getOrdersByDateRange() et getDeliveriesByDateRange() avec structure Drizzle
 - July 14, 2025. **FILTRE PUBLICITÉS ANNÉE CORRIGÉ** - getPublicities() filtre maintenant correctement par année
 - July 14, 2025. Ajout WHERE year = $1 dans storage.production.ts pour filtrage publicités 2025/2026
 - July 14, 2025. **SEMAINES PUBLICITÉS CORRIGÉES** - Tooltips avec dates lundi-dimanche + logs debug calcul semaines
 - July 14, 2025. **PAGE RÔLES PRODUCTION CORRIGÉE** - React Error #310 résolu avec getRoles() incluant permissions
 - July 14, 2025. Méthodes storage complètes: getRolePermissions(), setRolePermissions() pour gestion permissions
-- July 14, 2025. Protection Array.isArray() et logs debug CalendarGrid pour diagnostic production
+- July 14, 2025. **LIVRAISONS CALENDRIER CORRIGÉES** - getDeliveriesByDateRange() harmonisé + logs debug ajoutés
+- July 14, 2025. Protection Array.isArray() et logs debug CalendarGrid pour diagnostic production complet
 - July 14, 2025. Script fix-calendar-publicities.sh créé pour déploiement automatique des corrections
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
