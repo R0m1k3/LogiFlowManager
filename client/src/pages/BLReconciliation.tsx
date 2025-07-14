@@ -76,7 +76,7 @@ export default function BLReconciliation() {
     queryKey: ['/api/deliveries/bl', selectedStoreId, selectedDate],
     queryFn: async () => {
       const params = new URLSearchParams({
-        withBL: 'true'
+        // Remove withBL filter - show all delivered deliveries regardless of BL status
       });
       if (selectedStoreId && user?.role === 'admin') {
         params.append('storeId', selectedStoreId.toString());
