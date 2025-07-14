@@ -246,13 +246,13 @@ export default function CustomerOrders() {
   };
 
   // Filter orders based on search term
-  const filteredOrders = (customerOrders || []).filter(order =>
+  const filteredOrders = Array.isArray(customerOrders) ? customerOrders.filter(order =>
     order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.productDesignation.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.customerPhone.includes(searchTerm) ||
     (order.productReference && order.productReference.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (order.gencode && order.gencode.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  ) : [];
 
   if (!user) {
     return <div>Chargement...</div>;

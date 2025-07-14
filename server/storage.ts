@@ -865,7 +865,7 @@ export class DatabaseStorage implements IStorage {
         FROM customer_orders co
         LEFT JOIN groups g ON co.group_id = g.id
         LEFT JOIN users u ON co.created_by = u.id
-        ${whereClause ? sql.raw(whereClause) : sql``}
+        ${whereClause ? sql.raw(whereClause) : sql.raw('')}
         ORDER BY co.created_at DESC
       `);
 

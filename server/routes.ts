@@ -1293,6 +1293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const customerOrders = await storage.getCustomerOrders(groupIds);
+      console.log("Customer orders returned from storage:", customerOrders, "Type:", typeof customerOrders, "Is Array:", Array.isArray(customerOrders));
       res.json(customerOrders || []);
     } catch (error) {
       console.error("Error fetching customer orders:", error);
