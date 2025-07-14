@@ -656,7 +656,7 @@ export default function CustomerOrders() {
 
       {/* Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Détails de la Commande</DialogTitle>
           </DialogHeader>

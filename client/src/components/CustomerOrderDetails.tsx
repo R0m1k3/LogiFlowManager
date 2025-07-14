@@ -14,17 +14,17 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "En attente de Commande":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-50 text-yellow-700 border border-yellow-200";
       case "Commande en Cours":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-50 text-blue-700 border border-blue-200";
       case "Disponible":
-        return "bg-green-100 text-green-800";
+        return "bg-green-50 text-green-700 border border-green-200";
       case "Retiré":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-50 text-gray-700 border border-gray-200";
       case "Annulé":
-        return "bg-red-100 text-red-800";
+        return "bg-red-50 text-red-700 border border-red-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-50 text-gray-700 border border-gray-200";
     }
   };
 
@@ -43,7 +43,7 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* En-tête avec statut */}
       <div className="flex items-center justify-between">
         <div>
@@ -52,7 +52,7 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
             Créée le {format(new Date(order.createdAt), 'dd MMMM yyyy à HH:mm', { locale: fr })}
           </p>
         </div>
-        <Badge className={getStatusColor(order.status)}>
+        <Badge className={`${getStatusColor(order.status)} rounded-none`}>
           {order.status}
         </Badge>
       </div>
@@ -61,13 +61,13 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
 
       {/* Informations client */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User className="h-4 w-4" />
             Informations Client
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="pt-0 space-y-2">
           <div className="flex items-center gap-2">
             <span className="font-medium">Nom:</span>
             <span>{order.customerName}</span>
@@ -88,16 +88,16 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
 
       {/* Informations produit */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Package className="h-4 w-4" />
             Informations Produit
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="pt-0 space-y-3">
           <div>
             <span className="font-medium">Désignation:</span>
-            <p className="mt-1 text-sm bg-gray-50 p-3 rounded">
+            <p className="mt-1 text-sm bg-gray-50 p-2 rounded">
               {order.productDesignation}
             </p>
           </div>
@@ -122,7 +122,12 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
             <div>
               <span className="font-medium">Code à barres:</span>
               <div className="mt-2">
-                {renderBarcode(order.gencode)}
+                <div className="font-mono text-center border border-dashed p-2 bg-gray-50 rounded">
+                  <div className="text-lg tracking-wider font-bold mb-1">
+                    ||||||||||||||||
+                  </div>
+                  <div className="text-xs">{order.gencode}</div>
+                </div>
               </div>
             </div>
           )}
@@ -138,13 +143,13 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
 
       {/* Informations commande */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User className="h-4 w-4" />
             Informations Commande
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="pt-0 space-y-2">
           <div className="flex items-center gap-2">
             <span className="font-medium">Prise par:</span>
             <span>{order.orderTaker}</span>
@@ -165,18 +170,15 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            <span className="font-medium">Fournisseur:</span>
+            <span>{order.supplier.name}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span className="font-medium">Date de création:</span>
             <span>{format(new Date(order.createdAt), 'dd/MM/yyyy à HH:mm', { locale: fr })}</span>
           </div>
-
-          {order.updatedAt && order.updatedAt !== order.createdAt && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="font-medium">Dernière modification:</span>
-              <span>{format(new Date(order.updatedAt), 'dd/MM/yyyy à HH:mm', { locale: fr })}</span>
-            </div>
-          )}
 
           {order.deposit && parseFloat(order.deposit) > 0 && (
             <div className="flex items-center gap-2">
@@ -190,34 +192,26 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
 
       {/* Actions disponibles selon le statut */}
       {order.status === 'Disponible' && (
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader>
-            <CardTitle className="text-green-800">Actions disponibles</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 text-sm text-green-700">
-              <p>• Étiquette imprimable disponible</p>
-              <p>• Notification client possible</p>
-              <p>• Prêt pour retrait en magasin</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <h4 className="font-medium text-green-800 mb-2">Actions disponibles</h4>
+          <div className="space-y-1 text-sm text-green-700">
+            <p>• Étiquette imprimable disponible</p>
+            <p>• Notification client possible</p>
+            <p>• Prêt pour retrait en magasin</p>
+          </div>
+        </div>
       )}
 
       {(order.status === 'Retiré' || order.status === 'Annulé') && (
-        <Card className="border-gray-200 bg-gray-50">
-          <CardHeader>
-            <CardTitle className="text-gray-600">Commande terminée</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">
-              {order.status === 'Retiré' 
-                ? 'Cette commande a été retirée par le client.'
-                : 'Cette commande a été annulée.'
-              }
-            </p>
-          </CardContent>
-        </Card>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+          <h4 className="font-medium text-gray-600 mb-2">Commande terminée</h4>
+          <p className="text-sm text-gray-600">
+            {order.status === 'Retiré' 
+              ? 'Cette commande a été retirée par le client.'
+              : 'Cette commande a été annulée.'
+            }
+          </p>
+        </div>
       )}
     </div>
   );
