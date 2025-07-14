@@ -43,6 +43,7 @@ export default function CustomerOrders() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<CustomerOrderWithRelations | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -223,6 +224,11 @@ export default function CustomerOrders() {
     setShowDeleteModal(true);
   };
 
+  const openStatusModal = (order: CustomerOrderWithRelations) => {
+    setSelectedOrder(order);
+    setShowStatusModal(true);
+  };
+
   const handleNotificationToggle = (order: CustomerOrderWithRelations) => {
     notificationMutation.mutate({
       id: order.id,
@@ -358,28 +364,12 @@ export default function CustomerOrders() {
                       </code>
                     </TableCell>
                     <TableCell>
-                      <Select 
-                        value={order.status} 
-                        onValueChange={(value) => handleStatusChange(order.id, value)}
-                        disabled={statusMutation.isPending}
+                      <Badge 
+                        className={`${getStatusColor(order.status)} cursor-pointer hover:opacity-80 transition-opacity`}
+                        onClick={() => openStatusModal(order)}
                       >
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue>
-                            <Badge className={getStatusColor(order.status)}>
-                              {order.status}
-                            </Badge>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              <Badge className={getStatusColor(status)}>
-                                {status}
-                              </Badge>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        {order.status}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })}
@@ -482,6 +472,46 @@ export default function CustomerOrders() {
           {selectedOrder && (
             <CustomerOrderDetails order={selectedOrder} />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Change Modal */}
+      <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Changer le statut</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Commande: <span className="font-medium">{selectedOrder?.productDesignation}</span>
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Client: <span className="font-medium">{selectedOrder?.customerName}</span>
+              </p>
+            </div>
+            
+            <div className="grid gap-2">
+              {statusOptions.map((status) => (
+                <Button
+                  key={status}
+                  variant={selectedOrder?.status === status ? "default" : "outline"}
+                  className="justify-start"
+                  onClick={() => {
+                    if (selectedOrder) {
+                      handleStatusChange(selectedOrder.id, status);
+                      setShowStatusModal(false);
+                    }
+                  }}
+                  disabled={statusMutation.isPending}
+                >
+                  <Badge className={`${getStatusColor(status)} mr-2`}>
+                    {status}
+                  </Badge>
+                </Button>
+              ))}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
