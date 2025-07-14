@@ -72,6 +72,14 @@ export default function Orders() {
     queryKey: [ordersUrl, selectedStoreId],
   });
 
+  console.log('📦 Orders Debug:', { 
+    isLoading, 
+    ordersCount: orders?.length, 
+    orders: orders?.slice(0, 2),
+    selectedStoreId,
+    ordersUrl 
+  });
+
   const { data: groups = [] } = useQuery({
     queryKey: ['/api/groups'],
   });
@@ -108,6 +116,7 @@ export default function Orders() {
   });
 
   const filteredOrders = Array.isArray(orders) ? orders.filter(order => {
+    console.log('🔍 Filtering order:', order.id, { searchTerm, statusFilter });
     const matchesSearch = order.supplier?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.group?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.notes?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -219,7 +228,7 @@ export default function Orders() {
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : (console.log('📦 Filtered orders length:', filteredOrders.length) || filteredOrders.length === 0) ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
             <Package className="w-16 h-16 mb-4 text-gray-300" />
             <h3 className="text-lg font-medium mb-2">Aucune commande trouvée</h3>

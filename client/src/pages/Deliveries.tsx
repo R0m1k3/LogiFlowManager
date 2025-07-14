@@ -80,9 +80,23 @@ export default function Deliveries() {
         throw new Error('Failed to fetch deliveries');
       }
       const data = await response.json();
-      console.log('🚚 Deliveries received:', data.length, 'items');
+      console.log('🚚 Deliveries received:', data.length, 'items', data.slice(0, 2));
       return data;
     },
+  });
+
+  console.log('🚚 Deliveries Debug:', { 
+    isLoading, 
+    deliveriesCount: deliveries?.length, 
+    selectedStoreId,
+    deliveriesUrl 
+  });
+
+  console.log('🚚 Deliveries Debug:', { 
+    isLoading, 
+    deliveriesCount: deliveries?.length, 
+    selectedStoreId,
+    deliveriesUrl 
   });
 
   const { data: groups = [] } = useQuery({
@@ -169,6 +183,7 @@ export default function Deliveries() {
   });
 
   const filteredDeliveries = Array.isArray(deliveries) ? deliveries.filter(delivery => {
+    console.log('🔍 Filtering delivery:', delivery.id, { searchTerm, statusFilter });
     const matchesSearch = delivery.supplier?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          delivery.group?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          delivery.notes?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -293,7 +308,7 @@ export default function Deliveries() {
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary"></div>
           </div>
-        ) : filteredDeliveries.length === 0 ? (
+        ) : (console.log('🚚 Filtered deliveries length:', filteredDeliveries.length) || filteredDeliveries.length === 0) ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
             <Truck className="w-16 h-16 mb-4 text-gray-300" />
             <h3 className="text-lg font-medium mb-2">Aucune livraison trouvée</h3>

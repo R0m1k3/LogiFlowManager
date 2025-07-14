@@ -542,7 +542,7 @@ export default function Publicities() {
                                   key={storeId}
                                   className="w-2 h-2 rounded-full"
                                   style={{ backgroundColor: group?.color || '#666666' }}
-                                  title={group?.name}
+                                  title={group?.name || 'Magasin'}
                                 />
                               );
                             })}
@@ -659,7 +659,7 @@ export default function Publicities() {
                                         className="w-2 h-2 rounded-full mr-1" 
                                         style={{ backgroundColor: participation.group?.color || '#666666' }}
                                       />
-                                      {participation.group.name}
+                                      {participation.group?.name || 'Magasin'}
                                     </Badge>
                                   ))}
                                   {publicity.participations.length > 2 && (
@@ -673,7 +673,7 @@ export default function Publicities() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-600">
-                              {publicity.creator.name || publicity.creator.username}
+                              {publicity.creator?.name || publicity.creator?.username || 'Utilisateur'}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -807,7 +807,7 @@ export default function Publicities() {
                           className="w-3 h-3 rounded-full mr-2" 
                           style={{ backgroundColor: participation.group?.color || '#666666' }}
                         />
-                        {participation.group.name}
+                        {participation.group?.name || 'Magasin'}
                       </Badge>
                     ))
                   )}
@@ -817,7 +817,7 @@ export default function Publicities() {
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                 <div>
                   <label className="font-medium">Créé par</label>
-                  <p>{selectedPublicity.creator.name || selectedPublicity.creator.username}</p>
+                  <p>{selectedPublicity.creator?.name || selectedPublicity.creator?.username || 'Utilisateur'}</p>
                 </div>
                 <div>
                   <label className="font-medium">Créé le</label>
