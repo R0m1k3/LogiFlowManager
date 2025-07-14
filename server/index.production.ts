@@ -2,9 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import { setupSecurityHeaders, setupRateLimiting, setupInputSanitization } from "./security";
 import { setupCompression } from "./cache";
 import { monitor, setupMonitoringEndpoints } from "./monitoring";
+import { initDatabase } from "./initDatabase.production";
 import path from "path";
 import fs from "fs";
-import { storage } from "./storage.production";
 
 const app = express();
 
@@ -79,6 +79,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialiser la base de données en premier
+  try {
+    await initDatabase();
+  } catch (error) {
+    console.error('❌ Failed to initialize database:', error);
+    process.exit(1);
+  }
+
   const { registerRoutes } = await import('./routes.production');
   const server = await registerRoutes(app);
 

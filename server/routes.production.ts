@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.production";
-import { setupLocalAuth, requireAuth } from "./localAuth";
+import { setupLocalAuth, requireAuth } from "./localAuth.production";
 import { initializeRolesAndPermissions } from "./initRolesAndPermissions";
 
 // Alias pour compatibilité

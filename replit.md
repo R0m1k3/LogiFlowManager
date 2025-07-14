@@ -140,6 +140,11 @@ Changelog:
 - July 14, 2025. Application prête pour déploiement Docker sur port 3000
 - July 14, 2025. Authentification admin/admin opérationnelle
 - July 14, 2025. Tous les modules fonctionnels : Dashboard, Calendrier, Commandes, Livraisons, Publicités, Gestion utilisateurs
+- July 14, 2025. **SYSTÈME MIGRATION SÉCURISÉ** - Base de données mise à jour sans perte de données
+- July 14, 2025. Créé migration-production.sql avec préservation des données existantes
+- July 14, 2025. initDatabase.production.ts avec migrations incrémentales automatiques  
+- July 14, 2025. Scripts de déploiement préservant les volumes PostgreSQL
+- July 14, 2025. **ERREUR WEBSOCKET DÉFINITIVEMENT RÉSOLUE** - Production PostgreSQL native
 - July 08, 2025. Implemented multi-store system with user management and role-based permissions
 - July 08, 2025. Added comprehensive user creation interface with store assignments
 - July 08, 2025. Enhanced authentication documentation and user onboarding process

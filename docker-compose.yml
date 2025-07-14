@@ -42,8 +42,8 @@ services:
       - nginx_default
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./migration-production.sql:/docker-entrypoint-initdb.d/migration-production.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./migration-production.sql:/docker-entrypoint-initdb.d/02-migration.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U logiflow_admin -d logiflow_db"]
       interval: 10s
