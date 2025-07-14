@@ -49,10 +49,17 @@ export default function CustomerOrders() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "status" | "supplier">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [filterSupplier, setFilterSupplier] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
 
   // Fetch groups for store filter
   const { data: groups = [] } = useQuery<Group[]>({
     queryKey: ['/api/groups'],
+  });
+
+  // Fetch suppliers for filter
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['/api/suppliers'],
   });
 
   // Fetch customer orders (no store filtering needed)
@@ -466,15 +473,26 @@ export default function CustomerOrders() {
     }
   };
 
-  // Filter orders based on search term
-  const filteredOrders = Array.isArray(customerOrders) ? customerOrders.filter(order =>
-    order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.productDesignation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.customerPhone.includes(searchTerm) ||
-    (order.productReference && order.productReference.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (order.gencode && order.gencode.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (order.supplier && order.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  ) : [];
+  // Filter orders based on search term, supplier, and status
+  const filteredOrders = Array.isArray(customerOrders) ? customerOrders.filter(order => {
+    // Search term filter
+    const matchesSearch = !searchTerm || 
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.productDesignation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerPhone.includes(searchTerm) ||
+      (order.productReference && order.productReference.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.gencode && order.gencode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.supplier && order.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Supplier filter
+    const matchesSupplier = filterSupplier === "all" || 
+      (order.supplier && order.supplier.id.toString() === filterSupplier);
+    
+    // Status filter
+    const matchesStatus = filterStatus === "all" || order.status === filterStatus;
+    
+    return matchesSearch && matchesSupplier && matchesStatus;
+  }) : [];
 
   // Sort orders
   const sortedOrders = [...filteredOrders].sort((a, b) => {
@@ -518,10 +536,10 @@ export default function CustomerOrders() {
         </Button>
       </div>
 
-      {/* Search and Sort Filters */}
+      {/* Search and Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recherche et Tri</CardTitle>
+          <CardTitle className="text-lg">Recherche et Filtres</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
@@ -532,8 +550,34 @@ export default function CustomerOrders() {
               className="max-w-md"
             />
             <div className="flex gap-2">
+              <Select value={filterSupplier} onValueChange={setFilterSupplier}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Fournisseur..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les fournisseurs</SelectItem>
+                  {suppliers.map((supplier: any) => (
+                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Statut..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={sortBy} onValueChange={(value: "date" | "status" | "supplier") => setSortBy(value)}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[120px]">
                   <SelectValue placeholder="Trier par..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -543,12 +587,12 @@ export default function CustomerOrders() {
                 </SelectContent>
               </Select>
               <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-[100px]">
                   <SelectValue placeholder="Ordre..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="desc">Décroissant</SelectItem>
-                  <SelectItem value="asc">Croissant</SelectItem>
+                  <SelectItem value="desc">↓ Déc</SelectItem>
+                  <SelectItem value="asc">↑ Asc</SelectItem>
                 </SelectContent>
               </Select>
             </div>
