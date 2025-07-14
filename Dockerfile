@@ -37,9 +37,8 @@ RUN echo "=== BUILD VERIFICATION ===" && \
     echo "index.html exists:" && \
     ls -la dist/public/index.html
 
-# Build backend with production file - no bundling for native modules
-RUN npx esbuild server/index.production.ts --platform=node --format=esm --outfile=dist/index.js \
-  --external:* --loader:.ts=ts
+# No esbuild bundling - use tsx directly in production to avoid bcrypt issues
+RUN echo "Skipping esbuild - will use tsx directly"
 
 # Production stage
 FROM node:20-alpine AS production
@@ -58,10 +57,11 @@ WORKDIR /app
 COPY --from=build /app/package*.json ./
 RUN npm ci && npm cache clean --force
 
-# Copy built application from build stage
+# Copy all source files for tsx execution
 COPY --from=build --chown=nextjs:nodejs /app/dist ./dist
 COPY --from=build --chown=nextjs:nodejs /app/shared ./shared
 COPY --from=build --chown=nextjs:nodejs /app/server ./server
+COPY --from=build --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 
 # Create uploads directory with proper permissions
 RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
@@ -81,5 +81,5 @@ USER nextjs
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# Start the application
-CMD ["node", "dist/index.js"]
+# Start the application with tsx to avoid bcrypt bundling issues
+CMD ["npx", "tsx", "server/index.production.ts"]

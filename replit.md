@@ -449,6 +449,8 @@ Changelog:
 - July 14, 2025. **MISE À JOUR SÉCURISÉE** - Vos données existantes seront préservées lors du redéploiement
 - July 14, 2025. **SOLUTION BCRYPT FINALE** - Modification approche esbuild: --external:* au lieu de bundling pour éviter problèmes modules natifs
 - July 14, 2025. Script fix-bcrypt-final.sh créé pour résolution définitive du problème bcrypt en production Docker
+- July 14, 2025. **SOLUTION TSX POUR BCRYPT** - Abandon esbuild bundling, utilisation directe de tsx en production pour éviter problèmes modules natifs
+- July 14, 2025. Dockerfile modifié: CMD tsx server/index.production.ts au lieu de node dist/index.js pour compatibilité bcrypt
 - July 11, 2025. **SYSTÈME DE GESTION DES RÔLES COMPLET POUR PRODUCTION** - Déploiement du système complet
 - July 11, 2025. Ajout de toutes les méthodes rôles/permissions dans storage.production.ts avec SQL brut
 - July 11, 2025. Ajout de toutes les routes API rôles/permissions dans routes.production.ts
