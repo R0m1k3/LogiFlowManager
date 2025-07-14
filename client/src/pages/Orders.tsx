@@ -70,6 +70,16 @@ export default function Orders() {
   
   const { data: orders = [], isLoading } = useQuery<OrderWithRelations[]>({
     queryKey: [ordersUrl, selectedStoreId],
+    queryFn: async () => {
+      const response = await fetch(ordersUrl, { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error('Failed to fetch orders');
+      }
+      const data = await response.json();
+      console.log('📦 Orders received:', Array.isArray(data) ? data.length : 'NOT_ARRAY', 'items', data.slice(0, 2));
+      console.log('📦 Sample order data:', data[0]);
+      return Array.isArray(data) ? data : [];
+    },
   });
 
   console.log('📦 Orders Debug:', { 

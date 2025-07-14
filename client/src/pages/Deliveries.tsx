@@ -80,21 +80,16 @@ export default function Deliveries() {
         throw new Error('Failed to fetch deliveries');
       }
       const data = await response.json();
-      console.log('🚚 Deliveries received:', data.length, 'items', data.slice(0, 2));
-      return data;
+      console.log('🚚 Deliveries received:', Array.isArray(data) ? data.length : 'NOT_ARRAY', 'items', data.slice(0, 2));
+      console.log('🚚 Sample delivery data:', data[0]);
+      return Array.isArray(data) ? data : [];
     },
   });
 
   console.log('🚚 Deliveries Debug:', { 
     isLoading, 
     deliveriesCount: deliveries?.length, 
-    selectedStoreId,
-    deliveriesUrl 
-  });
-
-  console.log('🚚 Deliveries Debug:', { 
-    isLoading, 
-    deliveriesCount: deliveries?.length, 
+    deliveries: deliveries?.slice(0, 2),
     selectedStoreId,
     deliveriesUrl 
   });

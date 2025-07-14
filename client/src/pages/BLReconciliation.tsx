@@ -101,9 +101,9 @@ export default function BLReconciliation() {
       }
       
       const deliveries = await response.json();
-      console.log('All deliveries received:', deliveries);
-      const filtered = deliveries.filter((d: any) => d.status === 'delivered');
-      console.log('Filtered deliveries for BL reconciliation:', filtered);
+      console.log('🚚 BL Reconciliation - All deliveries received:', Array.isArray(deliveries) ? deliveries.length : 'NOT_ARRAY', deliveries);
+      const filtered = Array.isArray(deliveries) ? deliveries.filter((d: any) => d.status === 'delivered') : [];
+      console.log('🚚 BL Reconciliation - Filtered deliveries:', filtered.length, filtered);
       
       // Ne filtrer que les livraisons livrées (status === 'delivered')
       // Toutes les livraisons livrées doivent apparaître, même sans BL encore saisi
@@ -119,7 +119,7 @@ export default function BLReconciliation() {
             supplierName: delivery.supplier?.name, // Include supplier name for verification
           }));
         
-        if (invoiceReferencesToVerify.length > 0) {
+        if (Array.isArray(invoiceReferencesToVerify) && invoiceReferencesToVerify.length > 0) {
           try {
             const verificationResponse = await fetch('/api/verify-invoices', {
               method: 'POST',
