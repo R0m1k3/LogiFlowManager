@@ -422,7 +422,16 @@ async function createDefaultAdmin() {
 
       console.log('✅ Default admin user created: admin/admin');
     } else {
-      console.log('✅ Admin user already exists');
+      // Admin exists but update password with new hash format if needed
+      const { hashPassword } = await import('./auth-utils.production.js');
+      const newHashedPassword = await hashPassword('admin');
+      
+      await pool.query(
+        'UPDATE users SET password = $1, password_changed = false WHERE username = $2',
+        [newHashedPassword, 'admin']
+      );
+      
+      console.log('✅ Admin user password updated with new hash format');
     }
   } catch (error) {
     console.error('❌ Failed to create admin user:', error);
