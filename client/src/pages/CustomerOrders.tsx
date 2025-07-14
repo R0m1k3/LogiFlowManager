@@ -54,8 +54,13 @@ export default function CustomerOrders() {
   // Fetch customer orders (no store filtering needed)
   const { data: customerOrders = [], isLoading } = useQuery<CustomerOrderWithRelations[]>({
     queryKey: ['/api/customer-orders'],
-    queryFn: () => apiRequest('/api/customer-orders'),
+    queryFn: () => apiRequest('/api/customer-orders').then(res => {
+      console.log("Frontend received customer orders:", res);
+      return res.json();
+    }),
   });
+
+  console.log("Customer orders in component:", customerOrders, "Length:", customerOrders.length);
 
   // Create mutation
   const createMutation = useMutation({
@@ -64,7 +69,9 @@ export default function CustomerOrders() {
       body: data,
     }),
     onSuccess: () => {
+      // Force refresh of the query
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
+      queryClient.refetchQueries({ queryKey: ['/api/customer-orders'] });
       setShowCreateModal(false);
       toast({
         title: "Succès",
