@@ -107,6 +107,7 @@ export const deliveries = pgTable("deliveries", {
   invoiceReference: varchar("invoice_reference"), // Référence facture
   invoiceAmount: decimal("invoice_amount", { precision: 10, scale: 2 }), // Montant facture
   reconciled: boolean("reconciled").default(false), // Rapprochement effectué
+  validatedAt: timestamp("validated_at"), // Date de validation de la livraison
   createdBy: varchar("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
