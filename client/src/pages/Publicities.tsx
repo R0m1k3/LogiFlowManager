@@ -91,19 +91,7 @@ export default function Publicities() {
       const pubEnd = new Date(pub.endDate);
       
       // More robust overlap detection: check if any part of the publicity period overlaps with the week
-      const overlaps = (pubStart <= weekEnd && pubEnd >= weekStart);
-      
-      // Debug: log for October weeks
-      if (weekStart.getMonth() === 9 && weekStart.getDate() <= 7) { // October, first week
-        console.log(`Week ${weekStart.toLocaleDateString()} - ${weekEnd.toLocaleDateString()}:`, {
-          pubNumber: pub.pubNumber,
-          pubStart: pubStart.toLocaleDateString(),
-          pubEnd: pubEnd.toLocaleDateString(),
-          overlaps
-        });
-      }
-      
-      return overlaps;
+      return (pubStart <= weekEnd && pubEnd >= weekStart);
     });
 
     const participatingStores = new Set<number>();
@@ -364,22 +352,11 @@ export default function Publicities() {
                               }
                               hover:shadow-sm transition-shadow
                             `}
-                            title={`Semaine ${week.weekNumber} - ${hasPublicity ? `${week.publicities.length} publicité(s): ${week.publicities.map(p => p.pubNumber).join(', ')}` : 'Aucune publicité'}`}
+                            title={`Semaine ${week.weekNumber} - ${hasPublicity ? `${week.publicities.map(p => p.pubNumber).join(', ')}` : 'Aucune publicité'}`}
                           >
                             <span className="text-xs font-medium">{week.weekNumber}</span>
                             {hasPublicity && (
-                              <div className="flex gap-0.5 mt-0.5">
-                                {week.publicities.slice(0, 3).map((pub, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="w-1 h-1 rounded-full bg-blue-600"
-                                    title={pub.pubNumber}
-                                  />
-                                ))}
-                                {week.publicities.length > 3 && (
-                                  <div className="w-1 h-1 rounded-full bg-gray-400" title={`+${week.publicities.length - 3} autres`} />
-                                )}
-                              </div>
+                              <div className="w-1 h-1 rounded-full bg-blue-600 mt-0.5" />
                             )}
                             {/* Store participation indicators */}
                             {storeColors.length > 0 && (
@@ -439,12 +416,8 @@ export default function Publicities() {
               </div>
               <div className="flex items-center gap-4 text-xs text-gray-500">
                 <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-1 h-1 rounded-full bg-blue-600"></div>
-                    <div className="w-1 h-1 rounded-full bg-blue-600"></div>
-                    <div className="w-1 h-1 rounded-full bg-blue-600"></div>
-                  </div>
-                  <span>Nombre de publicités (points bleus)</span>
+                  <div className="w-1 h-1 rounded-full bg-blue-600"></div>
+                  <span>Présence de publicité (point bleu)</span>
                 </div>
                 <span>• Survolez les semaines pour voir les détails des publicités</span>
               </div>
