@@ -2,10 +2,10 @@ import express from 'express';
 import { join, dirname } from 'path';
 import { createServer } from 'http';
 import { fileURLToPath } from 'url';
-import { pool } from './db.production.js';
-import { setupLocalAuth } from './localAuth.production.js';
-import { registerRoutes } from './routes.production.js';
-import { initializeRolesAndPermissions } from './initRolesAndPermissions.production.js';
+import { pool } from './db.production.ts';
+import { setupLocalAuth } from './localAuth.production.ts';
+import { registerRoutes } from './routes.production.ts';
+import { initializeRolesAndPermissions } from './initRolesAndPermissions.production.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
