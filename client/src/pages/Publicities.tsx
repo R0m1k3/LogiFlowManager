@@ -11,6 +11,7 @@ import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useStore } from "@/components/Layout";
 import { format, startOfMonth, endOfMonth, eachWeekOfInterval, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isWithinInterval, startOfYear, endOfYear, getWeek, getMonth } from "date-fns";
 import { fr } from "date-fns/locale";
+import { safeFormat, safeDate, safeCompareDate } from "@/lib/dateUtils";
 import type { PublicityWithRelations, Group } from "@shared/schema";
 import PublicityForm from "@/components/PublicityForm";
 
@@ -87,11 +88,11 @@ export default function Publicities() {
   // Calendar helper functions
   const getWeekParticipation = (weekStart: Date, weekEnd: Date) => {
     const weekPublicities = publicities.filter(pub => {
-      const pubStart = new Date(pub.startDate);
-      const pubEnd = new Date(pub.endDate);
+      const pubStart = safeDate(pub.startDate);
+      const pubEnd = safeDate(pub.endDate);
       
       // More robust overlap detection: check if any part of the publicity period overlaps with the week
-      return (pubStart <= weekEnd && pubEnd >= weekStart);
+      return pubStart && pubEnd && (pubStart <= weekEnd && pubEnd >= weekStart);
     });
 
     const participatingStores = new Set<number>();
@@ -287,9 +288,9 @@ export default function Publicities() {
                 <p className="text-2xl font-semibold">
                   {publicities.filter(p => {
                     const now = new Date();
-                    const start = new Date(p.startDate);
-                    const end = new Date(p.endDate);
-                    return start <= now && now <= end;
+                    const start = safeDate(p.startDate);
+                    const end = safeDate(p.endDate);
+                    return start && end && start <= now && now <= end;
                   }).length}
                 </p>
               </div>
@@ -306,7 +307,10 @@ export default function Publicities() {
               <div>
                 <p className="text-sm text-gray-600">À venir</p>
                 <p className="text-2xl font-semibold">
-                  {publicities.filter(p => new Date(p.startDate) > new Date()).length}
+                  {publicities.filter(p => {
+                    const startDate = safeDate(p.startDate);
+                    return startDate && startDate > new Date();
+                  }).length}
                 </p>
               </div>
             </div>
@@ -474,9 +478,9 @@ export default function Publicities() {
                   return days.map(day => {
                     const isCurrentMonth = isSameMonth(day, monthStart);
                     const dayPublicities = publicities.filter(pub => {
-                      const pubStart = new Date(pub.startDate);
-                      const pubEnd = new Date(pub.endDate);
-                      return day >= pubStart && day <= pubEnd;
+                      const pubStart = safeDate(pub.startDate);
+                      const pubEnd = safeDate(pub.endDate);
+                      return pubStart && pubEnd && day >= pubStart && day <= pubEnd;
                     });
                     
                     const participatingStores = new Set<number>();
@@ -598,14 +602,14 @@ export default function Publicities() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {publicities
-                    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+                    .sort((a, b) => safeCompareDate(b.startDate, a.startDate))
                     .map((publicity) => {
                       const now = new Date();
-                      const start = new Date(publicity.startDate);
-                      const end = new Date(publicity.endDate);
-                      const isActive = start <= now && now <= end;
-                      const isUpcoming = start > now;
-                      const isPast = end < now;
+                      const start = safeDate(publicity.startDate);
+                      const end = safeDate(publicity.endDate);
+                      const isActive = start && end && now >= start && now <= end;
+                      const isUpcoming = start && start > now;
+                      const isPast = end && end < now;
 
                       return (
                         <tr key={publicity.id} className="hover:bg-gray-50">
@@ -621,7 +625,7 @@ export default function Publicities() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-600">
-                              {format(new Date(publicity.startDate), "dd/MM/yy", { locale: fr })} - {format(new Date(publicity.endDate), "dd/MM/yy", { locale: fr })}
+                              {safeFormat(publicity.startDate, "dd/MM/yy")} - {safeFormat(publicity.endDate, "dd/MM/yy")}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -771,11 +775,11 @@ export default function Publicities() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Date de début</label>
-                  <p>{format(new Date(selectedPublicity.startDate), "dd/MM/yyyy", { locale: fr })}</p>
+                  <p>{safeFormat(selectedPublicity.startDate, "dd/MM/yyyy")}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Date de fin</label>
-                  <p>{format(new Date(selectedPublicity.endDate), "dd/MM/yyyy", { locale: fr })}</p>
+                  <p>{safeFormat(selectedPublicity.endDate, "dd/MM/yyyy")}</p>
                 </div>
               </div>
 
@@ -805,7 +809,7 @@ export default function Publicities() {
                 </div>
                 <div>
                   <label className="font-medium">Créé le</label>
-                  <p>{format(selectedPublicity.createdAt, "dd/MM/yyyy à HH:mm", { locale: fr })}</p>
+                  <p>{safeFormat(selectedPublicity.createdAt, "dd/MM/yyyy à HH:mm")}</p>
                 </div>
               </div>
             </div>

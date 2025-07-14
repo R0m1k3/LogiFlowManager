@@ -146,6 +146,7 @@ Changelog:
 - July 14, 2025. **FLICKERING PAGES PRODUCTION CORRIGÉ** - Optimisation useAuth + QueryClient pour stabilité
 - July 14, 2025. **SOLUTION RADICALE PAGES BLANCHES** - Créé RouterProduction + useAuthProduction sans React Query
 - July 14, 2025. **HOOK UNIFIÉ CRÉÉ** - useAuthUnified s'adapte automatiquement dev/prod + ErrorBoundary + correction complète
+- July 14, 2025. **ERREUR DATES PRODUCTION CORRIGÉE** - safeFormat/safeDate pour éviter "Invalid time value" + 23 composants fixes
 - July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
 - July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
 - July 14, 2025. Dockerfile mis à jour pour utiliser server/index.production.ts
