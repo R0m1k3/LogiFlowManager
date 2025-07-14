@@ -355,9 +355,6 @@ export default function Publicities() {
                             title={`Semaine ${week.weekNumber} - ${hasPublicity ? `${week.publicities.map(p => p.pubNumber).join(', ')}` : 'Aucune publicité'}`}
                           >
                             <span className="text-xs font-medium">{week.weekNumber}</span>
-                            {hasPublicity && (
-                              <div className="w-1 h-1 rounded-full bg-blue-600 mt-0.5" />
-                            )}
                             {/* Store participation indicators */}
                             {storeColors.length > 0 && (
                               <div className="absolute top-0.5 right-0.5 flex flex-wrap gap-0.5 max-w-[16px]">
