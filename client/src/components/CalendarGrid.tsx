@@ -69,7 +69,7 @@ export default function CalendarGrid({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
       {/* Calendar Header */}
       <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
         {weekDays.map(day => (
@@ -122,7 +122,7 @@ export default function CalendarGrid({
                     return (
                       <div
                         key={`order-${order.id}`}
-                        className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${colorClass}`}
+                        className={`text-xs px-2 py-1 flex items-center justify-between cursor-pointer ${colorClass}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           onItemClick(order, 'order');
@@ -133,7 +133,7 @@ export default function CalendarGrid({
                         </span>
                         <div className="flex items-center ml-1 flex-shrink-0">
                           {order.status === 'planned' && (
-                            <span className="w-2 h-2 bg-yellow-300 rounded-full mr-1" title="Commande planifiée (liée à une livraison)" />
+                            <span className="w-2 h-2 bg-yellow-300 mr-1" title="Commande planifiée (liée à une livraison)" />
                           )}
                           {order.status === 'delivered' && (
                             <Check className="w-3 h-3" />
@@ -146,7 +146,7 @@ export default function CalendarGrid({
                   {dayDeliveries.map((delivery) => (
                     <div
                       key={`delivery-${delivery.id}`}
-                      className={`text-xs px-2 py-1 rounded flex items-center justify-between cursor-pointer ${
+                      className={`text-xs px-2 py-1 flex items-center justify-between cursor-pointer ${
                         delivery.status === 'delivered' 
                           ? 'bg-delivered text-white' 
                           : delivery.status === 'pending'
@@ -163,7 +163,7 @@ export default function CalendarGrid({
                       </span>
                       <div className="flex items-center ml-1 flex-shrink-0">
                         {delivery.status === 'pending' && (
-                          <span className="w-2 h-2 bg-orange-300 rounded-full mr-1" title="En attente de validation" />
+                          <span className="w-2 h-2 bg-orange-300 mr-1" title="En attente de validation" />
                         )}
                         {delivery.status === 'delivered' && (
                           <Check className="w-3 h-3" />

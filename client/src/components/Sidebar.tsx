@@ -136,7 +136,7 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-lg">
       {/* Logo */}
-      <div className="h-16 flex items-center justify-center border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div className="h-16 flex items-center justify-center border-b border-gray-200 bg-white">
         <div className="flex items-center space-x-3">
           <Store className="h-6 w-6 text-blue-600" />
           <span className="text-lg font-semibold text-gray-900">LogiFlow</span>
@@ -157,7 +157,7 @@ export default function Sidebar() {
                 <div
                   className={`flex items-center px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 ${
                     active
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                      ? 'bg-gray-100 text-gray-900 border-r-2 border-gray-700'
                       : 'text-gray-700'
                   }`}
                 >
@@ -189,7 +189,7 @@ export default function Sidebar() {
                     <div
                       className={`flex items-center px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 ${
                         active
-                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                          ? 'bg-gray-100 text-gray-900 border-r-2 border-gray-700'
                           : 'text-gray-700'
                       }`}
                     >
@@ -224,7 +224,7 @@ export default function Sidebar() {
                   <div
                     className={`flex items-center px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 ${
                       active
-                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                        ? 'bg-gray-100 text-gray-900 border-r-2 border-gray-700'
                         : 'text-gray-700'
                     }`}
                   >
@@ -241,8 +241,8 @@ export default function Sidebar() {
       {/* User Profile & Logout */}
       <div className="border-t border-gray-200 p-4">
         <div className="flex items-center space-x-3 mb-3">
-          <div className="h-8 w-8 bg-blue-100 flex items-center justify-center">
-            <span className="text-xs font-medium text-blue-700">
+          <div className="h-8 w-8 bg-gray-100 flex items-center justify-center">
+            <span className="text-xs font-medium text-gray-700">
               {getInitials(user?.firstName, user?.lastName)}
             </span>
           </div>
