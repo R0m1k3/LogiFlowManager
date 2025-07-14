@@ -479,6 +479,22 @@ Changelog:
 - July 14, 2025. Section Administration déplacée en bas de sidebar au-dessus du login pour admins
 - July 14, 2025. Interface de gestion des rôles avec noms de catégories français et nouvelles icônes d'actions
 - July 14, 2025. Icônes spécialisées pour validate, print, notify dans le système de permissions
+- July 14, 2025. **NETTOYAGE COMPLET DU PROJET** - Suppression de tous les fichiers obsolètes et temporaires
+- July 14, 2025. Supprimé plus de 20 scripts temporaires (apply-*, fix-*, deploy-*, test-*, etc.)
+- July 14, 2025. Supprimé dossier attached_assets/ contenant les captures d'écran de debug
+- July 14, 2025. Supprimé fichiers de production dupliqués (*.production.ts) devenus inutiles
+- July 14, 2025. **INTERFACE COMMANDES CLIENT OPTIMISÉE** - Simplification des filtres et amélioration UX
+- July 14, 2025. Colonne "Fournisseur" ajoutée dans le tableau des commandes clients
+- July 14, 2025. Filtres simplifiés : seulement "Fournisseurs" et "Status" sans libellés verbeux
+- July 14, 2025. Suppression des sélecteurs de tri par date et ordre pour interface plus épurée
+- July 14, 2025. **DOCUMENTATION COMPLÈTE** - Mise à jour README.md avec toutes les fonctionnalités
+- July 14, 2025. Documentation détaillée des modules, API endpoints, et procédures de déploiement
+- July 14, 2025. Guide complet d'installation, configuration et maintenance
+- July 14, 2025. Architecture technique détaillée avec technologies utilisées
+- July 14, 2025. **PROJET OPTIMISÉ** - Structure de fichiers nettoyée et documentation à jour
+- July 14, 2025. Suppression de tous les fichiers temporaires et redondants
+- July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
+- July 14, 2025. Documentation technique complète prête pour production
 
 ## User Preferences
 
