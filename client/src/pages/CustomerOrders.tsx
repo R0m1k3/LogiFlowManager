@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Phone, PhoneCall, Printer, Eye } from "lucide-react";
+import { safeFormat, safeDate } from "@/lib/dateUtils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
@@ -378,7 +379,7 @@ export default function CustomerOrders() {
                 <div class="title">Commande #${order.id}</div>
                 <div class="status-badge">${order.status}</div>
               </div>
-              <div class="creation-date">Créée le ${format(new Date(order.createdAt), 'dd MMMM yyyy', { locale: fr })} à ${format(new Date(order.createdAt), 'HH:mm')}</div>
+              <div class="creation-date">Créée le ${safeFormat(order.createdAt, 'dd MMMM yyyy')} à ${safeFormat(order.createdAt, 'HH:mm')}</div>
               
               <div class="section">
                 <div class="section-title">
@@ -461,7 +462,7 @@ export default function CustomerOrders() {
                   </div>
                   <div class="field-row">
                     <span class="field-label">📅 Date de création:</span>
-                    <span class="field-value">${format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })} à ${format(new Date(order.createdAt), 'HH:mm')}</span>
+                    <span class="field-value">${safeFormat(order.createdAt, 'dd/MM/yyyy')} à ${safeFormat(order.createdAt, 'HH:mm')}</span>
                   </div>
                 </div>
               </div>
@@ -501,8 +502,10 @@ export default function CustomerOrders() {
 
     switch (sortBy) {
       case "date":
-        aValue = new Date(a.createdAt).getTime();
-        bValue = new Date(b.createdAt).getTime();
+        const dateA = safeDate(a.createdAt);
+        const dateB = safeDate(b.createdAt);
+        aValue = dateA ? dateA.getTime() : 0;
+        bValue = dateB ? dateB.getTime() : 0;
         break;
       case "status":
         aValue = a.status;
@@ -513,8 +516,10 @@ export default function CustomerOrders() {
         bValue = b.supplier?.name || "";
         break;
       default:
-        aValue = new Date(a.createdAt).getTime();
-        bValue = new Date(b.createdAt).getTime();
+        const defaultDateA = safeDate(a.createdAt);
+        const defaultDateB = safeDate(b.createdAt);
+        aValue = defaultDateA ? defaultDateA.getTime() : 0;
+        bValue = defaultDateB ? defaultDateB.getTime() : 0;
     }
 
     if (sortOrder === "desc") {
@@ -650,7 +655,7 @@ export default function CustomerOrders() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                      {safeFormat(order.createdAt, 'dd/MM/yyyy')}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

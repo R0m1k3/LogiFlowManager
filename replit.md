@@ -553,6 +553,9 @@ Changelog:
 - July 14, 2025. Ajout colonne manquante validatedAt dans schema deliveries pour alignement avec PostgreSQL
 - July 14, 2025. Vérification cohérence complète: shared/schema.ts ↔ BDD PostgreSQL ↔ Frontend TypeScript
 - July 14, 2025. **APPLICATION 100% FONCTIONNELLE** - Plus d'incohérences détectées, toutes les relations opérationnelles
+- July 14, 2025. **ERREUR "INVALID TIME VALUE" PRODUCTION RÉSOLUE** - Protection dates commandes client avec safeFormat/safeDate
+- July 14, 2025. Correction CustomerOrderDetails.tsx et CustomerOrders.tsx: toutes dates utilisant new Date() remplacées
+- July 14, 2025. Protection complète: affichage, tri, impression étiquettes, création commandes client
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
 - July 14, 2025. Documentation technique complète prête pour production

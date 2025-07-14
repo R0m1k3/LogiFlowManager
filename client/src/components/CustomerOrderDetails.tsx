@@ -1,8 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { safeFormat } from "@/lib/dateUtils";
 import { Phone, Package, User, Store, Calendar, CreditCard, Tag } from "lucide-react";
 import type { CustomerOrderWithRelations } from "@shared/schema";
 
@@ -49,7 +48,7 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
         <div>
           <h3 className="text-lg font-medium">Commande #{order.id}</h3>
           <p className="text-sm text-muted-foreground">
-            Créée le {format(new Date(order.createdAt), 'dd MMMM yyyy à HH:mm', { locale: fr })}
+            Créée le {safeFormat(order.createdAt, 'dd MMMM yyyy à HH:mm')}
           </p>
         </div>
         <Badge className={`${getStatusColor(order.status)} rounded-none`}>
@@ -177,7 +176,7 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span className="font-medium">Date de création:</span>
-            <span>{format(new Date(order.createdAt), 'dd/MM/yyyy à HH:mm', { locale: fr })}</span>
+            <span>{safeFormat(order.createdAt, 'dd/MM/yyyy à HH:mm')}</span>
           </div>
 
           {order.deposit && parseFloat(order.deposit) > 0 && (
