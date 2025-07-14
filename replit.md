@@ -449,6 +449,12 @@ Changelog:
 - July 14, 2025. Migration auto-intégrée dans initDatabase.production.ts pour création table nocodb_configs
 - July 14, 2025. Scripts créés: apply-nocodb-table.sql, fix-nocodb-urgent.sh, deploy-nocodb-fix.sh
 - July 14, 2025. **SOLUTION COMPLÈTE** - L'erreur "relation nocodb_configs does not exist" sera résolue après migration SQL
+- July 14, 2025. **MODULE COMMANDES CLIENT FINALISÉ** - Intégration complète du champ quantité et résolution problèmes d'affichage
+- July 14, 2025. Ajout champ quantity dans shared/schema.ts avec valeur par défaut 1, migration base de données réussie
+- July 14, 2025. Interface complète : colonne Quantité dans tableau, champ numérique dans formulaires, affichage dans détails et étiquettes
+- July 14, 2025. Résolution critique : TanStack Query corrigé pour affichage des commandes, getCustomerOrders et getCustomerOrder incluent quantity
+- July 14, 2025. Workflow changement statut opérationnel : "En attente de Commande" → "Commande en Cours" → "Disponible" → "Retiré"/"Annulé"
+- July 14, 2025. Module production-ready : créations, modifications, suppressions, notifications client, impression étiquettes avec quantité
 
 ## User Preferences
 

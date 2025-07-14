@@ -54,7 +54,6 @@ export default function CustomerOrders() {
   // Fetch customer orders (no store filtering needed)
   const { data: customerOrders = [], isLoading } = useQuery<CustomerOrderWithRelations[]>({
     queryKey: ['/api/customer-orders'],
-    queryFn: () => apiRequest('/api/customer-orders'),
   });
 
   // Create mutation
@@ -277,9 +276,7 @@ export default function CustomerOrders() {
     (order.gencode && order.gencode.toLowerCase().includes(searchTerm.toLowerCase()))
   ) : [];
 
-  if (!user) {
-    return <div>Chargement...</div>;
-  }
+
 
   return (
     <div className="container mx-auto p-6 space-y-6">
