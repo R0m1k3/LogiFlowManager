@@ -15,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useStore } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle, X, Trash2 } from "lucide-react";
+import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle, X, Trash2, RefreshCw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format as formatDate } from "date-fns";
@@ -70,6 +70,7 @@ export default function BLReconciliation() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deliveryToDelete, setDeliveryToDelete] = useState<any>(null);
   const [invoiceVerifications, setInvoiceVerifications] = useState<Record<number, { exists: boolean; error?: string }>>({});
+  const [isVerifyingInvoices, setIsVerifyingInvoices] = useState(false);
 
   // Récupérer les livraisons validées avec BL
   const { data: deliveriesWithBL = [], isLoading } = useQuery({
@@ -164,6 +165,57 @@ export default function BLReconciliation() {
     }
   }, [deliveriesWithBL]);
 
+  // Fonction pour vérifier les factures NocoDB
+  const verifyAllInvoices = async () => {
+    if (!deliveriesWithBL || deliveriesWithBL.length === 0) return;
+    
+    const invoiceReferencesToVerify = deliveriesWithBL
+      .filter((delivery: any) => delivery.invoiceReference && delivery.groupId)
+      .map((delivery: any) => ({
+        groupId: delivery.groupId,
+        invoiceReference: delivery.invoiceReference,
+        deliveryId: delivery.id,
+        supplierName: delivery.supplier?.name,
+      }));
+    
+    if (invoiceReferencesToVerify.length > 0) {
+      setIsVerifyingInvoices(true);
+      try {
+        const verificationResponse = await fetch('/api/verify-invoices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ invoiceReferences: invoiceReferencesToVerify }),
+        });
+        
+        if (verificationResponse.ok) {
+          const verificationResults = await verificationResponse.json();
+          setInvoiceVerifications(verificationResults);
+          toast({
+            title: "Vérification terminée",
+            description: `${invoiceReferencesToVerify.length} facture(s) vérifiée(s)`,
+          });
+        }
+      } catch (error) {
+        console.error('Error verifying invoice references:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de vérifier les factures",
+          variant: "destructive",
+        });
+      } finally {
+        setIsVerifyingInvoices(false);
+      }
+    }
+  };
+
+  // Vérifier les factures NocoDB après chaque mise à jour des livraisons
+  useEffect(() => {
+    if (deliveriesWithBL && deliveriesWithBL.length > 0) {
+      verifyAllInvoices();
+    }
+  }, [deliveriesWithBL]);
+
   const form = useForm<ReconciliationForm>({
     resolver: zodResolver(reconciliationSchema),
     defaultValues: {
@@ -189,7 +241,7 @@ export default function BLReconciliation() {
       console.log('✅ Reconciliation update response:', response);
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       toast({
         title: "Succès",
         description: "Données de rapprochement mises à jour avec succès",
@@ -200,6 +252,37 @@ export default function BLReconciliation() {
           query.queryKey[0] === '/api/deliveries/bl' || 
           query.queryKey[0] === '/api/deliveries'
       });
+      
+      // Vérifier immédiatement la facture si une référence a été ajoutée
+      if (variables.invoiceReference) {
+        const verifyInvoice = async () => {
+          try {
+            const verificationResponse = await fetch('/api/verify-invoices', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ 
+                invoiceReferences: [{
+                  groupId: selectedDelivery?.groupId,
+                  invoiceReference: variables.invoiceReference,
+                  deliveryId: variables.id,
+                  supplierName: selectedDelivery?.supplier?.name,
+                }]
+              }),
+            });
+            
+            if (verificationResponse.ok) {
+              const verificationResults = await verificationResponse.json();
+              setInvoiceVerifications(prev => ({ ...prev, ...verificationResults }));
+            }
+          } catch (error) {
+            console.error('Error verifying invoice reference:', error);
+          }
+        };
+        
+        verifyInvoice();
+      }
+      
       form.reset();
       setShowReconciliationModal(false);
       setSelectedDelivery(null);
@@ -451,6 +534,18 @@ export default function BLReconciliation() {
                 <X className="h-4 w-4" />
               </Button>
             )}
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={verifyAllInvoices}
+              disabled={isVerifyingInvoices}
+              className="h-9 px-3"
+              title="Vérifier toutes les factures avec NocoDB"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isVerifyingInvoices ? 'animate-spin' : ''}`} />
+              Vérifier factures
+            </Button>
           </div>
         </div>
       </div>
