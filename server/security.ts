@@ -45,7 +45,7 @@ export function setupRateLimiting(app: Express) {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    trustProxy: true, // Configuration pour Docker/proxy
+    trustProxy: 1, // Configuration sécurisée pour Docker (1 proxy de confiance)
     skip: (req) => {
       // Skip rate limiting for health checks
       return req.path === '/api/health';
@@ -61,7 +61,7 @@ export function setupRateLimiting(app: Express) {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    trustProxy: true, // Configuration pour Docker/proxy
+    trustProxy: 1, // Configuration sécurisée pour Docker (1 proxy de confiance)
   });
 
   // Limiteur pour l'API
@@ -73,7 +73,7 @@ export function setupRateLimiting(app: Express) {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    trustProxy: true, // Configuration pour Docker/proxy
+    trustProxy: 1, // Configuration sécurisée pour Docker (1 proxy de confiance)
   });
 
   app.use(generalLimiter);

@@ -28,7 +28,8 @@ declare global {
   }
 }
 
-// Les fonctions hashPassword et comparePasswords sont importées depuis auth-utils.production
+// Import des fonctions de hachage
+import { hashPassword, comparePasswords } from './auth-utils.production.js';
 
 export function setupLocalAuth(app: Express) {
   // Configure session with PostgreSQL store

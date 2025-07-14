@@ -139,6 +139,7 @@ Changelog:
 - July 14, 2025. **X-FORWARDED-FOR ERROR RÉSOLUE** - Rate limiting compatible Docker/reverse proxy
 - July 14, 2025. **AUTHENTIFICATION ADMIN CORRIGÉE** - Hash généré dynamiquement au démarrage
 - July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
+- July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
 - July 14, 2025. Dockerfile mis à jour pour utiliser server/index.production.ts
 - July 14, 2025. Script deploy-production.sh créé avec vérifications complètes
 - July 14, 2025. Documentation PRODUCTION-READY.md complète avec checklist détaillée

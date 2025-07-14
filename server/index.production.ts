@@ -8,8 +8,9 @@ import fs from "fs";
 
 const app = express();
 
-// Configuration trust proxy pour éviter l'erreur X-Forwarded-For
-app.set('trust proxy', true);
+// Configuration trust proxy sécurisée pour Docker
+// Faire confiance seulement au premier proxy (Docker/nginx)
+app.set('trust proxy', 1);
 
 // Fonction de log pour la production
 function log(message: string, source = "express") {
