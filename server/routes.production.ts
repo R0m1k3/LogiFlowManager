@@ -1,8 +1,8 @@
 import { Express } from "express";
 import { createServer } from "http";
 import { db, pool } from "./db.production";
-import { storage } from "./storage";
-import { requireAuth } from "./localAuth";
+import { storage } from "./storage.production";
+import { requireAuth } from "./localAuth.production";
 import { 
   users, 
   groups, 
@@ -20,7 +20,7 @@ import {
 } from "@shared/schema";
 import { insertGroupSchema, insertSupplierSchema, insertOrderSchema, insertDeliverySchema, insertUserGroupSchema, insertPublicitySchema, insertCustomerOrderSchema, insertRoleSchema, insertPermissionSchema, insertRolePermissionSchema, insertNocodbConfigSchema } from "@shared/schema";
 import { eq, and, sql, desc, asc, gte, lte, like, or, inArray } from "drizzle-orm";
-import { hashPassword } from "./localAuth";
+import { hashPassword } from "./localAuth.production";
 import { verifyInvoiceReference } from "./nocodbService";
 
 export async function registerRoutes(app: Express): Promise<any> {

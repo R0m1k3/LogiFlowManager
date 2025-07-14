@@ -2,7 +2,7 @@ import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { createServer } from "http";
-import { setupLocalAuth } from "./localAuth";
+import { setupLocalAuth } from "./localAuth.production";
 import { registerRoutes } from "./routes.production";
 import { setupSecurityHeaders, setupRateLimiting, setupInputSanitization } from "./security";
 import { setupCompression } from "./cache";

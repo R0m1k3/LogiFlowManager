@@ -438,6 +438,10 @@ Changelog:
 - July 14, 2025. Routes API complètes pour tous les modules : Orders, Deliveries, Users, Roles, Publicities, Customer Orders, NocoDB
 - July 14, 2025. Docker compose configuré avec volumes migration SQL et health checks
 - July 14, 2025. **ARCHITECTURE PRODUCTION PRÊTE** - Init.sql complet, migrations sécurisées, scripts déploiement automatisés
+- July 14, 2025. **CORRECTION WEBSOCKET PRODUCTION** - Mise à jour fichiers production pour utiliser PostgreSQL standard au lieu de Neon WebSocket
+- July 14, 2025. Correction imports production: db.production.ts, localAuth.production.ts, routes.production.ts, storage.production.ts
+- July 14, 2025. Script fix-websocket-production.sh créé pour corriger le problème sans supprimer la production existante
+- July 14, 2025. **PROBLÈME WEBSOCKET RÉSOLU** - Application production utilisera PostgreSQL standard au lieu de wss://postgres/v2
 - July 11, 2025. **SYSTÈME DE GESTION DES RÔLES COMPLET POUR PRODUCTION** - Déploiement du système complet
 - July 11, 2025. Ajout de toutes les méthodes rôles/permissions dans storage.production.ts avec SQL brut
 - July 11, 2025. Ajout de toutes les routes API rôles/permissions dans routes.production.ts
