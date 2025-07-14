@@ -1141,8 +1141,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "invoiceReferences must be an array" });
       }
 
+      // Add supplier name to invoice references for verification
+      const enrichedReferences = invoiceReferences.map((ref: any) => ({
+        ...ref,
+        supplierName: ref.supplierName // Include supplier name for matching
+      }));
+
       const { verifyMultipleInvoiceReferences } = await import('./nocodbService.js');
-      const results = await verifyMultipleInvoiceReferences(invoiceReferences);
+      const results = await verifyMultipleInvoiceReferences(enrichedReferences);
       
       res.json(results);
     } catch (error) {

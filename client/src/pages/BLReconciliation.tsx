@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -110,6 +110,7 @@ export default function BLReconciliation() {
             groupId: delivery.groupId,
             invoiceReference: delivery.invoiceReference,
             deliveryId: delivery.id,
+            supplierName: delivery.supplier?.name, // Include supplier name for verification
           }));
         
         if (invoiceReferencesToVerify.length > 0) {
@@ -134,6 +135,34 @@ export default function BLReconciliation() {
       return filtered.sort((a: any, b: any) => new Date(b.deliveredDate).getTime() - new Date(a.deliveredDate).getTime());
     },
   });
+
+  // Fonction pour vérifier automatiquement les BL sans facture
+  const checkPendingInvoices = async () => {
+    if (!deliveriesWithBL || deliveriesWithBL.length === 0) return;
+    
+    // Trouver les livraisons sans référence facture ou avec facture non vérifiée
+    const unverifiedDeliveries = deliveriesWithBL.filter((delivery: any) => 
+      delivery.blNumber && !delivery.invoiceReference
+    );
+    
+    if (unverifiedDeliveries.length === 0) return;
+    
+    console.log(`🔍 Checking ${unverifiedDeliveries.length} deliveries for pending invoices...`);
+    
+    // TODO: Ici on pourrait ajouter une logique pour rechercher automatiquement
+    // des factures basées sur les BL numbers ou autres critères
+  };
+
+  // Vérification automatique toutes les 30 secondes
+  useEffect(() => {
+    if (deliveriesWithBL && deliveriesWithBL.length > 0) {
+      const interval = setInterval(() => {
+        checkPendingInvoices();
+      }, 30000); // 30 secondes
+      
+      return () => clearInterval(interval);
+    }
+  }, [deliveriesWithBL]);
 
   const form = useForm<ReconciliationForm>({
     resolver: zodResolver(reconciliationSchema),

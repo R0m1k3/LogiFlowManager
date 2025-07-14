@@ -8,7 +8,8 @@ export interface InvoiceVerificationResult {
 
 export async function verifyInvoiceReference(
   groupId: number, 
-  invoiceReference: string
+  invoiceReference: string,
+  supplierName?: string
 ): Promise<InvoiceVerificationResult> {
   try {
     // Get group with NocoDB configuration
@@ -27,22 +28,23 @@ export async function verifyInvoiceReference(
 
     const columnName = group.invoiceColumnName || "Ref Facture";
     
-    // Make request to NocoDB API with search filter
+    // Normalize search term (case insensitive)
+    const normalizedInvoiceRef = invoiceReference.trim().toLowerCase();
+    
+    // Make request to NocoDB API to get all records and filter them case-insensitively
     // URL format: {baseUrl}/api/v1/db/data/noco/{projectId}/{tableId}
     const url = `${nocodbConfig.baseUrl}/api/v1/db/data/noco/${nocodbConfig.projectId}/${group.nocodbTableId}`;
     
-    // Use NocoDB filter to search for specific invoice reference
-    const urlWithFilter = `${url}?where=(${columnName},eq,${encodeURIComponent(invoiceReference.trim())})`;
-    
-    console.log(`🔍 NocoDB API Request for ${invoiceReference}:`, {
-      url: urlWithFilter,
+    console.log(`🔍 NocoDB API Request for ${invoiceReference} (supplier: ${supplierName || 'any'}):`, {
+      url,
       columnName,
       groupId,
       projectId: nocodbConfig.projectId,
-      tableId: group.nocodbTableId
+      tableId: group.nocodbTableId,
+      normalizedSearch: normalizedInvoiceRef
     });
     
-    const response = await fetch(urlWithFilter, {
+    const response = await fetch(url, {
       method: "GET",
       headers: {
         "xc-token": nocodbConfig.apiToken,
@@ -63,15 +65,51 @@ export async function verifyInvoiceReference(
       searchValue: invoiceReference.trim()
     });
     
-    // Since we used a filtered query, if we have any results, the invoice exists
-    const exists = data.list && data.list.length > 0;
-    
-    if (exists && data.list.length > 0) {
-      console.log(`✅ Found matching invoice:`, { 
-        found: data.list[0][columnName], 
-        searchValue: invoiceReference.trim(),
-        totalMatches: data.list.length 
+    // Filter results case-insensitively for invoice reference
+    let matchingRecords = [];
+    if (data.list && data.list.length > 0) {
+      matchingRecords = data.list.filter((record: any) => {
+        const recordInvoiceRef = record[columnName];
+        if (!recordInvoiceRef) return false;
+        
+        // Case-insensitive comparison for invoice reference
+        const normalizedRecordRef = recordInvoiceRef.toString().toLowerCase();
+        const invoiceMatches = normalizedRecordRef === normalizedInvoiceRef;
+        
+        // If supplier name is provided, also check supplier match (case-insensitive)
+        if (invoiceMatches && supplierName) {
+          const supplierColumn = record['Fournisseur'] || record['Supplier'] || record['fournisseur'] || record['supplier'];
+          if (supplierColumn) {
+            const normalizedRecordSupplier = supplierColumn.toString().toLowerCase();
+            const normalizedSearchSupplier = supplierName.toLowerCase();
+            const supplierMatches = normalizedRecordSupplier.includes(normalizedSearchSupplier) || 
+                                   normalizedSearchSupplier.includes(normalizedRecordSupplier);
+            
+            console.log(`🏢 Supplier check:`, {
+              recordSupplier: supplierColumn,
+              searchSupplier: supplierName,
+              matches: supplierMatches
+            });
+            
+            return supplierMatches;
+          }
+        }
+        
+        return invoiceMatches;
       });
+    }
+    
+    const exists = matchingRecords.length > 0;
+    
+    if (exists) {
+      console.log(`✅ Found matching invoice:`, { 
+        found: matchingRecords[0][columnName], 
+        searchValue: invoiceReference.trim(),
+        totalMatches: matchingRecords.length,
+        supplierMatch: supplierName ? 'verified' : 'not checked'
+      });
+    } else {
+      console.log(`❌ No matching invoice found for: ${invoiceReference}${supplierName ? ` (supplier: ${supplierName})` : ''}`);
     }
 
     console.log(`🔍 Search result for ${invoiceReference}:`, { exists });
@@ -85,13 +123,13 @@ export async function verifyInvoiceReference(
 
 // Bulk verify multiple invoice references
 export async function verifyMultipleInvoiceReferences(
-  invoiceReferences: { groupId: number; invoiceReference: string; deliveryId: number }[]
+  invoiceReferences: { groupId: number; invoiceReference: string; deliveryId: number; supplierName?: string }[]
 ): Promise<Record<number, InvoiceVerificationResult>> {
   const results: Record<number, InvoiceVerificationResult> = {};
   
   // Process in parallel for better performance
-  const promises = invoiceReferences.map(async ({ groupId, invoiceReference, deliveryId }) => {
-    const result = await verifyInvoiceReference(groupId, invoiceReference);
+  const promises = invoiceReferences.map(async ({ groupId, invoiceReference, deliveryId, supplierName }) => {
+    const result = await verifyInvoiceReference(groupId, invoiceReference, supplierName);
     results[deliveryId] = result;
   });
   
