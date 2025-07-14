@@ -55,10 +55,32 @@ export default function CalendarGrid({
   const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
   const getItemsForDate = (date: Date) => {
+    // Debug: Log des commandes reçues
+    if (orders.length > 0) {
+      console.log('📅 CalendarGrid Debug - Orders received:', orders.length);
+      console.log('📅 First order structure:', orders[0]);
+      console.log('📅 Available date fields in orders:', Object.keys(orders[0]).filter(key => key.includes('Date') || key.includes('date')));
+    }
+    
     const dayOrders = orders.filter(order => {
-      const orderDate = safeDate(order.plannedDate);
-      return orderDate && isSameDay(orderDate, date);
+      // Essayer plusieurs champs de date possibles
+      const orderDate = safeDate(order.plannedDate || order.orderDate || order.createdAt);
+      const matches = orderDate && isSameDay(orderDate, date);
+      
+      if (matches) {
+        console.log('📅 Order matches date:', {
+          orderId: order.id,
+          supplier: order.supplier?.name,
+          plannedDate: order.plannedDate,
+          orderDate: order.orderDate,
+          createdAt: order.createdAt,
+          matchingDate: format(date, 'yyyy-MM-dd')
+        });
+      }
+      
+      return matches;
     });
+    
     const dayDeliveries = deliveries.filter(delivery => {
       const deliveryDate = safeDate(delivery.scheduledDate);
       return deliveryDate && isSameDay(deliveryDate, date);
