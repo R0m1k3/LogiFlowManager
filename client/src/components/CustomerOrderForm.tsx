@@ -28,7 +28,8 @@ const customerOrderFormSchema = insertCustomerOrderSchema.extend({
   deposit: z.string().optional(),
   gencode: z.string().min(1, "Le gencode est obligatoire"),
   supplierId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val),
-  groupId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val),
+  groupId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val).optional(),
+  createdBy: z.string().optional(), // Will be set automatically
 });
 
 type CustomerOrderFormData = z.infer<typeof customerOrderFormSchema>;
@@ -89,19 +90,27 @@ export function CustomerOrderForm({
     console.log("Form errors:", form.formState.errors);
     console.log("Form is valid:", form.formState.isValid);
     
-    // Ensure groupId is set from user context if not present
-    const groupId = data.groupId || user?.userGroups?.[0]?.groupId;
+    // Ensure groupId is set - prioritize admin context for "tous magasins"
+    let groupId = data.groupId;
+    if (!groupId) {
+      if (user?.userGroups?.[0]?.groupId) {
+        groupId = user.userGroups[0].groupId;
+      } else if (user?.role === 'admin' && groups.length > 0) {
+        groupId = groups[0].id; // Admin in "tous magasins" mode - use first group
+      }
+    }
     
     if (!groupId) {
-      console.error("No groupId available");
+      console.error("No groupId available - user groups:", user?.userGroups, "available groups:", groups);
       return;
     }
     
-    // Convert deposit to number - Zod already handled the other conversions
+    // Convert deposit to number and add required fields
     const submitData = {
       ...data,
       deposit: data.deposit ? parseFloat(data.deposit) : 0,
       groupId: typeof groupId === 'number' ? groupId : parseInt(groupId.toString()),
+      createdBy: user?.id || '', // Add the current user ID
     };
     console.log("Processed submit data:", submitData);
     onSubmit(submitData);
@@ -114,8 +123,14 @@ export function CustomerOrderForm({
 
   // Auto-select group for users
   const currentGroupId = form.getValues('groupId');
-  if (!currentGroupId && user?.userGroups?.[0]?.groupId) {
-    form.setValue('groupId', user.userGroups[0].groupId);
+  if (!currentGroupId) {
+    if (user?.userGroups?.[0]?.groupId) {
+      // User has assigned groups - use first one
+      form.setValue('groupId', user.userGroups[0].groupId);
+    } else if (user?.role === 'admin' && groups.length > 0) {
+      // Admin with no specific groups - use first available group
+      form.setValue('groupId', groups[0].id);
+    }
   }
 
   return (
@@ -321,6 +336,8 @@ export function CustomerOrderForm({
               console.log("Submit button clicked");
               console.log("Form state:", form.formState);
               console.log("Form values:", form.getValues());
+              console.log("Form validation errors:", form.formState.errors);
+              console.log("Current user context:", user?.userGroups, "available groups:", groups);
             }}
           >
             {isLoading ? "Enregistrement..." : order ? "Modifier" : "Créer"}
