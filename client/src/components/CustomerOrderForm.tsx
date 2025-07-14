@@ -27,6 +27,7 @@ import { insertCustomerOrderSchema, type CustomerOrderWithRelations, type Group,
 const customerOrderFormSchema = insertCustomerOrderSchema.extend({
   deposit: z.string().optional(),
   gencode: z.string().min(1, "Le gencode est obligatoire"),
+  customerName: z.string().min(1, "Le nom du client est obligatoire"),
   supplierId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val),
   groupId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val).optional(),
   createdBy: z.string().optional(), // Will be set automatically
@@ -90,6 +91,12 @@ export function CustomerOrderForm({
     console.log("Form errors:", form.formState.errors);
     console.log("Form is valid:", form.formState.isValid);
     
+    // Validate required fields
+    if (!data.customerName || data.customerName.trim() === '') {
+      console.error("Customer name is required but empty");
+      return;
+    }
+    
     // Ensure groupId is set - prioritize admin context for "tous magasins"
     let groupId = data.groupId;
     if (!groupId) {
@@ -108,6 +115,7 @@ export function CustomerOrderForm({
     // Convert deposit to number and add required fields
     const submitData = {
       ...data,
+      customerName: data.customerName.trim(), // Clean the customer name
       deposit: data.deposit ? parseFloat(data.deposit) : 0,
       groupId: typeof groupId === 'number' ? groupId : parseInt(groupId.toString()),
       createdBy: user?.id || '', // Add the current user ID

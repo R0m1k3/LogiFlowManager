@@ -1323,6 +1323,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/customer-orders', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Raw body received:", req.body);
+      console.log("Body type:", typeof req.body);
+      console.log("Body keys:", req.body ? Object.keys(req.body) : 'no keys');
+      
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
       const user = await storage.getUserWithGroups(userId);
       if (!user) {
@@ -1330,6 +1334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = insertCustomerOrderSchema.parse(req.body);
+      console.log("Parsed data:", data);
       
       // Check if user has access to the specified group
       if (user.role !== 'admin') {
@@ -1346,6 +1351,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(customerOrder);
     } catch (error) {
       console.error("Error creating customer order:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to create customer order" });
     }
   });
