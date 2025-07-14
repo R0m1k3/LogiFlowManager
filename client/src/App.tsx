@@ -25,6 +25,12 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth();
   const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true' || import.meta.env.MODE === 'development';
 
+  // Debug logging pour production
+  console.log('Router - isAuthenticated:', isAuthenticated);
+  console.log('Router - isLoading:', isLoading);
+  console.log('Router - USE_LOCAL_AUTH:', USE_LOCAL_AUTH);
+  console.log('Router - Current path:', window.location.pathname);
+
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-surface">

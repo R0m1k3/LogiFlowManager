@@ -203,6 +203,7 @@ export default function Sidebar() {
                       ? 'bg-gray-100 text-gray-900 border-r-2 border-gray-700'
                       : 'text-gray-700'
                   }`}
+                  onClick={() => console.log(`Navigating to: ${item.path}`)}
                 >
                   <Icon className="mr-3 h-4 w-4" />
                   {item.label}
@@ -235,6 +236,7 @@ export default function Sidebar() {
                           ? 'bg-gray-100 text-gray-900 border-r-2 border-gray-700'
                           : 'text-gray-700'
                       }`}
+                      onClick={() => console.log(`Navigating to management: ${item.path}`)}
                     >
                       <Icon className="mr-3 h-4 w-4" />
                       {item.label}
@@ -270,6 +272,7 @@ export default function Sidebar() {
                         ? 'bg-gray-100 text-gray-900 border-r-2 border-gray-700'
                         : 'text-gray-700'
                     }`}
+                    onClick={() => console.log(`Navigating to admin: ${item.path}`)}
                   >
                     <Icon className="mr-3 h-4 w-4" />
                     {item.label}

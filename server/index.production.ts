@@ -54,8 +54,15 @@ function serveStatic(app: express.Express) {
   console.log(`✅ Serving static files from: ${distPath}`);
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
+  // fall through to index.html if the file doesn't exist (seulement pour les routes non-API)
+  app.get("*", (req, res) => {
+    // Ne pas rediriger les routes API vers index.html
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ message: 'API route not found' });
+    }
+    
+    // Log pour debug du routing
+    console.log(`📍 Serving index.html for path: ${req.path}`);
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
