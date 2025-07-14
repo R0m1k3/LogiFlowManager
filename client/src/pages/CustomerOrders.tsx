@@ -47,6 +47,8 @@ export default function CustomerOrders() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<CustomerOrderWithRelations | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "status" | "supplier">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Fetch groups for store filter
   const { data: groups = [] } = useQuery<Group[]>({
@@ -470,8 +472,39 @@ export default function CustomerOrders() {
     order.productDesignation.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.customerPhone.includes(searchTerm) ||
     (order.productReference && order.productReference.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (order.gencode && order.gencode.toLowerCase().includes(searchTerm.toLowerCase()))
+    (order.gencode && order.gencode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (order.supplier && order.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()))
   ) : [];
+
+  // Sort orders
+  const sortedOrders = [...filteredOrders].sort((a, b) => {
+    let aValue: string | number;
+    let bValue: string | number;
+
+    switch (sortBy) {
+      case "date":
+        aValue = new Date(a.createdAt).getTime();
+        bValue = new Date(b.createdAt).getTime();
+        break;
+      case "status":
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case "supplier":
+        aValue = a.supplier?.name || "";
+        bValue = b.supplier?.name || "";
+        break;
+      default:
+        aValue = new Date(a.createdAt).getTime();
+        bValue = new Date(b.createdAt).getTime();
+    }
+
+    if (sortOrder === "desc") {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    } else {
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    }
+  });
 
 
 
@@ -485,18 +518,41 @@ export default function CustomerOrders() {
         </Button>
       </div>
 
-      {/* Search Filter */}
+      {/* Search and Sort Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recherche</CardTitle>
+          <CardTitle className="text-lg">Recherche et Tri</CardTitle>
         </CardHeader>
         <CardContent>
-          <Input
-            placeholder="Nom client, produit, téléphone, référence, gencode..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
+          <div className="flex flex-col md:flex-row gap-4">
+            <Input
+              placeholder="Nom client, produit, téléphone, référence, gencode, fournisseur..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-md"
+            />
+            <div className="flex gap-2">
+              <Select value={sortBy} onValueChange={(value: "date" | "status" | "supplier") => setSortBy(value)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Trier par..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date">Date</SelectItem>
+                  <SelectItem value="status">Statut</SelectItem>
+                  <SelectItem value="supplier">Fournisseur</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Ordre..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">Décroissant</SelectItem>
+                  <SelectItem value="asc">Croissant</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -504,7 +560,7 @@ export default function CustomerOrders() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            Commandes ({filteredOrders.length})
+            Commandes ({sortedOrders.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -518,6 +574,7 @@ export default function CustomerOrders() {
                   <TableHead>Téléphone</TableHead>
                   <TableHead>Produit</TableHead>
                   <TableHead>Quantité</TableHead>
+                  <TableHead>Fournisseur</TableHead>
                   <TableHead>Gencode</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Date</TableHead>
@@ -525,7 +582,7 @@ export default function CustomerOrders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
+                {sortedOrders.map((order) => (
                   <TableRow
                     key={order.id}
                     className={isGrayedOut(order.status) ? "opacity-50" : ""}
@@ -548,6 +605,11 @@ export default function CustomerOrders() {
                       <Badge variant="secondary" className="font-mono">
                         {order.quantity || 1}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium text-sm">
+                        {order.supplier?.name || "N/A"}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <code className="bg-gray-100 px-2 py-1 rounded text-sm">
