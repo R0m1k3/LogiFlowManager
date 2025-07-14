@@ -18,6 +18,7 @@ import BLReconciliation from "@/pages/BLReconciliation";
 import Publicities from "@/pages/Publicities";
 import RoleManagement from "@/pages/RoleManagement";
 import NocoDBConfig from "@/pages/NocoDBConfig";
+import CustomerOrders from "@/pages/CustomerOrders";
 import Layout from "@/components/Layout";
 
 function Router() {
@@ -51,6 +52,7 @@ function Router() {
           <Route path="/users" component={Users} />
           <Route path="/bl-reconciliation" component={BLReconciliation} />
           <Route path="/publicities" component={Publicities} />
+          <Route path="/customer-orders" component={CustomerOrders} />
           <Route path="/roles" component={RoleManagement} />
           <Route path="/nocodb-config" component={NocoDBConfig} />
         </Layout>

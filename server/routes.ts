@@ -15,7 +15,8 @@ import {
   insertUserGroupSchema,
   insertPublicitySchema,
   insertRoleSchema,
-  insertPermissionSchema
+  insertPermissionSchema,
+  insertCustomerOrderSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -1266,6 +1267,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating role permissions:", error);
       res.status(500).json({ message: "Failed to update role permissions" });
+    }
+  });
+
+  // Customer Orders routes
+  app.get('/api/customer-orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let groupIds: number[] | undefined;
+      
+      // Admin can see all orders or filter by specific store
+      if (user.role === 'admin') {
+        const storeId = req.query.storeId;
+        if (storeId && storeId !== 'all') {
+          groupIds = [parseInt(storeId)];
+        }
+      } else {
+        // Non-admin users see only their assigned groups
+        groupIds = user.userGroups.map(ug => ug.groupId);
+      }
+
+      const customerOrders = await storage.getCustomerOrders(groupIds);
+      res.json(customerOrders || []);
+    } catch (error) {
+      console.error("Error fetching customer orders:", error);
+      res.status(500).json({ message: "Failed to fetch customer orders" });
+    }
+  });
+
+  app.get('/api/customer-orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const customerOrder = await storage.getCustomerOrder(id);
+      
+      if (!customerOrder) {
+        return res.status(404).json({ message: "Customer order not found" });
+      }
+
+      // Check if user has access to this order's group
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.role !== 'admin') {
+        const userGroupIds = user.userGroups.map(ug => ug.groupId);
+        if (!userGroupIds.includes(customerOrder.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      res.json(customerOrder);
+    } catch (error) {
+      console.error("Error fetching customer order:", error);
+      res.status(500).json({ message: "Failed to fetch customer order" });
+    }
+  });
+
+  app.post('/api/customer-orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const data = insertCustomerOrderSchema.parse(req.body);
+      
+      // Check if user has access to the specified group
+      if (user.role !== 'admin') {
+        const userGroupIds = user.userGroups.map(ug => ug.groupId);
+        if (!userGroupIds.includes(data.groupId)) {
+          return res.status(403).json({ message: "Access denied to this group" });
+        }
+      }
+
+      const customerOrder = await storage.createCustomerOrder({
+        ...data,
+        createdBy: userId,
+      });
+      res.status(201).json(customerOrder);
+    } catch (error) {
+      console.error("Error creating customer order:", error);
+      res.status(500).json({ message: "Failed to create customer order" });
+    }
+  });
+
+  app.put('/api/customer-orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if order exists and user has access
+      const existingOrder = await storage.getCustomerOrder(id);
+      if (!existingOrder) {
+        return res.status(404).json({ message: "Customer order not found" });
+      }
+
+      if (user.role !== 'admin') {
+        const userGroupIds = user.userGroups.map(ug => ug.groupId);
+        if (!userGroupIds.includes(existingOrder.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const data = insertCustomerOrderSchema.partial().parse(req.body);
+      const customerOrder = await storage.updateCustomerOrder(id, data);
+      res.json(customerOrder);
+    } catch (error) {
+      console.error("Error updating customer order:", error);
+      res.status(500).json({ message: "Failed to update customer order" });
+    }
+  });
+
+  app.delete('/api/customer-orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if order exists and user has access
+      const existingOrder = await storage.getCustomerOrder(id);
+      if (!existingOrder) {
+        return res.status(404).json({ message: "Customer order not found" });
+      }
+
+      // Only admin can delete orders
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can delete customer orders" });
+      }
+
+      await storage.deleteCustomerOrder(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting customer order:", error);
+      res.status(500).json({ message: "Failed to delete customer order" });
     }
   });
 

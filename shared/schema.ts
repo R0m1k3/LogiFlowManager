@@ -183,12 +183,43 @@ export const nocodbConfig = pgTable("nocodb_config", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Customer Orders (Commandes Client)
+export const customerOrders = pgTable("customer_orders", {
+  id: serial("id").primaryKey(),
+  // Information de commande
+  orderTaker: varchar("order_taker").notNull(), // Qui a pris la commande
+  customerName: varchar("customer_name").notNull(), // Nom du client
+  customerPhone: varchar("customer_phone").notNull(), // N° de téléphone
+  
+  // Information produit
+  productDesignation: text("product_designation").notNull(), // Désignation du produit
+  productReference: varchar("product_reference"), // Référence
+  gencode: varchar("gencode"), // Code à barres
+  
+  // Statuts
+  status: varchar("status").notNull().default("En attente de Commande"), // Statut du produit
+  
+  // Options financières
+  deposit: decimal("deposit", { precision: 10, scale: 2 }).default("0.00"), // Acompte
+  isPromotionalPrice: boolean("is_promotional_price").default(false), // Prix publicité
+  
+  // Communication client
+  customerNotified: boolean("customer_notified").default(false), // Client appelé
+  
+  // Métadonnées
+  groupId: integer("group_id").notNull(), // Magasin
+  createdBy: varchar("created_by").notNull(), // Créateur
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userGroups: many(userGroups),
   createdOrders: many(orders),
   createdDeliveries: many(deliveries),
   createdPublicities: many(publicities),
+  createdCustomerOrders: many(customerOrders),
 }));
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
@@ -196,6 +227,7 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   orders: many(orders),
   deliveries: many(deliveries),
   publicityParticipations: many(publicityParticipations),
+  customerOrders: many(customerOrders),
   nocodbConfig: one(nocodbConfig, {
     fields: [groups.nocodbConfigId],
     references: [nocodbConfig.id],
@@ -292,6 +324,17 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
   }),
 }));
 
+export const customerOrdersRelations = relations(customerOrders, ({ one }) => ({
+  group: one(groups, {
+    fields: [customerOrders.groupId],
+    references: [groups.id],
+  }),
+  creator: one(users, {
+    fields: [customerOrders.createdBy],
+    references: [users.id],
+  }),
+}));
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   id: true,
@@ -363,6 +406,12 @@ export const insertNocodbConfigSchema = createInsertSchema(nocodbConfig).omit({
   updatedAt: true,
 });
 
+export const insertCustomerOrderSchema = createInsertSchema(customerOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -427,6 +476,14 @@ export type RoleWithPermissions = Role & {
 
 export type NocodbConfig = typeof nocodbConfig.$inferSelect;
 export type InsertNocodbConfig = z.infer<typeof insertNocodbConfigSchema>;
+
+export type CustomerOrder = typeof customerOrders.$inferSelect;
+export type InsertCustomerOrder = z.infer<typeof insertCustomerOrderSchema>;
+
+export type CustomerOrderWithRelations = CustomerOrder & {
+  group: Group;
+  creator: User;
+};
 
 export type UserWithRole = User & {
   dynamicRole?: Role | null;

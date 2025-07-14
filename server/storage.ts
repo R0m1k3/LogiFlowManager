@@ -10,6 +10,7 @@ import {
   roles,
   permissions,
   rolePermissions,
+  customerOrders,
   type User,
   type UpsertUser,
   type Group,
@@ -40,6 +41,9 @@ import {
   nocodbConfig,
   type NocodbConfig,
   type InsertNocodbConfig,
+  type CustomerOrder,
+  type InsertCustomerOrder,
+  type CustomerOrderWithRelations,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, desc, sql, gte, lte } from "drizzle-orm";
@@ -133,6 +137,13 @@ export interface IStorage {
   createNocodbConfig(config: InsertNocodbConfig): Promise<NocodbConfig>;
   updateNocodbConfig(id: number, config: Partial<InsertNocodbConfig>): Promise<NocodbConfig>;
   deleteNocodbConfig(id: number): Promise<void>;
+  
+  // Customer Order operations
+  getCustomerOrders(groupIds?: number[]): Promise<CustomerOrderWithRelations[]>;
+  getCustomerOrder(id: number): Promise<CustomerOrderWithRelations | undefined>;
+  createCustomerOrder(customerOrder: InsertCustomerOrder): Promise<CustomerOrder>;
+  updateCustomerOrder(id: number, customerOrder: Partial<InsertCustomerOrder>): Promise<CustomerOrder>;
+  deleteCustomerOrder(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -835,6 +846,144 @@ export class DatabaseStorage implements IStorage {
 
   async deleteNocodbConfig(id: number): Promise<void> {
     await db.delete(nocodbConfig).where(eq(nocodbConfig.id, id));
+  }
+
+  // Customer Order operations
+  async getCustomerOrders(groupIds?: number[]): Promise<CustomerOrderWithRelations[]> {
+    try {
+      let whereClause = "";
+      if (groupIds && groupIds.length > 0) {
+        whereClause = `WHERE co.group_id IN (${groupIds.join(',')})`;
+      }
+      
+      const result = await db.execute(sql`
+        SELECT 
+          co.*,
+          g.id as group_id_ref, g.name as group_name, g.color as group_color,
+          u.id as creator_id_ref, u.username as creator_username, u.email as creator_email, 
+          u.first_name, u.last_name, u.role as creator_role
+        FROM customer_orders co
+        LEFT JOIN groups g ON co.group_id = g.id
+        LEFT JOIN users u ON co.created_by = u.id
+        ${whereClause ? sql.raw(whereClause) : sql``}
+        ORDER BY co.created_at DESC
+      `);
+
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        orderTaker: row.order_taker,
+        customerName: row.customer_name,
+        customerPhone: row.customer_phone,
+        productDesignation: row.product_designation,
+        productReference: row.product_reference,
+        gencode: row.gencode,
+        status: row.status,
+        deposit: row.deposit,
+        isPromotionalPrice: row.is_promotional_price,
+        customerNotified: row.customer_notified,
+        groupId: row.group_id,
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        group: {
+          id: row.group_id_ref,
+          name: row.group_name,
+          color: row.group_color,
+        },
+        creator: {
+          id: row.creator_id_ref,
+          username: row.creator_username,
+          email: row.creator_email,
+          firstName: row.first_name,
+          lastName: row.last_name,
+          role: row.creator_role,
+        },
+      }));
+    } catch (error) {
+      console.error("Error in getCustomerOrders:", error);
+      return [];
+    }
+  }
+
+  async getCustomerOrder(id: number): Promise<CustomerOrderWithRelations | undefined> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          co.*,
+          g.id as group_id_ref, g.name as group_name, g.color as group_color,
+          u.id as creator_id_ref, u.username as creator_username, u.email as creator_email, 
+          u.first_name, u.last_name, u.role as creator_role
+        FROM customer_orders co
+        LEFT JOIN groups g ON co.group_id = g.id
+        LEFT JOIN users u ON co.created_by = u.id
+        WHERE co.id = ${id}
+      `);
+
+      if (result.rows.length === 0) return undefined;
+
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        orderTaker: row.order_taker,
+        customerName: row.customer_name,
+        customerPhone: row.customer_phone,
+        productDesignation: row.product_designation,
+        productReference: row.product_reference,
+        gencode: row.gencode,
+        status: row.status,
+        deposit: row.deposit,
+        isPromotionalPrice: row.is_promotional_price,
+        customerNotified: row.customer_notified,
+        groupId: row.group_id,
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        group: {
+          id: row.group_id_ref,
+          name: row.group_name,
+          color: row.group_color,
+        },
+        creator: {
+          id: row.creator_id_ref,
+          username: row.creator_username,
+          email: row.creator_email,
+          firstName: row.first_name,
+          lastName: row.last_name,
+          role: row.creator_role,
+        },
+      };
+    } catch (error) {
+      console.error("Error in getCustomerOrder:", error);
+      return undefined;
+    }
+  }
+
+  async createCustomerOrder(customerOrderData: InsertCustomerOrder): Promise<CustomerOrder> {
+    const [customerOrder] = await db
+      .insert(customerOrders)
+      .values({
+        ...customerOrderData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return customerOrder;
+  }
+
+  async updateCustomerOrder(id: number, customerOrderData: Partial<InsertCustomerOrder>): Promise<CustomerOrder> {
+    const [customerOrder] = await db
+      .update(customerOrders)
+      .set({
+        ...customerOrderData,
+        updatedAt: new Date(),
+      })
+      .where(eq(customerOrders.id, id))
+      .returning();
+    return customerOrder;
+  }
+
+  async deleteCustomerOrder(id: number): Promise<void> {
+    await db.delete(customerOrders).where(eq(customerOrders.id, id));
   }
 }
 
