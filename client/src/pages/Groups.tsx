@@ -61,7 +61,10 @@ export default function Groups() {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("POST", "/api/groups", data);
+      await apiRequest("/api/groups", {
+        method: "POST",
+        body: data,
+      });
     },
     onSuccess: () => {
       toast({
@@ -94,7 +97,10 @@ export default function Groups() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("PUT", `/api/groups/${selectedGroup?.id}`, data);
+      await apiRequest(`/api/groups/${selectedGroup?.id}`, {
+        method: "PUT",
+        body: data,
+      });
     },
     onSuccess: () => {
       toast({

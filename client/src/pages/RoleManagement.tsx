@@ -97,7 +97,10 @@ export default function RoleManagement() {
   // Mutations
   const createRoleMutation = useMutation({
     mutationFn: async (data: RoleForm) => {
-      return await apiRequest("POST", "/api/roles", data);
+      return await apiRequest("/api/roles", {
+        method: "POST",
+        body: data,
+      });
     },
     onSuccess: () => {
       toast({
@@ -119,7 +122,10 @@ export default function RoleManagement() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async (data: { id: number; updates: Partial<RoleForm> }) => {
-      return await apiRequest("PUT", `/api/roles/${data.id}`, data.updates);
+      return await apiRequest(`/api/roles/${data.id}`, {
+        method: "PUT",
+        body: data.updates,
+      });
     },
     onSuccess: () => {
       toast({
@@ -141,7 +147,9 @@ export default function RoleManagement() {
 
   const deleteRoleMutation = useMutation({
     mutationFn: async (roleId: number) => {
-      return await apiRequest("DELETE", `/api/roles/${roleId}`);
+      return await apiRequest(`/api/roles/${roleId}`, {
+        method: "DELETE",
+      });
     },
     onSuccess: () => {
       toast({
@@ -161,8 +169,11 @@ export default function RoleManagement() {
 
   const updateRolePermissionsMutation = useMutation({
     mutationFn: async (data: { roleId: number; permissionIds: number[] }) => {
-      return await apiRequest("POST", `/api/roles/${data.roleId}/permissions`, {
-        permissionIds: data.permissionIds,
+      return await apiRequest(`/api/roles/${data.roleId}/permissions`, {
+        method: "POST",
+        body: {
+          permissionIds: data.permissionIds,
+        },
       });
     },
     onSuccess: async (_, variables) => {

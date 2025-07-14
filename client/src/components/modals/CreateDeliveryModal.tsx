@@ -88,7 +88,10 @@ export default function CreateDeliveryModal({
 
   const createDeliveryMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("POST", "/api/deliveries", data);
+      await apiRequest("/api/deliveries", {
+        method: "POST",
+        body: data,
+      });
     },
     onSuccess: () => {
       toast({

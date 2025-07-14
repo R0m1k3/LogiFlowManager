@@ -50,7 +50,10 @@ export default function AuthPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof loginData) => {
-      const response = await apiRequest("POST", "/api/login", data);
+      const response = await apiRequest("/api/login", {
+        method: "POST",
+        body: data,
+      });
       return await response.json();
     },
     onSuccess: (userData) => {

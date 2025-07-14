@@ -81,7 +81,9 @@ export default function Deliveries() {
 
   const validateMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("POST", `/api/deliveries/${id}/validate`);
+      await apiRequest(`/api/deliveries/${id}/validate`, {
+        method: "POST",
+      });
     },
     onSuccess: () => {
       toast({
@@ -122,7 +124,9 @@ export default function Deliveries() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/deliveries/${id}`);
+      await apiRequest(`/api/deliveries/${id}`, {
+        method: "DELETE",
+      });
     },
     onSuccess: () => {
       toast({

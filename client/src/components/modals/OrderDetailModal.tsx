@@ -36,7 +36,10 @@ export default function OrderDetailModal({
 
   const validateDeliveryMutation = useMutation({
     mutationFn: async (data: { id: number; blNumber: string; blAmount: number }) => {
-      await apiRequest("POST", `/api/deliveries/${data.id}/validate`, data);
+      await apiRequest(`/api/deliveries/${data.id}/validate`, {
+        method: "POST",
+        body: data,
+      });
     },
     onSuccess: () => {
       toast({
@@ -70,7 +73,9 @@ export default function OrderDetailModal({
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const endpoint = isOrder ? `/api/orders/${id}` : `/api/deliveries/${id}`;
-      await apiRequest("DELETE", endpoint);
+      await apiRequest(endpoint, {
+        method: "DELETE",
+      });
     },
     onSuccess: () => {
       toast({

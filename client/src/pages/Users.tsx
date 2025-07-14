@@ -71,7 +71,10 @@ export default function UsersPage() {
 
   const updateUserRoleMutation = useMutation({
     mutationFn: async (data: { userId: string; role: string }) => {
-      await apiRequest("PUT", `/api/users/${data.userId}`, { role: data.role });
+      await apiRequest(`/api/users/${data.userId}`, {
+        method: "PUT",
+        body: { role: data.role },
+      });
     },
     onSuccess: () => {
       toast({
@@ -102,7 +105,10 @@ export default function UsersPage() {
 
   const updateUserMutation = useMutation({
     mutationFn: async (data: { id: string; updates: any }) => {
-      const response = await apiRequest("PUT", `/api/users/${data.id}`, data.updates);
+      const response = await apiRequest(`/api/users/${data.id}`, {
+        method: "PUT",
+        body: data.updates,
+      });
       return response;
     },
     onSuccess: (updatedUser) => {
@@ -169,7 +175,10 @@ export default function UsersPage() {
         payload.password = userData.password;
       }
       
-      const response = await apiRequest("POST", "/api/users", payload);
+      const response = await apiRequest("/api/users", {
+        method: "POST",
+        body: payload,
+      });
       return response;
     },
     onError: (error: any) => {
@@ -197,7 +206,10 @@ export default function UsersPage() {
 
   const assignGroupMutation = useMutation({
     mutationFn: async (data: { userId: string; groupId: number }) => {
-      await apiRequest("POST", `/api/users/${data.userId}/groups`, { groupId: data.groupId });
+      await apiRequest(`/api/users/${data.userId}/groups`, {
+        method: "POST",
+        body: { groupId: data.groupId },
+      });
     },
     onSuccess: () => {
       toast({
@@ -228,7 +240,9 @@ export default function UsersPage() {
 
   const removeGroupMutation = useMutation({
     mutationFn: async (data: { userId: string; groupId: number }) => {
-      await apiRequest("DELETE", `/api/users/${data.userId}/groups/${data.groupId}`);
+      await apiRequest(`/api/users/${data.userId}/groups/${data.groupId}`, {
+        method: "DELETE",
+      });
     },
     onSuccess: () => {
       toast({
@@ -259,7 +273,9 @@ export default function UsersPage() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await apiRequest("DELETE", `/api/users/${userId}`);
+      await apiRequest(`/api/users/${userId}`, {
+        method: "DELETE",
+      });
     },
     onSuccess: () => {
       toast({

@@ -73,7 +73,10 @@ export default function EditDeliveryModal({
 
   const updateDeliveryMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("PUT", `/api/deliveries/${delivery?.id}`, data);
+      await apiRequest(`/api/deliveries/${delivery?.id}`, {
+        method: "PUT",
+        body: data,
+      });
     },
     onSuccess: () => {
       toast({

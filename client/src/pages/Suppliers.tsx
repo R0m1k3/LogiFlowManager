@@ -53,7 +53,10 @@ export default function Suppliers() {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("POST", "/api/suppliers", data);
+      await apiRequest("/api/suppliers", {
+        method: "POST",
+        body: data,
+      });
     },
     onSuccess: () => {
       toast({
@@ -86,7 +89,10 @@ export default function Suppliers() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("PUT", `/api/suppliers/${selectedSupplier?.id}`, data);
+      await apiRequest(`/api/suppliers/${selectedSupplier?.id}`, {
+        method: "PUT",
+        body: data,
+      });
     },
     onSuccess: () => {
       toast({
