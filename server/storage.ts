@@ -861,10 +861,12 @@ export class DatabaseStorage implements IStorage {
           co.*,
           g.id as group_id_ref, g.name as group_name, g.color as group_color,
           u.id as creator_id_ref, u.username as creator_username, u.email as creator_email, 
-          u.first_name, u.last_name, u.role as creator_role
+          u.first_name, u.last_name, u.role as creator_role,
+          s.id as supplier_id_ref, s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone
         FROM customer_orders co
         LEFT JOIN groups g ON co.group_id = g.id
         LEFT JOIN users u ON co.created_by = u.id
+        LEFT JOIN suppliers s ON co.supplier_id = s.id
         ${whereClause ? sql.raw(whereClause) : sql.raw('')}
         ORDER BY co.created_at DESC
       `);
@@ -877,6 +879,7 @@ export class DatabaseStorage implements IStorage {
         productDesignation: row.product_designation,
         productReference: row.product_reference,
         gencode: row.gencode,
+        supplierId: row.supplier_id,
         status: row.status,
         deposit: row.deposit,
         isPromotionalPrice: row.is_promotional_price,
@@ -897,6 +900,12 @@ export class DatabaseStorage implements IStorage {
           firstName: row.first_name,
           lastName: row.last_name,
           role: row.creator_role,
+        },
+        supplier: {
+          id: row.supplier_id_ref,
+          name: row.supplier_name,
+          contact: row.supplier_contact,
+          phone: row.supplier_phone,
         },
       }));
     } catch (error) {

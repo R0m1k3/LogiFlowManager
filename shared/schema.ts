@@ -194,7 +194,8 @@ export const customerOrders = pgTable("customer_orders", {
   // Information produit
   productDesignation: text("product_designation").notNull(), // Désignation du produit
   productReference: varchar("product_reference"), // Référence
-  gencode: varchar("gencode"), // Code à barres
+  gencode: varchar("gencode").notNull(), // Code à barres (obligatoire)
+  supplierId: integer("supplier_id").notNull(), // Fournisseur
   
   // Statuts
   status: varchar("status").notNull().default("En attente de Commande"), // Statut du produit
@@ -332,6 +333,10 @@ export const customerOrdersRelations = relations(customerOrders, ({ one }) => ({
   creator: one(users, {
     fields: [customerOrders.createdBy],
     references: [users.id],
+  }),
+  supplier: one(suppliers, {
+    fields: [customerOrders.supplierId],
+    references: [suppliers.id],
   }),
 }));
 
@@ -483,6 +488,7 @@ export type InsertCustomerOrder = z.infer<typeof insertCustomerOrderSchema>;
 export type CustomerOrderWithRelations = CustomerOrder & {
   group: Group;
   creator: User;
+  supplier: Supplier;
 };
 
 export type UserWithRole = User & {

@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { insertCustomerOrderSchema, type CustomerOrderWithRelations, type Group } from "@shared/schema";
+import { insertCustomerOrderSchema, type CustomerOrderWithRelations, type Group, type Supplier } from "@shared/schema";
 
 const customerOrderFormSchema = insertCustomerOrderSchema.extend({
   deposit: z.string().optional(),
@@ -59,6 +59,11 @@ export function CustomerOrderForm({
     queryKey: ['/api/groups'],
   });
 
+  // Fetch suppliers for supplier selection
+  const { data: suppliers = [] } = useQuery<Supplier[]>({
+    queryKey: ['/api/suppliers'],
+  });
+
   const form = useForm<CustomerOrderFormData>({
     resolver: zodResolver(customerOrderFormSchema),
     defaultValues: {
@@ -68,6 +73,7 @@ export function CustomerOrderForm({
       productDesignation: order?.productDesignation || "",
       productReference: order?.productReference || "",
       gencode: order?.gencode || "",
+      supplierId: order?.supplierId || undefined,
       status: "En attente de Commande", // Statut fixe
       deposit: order?.deposit ? order.deposit.toString() : "0",
       isPromotionalPrice: order?.isPromotionalPrice || false,
@@ -81,11 +87,20 @@ export function CustomerOrderForm({
     console.log("Form errors:", form.formState.errors);
     console.log("Form is valid:", form.formState.isValid);
     
-    // Convert deposit string to number
+    // Ensure groupId is set from user context if not present
+    const groupId = data.groupId || user?.userGroups?.[0]?.groupId;
+    
+    if (!groupId) {
+      console.error("No groupId available");
+      return;
+    }
+    
+    // Convert deposit string to number and ensure proper types
     const submitData = {
       ...data,
       deposit: data.deposit ? parseFloat(data.deposit) : 0,
-      groupId: parseInt(data.groupId.toString()),
+      groupId: parseInt(groupId.toString()),
+      supplierId: parseInt(data.supplierId.toString()),
     };
     console.log("Processed submit data:", submitData);
     onSubmit(submitData);
@@ -147,6 +162,31 @@ export function CustomerOrderForm({
                   <FormControl>
                     <Input placeholder="0X XX XX XX XX" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="supplierId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fournisseur</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un fournisseur" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {suppliers.map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
