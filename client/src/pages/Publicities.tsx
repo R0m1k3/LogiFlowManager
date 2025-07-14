@@ -18,6 +18,7 @@ export default function Publicities() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Année courante par défaut
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Mois courant par défaut
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list'); // Mode d'affichage
+  const [showYearOverview, setShowYearOverview] = useState(true); // Affichage vue d'ensemble
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -200,6 +201,17 @@ export default function Publicities() {
             </Button>
           </div>
 
+          {/* Year Overview Toggle */}
+          <Button
+            variant={showYearOverview ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowYearOverview(!showYearOverview)}
+            className="h-8"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Vue d'ensemble
+          </Button>
+
           {/* Year Filter */}
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-500" />
@@ -303,14 +315,15 @@ export default function Publicities() {
       </div>
 
       {/* Year Overview - Weekly Timeline */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Vue d'ensemble {selectedYear} - Semaines avec publicités
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      {showYearOverview && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Vue d'ensemble {selectedYear} - Semaines avec publicités
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
           <div className="space-y-4">
             {/* Months Grid */}
             <div className="grid grid-cols-12 gap-2">
@@ -393,6 +406,7 @@ export default function Publicities() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Content */}
       {isLoading ? (
