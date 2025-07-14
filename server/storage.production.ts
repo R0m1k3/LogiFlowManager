@@ -656,7 +656,19 @@ export class DatabaseStorage implements IStorage {
   // Roles and permissions methods
   async getRoles(): Promise<any[]> {
     const result = await pool.query('SELECT * FROM roles ORDER BY name');
-    return result.rows;
+    console.log('🔍 getRoles debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
+    
+    // Protection contre null/undefined et transformation structure
+    const roles = result.rows || [];
+    return Array.isArray(roles) ? roles.map(role => ({
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      isSystem: role.is_system,
+      createdAt: role.created_at,
+      updatedAt: role.updated_at,
+      permissions: [] // Sera peuplé par getRolePermissions si nécessaire
+    })) : [];
   }
 
   async getRole(id: number): Promise<any> {
@@ -688,7 +700,18 @@ export class DatabaseStorage implements IStorage {
 
   async getPermissions(): Promise<Permission[]> {
     const result = await pool.query('SELECT * FROM permissions ORDER BY category, name');
-    return result.rows;
+    console.log('🔍 getPermissions debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
+    
+    // Protection contre null/undefined et transformation structure
+    const permissions = result.rows || [];
+    return Array.isArray(permissions) ? permissions.map(perm => ({
+      id: perm.id,
+      name: perm.name,
+      description: perm.description,
+      category: perm.category,
+      createdAt: perm.created_at,
+      updatedAt: perm.updated_at
+    })) : [];
   }
 
   async createPermission(permission: InsertPermission): Promise<Permission> {
@@ -702,7 +725,15 @@ export class DatabaseStorage implements IStorage {
 
   async getRolePermissions(roleId: number): Promise<RolePermission[]> {
     const result = await pool.query('SELECT * FROM role_permissions WHERE role_id = $1', [roleId]);
-    return result.rows;
+    console.log('🔍 getRolePermissions debug:', { roleId, resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
+    
+    // Protection contre null/undefined et transformation structure
+    const rolePermissions = result.rows || [];
+    return Array.isArray(rolePermissions) ? rolePermissions.map(rp => ({
+      roleId: rp.role_id,
+      permissionId: rp.permission_id,
+      createdAt: rp.created_at
+    })) : [];
   }
 
   async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
