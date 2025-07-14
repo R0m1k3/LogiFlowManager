@@ -1,6 +1,5 @@
 import { Switch, Route } from "wouter";
-import { useAuthProduction } from "@/hooks/useAuthProduction";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/AuthPage";
 import Dashboard from "@/pages/Dashboard";
@@ -18,20 +17,11 @@ import CustomerOrders from "@/pages/CustomerOrders";
 import Layout from "@/components/Layout";
 
 function RouterProduction() {
-  const isProduction = import.meta.env.MODE === 'production';
+  const { isAuthenticated, isLoading, user, environment, error } = useAuthUnified();
   
-  // Utiliser le hook d'auth spécialement optimisé pour la production
-  const productionAuth = useAuthProduction();
-  const developmentAuth = useAuth();
-  
-  const { isAuthenticated, isLoading, user } = isProduction ? productionAuth : developmentAuth;
-  
-  // Logger seulement les changements d'état importants
-  if (isProduction) {
-    // Logs minimaux en production
-    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-      console.log(`🔐 Auth: ${isAuthenticated ? 'OK' : 'NONE'} | Loading: ${isLoading} | Page: ${window.location.pathname}`);
-    }
+  // Debug minimal basé sur l'environnement
+  if (environment === 'production' && error) {
+    console.error('🚨 Production Auth Error:', error);
   }
 
   if (isLoading) {

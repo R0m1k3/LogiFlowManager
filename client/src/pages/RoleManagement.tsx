@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,7 +48,7 @@ const roleFormSchema = z.object({
 type RoleForm = z.infer<typeof roleFormSchema>;
 
 export default function RoleManagement() {
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   

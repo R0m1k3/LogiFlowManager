@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { LogOut, Store } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import Sidebar from "./Sidebar";
 import type { Group } from "@shared/schema";
 
@@ -28,7 +28,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
 
   const { data: stores = [] } = useQuery<Group[]>({

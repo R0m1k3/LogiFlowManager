@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useStore } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { fr } from "date-fns/locale";
 import type { PublicityWithRelations } from "@shared/schema";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
   const { selectedStoreId } = useStore();
 
   const { data: stats } = useQuery({

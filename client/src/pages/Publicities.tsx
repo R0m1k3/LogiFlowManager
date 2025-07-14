@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useStore } from "@/components/Layout";
 import { format, startOfMonth, endOfMonth, eachWeekOfInterval, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isWithinInterval, startOfYear, endOfYear, getWeek, getMonth } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -25,7 +25,7 @@ export default function Publicities() {
   const [selectedPublicity, setSelectedPublicity] = useState<PublicityWithRelations | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
   const { selectedStoreId } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();

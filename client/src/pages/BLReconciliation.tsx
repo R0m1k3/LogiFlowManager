@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useStore } from "@/components/Layout";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle, X, Trash2, RefreshCw, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ const reconciliationSchema = z.object({
 type ReconciliationForm = z.infer<typeof reconciliationSchema>;
 
 export default function BLReconciliation() {
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
   const { selectedStoreId } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();

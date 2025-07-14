@@ -2,11 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Package, Truck, Clock } from "lucide-react";
 import { useStore } from "./Layout";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 
 export default function StatsPanel() {
   const { selectedStoreId } = useStore();
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
   const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;

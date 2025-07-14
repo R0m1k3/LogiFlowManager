@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import {
   Form,
   FormControl,
@@ -57,7 +57,7 @@ export function CustomerOrderForm({
   onCancel, 
   isLoading = false 
 }: CustomerOrderFormProps) {
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
 
   // Fetch groups for store selection
   const { data: groups = [] } = useQuery<Group[]>({

@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -26,7 +26,7 @@ import {
 import type { UserWithGroups, Group } from "@shared/schema";
 
 export default function UsersPage() {
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   

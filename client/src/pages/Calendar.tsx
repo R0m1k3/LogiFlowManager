@@ -8,14 +8,14 @@ import OrderDetailModal from "@/components/modals/OrderDetailModal";
 import CreateOrderModal from "@/components/modals/CreateOrderModal";
 import CreateDeliveryModal from "@/components/modals/CreateDeliveryModal";
 import StatsPanel from "@/components/StatsPanel";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useStore } from "@/components/Layout";
 import { apiRequest } from "@/lib/queryClient";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 
 export default function Calendar() {
-  const { user } = useAuth();
+  const { user } = useAuthUnified();
   const { selectedStoreId } = useStore();
   const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date(2025, 6, 1)); // July 2025

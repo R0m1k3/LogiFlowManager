@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { Button } from "@/components/ui/button";
 import { 
   Store, 
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 export default function Sidebar() {
-  const { user, isLoading, error } = useAuth();
+  const { user, isLoading, error } = useAuthUnified();
   const [location] = useLocation();
 
   // Debug logging pour production
