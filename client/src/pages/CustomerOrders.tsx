@@ -255,6 +255,7 @@ export default function CustomerOrders() {
                 <strong>Téléphone:</strong> ${order.customerPhone}<br>
                 <strong>Produit:</strong> ${order.productDesignation}<br>
                 ${order.productReference ? `<strong>Référence:</strong> ${order.productReference}<br>` : ''}
+                <strong>Quantité:</strong> ${order.quantity || 1}<br>
                 ${order.gencode ? `<strong>Code barre:</strong><br><div class="barcode">${order.gencode}</div>` : ''}
                 <strong>Magasin:</strong> ${order.group.name}<br>
                 <strong>Date:</strong> ${format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })}
@@ -322,6 +323,7 @@ export default function CustomerOrders() {
                   <TableHead>Client</TableHead>
                   <TableHead>Téléphone</TableHead>
                   <TableHead>Produit</TableHead>
+                  <TableHead>Quantité</TableHead>
                   <TableHead>Gencode</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Date</TableHead>
@@ -347,6 +349,11 @@ export default function CustomerOrders() {
                           </div>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary" className="font-mono">
+                        {order.quantity || 1}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <code className="bg-gray-100 px-2 py-1 rounded text-sm">

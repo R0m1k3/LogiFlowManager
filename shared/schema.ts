@@ -195,6 +195,7 @@ export const customerOrders = pgTable("customer_orders", {
   productDesignation: text("product_designation").notNull(), // Désignation du produit
   productReference: varchar("product_reference"), // Référence
   gencode: varchar("gencode").notNull(), // Code à barres (obligatoire)
+  quantity: integer("quantity").notNull().default(1), // Quantité commandée
   supplierId: integer("supplier_id").notNull(), // Fournisseur
   
   // Statuts

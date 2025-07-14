@@ -28,6 +28,7 @@ const customerOrderFormSchema = insertCustomerOrderSchema.extend({
   deposit: z.string().optional(),
   gencode: z.string().min(1, "Le gencode est obligatoire"),
   customerName: z.string().min(1, "Le nom du client est obligatoire"),
+  quantity: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) || 1 : val),
   supplierId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val),
   groupId: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val).optional(),
   createdBy: z.string().optional(), // Will be set automatically
@@ -77,6 +78,7 @@ export function CustomerOrderForm({
       productDesignation: order?.productDesignation || "",
       productReference: order?.productReference || "",
       gencode: order?.gencode || "",
+      quantity: order?.quantity || 1,
       supplierId: order?.supplierId || undefined,
       status: "En attente de Commande", // Statut fixe
       deposit: order?.deposit ? order.deposit.toString() : "0",
@@ -263,6 +265,27 @@ export function CustomerOrderForm({
                   <FormLabel>Gencode (obligatoire)</FormLabel>
                   <FormControl>
                     <Input placeholder="Code à barres" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quantité</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="1"
+                      placeholder="1"
+                      {...field}
+                      value={field.value?.toString() || "1"}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

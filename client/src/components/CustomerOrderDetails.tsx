@@ -111,6 +111,13 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
             </div>
           )}
 
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Quantité:</span>
+            <Badge variant="secondary" className="font-mono">
+              {order.quantity || 1}
+            </Badge>
+          </div>
+
           {order.gencode && (
             <div>
               <span className="font-medium">Code à barres:</span>
