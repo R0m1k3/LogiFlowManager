@@ -443,7 +443,7 @@ export class DatabaseStorage implements IStorage {
     };
     
     // Add BL data if provided
-    if (blData) {
+    if (blData && blData.blNumber && blData.blAmount !== undefined) {
       updateData.blNumber = blData.blNumber;
       updateData.blAmount = blData.blAmount.toString();
     }
