@@ -3,7 +3,7 @@
 # Script pour corriger le problème WebSocket en production
 # Sans supprimer les fichiers de production existants
 
-echo "🔧 Correction du problème WebSocket en production..."
+echo "🔧 Correction du problème WebSocket et bcrypt en production..."
 
 # 1. Vérifier que Docker est en cours d'exécution
 if ! docker ps >/dev/null 2>&1; then
@@ -20,7 +20,7 @@ echo "🧹 Nettoyage du cache Docker..."
 docker system prune -f
 
 # 4. Reconstruire avec les corrections
-echo "🔨 Reconstruction avec les corrections WebSocket..."
+echo "🔨 Reconstruction avec les corrections WebSocket et bcrypt..."
 docker-compose build --no-cache
 
 # 5. Démarrer les services
