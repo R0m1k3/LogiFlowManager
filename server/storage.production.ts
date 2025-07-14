@@ -110,17 +110,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: string, userData: Partial<UpsertUser>): Promise<User> {
+    console.log('🔄 updateUser called:', { id, userData });
+    
+    // Validation des champs obligatoires
+    if (userData.firstName && !userData.firstName.trim()) {
+      throw new Error('Le prénom ne peut pas être vide');
+    }
+    if (userData.lastName && !userData.lastName.trim()) {
+      throw new Error('Le nom ne peut pas être vide');
+    }
+    if (userData.email && !userData.email.trim()) {
+      throw new Error('L\'email ne peut pas être vide');
+    }
+    if (userData.email && !userData.email.includes('@')) {
+      throw new Error('L\'email doit être valide');
+    }
+    
     const fields = [];
     const values = [];
     let paramIndex = 1;
 
     for (const [key, value] of Object.entries(userData)) {
-      if (value !== undefined) {
+      if (value !== undefined && value !== null && value !== '') {
         if (key === 'password') {
-          // Hash password before storing
+          // Hash password before storing et marquer comme changé
           const hashedPassword = await hashPassword(value as string);
           fields.push(`password = $${paramIndex}`);
           values.push(hashedPassword);
+          paramIndex++;
+          
+          // Marquer le mot de passe comme changé
+          fields.push(`password_changed = $${paramIndex}`);
+          values.push(true);
         } else {
           const dbKey = key === 'firstName' ? 'first_name' : 
                        key === 'lastName' ? 'last_name' : 
@@ -133,12 +154,22 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
+    if (fields.length === 0) {
+      throw new Error('Aucun champ à mettre à jour');
+    }
+
     values.push(id);
     const result = await pool.query(`
       UPDATE users SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
       WHERE id = $${paramIndex}
       RETURNING *
     `, values);
+    
+    if (!result.rows[0]) {
+      throw new Error('Utilisateur non trouvé');
+    }
+    
+    console.log('✅ updateUser success:', { id, fieldsUpdated: fields.length });
     return result.rows[0];
   }
 
@@ -575,23 +606,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDelivery(id: number, delivery: Partial<InsertDelivery>): Promise<Delivery> {
+    const fields = [];
+    const values = [];
+    let paramIndex = 1;
+
+    // Construire dynamiquement la requête pour éviter les erreurs de colonnes manquantes
+    for (const [key, value] of Object.entries(delivery)) {
+      if (value !== undefined) {
+        const dbKey = key === 'orderId' ? 'order_id' :
+                     key === 'supplierId' ? 'supplier_id' :
+                     key === 'groupId' ? 'group_id' :
+                     key === 'scheduledDate' ? 'scheduled_date' :
+                     key === 'blNumber' ? 'bl_number' :
+                     key === 'blAmount' ? 'bl_amount' :
+                     key === 'invoiceReference' ? 'invoice_reference' :
+                     key === 'invoiceAmount' ? 'invoice_amount' :
+                     key === 'deliveredDate' ? 'delivered_date' :
+                     key === 'validatedAt' ? 'validated_at' :
+                     key === 'createdBy' ? 'created_by' : key;
+        
+        fields.push(`${dbKey} = $${paramIndex}`);
+        values.push(value);
+        paramIndex++;
+      }
+    }
+
+    if (fields.length === 0) {
+      throw new Error('No fields to update');
+    }
+
+    values.push(id);
     const result = await pool.query(`
-      UPDATE deliveries SET 
-        order_id = $1, supplier_id = $2, group_id = $3, scheduled_date = $4, 
-        quantity = $5, unit = $6, status = $7, notes = $8, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+      UPDATE deliveries SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramIndex}
       RETURNING *
-    `, [
-      delivery.orderId,
-      delivery.supplierId,
-      delivery.groupId,
-      delivery.scheduledDate,
-      delivery.quantity,
-      delivery.unit,
-      delivery.status,
-      delivery.notes,
-      id
-    ]);
+    `, values);
+    
+    console.log('🔄 updateDelivery production:', { id, fieldsUpdated: fields.length, delivery });
     return result.rows[0];
   }
 
@@ -600,16 +651,67 @@ export class DatabaseStorage implements IStorage {
   }
 
   async validateDelivery(id: number, blData?: { blNumber: string; blAmount: number }): Promise<void> {
-    await pool.query(`
-      UPDATE deliveries SET 
-        status = 'delivered', 
-        delivered_date = CURRENT_TIMESTAMP,
-        validated_at = CURRENT_TIMESTAMP,
-        bl_number = $2,
-        bl_amount = $3,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1
-    `, [id, blData?.blNumber, blData?.blAmount]);
+    try {
+      // Vérifier d'abord quelles colonnes existent dans la table deliveries
+      const columnsCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'deliveries' AND table_schema = 'public'
+      `);
+      
+      const existingColumns = columnsCheck.rows.map(row => row.column_name);
+      console.log('🔍 validateDelivery - Available columns:', existingColumns);
+      
+      // Construire la requête en fonction des colonnes disponibles
+      const updates = ['status = $2', 'updated_at = CURRENT_TIMESTAMP'];
+      const params = [id, 'delivered'];
+      let paramIndex = 3;
+      
+      if (existingColumns.includes('delivered_date')) {
+        updates.push(`delivered_date = $${paramIndex}`);
+        params.push(new Date().toISOString());
+        paramIndex++;
+      }
+      
+      if (existingColumns.includes('validated_at')) {
+        updates.push(`validated_at = $${paramIndex}`);
+        params.push(new Date().toISOString());
+        paramIndex++;
+      }
+      
+      if (blData?.blNumber && existingColumns.includes('bl_number')) {
+        updates.push(`bl_number = $${paramIndex}`);
+        params.push(blData.blNumber);
+        paramIndex++;
+      }
+      
+      if (blData?.blAmount !== undefined && existingColumns.includes('bl_amount')) {
+        updates.push(`bl_amount = $${paramIndex}`);
+        params.push(blData.blAmount);
+        paramIndex++;
+      }
+      
+      const result = await pool.query(`
+        UPDATE deliveries SET ${updates.join(', ')}
+        WHERE id = $1
+        RETURNING *
+      `, params);
+      
+      console.log('✅ validateDelivery success:', { id, blData, updatedColumns: updates.length });
+      
+      // Mettre à jour le statut de la commande liée si elle existe
+      if (result.rows[0]?.order_id) {
+        await pool.query(`
+          UPDATE orders SET status = 'delivered', updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+        `, [result.rows[0].order_id]);
+        console.log('✅ Order status updated to delivered:', result.rows[0].order_id);
+      }
+      
+    } catch (error) {
+      console.error('❌ validateDelivery error:', error);
+      throw error;
+    }
   }
 
   async getUserGroups(userId: string): Promise<UserGroup[]> {

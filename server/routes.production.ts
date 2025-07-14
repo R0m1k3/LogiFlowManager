@@ -359,12 +359,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { blNumber, blAmount } = req.body;
+      
+      console.log('🔍 PUT /api/deliveries/:id/validate - Request:', { id, blNumber, blAmount });
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID de livraison invalide" });
+      }
+      
+      // Validation des données BL
+      if (blNumber && typeof blNumber !== 'string') {
+        return res.status(400).json({ message: "Le numéro BL doit être une chaîne de caractères" });
+      }
+      
+      if (blAmount !== undefined && (isNaN(blAmount) || blAmount < 0)) {
+        return res.status(400).json({ message: "Le montant BL doit être un nombre positif" });
+      }
 
       await storage.validateDelivery(id, { blNumber, blAmount });
-      res.json({ message: "Delivery validated successfully" });
+      console.log('✅ Delivery validated successfully:', { id, blNumber, blAmount });
+      res.json({ message: "Livraison validée avec succès" });
     } catch (error) {
-      console.error("Error validating delivery:", error);
-      res.status(500).json({ message: "Failed to validate delivery" });
+      console.error("❌ Error validating delivery:", error);
+      
+      if (error.message.includes('column') && error.message.includes('does not exist')) {
+        console.error('💾 Database schema issue:', error.message);
+        return res.status(500).json({ message: "Erreur de structure de base de données. Contactez l'administrateur." });
+      }
+      
+      if (error.message.includes('constraint') || error.message.includes('check')) {
+        return res.status(400).json({ message: "Données invalides pour la validation" });
+      }
+      
+      res.status(500).json({ message: "Erreur lors de la validation de la livraison" });
     }
   });
 
@@ -410,11 +436,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = req.params.id;
-      const updatedUser = await storage.updateUser(id, req.body);
+      
+      // Validation des champs requis
+      const userData = req.body;
+      console.log('📝 PUT /api/users/:id - Request body:', userData);
+      
+      // Validation des champs obligatoires si ils sont fournis
+      if (userData.firstName !== undefined && (!userData.firstName || !userData.firstName.trim())) {
+        return res.status(400).json({ message: "Le prénom ne peut pas être vide" });
+      }
+      
+      if (userData.lastName !== undefined && (!userData.lastName || !userData.lastName.trim())) {
+        return res.status(400).json({ message: "Le nom ne peut pas être vide" });
+      }
+      
+      if (userData.email !== undefined) {
+        if (!userData.email || !userData.email.trim()) {
+          return res.status(400).json({ message: "L'email ne peut pas être vide" });
+        }
+        if (!userData.email.includes('@')) {
+          return res.status(400).json({ message: "L'email doit être valide" });
+        }
+      }
+      
+      if (userData.password !== undefined && userData.password && userData.password.length < 6) {
+        return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+      }
+      
+      const updatedUser = await storage.updateUser(id, userData);
+      console.log('✅ User updated successfully:', { id, updatedFields: Object.keys(userData) });
       res.json(updatedUser);
     } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ message: "Failed to update user" });
+      console.error("❌ Error updating user:", error);
+      
+      // Gestion des erreurs spécifiques
+      if (error.message.includes('email') && error.message.includes('unique')) {
+        return res.status(400).json({ message: "Cet email est déjà utilisé par un autre utilisateur" });
+      }
+      
+      if (error.message.includes('username') && error.message.includes('unique')) {
+        return res.status(400).json({ message: "Ce nom d'utilisateur est déjà pris" });
+      }
+      
+      if (error.message.includes('ne peut pas être vide') || 
+          error.message.includes('doit être valide') ||
+          error.message.includes('Aucun champ') ||
+          error.message.includes('non trouvé')) {
+        return res.status(400).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Erreur lors de la mise à jour de l'utilisateur" });
     }
   });
 
