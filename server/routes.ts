@@ -591,14 +591,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { blNumber, blAmount } = req.body;
       
-      if (!blNumber) {
-        return res.status(400).json({ message: "BL number is required" });
-      }
-      
-      // blAmount is optional, can be added later in reconciliation
-      const blData: any = { blNumber };
-      if (blAmount !== undefined && blAmount !== null && blAmount !== '') {
-        blData.blAmount = blAmount;
+      // BL data is optional - delivery can be validated without it
+      let blData: any = undefined;
+      if (blNumber) {
+        blData = { blNumber };
+        if (blAmount !== undefined && blAmount !== null && blAmount !== '') {
+          blData.blAmount = blAmount;
+        }
       }
       
       await storage.validateDelivery(id, blData);

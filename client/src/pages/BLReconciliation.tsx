@@ -23,12 +23,12 @@ import { DayPicker } from "react-day-picker";
 import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
 
 const reconciliationSchema = z.object({
-  blNumber: z.string().min(1, "Le numéro de BL est obligatoire"),
-  blAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+  blNumber: z.string().optional(),
+  blAmount: z.string().optional().refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), {
     message: "Le montant BL doit être un nombre positif",
   }),
-  invoiceReference: z.string().min(1, "La référence facture est obligatoire"),
-  invoiceAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+  invoiceReference: z.string().optional(),
+  invoiceAmount: z.string().optional().refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), {
     message: "Le montant facture doit être un nombre positif",
   }),
 });
@@ -99,7 +99,7 @@ export default function BLReconciliation() {
       
       const deliveries = await response.json();
       console.log('All deliveries received:', deliveries);
-      const filtered = deliveries.filter((d: any) => d.blNumber && d.status === 'delivered');
+      const filtered = deliveries.filter((d: any) => d.status === 'delivered');
       console.log('Filtered deliveries for BL reconciliation:', filtered);
       
       // Verify invoice references for deliveries with invoice data
@@ -494,7 +494,19 @@ export default function BLReconciliation() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {delivery.blNumber}
+                          {delivery.blNumber || (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-gray-400 italic">Non renseigné</span>
+                              <button
+                                onClick={() => handleEditReconciliation(delivery)}
+                                disabled={updateReconciliationMutation.isPending}
+                                className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-6 h-6 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Ajouter un numéro de BL"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -512,7 +524,22 @@ export default function BLReconciliation() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {parseFloat(delivery.blAmount || '0').toFixed(2)} €
+                          {delivery.blAmount ? 
+                            `${parseFloat(delivery.blAmount).toFixed(2)} €` :
+                            (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-gray-400 italic">Non renseigné</span>
+                                <button
+                                  onClick={() => handleEditReconciliation(delivery)}
+                                  disabled={updateReconciliationMutation.isPending}
+                                  className="text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center w-6 h-6 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title="Ajouter un montant BL"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )
+                          }
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
