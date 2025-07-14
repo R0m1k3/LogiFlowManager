@@ -44,7 +44,7 @@ RUN echo "Skipping esbuild - will use tsx directly"
 FROM node:20-alpine AS production
 
 # Install build tools and PostgreSQL client for bcrypt and health checks
-RUN apk add --no-cache postgresql-client python3 make g++
+RUN apk add --no-cache postgresql-client python3 make g++ node-gyp
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -55,7 +55,10 @@ WORKDIR /app
 
 # Install ALL dependencies (including bcrypt) for production
 COPY --from=build /app/package*.json ./
-RUN npm ci && npm cache clean --force
+RUN npm ci && \
+    npm install bcrypt && \
+    npm rebuild bcrypt && \
+    npm cache clean --force
 
 # Copy all source files for tsx execution
 COPY --from=build --chown=nextjs:nodejs /app/dist ./dist
