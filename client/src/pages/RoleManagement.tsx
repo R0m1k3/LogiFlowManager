@@ -270,10 +270,18 @@ export default function RoleManagement() {
     }
   };
 
+  console.log('👥 RoleManagement Debug:', {
+    roles: Array.isArray(roles) ? roles.length : 'NOT_ARRAY',
+    rolesLoading,
+    permissions: Array.isArray(permissions) ? permissions.length : 'NOT_ARRAY',
+    rolesData: roles?.slice(0, 2)
+  });
+
   // Filter roles - with safety checks
   const filteredRoles = Array.isArray(roles) ? roles.filter(role =>
-    (role.displayName || role.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (role.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    role && role.displayName && 
+    ((role.displayName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (role.name || '').toLowerCase().includes(searchTerm.toLowerCase()))
   ) : [];
 
   // Group permissions by category

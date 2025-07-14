@@ -189,9 +189,37 @@ export default function Groups() {
     group.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
 
+  console.log('🏪 Groups Debug:', {
+    groups: Array.isArray(groups) ? groups.length : 'NOT_ARRAY',
+    orders: Array.isArray(orders) ? orders.length : 'NOT_ARRAY',
+    deliveries: Array.isArray(deliveries) ? deliveries.length : 'NOT_ARRAY',
+    groupsData: groups?.slice(0, 2),
+    ordersData: orders?.slice(0, 2),
+    deliveriesData: deliveries?.slice(0, 2)
+  });
+
   const getGroupStats = (groupId: number) => {
-    const groupOrders = Array.isArray(orders) ? orders.filter(order => order.groupId === groupId) : [];
-    const groupDeliveries = Array.isArray(deliveries) ? deliveries.filter(delivery => delivery.groupId === groupId) : [];
+    const groupOrders = Array.isArray(orders) ? orders.filter(order => {
+      const match = order.groupId === groupId;
+      if (match) console.log(`🎯 Order ${order.id} matches group ${groupId}`, order);
+      return match;
+    }) : [];
+    
+    const groupDeliveries = Array.isArray(deliveries) ? deliveries.filter(delivery => {
+      const match = delivery.groupId === groupId;
+      if (match) console.log(`🎯 Delivery ${delivery.id} matches group ${groupId}`, delivery);
+      return match;
+    }) : [];
+    
+    console.log(`🏪 Group ${groupId} stats:`, {
+      groupOrders: groupOrders.length,
+      groupDeliveries: groupDeliveries.length,
+      delivered: groupDeliveries.filter(d => d.status === 'delivered').length,
+      ordersSample: groupOrders.slice(0, 2),
+      deliveriesSample: groupDeliveries.slice(0, 2),
+      allOrdersCount: orders?.length,
+      allDeliveriesCount: deliveries?.length
+    });
     
     return {
       orders: groupOrders.length,

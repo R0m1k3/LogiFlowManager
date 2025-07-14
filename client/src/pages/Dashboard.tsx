@@ -98,9 +98,15 @@ export default function Dashboard() {
     .slice(0, 3) : [];
   
   const upcomingDeliveries = Array.isArray(allDeliveries) ? allDeliveries
-    .filter((d: any) => d.status === 'planned')
+    .filter((d: any) => {
+      const isPlanned = d.status === 'planned';
+      console.log('🚚 Dashboard - Delivery filter:', { id: d.id, status: d.status, isPlanned, scheduledDate: d.scheduledDate });
+      return isPlanned;
+    })
     .sort((a: any, b: any) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
     .slice(0, 2) : [];
+    
+  console.log('🚚 Dashboard - Upcoming deliveries result:', upcomingDeliveries.length, upcomingDeliveries);
 
   // Calculs pour les statistiques
   const pendingOrdersCount = Array.isArray(allOrders) ? allOrders.filter((order: any) => order.status === 'pending').length : 0;
@@ -120,6 +126,20 @@ export default function Dashboard() {
     }
     return total;
   }, 0) : 0;
+
+  console.log('📊 Dashboard Debug - Raw Data:', {
+    allOrders: Array.isArray(allOrders) ? allOrders.length : 'NOT_ARRAY',
+    allDeliveries: Array.isArray(allDeliveries) ? allDeliveries.length : 'NOT_ARRAY', 
+    customerOrders: Array.isArray(customerOrders) ? customerOrders.length : 'NOT_ARRAY',
+    upcomingPublicities: Array.isArray(upcomingPublicities) ? upcomingPublicities.length : 'NOT_ARRAY',
+    stats: stats,
+    samples: {
+      order: allOrders[0],
+      delivery: allDeliveries[0],
+      customerOrder: customerOrders[0],
+      publicity: upcomingPublicities[0]
+    }
+  });
 
   // Statistiques pour les commandes clients
   const ordersByStatus = {
@@ -265,7 +285,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 p-6">
-            {upcomingDeliveries.length > 0 ? upcomingDeliveries.map((delivery: any) => (
+            {Array.isArray(upcomingDeliveries) && upcomingDeliveries.length > 0 ? upcomingDeliveries.map((delivery: any) => (
               <div key={delivery.id} className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors border-l-3 border-green-500">
                 <div className="flex items-center space-x-3">
                   <div className="h-2 w-2 bg-green-500"></div>
@@ -284,7 +304,10 @@ export default function Dashboard() {
                 </div>
               </div>
             )) : (
-              <p className="text-gray-600 text-center py-8">Aucune livraison programmée</p>
+              <div className="text-center py-8">
+                <p className="text-gray-600">Aucune livraison programmée</p>
+                <p className="text-xs text-gray-400 mt-1">({Array.isArray(allDeliveries) ? allDeliveries.length : 0} livraisons totales)</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -349,8 +372,11 @@ export default function Dashboard() {
                   </div>
                 );
               })}
-            {upcomingPublicities.length === 0 && (
-              <p className="text-gray-600 text-center py-8">Aucune publicité à venir</p>
+            {(!Array.isArray(upcomingPublicities) || upcomingPublicities.length === 0) && (
+              <div className="text-center py-8">
+                <p className="text-gray-600">Aucune publicité à venir</p>
+                <p className="text-xs text-gray-400 mt-1">(API: {Array.isArray(upcomingPublicities) ? upcomingPublicities.length : 'NOT_ARRAY'})</p>
+              </div>
             )}
           </CardContent>
         </Card>
