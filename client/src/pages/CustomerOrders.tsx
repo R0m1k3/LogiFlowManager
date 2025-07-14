@@ -555,7 +555,7 @@ export default function CustomerOrders() {
                   <SelectValue placeholder="Fournisseurs" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les fournisseurs</SelectItem>
+                  <SelectItem value="all">Fournisseurs</SelectItem>
                   {suppliers.map((supplier: any) => (
                     <SelectItem key={supplier.id} value={supplier.id.toString()}>
                       {supplier.name}
@@ -563,14 +563,17 @@ export default function CustomerOrders() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={sortBy} onValueChange={(value: "date" | "status" | "supplier") => setSortBy(value)}>
-                <SelectTrigger className="w-[120px]">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="date">Date</SelectItem>
-                  <SelectItem value="status">Statut</SelectItem>
-                  <SelectItem value="supplier">Fournisseur</SelectItem>
+                  <SelectItem value="all">Status</SelectItem>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
