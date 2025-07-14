@@ -552,7 +552,7 @@ export default function CustomerOrders() {
             <div className="flex gap-2">
               <Select value={filterSupplier} onValueChange={setFilterSupplier}>
                 <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Fournisseur..." />
+                  <SelectValue placeholder="Fournisseurs" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les fournisseurs</SelectItem>
@@ -563,36 +563,14 @@ export default function CustomerOrders() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Statut..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  {statusOptions.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               <Select value={sortBy} onValueChange={(value: "date" | "status" | "supplier") => setSortBy(value)}>
                 <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Trier par..." />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="date">Date</SelectItem>
                   <SelectItem value="status">Statut</SelectItem>
                   <SelectItem value="supplier">Fournisseur</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
-                <SelectTrigger className="w-[100px]">
-                  <SelectValue placeholder="Ordre..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="desc">↓ Déc</SelectItem>
-                  <SelectItem value="asc">↑ Asc</SelectItem>
                 </SelectContent>
               </Select>
             </div>
