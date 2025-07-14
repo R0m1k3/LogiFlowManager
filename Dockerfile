@@ -44,7 +44,6 @@ RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm
   --external:@replit/* \
   --external:tsx \
   --external:openid-client \
-  --external:@neondatabase/serverless \
   --external:ws \
   --external:drizzle-orm \
   --external:pg \
@@ -53,7 +52,8 @@ RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm
   --external:passport \
   --external:passport-local \
   --external:express-session \
-  --external:bcrypt
+  --external:bcrypt \
+  --external:memoizee
 
 # Production stage
 FROM node:20-alpine AS production

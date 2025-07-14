@@ -3,11 +3,12 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { createServer } from "http";
 import { setupLocalAuth } from "./localAuth";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./routes.production";
 import { setupSecurityHeaders, setupRateLimiting, setupInputSanitization } from "./security";
 import { setupCompression } from "./cache";
 import { monitor, setupMonitoringEndpoints } from "./monitoring";
-import { initializeRolesAndPermissions } from "./initRolesAndPermissions";
+import { initializeRolesAndPermissions } from "./initRolesAndPermissions.production";
+import { pool } from "./db.production";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -32,6 +33,13 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 async function startServer() {
   try {
     console.log("🚀 Starting LogiFlow Production Server...");
+    
+    // Test database connection
+    console.log("Testing database connection...");
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    console.log("✅ Database connection successful");
     
     // Initialize roles and permissions
     console.log("Initializing roles and permissions...");
