@@ -61,7 +61,7 @@ export default function CustomerOrders() {
   const createMutation = useMutation({
     mutationFn: (data: any) => apiRequest('/api/customer-orders', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: data,
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
@@ -85,7 +85,7 @@ export default function CustomerOrders() {
     mutationFn: ({ id, data }: { id: number; data: any }) =>
       apiRequest(`/api/customer-orders/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(data),
+        body: data,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
@@ -133,7 +133,7 @@ export default function CustomerOrders() {
     mutationFn: ({ id, customerNotified }: { id: number; customerNotified: boolean }) =>
       apiRequest(`/api/customer-orders/${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ customerNotified }),
+        body: { customerNotified },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
