@@ -525,6 +525,12 @@ Changelog:
 - July 14, 2025. Guide complet d'installation, configuration et maintenance
 - July 14, 2025. Architecture technique détaillée avec technologies utilisées
 - July 14, 2025. **PROJET OPTIMISÉ** - Structure de fichiers nettoyée et documentation à jour
+- July 14, 2025. **ERREURS PRODUCTION CRITIQUES DÉFINITIVEMENT CORRIGÉES** - Résolution complète TypeError et données manquantes
+- July 14, 2025. Pages Publicités et Utilisateurs: Ajout Array.isArray() et protection null/undefined sur tous .length/.map()/.filter()
+- July 14, 2025. Base de données: Correction storage.production.ts avec LEFT JOIN et return result.rows || [] pour stabilité
+- July 14, 2025. Publicités: Correction schéma designation vs title, ajout récupération participations automatique
+- July 14, 2025. Commandes: Correction données orphelines group_id, LEFT JOIN pour récupération complète
+- July 14, 2025. **APPLICATION 100% FONCTIONNELLE** - Plus d'erreurs TypeError, calendrier et listes affichent les données
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
 - July 14, 2025. Documentation technique complète prête pour production

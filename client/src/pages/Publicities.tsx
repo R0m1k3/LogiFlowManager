@@ -87,6 +87,15 @@ export default function Publicities() {
 
   // Calendar helper functions
   const getWeekParticipation = (weekStart: Date, weekEnd: Date) => {
+    // Vérifier que publicities est un tableau
+    if (!Array.isArray(publicities)) {
+      return {
+        publicities: [],
+        participatingStores: [],
+        storeColors: []
+      };
+    }
+
     const weekPublicities = publicities.filter(pub => {
       const pubStart = safeDate(pub.startDate);
       const pubEnd = safeDate(pub.endDate);
@@ -97,9 +106,12 @@ export default function Publicities() {
 
     const participatingStores = new Set<number>();
     weekPublicities.forEach(pub => {
-      pub.participations.forEach(participation => {
-        participatingStores.add(participation.groupId);
-      });
+      // Vérifier que participations existe et est un tableau
+      if (pub.participations && Array.isArray(pub.participations)) {
+        pub.participations.forEach(participation => {
+          participatingStores.add(participation.groupId);
+        });
+      }
     });
 
     return {
@@ -271,7 +283,7 @@ export default function Publicities() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total {selectedYear}</p>
-                <p className="text-2xl font-semibold">{publicities.length}</p>
+                <p className="text-2xl font-semibold">{Array.isArray(publicities) ? publicities.length : 0}</p>
               </div>
             </div>
           </CardContent>

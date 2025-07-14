@@ -304,7 +304,7 @@ export default function UsersPage() {
     },
   });
 
-  const filteredUsers = users.filter(u => {
+  const filteredUsers = Array.isArray(users) ? users.filter(u => {
     const matchesSearch = u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          u.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -312,7 +312,7 @@ export default function UsersPage() {
     const matchesRole = roleFilter === "all" || u.role === roleFilter;
     
     return matchesSearch && matchesRole;
-  });
+  }) : [];
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -516,7 +516,7 @@ export default function UsersPage() {
               Gestion des Utilisateurs
             </h2>
             <p className="text-gray-600 mt-1">
-              {filteredUsers.length} utilisateur{filteredUsers.length !== 1 ? 's' : ''}
+              {Array.isArray(filteredUsers) ? filteredUsers.length : 0} utilisateur{Array.isArray(filteredUsers) && filteredUsers.length !== 1 ? 's' : ''}
             </p>
           </div>
           
@@ -565,7 +565,7 @@ export default function UsersPage() {
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-        ) : filteredUsers.length === 0 ? (
+        ) : (!Array.isArray(filteredUsers) || filteredUsers.length === 0) ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
             <Users className="w-16 h-16 mb-4 text-gray-300" />
             <h3 className="text-lg font-medium mb-2">Aucun utilisateur trouvé</h3>
@@ -600,7 +600,7 @@ export default function UsersPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredUsers.map((userData) => (
+                    {Array.isArray(filteredUsers) && filteredUsers.map((userData) => (
                       <tr key={userData.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -641,7 +641,7 @@ export default function UsersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-wrap gap-1">
-                            {userData.userGroups.length === 0 ? (
+                            {!Array.isArray(userData.userGroups) || userData.userGroups.length === 0 ? (
                               <span className="text-sm text-gray-500">Aucun groupe</span>
                             ) : (
                               userData.userGroups.map((userGroup) => (

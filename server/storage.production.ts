@@ -211,18 +211,18 @@ export class DatabaseStorage implements IStorage {
       SELECT o.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
              u.username as creator_username
       FROM orders o
-      JOIN suppliers s ON o.supplier_id = s.id
-      JOIN groups g ON o.group_id = g.id
-      JOIN users u ON o.created_by = u.id
+      LEFT JOIN suppliers s ON o.supplier_id = s.id
+      LEFT JOIN groups g ON o.group_id = g.id
+      LEFT JOIN users u ON o.created_by = u.id
     `;
     
     if (groupIds && groupIds.length > 0) {
       query += ` WHERE o.group_id = ANY($1)`;
       const result = await pool.query(query + ' ORDER BY o.created_at DESC', [groupIds]);
-      return result.rows;
+      return result.rows || [];
     } else {
       const result = await pool.query(query + ' ORDER BY o.created_at DESC');
-      return result.rows;
+      return result.rows || [];
     }
   }
 
@@ -231,19 +231,19 @@ export class DatabaseStorage implements IStorage {
       SELECT o.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
              u.username as creator_username
       FROM orders o
-      JOIN suppliers s ON o.supplier_id = s.id
-      JOIN groups g ON o.group_id = g.id
-      JOIN users u ON o.created_by = u.id
+      LEFT JOIN suppliers s ON o.supplier_id = s.id
+      LEFT JOIN groups g ON o.group_id = g.id
+      LEFT JOIN users u ON o.created_by = u.id
       WHERE o.planned_date BETWEEN $1 AND $2
     `;
     
     if (groupIds && groupIds.length > 0) {
       query += ` AND o.group_id = ANY($3)`;
       const result = await pool.query(query + ' ORDER BY o.created_at DESC', [startDate, endDate, groupIds]);
-      return result.rows;
+      return result.rows || [];
     } else {
       const result = await pool.query(query + ' ORDER BY o.created_at DESC', [startDate, endDate]);
-      return result.rows;
+      return result.rows || [];
     }
   }
 
@@ -252,9 +252,9 @@ export class DatabaseStorage implements IStorage {
       SELECT o.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
              u.username as creator_username
       FROM orders o
-      JOIN suppliers s ON o.supplier_id = s.id
-      JOIN groups g ON o.group_id = g.id
-      JOIN users u ON o.created_by = u.id
+      LEFT JOIN suppliers s ON o.supplier_id = s.id
+      LEFT JOIN groups g ON o.group_id = g.id
+      LEFT JOIN users u ON o.created_by = u.id
       WHERE o.id = $1
     `, [id]);
     return result.rows[0] || undefined;
@@ -464,8 +464,24 @@ export class DatabaseStorage implements IStorage {
 
   // Publicities methods
   async getPublicities(year?: number, groupIds?: number[]): Promise<any[]> {
-    const result = await pool.query('SELECT * FROM publicities ORDER BY start_date DESC');
-    return result.rows;
+    const publicities = await pool.query('SELECT * FROM publicities ORDER BY start_date DESC');
+    
+    // Pour chaque publicité, récupérer ses participations
+    const publicityData = await Promise.all(
+      publicities.rows.map(async (pub) => {
+        const participations = await pool.query(
+          'SELECT pp.group_id, g.name as group_name FROM publicity_participations pp LEFT JOIN groups g ON pp.group_id = g.id WHERE pp.publicity_id = $1', 
+          [pub.id]
+        );
+        
+        return {
+          ...pub,
+          participations: participations.rows || []
+        };
+      })
+    );
+    
+    return publicityData;
   }
 
   async getPublicity(id: number): Promise<any> {
@@ -475,13 +491,12 @@ export class DatabaseStorage implements IStorage {
 
   async createPublicity(publicity: InsertPublicity): Promise<Publicity> {
     const result = await pool.query(`
-      INSERT INTO publicities (pub_number, title, description, start_date, end_date, year, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO publicities (pub_number, designation, start_date, end_date, year, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `, [
       publicity.pubNumber,
-      publicity.title,
-      publicity.description,
+      publicity.designation,
       publicity.startDate,
       publicity.endDate,
       publicity.year,
@@ -493,14 +508,13 @@ export class DatabaseStorage implements IStorage {
   async updatePublicity(id: number, publicity: Partial<InsertPublicity>): Promise<Publicity> {
     const result = await pool.query(`
       UPDATE publicities SET 
-        pub_number = $1, title = $2, description = $3, start_date = $4, 
-        end_date = $5, year = $6, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $7
+        pub_number = $1, designation = $2, start_date = $3, 
+        end_date = $4, year = $5, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $6
       RETURNING *
     `, [
       publicity.pubNumber,
-      publicity.title,
-      publicity.description,
+      publicity.designation,
       publicity.startDate,
       publicity.endDate,
       publicity.year,

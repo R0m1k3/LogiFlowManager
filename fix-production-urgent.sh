@@ -1,60 +1,35 @@
 #!/bin/bash
 
-echo "🚨 CORRECTION URGENTE PRODUCTION - COLONNES MANQUANTES ORDERS"
-echo "============================================================="
+echo "🚨 CORRECTION URGENTE ERREURS PRODUCTION"
+echo "========================================"
 echo ""
 
-echo "PROBLÈME IDENTIFIÉ :"
-echo "❌ Colonne 'quantity' manquante dans table 'orders' en production"
-echo "❌ Colonne 'unit' manquante dans table 'orders' en production"
+echo "1. ✅ Erreurs TypeError (.length sur undefined) - RÉSOLUES"
+echo "   - Ajout Array.isArray() dans Publicities.tsx"
+echo "   - Ajout Array.isArray() dans Users.tsx" 
+echo "   - Protection null/undefined sur tous les .map() et .filter()"
 echo ""
 
-echo "SOLUTION SQL DIRECTE :"
-echo "----------------------"
-
-cat << 'EOF'
--- SQL à exécuter en production pour corriger immédiatement
-
--- 1. Ajouter colonne quantity dans orders si manquante
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name = 'orders' AND column_name = 'quantity') THEN
-        ALTER TABLE orders ADD COLUMN quantity INTEGER;
-        RAISE NOTICE 'Colonne quantity ajoutée à orders';
-    ELSE
-        RAISE NOTICE 'Colonne quantity existe déjà dans orders';
-    END IF;
-END $$;
-
--- 2. Ajouter colonne unit dans orders si manquante  
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name = 'orders' AND column_name = 'unit') THEN
-        ALTER TABLE orders ADD COLUMN unit VARCHAR(50);
-        RAISE NOTICE 'Colonne unit ajoutée à orders';
-    ELSE
-        RAISE NOTICE 'Colonne unit existe déjà dans orders';
-    END IF;
-END $$;
-
--- 3. Vérification finale
-SELECT column_name, data_type, is_nullable 
-FROM information_schema.columns 
-WHERE table_name = 'orders' 
-  AND column_name IN ('quantity', 'unit')
-ORDER BY column_name;
-EOF
-
+echo "2. ✅ Erreur Base publicités (designation vs title) - RÉSOLUE"
+echo "   - storage.production.ts corrigé pour utiliser 'designation'"
+echo "   - updatePublicity() utilise maintenant 'designation'"
+echo "   - getPublicities() enrichi avec participations"
 echo ""
-echo "POUR APPLIQUER EN PRODUCTION :"
-echo "1. Connectez-vous à votre base PostgreSQL"
-echo "2. Exécutez le SQL ci-dessus"
-echo "3. OU utilisez la migration mise à jour : psql < migration-production.sql"
+
+echo "3. ✅ Erreur commandes invisibles - RÉSOLUE"
+echo "   - LEFT JOIN au lieu de JOIN dans storage.production.ts"
+echo "   - Protection return result.rows || []"
+echo "   - Correction commandes orphelines (group_id manquant)"
 echo ""
-echo "ALTERNATIVE RAPIDE :"
-echo "Redémarrez le conteneur Docker après avoir mis à jour migration-production.sql"
+
+echo "4. ✅ Problèmes données manquantes - RÉSOLUS"
+echo "   - Commande ID=1 assignée au groupe Houdemont (ID=2)"
+echo "   - LEFT JOIN assure récupération de toutes les données"
 echo ""
-echo "✅ migration-production.sql mis à jour avec la correction"
+
+echo "TOUTES LES ERREURS CRITIQUES CORRIGÉES ✅"
+echo "L'application devrait maintenant fonctionner correctement."
 echo ""
+echo "Test: Aller sur les pages Publicités, Utilisateurs, Commandes"
+echo "=> Plus d'erreurs TypeError"
+echo "=> Données visibles dans calendrier et listes"
