@@ -325,11 +325,18 @@ export default function RoleManagement() {
   if (rolesLoading) {
     return (
       <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-300 rounded w-1/3"></div>
+        <div className="animate-pulse space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-8 bg-gray-300 rounded w-64"></div>
+              <div className="h-4 bg-gray-200 rounded w-96"></div>
+            </div>
+            <div className="h-10 bg-gray-300 rounded w-32"></div>
+          </div>
+          <div className="h-10 bg-gray-200 rounded w-64"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-48 bg-gray-300 rounded"></div>
+              <div key={i} className="h-64 bg-gray-200 rounded-lg shadow-sm"></div>
             ))}
           </div>
         </div>
@@ -342,10 +349,10 @@ export default function RoleManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion des Rôles</h1>
-          <p className="text-gray-600">Créez et gérez les rôles et permissions du système</p>
+          <h1 className="text-3xl font-bold text-gray-900">Gestion des Rôles</h1>
+          <p className="text-gray-600 mt-2">Créez et gérez les rôles et permissions du système</p>
         </div>
-        <Button onClick={handleCreateRole} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={handleCreateRole} className="bg-blue-600 hover:bg-blue-700 shadow-sm">
           <Plus className="w-4 h-4 mr-2" />
           Nouveau Rôle
         </Button>
@@ -358,9 +365,10 @@ export default function RoleManagement() {
             placeholder="Rechercher un rôle..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="shadow-sm"
           />
         </div>
-        <Badge variant="outline" className="text-sm">
+        <Badge variant="outline" className="text-sm px-3 py-1">
           {filteredRoles.length} rôle{filteredRoles.length > 1 ? 's' : ''}
         </Badge>
       </div>
@@ -368,13 +376,13 @@ export default function RoleManagement() {
       {/* Roles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRoles.map((role) => (
-          <Card key={role.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
+          <Card key={role.id} className="shadow-sm hover:shadow-md transition-all duration-200 border-gray-200">
+            <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(role)}
                   <div>
-                    <CardTitle className="text-lg">{role.displayName || role.name}</CardTitle>
+                    <CardTitle className="text-lg font-semibold">{role.displayName || role.name}</CardTitle>
                     <p className="text-sm text-gray-500">{role.name}</p>
                   </div>
                 </div>
@@ -394,32 +402,34 @@ export default function RoleManagement() {
             </CardHeader>
             <CardContent className="space-y-4">
               {role.description && (
-                <p className="text-sm text-gray-600">{role.description}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{role.description}</p>
               )}
               
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">Permissions:</span>
-                <Badge variant="outline">
+                <Badge variant="outline" className="text-xs">
                   {role.rolePermissions?.length || 0}
                 </Badge>
               </div>
 
-              <Separator />
+              <Separator className="my-4" />
 
               <div className="flex items-center justify-between">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleManagePermissions(role)}
+                  className="shadow-sm"
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Permissions
                 </Button>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleEditRole(role)}
+                    className="h-8 w-8 p-0"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -428,7 +438,7 @@ export default function RoleManagement() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteRole(role)}
-                      className="text-red-600 hover:text-red-700"
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -448,9 +458,9 @@ export default function RoleManagement() {
           setSelectedRole(null);
         }
       }}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="sm:max-w-lg rounded-2xl shadow-xl border-gray-200">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold">
               {selectedRole ? 'Modifier le Rôle' : 'Nouveau Rôle'}
             </DialogTitle>
           </DialogHeader>
@@ -537,7 +547,7 @@ export default function RoleManagement() {
                 )}
               />
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                 <Button
                   type="button"
                   variant="outline"
@@ -545,12 +555,14 @@ export default function RoleManagement() {
                     setShowCreateModal(false);
                     setShowEditModal(false);
                   }}
+                  className="shadow-sm"
                 >
                   Annuler
                 </Button>
                 <Button
                   type="submit"
                   disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700 shadow-sm"
                 >
                   {selectedRole ? 'Modifier' : 'Créer'}
                 </Button>
@@ -567,18 +579,18 @@ export default function RoleManagement() {
           setSelectedRole(null);
         }
       }}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="sm:max-w-2xl rounded-2xl shadow-xl border-gray-200">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold">
               Permissions - {selectedRole?.displayName}
             </DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="h-96">
+          <ScrollArea className="h-96 pr-4">
             <div className="space-y-6">
               {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
                 <div key={category} className="space-y-3">
-                  <h4 className="font-medium text-gray-900 border-b pb-2">
+                  <h4 className="font-semibold text-gray-900 border-b border-gray-200 pb-2">
                     {getCategoryDisplayName(category)}
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
@@ -588,7 +600,7 @@ export default function RoleManagement() {
                       ) || false;
 
                       return (
-                        <div key={permission.id} className="flex items-center space-x-3">
+                        <div key={permission.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
                           <Checkbox
                             id={`permission-${permission.id}`}
                             checked={isChecked}
@@ -617,7 +629,7 @@ export default function RoleManagement() {
                                 {permission.displayName}
                               </label>
                               {permission.description && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 mt-1">
                                   {permission.description}
                                 </p>
                               )}
@@ -635,9 +647,10 @@ export default function RoleManagement() {
             </div>
           </ScrollArea>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-4 border-t border-gray-200">
             <Button
               onClick={() => setShowPermissionsModal(false)}
+              className="shadow-sm"
             >
               Fermer
             </Button>
