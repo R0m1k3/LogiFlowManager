@@ -139,8 +139,7 @@ async function createTablesIfNotExist() {
     CREATE TABLE IF NOT EXISTS publicities (
       id SERIAL PRIMARY KEY,
       pub_number VARCHAR(255) NOT NULL,
-      title VARCHAR(255) NOT NULL,
-      description TEXT,
+      designation TEXT NOT NULL,
       start_date DATE NOT NULL,
       end_date DATE NOT NULL,
       year INTEGER NOT NULL,
@@ -319,6 +318,28 @@ async function addMissingColumns() {
     if (quantityExists.rows.length === 0) {
       await pool.query('ALTER TABLE customer_orders ADD COLUMN quantity INTEGER DEFAULT 1');
       console.log('✅ Added quantity column to customer_orders');
+    }
+
+    // Check and add quantity column to orders
+    const ordersQuantityExists = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'orders' AND column_name = 'quantity'
+    `);
+    
+    if (ordersQuantityExists.rows.length === 0) {
+      await pool.query('ALTER TABLE orders ADD COLUMN quantity INTEGER');
+      console.log('✅ Added quantity column to orders');
+    }
+
+    // Check and add unit column to orders
+    const ordersUnitExists = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'orders' AND column_name = 'unit'
+    `);
+    
+    if (ordersUnitExists.rows.length === 0) {
+      await pool.query('ALTER TABLE orders ADD COLUMN unit VARCHAR(50)');
+      console.log('✅ Added unit column to orders');
     }
 
   } catch (error) {
