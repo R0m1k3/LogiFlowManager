@@ -24,12 +24,12 @@ import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
 
 const reconciliationSchema = z.object({
   blNumber: z.string().optional(),
-  blAmount: z.string().optional().refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), {
-    message: "Le montant BL doit être un nombre positif",
+  blAmount: z.string().optional().refine((val) => !val || val === '' || (!isNaN(Number(val)) && Number(val) >= 0), {
+    message: "Le montant BL doit être un nombre positif ou vide",
   }),
   invoiceReference: z.string().optional(),
-  invoiceAmount: z.string().optional().refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), {
-    message: "Le montant facture doit être un nombre positif",
+  invoiceAmount: z.string().optional().refine((val) => !val || val === '' || (!isNaN(Number(val)) && Number(val) >= 0), {
+    message: "Le montant facture doit être un nombre positif ou vide",
   }),
 });
 
@@ -696,7 +696,7 @@ export default function BLReconciliation() {
                   name="blNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Numéro de BL *</FormLabel>
+                      <FormLabel>Numéro de BL</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="Ex: BL-2024-001"
@@ -713,7 +713,7 @@ export default function BLReconciliation() {
                   name="blAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Montant BL (€) *</FormLabel>
+                      <FormLabel>Montant BL (€)</FormLabel>
                       <FormControl>
                         <Input 
                           type="number"
@@ -737,7 +737,7 @@ export default function BLReconciliation() {
                   name="invoiceReference"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Référence Facture *</FormLabel>
+                      <FormLabel>Référence Facture</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="Ex: FAC-2024-001"
@@ -754,7 +754,7 @@ export default function BLReconciliation() {
                   name="invoiceAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Montant Facture (€) *</FormLabel>
+                      <FormLabel>Montant Facture (€)</FormLabel>
                       <FormControl>
                         <Input 
                           type="number"
