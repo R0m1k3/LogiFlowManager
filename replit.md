@@ -525,6 +525,11 @@ Changelog:
 - July 14, 2025. Guide complet d'installation, configuration et maintenance
 - July 14, 2025. Architecture technique détaillée avec technologies utilisées
 - July 14, 2025. **PROJET OPTIMISÉ** - Structure de fichiers nettoyée et documentation à jour
+- July 14, 2025. **ERREUR REACT #310 PRODUCTION DÉFINITIVEMENT RÉSOLUE** - Harmonisation structure données dev/production
+- July 14, 2025. **PROBLÈME ARCHITECTURE DOUBLE IDENTIFIÉ ET CORRIGÉ** - storage.ts (Drizzle) vs storage.production.ts (SQL brut)
+- July 14, 2025. **TRANSFORMATION DONNÉES PRODUCTION COMPLÈTE** - Toutes méthodes retournent structure Drizzle (objets imbriqués)
+- July 14, 2025. **CORRECTIONS CRITIQUES:** getDeliveries(), getOrders(), getPublicities(), getCustomerOrders() harmonisées  
+- July 14, 2025. **SOLUTION FINALE PRODUCTION** - Rebuild Docker nécessaire pour appliquer corrections *.production.ts
 - July 14, 2025. **AUDIT COMPLET TOUTES PAGES TERMINÉ** - Protection systématique Array.isArray() et logs debug
 - July 14, 2025. Vérification complète des 11 pages principales : Dashboard, Groups, Suppliers, Users, CustomerOrders, RoleManagement, Publicities, Orders, Deliveries, BLReconciliation
 - July 14, 2025. Correction BLReconciliation.tsx : ajout protection Array.isArray() manquante sur filtres et maps

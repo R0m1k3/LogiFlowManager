@@ -207,23 +207,65 @@ export class DatabaseStorage implements IStorage {
 
   // Simplified methods for production - implement core functionality only
   async getOrders(groupIds?: number[]): Promise<any[]> {
-    let query = `
-      SELECT o.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
-             u.username as creator_username
+    let whereClause = '';
+    let params = [];
+    
+    if (groupIds && groupIds.length > 0) {
+      whereClause = ' WHERE o.group_id = ANY($1)';
+      params = [groupIds];
+    }
+    
+    const result = await pool.query(`
+      SELECT o.*, 
+             s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone,
+             g.id as group_id, g.name as group_name, g.color as group_color,
+             u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name
       FROM orders o
       LEFT JOIN suppliers s ON o.supplier_id = s.id
       LEFT JOIN groups g ON o.group_id = g.id
       LEFT JOIN users u ON o.created_by = u.id
-    `;
+      ${whereClause}
+      ORDER BY o.created_at DESC
+    `, params);
     
-    if (groupIds && groupIds.length > 0) {
-      query += ` WHERE o.group_id = ANY($1)`;
-      const result = await pool.query(query + ' ORDER BY o.created_at DESC', [groupIds]);
-      return result.rows || [];
-    } else {
-      const result = await pool.query(query + ' ORDER BY o.created_at DESC');
-      return result.rows || [];
-    }
+    // Transformer pour correspondre exactement à la structure Drizzle
+    return (result.rows || []).map(row => ({
+      id: row.id,
+      supplierId: row.supplier_id,
+      groupId: row.group_id,
+      plannedDate: row.planned_date,
+      quantity: row.quantity,
+      unit: row.unit,
+      status: row.status,
+      notes: row.notes,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      supplier: row.supplier_name ? {
+        id: row.supplier_id,
+        name: row.supplier_name,
+        contact: row.supplier_contact || '',
+        phone: row.supplier_phone || '',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      } : null,
+      group: row.group_name ? {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color || '#666666',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      } : null,
+      creator: row.creator_username ? {
+        id: row.creator_id,
+        username: row.creator_username,
+        email: row.creator_email || '',
+        name: row.creator_name || row.creator_username,
+        firstName: row.creator_name || row.creator_username,
+        lastName: '',
+        role: 'admin'
+      } : null
+    }));
   }
 
   async getOrdersByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<any[]> {
@@ -303,24 +345,77 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDeliveries(groupIds?: number[]): Promise<any[]> {
-    let query = `
-      SELECT d.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
-             u.username as creator_username, o.planned_date as order_planned_date
-      FROM deliveries d
-      JOIN suppliers s ON d.supplier_id = s.id
-      JOIN groups g ON d.group_id = g.id
-      JOIN users u ON d.created_by = u.id
-      LEFT JOIN orders o ON d.order_id = o.id
-    `;
+    let whereClause = '';
+    let params = [];
     
     if (groupIds && groupIds.length > 0) {
-      query += ` WHERE d.group_id = ANY($1)`;
-      const result = await pool.query(query + ' ORDER BY d.created_at DESC', [groupIds]);
-      return result.rows;
-    } else {
-      const result = await pool.query(query + ' ORDER BY d.created_at DESC');
-      return result.rows;
+      whereClause = ' WHERE d.group_id = ANY($1)';
+      params = [groupIds];
     }
+    
+    const result = await pool.query(`
+      SELECT d.*, 
+             s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone,
+             g.id as group_id, g.name as group_name, g.color as group_color,
+             u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name,
+             o.id as order_id_rel, o.planned_date as order_planned_date, o.status as order_status
+      FROM deliveries d
+      LEFT JOIN suppliers s ON d.supplier_id = s.id
+      LEFT JOIN groups g ON d.group_id = g.id  
+      LEFT JOIN users u ON d.created_by = u.id
+      LEFT JOIN orders o ON d.order_id = o.id
+      ${whereClause}
+      ORDER BY d.created_at DESC
+    `, params);
+    
+    // Transformer pour correspondre exactement à la structure Drizzle
+    return (result.rows || []).map(row => ({
+      id: row.id,
+      orderId: row.order_id,
+      supplierId: row.supplier_id,
+      groupId: row.group_id,
+      scheduledDate: row.scheduled_date,
+      quantity: row.quantity,
+      unit: row.unit,
+      status: row.status,
+      notes: row.notes,
+      blNumber: row.bl_number,
+      blAmount: row.bl_amount,
+      invoiceReference: row.invoice_reference,
+      invoiceAmount: row.invoice_amount,
+      reconciled: row.reconciled,
+      deliveredDate: row.delivered_date,
+      validatedAt: row.validated_at,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      supplier: row.supplier_name ? {
+        id: row.supplier_id,
+        name: row.supplier_name,
+        contact: row.supplier_contact || '',
+        phone: row.supplier_phone || '',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      } : null,
+      group: row.group_name ? {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color || '#666666',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      } : null,
+      creator: row.creator_username ? {
+        id: row.creator_id,
+        username: row.creator_username,
+        email: row.creator_email || '',
+        name: row.creator_name || row.creator_username
+      } : null,
+      order: row.order_id_rel ? {
+        id: row.order_id_rel,
+        plannedDate: row.order_planned_date,
+        status: row.order_status
+      } : null
+    }));
   }
 
   async getDeliveriesByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<any[]> {
@@ -470,13 +565,28 @@ export class DatabaseStorage implements IStorage {
     const publicityData = await Promise.all(
       publicities.rows.map(async (pub) => {
         const participations = await pool.query(
-          'SELECT pp.group_id, g.name as group_name FROM publicity_participations pp LEFT JOIN groups g ON pp.group_id = g.id WHERE pp.publicity_id = $1', 
+          'SELECT pp.group_id, g.name as group_name, g.color as group_color FROM publicity_participations pp LEFT JOIN groups g ON pp.group_id = g.id WHERE pp.publicity_id = $1', 
           [pub.id]
         );
         
         return {
-          ...pub,
-          participations: participations.rows || []
+          id: pub.id,
+          pubNumber: pub.pub_number,
+          designation: pub.designation || pub.title, // Support ancien champ title
+          startDate: pub.start_date,
+          endDate: pub.end_date,
+          year: pub.year,
+          createdBy: pub.created_by,
+          createdAt: pub.created_at,
+          updatedAt: pub.updated_at,
+          participations: (participations.rows || []).map(p => ({
+            groupId: p.group_id,
+            group: {
+              id: p.group_id,
+              name: p.group_name,
+              color: p.group_color || '#666666'
+            }
+          }))
         };
       })
     );
@@ -664,23 +774,70 @@ export class DatabaseStorage implements IStorage {
 
   // Customer Orders methods
   async getCustomerOrders(groupIds?: number[]): Promise<any[]> {
-    let query = `
-      SELECT co.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
-             u.username as creator_username
-      FROM customer_orders co
-      JOIN suppliers s ON co.supplier_id = s.id
-      JOIN groups g ON co.group_id = g.id
-      JOIN users u ON co.created_by = u.id
-    `;
+    let whereClause = '';
+    let params = [];
     
     if (groupIds && groupIds.length > 0) {
-      query += ` WHERE co.group_id = ANY($1)`;
-      const result = await pool.query(query + ' ORDER BY co.created_at DESC', [groupIds]);
-      return result.rows;
-    } else {
-      const result = await pool.query(query + ' ORDER BY co.created_at DESC');
-      return result.rows;
+      whereClause = ' WHERE co.group_id = ANY($1)';
+      params = [groupIds];
     }
+    
+    const result = await pool.query(`
+      SELECT co.*, 
+             s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone,
+             g.id as group_id, g.name as group_name, g.color as group_color,
+             u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name
+      FROM customer_orders co
+      LEFT JOIN suppliers s ON co.supplier_id = s.id
+      LEFT JOIN groups g ON co.group_id = g.id
+      LEFT JOIN users u ON co.created_by = u.id
+      ${whereClause}
+      ORDER BY co.created_at DESC
+    `, params);
+    
+    // Transformer pour correspondre exactement à la structure Drizzle
+    const transformedData = (result.rows || []).map(row => ({
+      id: row.id,
+      orderTaker: row.order_taker,
+      customerName: row.customer_name,
+      customerPhone: row.customer_phone,
+      productDesignation: row.product_designation,
+      productReference: row.product_reference,
+      gencode: row.gencode,
+      quantity: row.quantity,
+      supplierId: row.supplier_id,
+      status: row.status,
+      deposit: row.deposit,
+      isPromotionalPrice: row.is_promotional_price,
+      customerNotified: row.customer_notified,
+      groupId: row.group_id,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      supplier: row.supplier_name ? {
+        id: row.supplier_id,
+        name: row.supplier_name,
+        contact: row.supplier_contact || '',
+        phone: row.supplier_phone || ''
+      } : null,
+      group: row.group_name ? {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color || '#666666'
+      } : null,
+      creator: row.creator_username ? {
+        id: row.creator_id,
+        username: row.creator_username,
+        email: row.creator_email || '',
+        name: row.creator_name || row.creator_username,
+        firstName: row.creator_name || row.creator_username,
+        lastName: '',
+        role: 'admin'
+      } : null
+    }));
+    
+    console.log('Customer orders returned from storage:', transformedData, 'Type:', typeof transformedData, 'Is Array:', Array.isArray(transformedData));
+    return transformedData;
   }
 
   async getCustomerOrder(id: number): Promise<any> {
