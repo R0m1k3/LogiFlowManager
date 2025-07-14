@@ -47,8 +47,29 @@ export default function Publicities() {
         params.append('storeId', selectedStoreId.toString());
       }
       const response = await fetch(`/api/publicities?${params}`);
-      return response.json();
+      if (!response.ok) {
+        throw new Error('Failed to fetch publicities');
+      }
+      const data = await response.json();
+      console.log('📢 Publicities received:', data.length, 'items', data.slice(0, 2));
+      return Array.isArray(data) ? data : [];
     },
+  });
+
+  console.log('📢 Publicities Debug:', { 
+    isLoading, 
+    publicitiesCount: publicities?.length, 
+    selectedYear,
+    selectedStoreId,
+    publicities: publicities?.slice(0, 2)
+  });
+
+  console.log('📢 Publicities Debug:', { 
+    isLoading, 
+    publicitiesCount: publicities?.length, 
+    selectedYear,
+    selectedStoreId,
+    publicities: publicities?.slice(0, 2)
   });
 
   const { data: groups = [] } = useQuery<Group[]>({
