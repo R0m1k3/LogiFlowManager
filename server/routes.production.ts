@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.production";
 import { setupLocalAuth, requireAuth } from "./localAuth.production";
-import { initializeRolesAndPermissions } from "./initRolesAndPermissions";
+import { initializeRolesAndPermissions } from "./initRolesAndPermissions.production";
 
 // Alias pour compatibilité
 const isAuthenticated = requireAuth;

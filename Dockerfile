@@ -57,7 +57,6 @@ RUN npx esbuild server/index.production.ts \
     --external:passport \
     --external:passport-local \
     --external:express-session \
-
     --external:zod \
     --external:express-rate-limit \
     --external:memoizee \

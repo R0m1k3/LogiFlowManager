@@ -22,14 +22,32 @@ function log(message: string, source = "express") {
 
 // Fonction pour servir les fichiers statiques en production
 function serveStatic(app: express.Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // Essayer plusieurs chemins possibles pour le build frontend
+  const possiblePaths = [
+    path.resolve("dist", "public"),
+    path.resolve("dist"),
+    path.resolve(".", "dist", "public"),
+  ];
+  
+  let distPath = null;
+  for (const testPath of possiblePaths) {
+    if (fs.existsSync(testPath) && fs.existsSync(path.join(testPath, "index.html"))) {
+      distPath = testPath;
+      break;
+    }
+  }
 
-  if (!fs.existsSync(distPath)) {
+  if (!distPath) {
+    console.log("Available directories:");
+    console.log("- dist/:", fs.existsSync("dist") ? fs.readdirSync("dist") : "NOT FOUND");
+    console.log("- dist/public/:", fs.existsSync("dist/public") ? fs.readdirSync("dist/public") : "NOT FOUND");
+    
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      `Could not find the build directory with index.html. Checked: ${possiblePaths.join(", ")}`,
     );
   }
 
+  console.log(`✅ Serving static files from: ${distPath}`);
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist
