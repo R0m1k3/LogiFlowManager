@@ -112,11 +112,11 @@ export function CustomerOrderForm({
       return;
     }
     
-    // Convert deposit to number and add required fields
+    // Prepare data with proper types
     const submitData = {
       ...data,
       customerName: data.customerName.trim(), // Clean the customer name
-      deposit: data.deposit ? parseFloat(data.deposit) : 0,
+      deposit: data.deposit || "0.00", // Keep as string for decimal field
       groupId: typeof groupId === 'number' ? groupId : parseInt(groupId.toString()),
       createdBy: user?.id || '', // Add the current user ID
     };
