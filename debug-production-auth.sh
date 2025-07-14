@@ -1,64 +1,108 @@
 #!/bin/bash
 
-echo "🔍 DEBUG AUTHENTIFICATION PRODUCTION"
-echo "===================================="
+echo "🔍 DIAGNOSTIC COMPLET PROBLÈME PRODUCTION"
+echo "========================================"
 echo ""
 
-echo "1. Test de l'endpoint /api/user sans authentification :"
-curl -s -w "HTTP: %{http_code}\n" http://localhost:3000/api/user | head -3
+echo "TESTS D'AUTHENTIFICATION ET NAVIGATION PRODUCTION"
 echo ""
 
-echo "2. Test de connexion admin/admin :"
-response=$(curl -s -w "HTTP: %{http_code}" -X POST http://localhost:3000/api/login \
+echo "1. Test de base - Santé de l'application..."
+health_response=$(curl -s -w "HTTP:%{http_code}" -X GET http://localhost:3000/api/health)
+health_code="${health_response##*HTTP:}"
+echo "Health check: $health_code"
+
+if [ "$health_code" != "200" ]; then
+    echo "❌ Application non disponible"
+    exit 1
+fi
+
+echo ""
+echo "2. Test authentification admin..."
+auth_response=$(curl -s -w "HTTP:%{http_code}" -X POST http://localhost:3000/api/login \
   -H 'Content-Type: application/json' \
   -d '{"username":"admin","password":"admin"}' \
-  -c /tmp/prod-cookies.txt)
+  -c /tmp/debug-cookies.txt)
 
-http_code="${response: -3}"
-response_body="${response%???}"
+auth_code="${auth_response##*HTTP:}"
+echo "Login response: $auth_code"
 
-echo "Code HTTP: $http_code"
-echo "Réponse: $response_body"
-echo ""
-
-if [ "$http_code" = "200" ]; then
-    echo "✅ Connexion réussie ! Test de récupération utilisateur..."
+if [ "$auth_code" = "200" ]; then
+    echo "✅ Authentification réussie"
     
-    echo "3. Test /api/user avec session :"
-    user_response=$(curl -s -w "HTTP: %{http_code}" -X GET http://localhost:3000/api/user \
-      -b /tmp/prod-cookies.txt)
+    echo ""
+    echo "3. Test récupération profil utilisateur..."
+    user_response=$(curl -s -w "HTTP:%{http_code}" -X GET http://localhost:3000/api/user \
+      -b /tmp/debug-cookies.txt)
     
-    user_http_code="${user_response: -3}"
-    user_body="${user_response%???}"
+    user_code="${user_response##*HTTP:}"
+    echo "User profile: $user_code"
     
-    echo "Code HTTP: $user_http_code"
-    echo "Réponse: $user_body"
-    
-    if [ "$user_http_code" = "200" ]; then
-        echo "✅ Session maintenue ! L'utilisateur est bien récupéré."
-        echo "🎯 La sidebar devrait maintenant afficher les menus."
+    if [ "$user_code" = "200" ]; then
+        echo "✅ Profil utilisateur accessible"
+        
+        echo ""
+        echo "4. Test de toutes les pages frontend..."
+        
+        declare -a pages=("/" "/dashboard" "/calendar" "/orders" "/deliveries" "/publicities" "/users")
+        
+        for page in "${pages[@]}"; do
+            echo "Testing page: $page"
+            page_response=$(curl -s -w "HTTP:%{http_code}" -X GET "http://localhost:3000$page" \
+              -b /tmp/debug-cookies.txt)
+            page_code="${page_response##*HTTP:}"
+            
+            if [ "$page_code" = "200" ]; then
+                echo "  ✅ Page $page: OK"
+            else
+                echo "  ❌ Page $page: ERREUR ($page_code)"
+            fi
+        done
+        
+        echo ""
+        echo "5. Test des APIs principales..."
+        
+        declare -A apis=(
+            ["/api/orders"]="Orders"
+            ["/api/deliveries"]="Deliveries" 
+            ["/api/groups"]="Groups"
+            ["/api/stats/monthly"]="Statistics"
+            ["/api/publicities"]="Publicities"
+        )
+        
+        for api in "${!apis[@]}"; do
+            echo "Testing API: $api"
+            api_response=$(curl -s -w "HTTP:%{http_code}" -X GET "http://localhost:3000$api" \
+              -b /tmp/debug-cookies.txt)
+            api_code="${api_response##*HTTP:}"
+            
+            if [ "$api_code" = "200" ] || [ "$api_code" = "304" ]; then
+                echo "  ✅ API $api: OK"
+            else
+                echo "  ❌ API $api: ERREUR ($api_code)"
+            fi
+        done
+        
     else
-        echo "❌ Problème de session - l'utilisateur n'est pas maintenu."
+        echo "❌ Impossible de récupérer le profil utilisateur"
     fi
 else
-    echo "❌ Problème de connexion - vérifier le hash du mot de passe."
+    echo "❌ Échec authentification"
 fi
-
-echo ""
-echo "4. Test des logs production :"
-echo "Vérifier les logs avec :"
-echo "docker-compose logs -f app | grep -E '(login|user|auth|sidebar)'"
 
 # Nettoyage
-rm -f /tmp/prod-cookies.txt
+rm -f /tmp/debug-cookies.txt
 
 echo ""
-echo "RÉSUMÉ DU DIAGNOSTIC :"
-echo "====================="
-if [ "$http_code" = "200" ] && [ "$user_http_code" = "200" ]; then
-    echo "🎉 Authentification production fonctionnelle !"
-    echo "   Les menus de la sidebar devraient s'afficher."
-else
-    echo "⚠️  Problème d'authentification détecté."
-    echo "   Les menus ne s'affichent pas car user est null."
-fi
+echo "==============================================="
+echo "DIAGNOSTIC TERMINÉ"
+echo ""
+echo "Si toutes les APIs fonctionnent mais que les pages"
+echo "apparaissent et disparaissent, le problème est dans"
+echo "le frontend React en production."
+echo ""
+echo "Solutions :"
+echo "1. Utiliser RouterProduction.tsx créé"
+echo "2. Appliquer useAuthProduction.ts"
+echo "3. Redémarrer l'application avec les corrections"
+echo "==============================================="

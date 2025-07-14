@@ -144,6 +144,7 @@ Changelog:
 - July 14, 2025. **DIAGNOSTIC MENU SIDEBAR** - Créé debug-production-auth.sh pour tester l'authentification
 - July 14, 2025. **ERREUR NAVIGATION PRODUCTION RÉSOLUE** - Correction routing serveur + logs debug navigation
 - July 14, 2025. **FLICKERING PAGES PRODUCTION CORRIGÉ** - Optimisation useAuth + QueryClient pour stabilité
+- July 14, 2025. **SOLUTION RADICALE PAGES BLANCHES** - Créé RouterProduction + useAuthProduction sans React Query
 - July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
 - July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
 - July 14, 2025. Dockerfile mis à jour pour utiliser server/index.production.ts
