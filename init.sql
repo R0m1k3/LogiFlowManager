@@ -143,6 +143,41 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     PRIMARY KEY (role_id, permission_id)
 );
 
+-- NocoDB configuration table
+CREATE TABLE IF NOT EXISTS nocodb_config (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    base_url VARCHAR NOT NULL,
+    project_id VARCHAR NOT NULL,
+    api_token VARCHAR NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_by VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customer Orders table (Commandes Client)
+CREATE TABLE IF NOT EXISTS customer_orders (
+    id SERIAL PRIMARY KEY,
+    order_taker VARCHAR NOT NULL,
+    customer_name VARCHAR NOT NULL,
+    customer_phone VARCHAR NOT NULL,
+    product_designation TEXT NOT NULL,
+    product_reference VARCHAR,
+    gencode VARCHAR NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    supplier_id INTEGER NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
+    status VARCHAR NOT NULL DEFAULT 'En attente de Commande',
+    deposit DECIMAL(10,2) DEFAULT 0.00,
+    is_promotional_price BOOLEAN DEFAULT FALSE,
+    customer_notified BOOLEAN DEFAULT FALSE,
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    created_by VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Note: No default data inserted
 -- Groups and suppliers will be created by administrators as needed
 -- Roles and permissions will be initialized by the application
@@ -153,6 +188,8 @@ SELECT setval('suppliers_id_seq', (SELECT COALESCE(MAX(id), 1) FROM suppliers));
 SELECT setval('publicities_id_seq', (SELECT COALESCE(MAX(id), 1) FROM publicities));
 SELECT setval('roles_id_seq', (SELECT COALESCE(MAX(id), 1) FROM roles));
 SELECT setval('permissions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM permissions));
+SELECT setval('nocodb_config_id_seq', (SELECT COALESCE(MAX(id), 1) FROM nocodb_config));
+SELECT setval('customer_orders_id_seq', (SELECT COALESCE(MAX(id), 1) FROM customer_orders));
 
 -- Create performance indexes
 CREATE INDEX IF NOT EXISTS idx_orders_planned_date ON orders (planned_date);
@@ -195,6 +232,21 @@ CREATE INDEX IF NOT EXISTS idx_permissions_category ON permissions (category);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions (role_id);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions (permission_id);
 
+-- NocoDB configuration indexes
+CREATE INDEX IF NOT EXISTS idx_nocodb_config_name ON nocodb_config (name);
+CREATE INDEX IF NOT EXISTS idx_nocodb_config_is_active ON nocodb_config (is_active);
+CREATE INDEX IF NOT EXISTS idx_nocodb_config_created_by ON nocodb_config (created_by);
+
+-- Customer orders indexes
+CREATE INDEX IF NOT EXISTS idx_customer_orders_customer_name ON customer_orders (customer_name);
+CREATE INDEX IF NOT EXISTS idx_customer_orders_customer_phone ON customer_orders (customer_phone);
+CREATE INDEX IF NOT EXISTS idx_customer_orders_gencode ON customer_orders (gencode);
+CREATE INDEX IF NOT EXISTS idx_customer_orders_supplier_id ON customer_orders (supplier_id);
+CREATE INDEX IF NOT EXISTS idx_customer_orders_group_id ON customer_orders (group_id);
+CREATE INDEX IF NOT EXISTS idx_customer_orders_status ON customer_orders (status);
+CREATE INDEX IF NOT EXISTS idx_customer_orders_created_by ON customer_orders (created_by);
+CREATE INDEX IF NOT EXISTS idx_customer_orders_created_at ON customer_orders (created_at);
+
 -- Notification de fin
 DO $$
 BEGIN
@@ -214,6 +266,8 @@ BEGIN
     RAISE NOTICE '- roles (rôles système et personnalisés)';
     RAISE NOTICE '- permissions (permissions granulaires)';
     RAISE NOTICE '- role_permissions (liaisons rôles-permissions)';
+    RAISE NOTICE '- nocodb_config (configuration NocoDB)';
+    RAISE NOTICE '- customer_orders (commandes clients)';
     RAISE NOTICE '==========================================';
     RAISE NOTICE 'Aucune donnée de test insérée automatiquement';
     RAISE NOTICE 'Groupes et fournisseurs à créer par l''administrateur';
