@@ -1475,6 +1475,148 @@ export class DatabaseStorage implements IStorage {
       `, params);
     }
   }
+
+  // NocoDB Configuration operations
+  async getNocodbConfigs(): Promise<any[]> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      SELECT id, name, base_url, api_token, project_id, description, is_active, created_at, updated_at
+      FROM nocodb_configs
+      ORDER BY created_at DESC
+    `);
+    
+    return result.rows.map(row => ({
+      id: row.id as number,
+      name: row.name as string,
+      baseUrl: row.base_url as string,
+      apiToken: row.api_token as string,
+      projectId: row.project_id as string,
+      description: row.description as string,
+      isActive: row.is_active as boolean,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+    }));
+  }
+
+  async getNocodbConfig(id: number): Promise<any | undefined> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      SELECT id, name, base_url, api_token, project_id, description, is_active, created_at, updated_at
+      FROM nocodb_configs
+      WHERE id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return undefined;
+    }
+    
+    const row = result.rows[0];
+    return {
+      id: row.id as number,
+      name: row.name as string,
+      baseUrl: row.base_url as string,
+      apiToken: row.api_token as string,
+      projectId: row.project_id as string,
+      description: row.description as string,
+      isActive: row.is_active as boolean,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+    };
+  }
+
+  async createNocodbConfig(config: any): Promise<any> {
+    const { pool } = await import("./db.production.js");
+    
+    const result = await pool.query(`
+      INSERT INTO nocodb_configs (name, base_url, api_token, project_id, description, is_active, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING *
+    `, [
+      config.name,
+      config.baseUrl,
+      config.apiToken,
+      config.projectId,
+      config.description || null,
+      config.isActive !== undefined ? config.isActive : true
+    ]);
+    
+    const row = result.rows[0];
+    return {
+      id: row.id as number,
+      name: row.name as string,
+      baseUrl: row.base_url as string,
+      apiToken: row.api_token as string,
+      projectId: row.project_id as string,
+      description: row.description as string,
+      isActive: row.is_active as boolean,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+    };
+  }
+
+  async updateNocodbConfig(id: number, config: any): Promise<any> {
+    const { pool } = await import("./db.production.js");
+    
+    const fields = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    if (config.name !== undefined) {
+      fields.push(`name = $${paramIndex++}`);
+      values.push(config.name);
+    }
+    if (config.baseUrl !== undefined) {
+      fields.push(`base_url = $${paramIndex++}`);
+      values.push(config.baseUrl);
+    }
+    if (config.apiToken !== undefined) {
+      fields.push(`api_token = $${paramIndex++}`);
+      values.push(config.apiToken);
+    }
+    if (config.projectId !== undefined) {
+      fields.push(`project_id = $${paramIndex++}`);
+      values.push(config.projectId);
+    }
+    if (config.description !== undefined) {
+      fields.push(`description = $${paramIndex++}`);
+      values.push(config.description);
+    }
+    if (config.isActive !== undefined) {
+      fields.push(`is_active = $${paramIndex++}`);
+      values.push(config.isActive);
+    }
+    
+    fields.push(`updated_at = $${paramIndex++}`);
+    values.push(new Date());
+    values.push(id);
+    
+    const result = await pool.query(`
+      UPDATE nocodb_configs 
+      SET ${fields.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `, values);
+    
+    const row = result.rows[0];
+    return {
+      id: row.id as number,
+      name: row.name as string,
+      baseUrl: row.base_url as string,
+      apiToken: row.api_token as string,
+      projectId: row.project_id as string,
+      description: row.description as string,
+      isActive: row.is_active as boolean,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
+    };
+  }
+
+  async deleteNocodbConfig(id: number): Promise<void> {
+    const { pool } = await import("./db.production.js");
+    await pool.query(`DELETE FROM nocodb_configs WHERE id = $1`, [id]);
+  }
 }
 
 export const storage = new DatabaseStorage();
