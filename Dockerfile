@@ -1,48 +1,80 @@
-# Multi-stage build for production
+# Multi-stage build for optimized production image
 FROM node:20-alpine AS build
 
+# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm ci
 
-# Copy source files
-COPY . .
+# Install all dependencies (including dev dependencies needed for build)
+RUN npm ci && npm cache clean --force
 
-# Build frontend
-RUN npm run build
+# Copy source code (excluding .env to avoid conflicts)
+COPY package*.json ./
+COPY tsconfig.json ./
+COPY drizzle.config.ts ./
+COPY vite.config.ts ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
+COPY components.json ./
+COPY client/ client/
+COPY server/ server/
+COPY shared/ shared/
+
+# Vérifier la structure
+RUN ls -la server/ && echo "Production files:" && ls -la server/*.production.*
+
+# Build the application
+# Build frontend first
+RUN npx vite build
+
+# Vérifier que les fichiers sont construits
+RUN echo "=== BUILD VERIFICATION ===" && \
+    ls -la dist/ && \
+    echo "Frontend files in dist/public:" && \
+    ls -la dist/public/ && \
+    echo "index.html exists:" && \
+    ls -la dist/public/index.html
+
+# Build backend with production file only
+RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm --outfile=dist/index.js --external:vite --external:@vitejs/* --external:@replit/* --external:tsx --external:openid-client --external:@neondatabase/serverless --external:ws --external:drizzle-orm --external:pg --external:express --external:connect-pg-simple --external:passport --external:passport-local --external:express-session --external:bcrypt
 
 # Production stage
 FROM node:20-alpine AS production
 
-# Install PostgreSQL client for health checks
-RUN apk add --no-cache postgresql-client
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
+# Set working directory
 WORKDIR /app
 
-# Copy package files and install production dependencies
-COPY package*.json ./
-RUN npm ci --only=production
+# Install production dependencies only
+COPY --from=build /app/package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy built application
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/server ./server
-COPY --from=build /app/shared ./shared
+# Copy built application from build stage
+COPY --from=build --chown=nextjs:nodejs /app/dist ./dist
+COPY --from=build --chown=nextjs:nodejs /app/shared ./shared
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+# Create uploads directory with proper permissions
+RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 
-# Change ownership
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+# Switch to non-root user
+USER nextjs
 
+# Expose port
 EXPOSE 3000
+
+# Install wget for health check
+USER root
+RUN apk add --no-cache wget
+USER nextjs
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# Start the application with tsx for TypeScript support
-CMD ["npx", "tsx", "server/index.production.ts"]
+# Start the application
+CMD ["node", "dist/index.js"]

@@ -1,277 +1,235 @@
-# LogiFlow - Gestion Commandes & Livraisons
+# LogiFlow - Gestion Logistique Complète
 
-## 🚀 Vue d'ensemble
+Application de gestion logistique moderne avec authentification locale, système de rôles dynamique et interface optimisée pour tablettes.
 
-LogiFlow est une application web complète de gestion logistique pour les commandes et livraisons multi-magasins. Elle inclut un calendrier interactif, un système de réconciliation BL/Factures, la gestion des publicités, et un module de commandes clients.
+## Fonctionnalités Principales
 
-## ✨ Fonctionnalités
+### 🔐 Authentification & Gestion des Utilisateurs
+- **Connexion locale** : admin/admin (par défaut)
+- **Système de rôles dynamique** : Admin, Manager, Employee
+- **Gestion complète des utilisateurs** : Création, modification, suppression
+- **Permissions configurables** : Système de permissions par module
 
-### 📊 Dashboard
-- Statistiques mensuelles en temps réel
-- Vue d'ensemble du calendrier
-- Indicateurs de performance
-
-### 📅 Calendrier
-- Vue mensuelle interactive
-- Création rapide de commandes/livraisons
-- Codes couleur par statut
-
-### 📦 Gestion des Commandes
-- CRUD complet des commandes fournisseurs
-- Statuts : en attente, planifiée, livrée
-- Liaison avec les livraisons
-
-### 🚚 Gestion des Livraisons
-- Planification et validation
-- Saisie BL et quantités
-- Suivi des statuts
-
-### 💰 Rapprochement BL/Factures
-- Réconciliation automatique
-- Vérification NocoDB
-- Calcul des écarts
-
-### 👥 Gestion des Utilisateurs
-- Authentification locale
-- Système de rôles dynamique
-- Assignation aux magasins
-
-### 🏪 Gestion des Magasins
-- Configuration des groupes
-- Couleurs et identifiants
-- Intégration NocoDB
-
-### 📈 Module Publicités
-- Campagnes publicitaires
-- Participation des magasins
-- Planification annuelle
+### 📦 Gestion des Commandes & Livraisons
+- **Commandes fournisseurs** : Création, suivi et validation
+- **Livraisons** : Planification et suivi des livraisons
+- **Rapprochement BL/Factures** : Réconciliation automatique avec vérification NocoDB
+- **Statuts intelligents** : Workflow automatique des statuts
 
 ### 🛒 Commandes Clients
-- Gestion des commandes clients
-- Statuts de traitement
-- Système de notifications
+- **Interface tactile** : Optimisée pour tablettes
+- **Filtrage avancé** : Par fournisseur et statut
+- **Notifications client** : Système de notification intégré
+- **Impression d'étiquettes** : Génération automatique
 
-## 🛠️ Technologies
+### 📊 Tableau de Bord & Calendrier
+- **Statistiques temps réel** : Commandes, livraisons, publicités
+- **Calendrier interactif** : Vue mensuelle avec navigation
+- **Indicateurs visuels** : Codes couleur par statut et magasin
 
-### Frontend
-- **React 18** avec TypeScript
-- **Vite** pour le build
-- **TailwindCSS** pour le style
-- **Shadcn/ui** pour les composants
-- **TanStack Query** pour la gestion d'état
+### 📢 Gestion des Publicités
+- **Campagnes publicitaires** : Planning annuel
+- **Participation des magasins** : Gestion multi-magasins
+- **Vues multiples** : Liste, calendrier, vue d'ensemble
 
-### Backend
-- **Node.js** avec Express
-- **PostgreSQL** avec Drizzle ORM
-- **Authentification locale** avec sessions
-- **Rate limiting** et sécurité
+## Démarrage Rapide
 
-### Déploiement
-- **Docker** avec multi-stage build
-- **PostgreSQL** containerisé
-- **Health checks** automatiques
-- **Scripts de déploiement** automatisés
+### Développement Local
 
-## 📋 Prérequis
-
-- Docker et Docker Compose
-- 2 GB de RAM minimum
-- 5 GB d'espace disque
-- Réseau nginx_default (créé automatiquement)
-
-## 🚀 Installation et Déploiement
-
-### 1. Cloner le projet
 ```bash
-git clone <repository-url>
-cd logiflow
+# Installation des dépendances
+npm install
+
+# Démarrage du serveur de développement
+npm run dev
 ```
 
-### 2. Configuration
-Les variables d'environnement sont préconfigurées dans `docker-compose.yml` :
-- Base de données : PostgreSQL sur port 5434
-- Application : Port 3000
-- Authentification : admin / admin
+L'application sera accessible sur `http://localhost:5000`
 
-### 3. Déploiement automatique
-```bash
-./deploy-production.sh
-```
+### Déploiement Docker
 
-### 4. Déploiement manuel
 ```bash
-# Construire et démarrer
-docker-compose build
+# Construction et démarrage
 docker-compose up -d
 
-# Vérifier le statut
-docker-compose ps
+# Vérification des logs
+docker-compose logs -f logiflow
+
+# Arrêt
+docker-compose down
 ```
 
-### 5. Accès à l'application
-- URL : http://localhost:3000
-- Identifiants : admin / admin
+L'application sera accessible sur `http://localhost:3000`
 
-## 🔧 Configuration
+## Configuration
 
-### Base de données
-- **Host** : localhost:5434
-- **Database** : logiflow_db
-- **User** : logiflow_admin
-- **Password** : LogiFlow2025!
+### Base de Données PostgreSQL
+- **Initialisation automatique** : Création des tables au démarrage
+- **Données par défaut** : Utilisateur admin créé automatiquement
+- **Sessions persistantes** : Stockage des sessions utilisateur
+
+### Authentification
+- **Utilisateur par défaut** : admin / admin
+- **Changement de mot de passe** : Requis au premier login
+- **Rôles configurables** : Système de permissions dynamique
+
+### Intégration NocoDB
+- **Vérification automatique** : Références factures
+- **Configuration flexible** : Paramètres d'API configurables
+- **Réconciliation temps réel** : Validation des montants
+
+## Architecture
+
+### Frontend (React TypeScript)
+- **Vite** : Build tool moderne
+- **TanStack Query** : Gestion d'état serveur
+- **Tailwind CSS** : Styling avec design system
+- **Radix UI** : Components accessibles
+
+### Backend (Express.js)
+- **TypeScript** : Développement type-safe
+- **Drizzle ORM** : Base de données type-safe
+- **Sessions PostgreSQL** : Authentification persistante
+- **Monitoring intégré** : Performance et erreurs
 
 ### Sécurité
-- Sessions stockées en PostgreSQL
-- Rate limiting activé
-- Headers de sécurité configurés
-- Validation des entrées
+- **Rate limiting** : Protection contre les attaques
+- **Headers sécurisés** : CSP, HSTS, etc.
+- **Validation des entrées** : Sanitisation automatique
+- **Logs sécurisés** : Protection des données sensibles
 
-## 📊 Modules Disponibles
+## Modules Disponibles
 
-### Dashboard
-- Statistiques mensuelles
-- Prochaines livraisons
-- Publicités à venir
+| Module | Description | Permissions |
+|--------|-------------|-------------|
+| Dashboard | Tableau de bord avec statistiques | Tous les rôles |
+| Calendrier | Vue mensuelle des activités | Tous les rôles |
+| Commandes | Gestion des commandes fournisseurs | Admin, Manager |
+| Livraisons | Suivi des livraisons | Admin, Manager |
+| Commandes Clients | Interface tactile pour clients | Tous les rôles |
+| Rapprochement | BL/Factures réconciliation | Admin, Manager |
+| Publicités | Gestion des campagnes | Admin, Manager |
+| Utilisateurs | Gestion des comptes | Admin uniquement |
+| Rôles | Configuration des permissions | Admin uniquement |
 
-### Calendrier
-- Navigation mensuelle
-- Création rapide
-- Filtres par magasin
+## API Endpoints
 
-### Commandes
-- Liste complète
-- Création/modification
-- Statuts automatiques
+### Authentification
+- `POST /api/login` - Connexion utilisateur
+- `GET /api/user` - Informations utilisateur
+- `POST /api/logout` - Déconnexion
 
-### Livraisons
-- Planification
-- Validation avec BL
-- Calcul quantités
+### Données Principales
+- `GET /api/orders` - Commandes fournisseurs
+- `GET /api/deliveries` - Livraisons
+- `GET /api/customer-orders` - Commandes clients
+- `GET /api/suppliers` - Fournisseurs
+- `GET /api/groups` - Magasins/Groupes
+- `GET /api/publicities` - Publicités
 
-### Rapprochement
-- Réconciliation BL/Factures
-- Vérification NocoDB
-- Gestion des écarts
+### Administration
+- `GET /api/users` - Utilisateurs
+- `GET /api/roles` - Rôles et permissions
+- `GET /api/stats` - Statistiques
 
-### Utilisateurs
-- Création/modification
-- Assignation magasins
-- Gestion des rôles
+## Monitoring & Performance
 
-### Magasins
-- Configuration complète
-- Couleurs et codes
-- Intégration NocoDB
+### Surveillance Intégrée
+- **Temps de réponse** : Alertes requêtes lentes
+- **Utilisation mémoire** : Monitoring système
+- **Erreurs** : Tracking automatique
+- **Cache intelligent** : Optimisation des performances
 
-### Publicités
-- Campagnes annuelles
-- Participation magasins
-- Vue calendrier
+### Endpoints de Debug
+- `GET /api/metrics` - Métriques système
+- `POST /api/metrics/reset` - Reset des compteurs
 
-### Commandes Clients
-- Prise de commande
-- Suivi statuts
-- Notifications
+## Déploiement Production
 
-## 🔐 Rôles et Permissions
+### Prérequis
+- Docker & Docker Compose
+- PostgreSQL (inclus dans docker-compose)
+- Port 3000 disponible
 
-### Admin
-- Accès complet à tous les modules
-- Gestion des utilisateurs
-- Configuration système
-
-### Manager
-- Gestion multi-magasins
-- Accès aux rapports
-- Permissions étendues
-
-### Employee
-- Accès aux magasins assignés
-- Création/modification limitée
-- Consultation des données
-
-## 🗄️ Structure de la Base
-
-### Tables principales
-- `users` : Utilisateurs et authentification
-- `groups` : Magasins et configuration
-- `suppliers` : Fournisseurs
-- `orders` : Commandes fournisseurs
-- `deliveries` : Livraisons et BL
-- `customer_orders` : Commandes clients
-- `publicities` : Campagnes publicitaires
-- `roles` : Rôles système
-- `permissions` : Permissions disponibles
-
-## 📝 Logs et Monitoring
-
-### Logs applicatifs
-```bash
-docker-compose logs -f logiflow-app
+### Configuration
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  logiflow:
+    image: logiflow:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://...
 ```
 
-### Logs base de données
+### Vérification
 ```bash
-docker-compose logs -f postgres
+# Test de l'API
+curl http://localhost:3000/api/health
+
+# Vérification des logs
+docker-compose logs -f logiflow
 ```
 
-### Health checks
-- Application : http://localhost:3000/api/health
-- Monitoring automatique toutes les 30 secondes
+## Support & Maintenance
 
-## 🔄 Maintenance
+### Résolution des Problèmes
+1. **Erreurs d'authentification** : Vérifiez les credentials admin/admin
+2. **Problèmes de base de données** : Redémarrez les services
+3. **Erreurs de permissions** : Vérifiez les rôles utilisateur
+4. **Performances lentes** : Consultez `/api/metrics`
 
-### Mise à jour
-```bash
-# Arrêter les services
-docker-compose down
+### Maintenance
+- **Sauvegarde** : Base PostgreSQL régulière
+- **Monitoring** : Surveillance des logs et métriques
+- **Mises à jour** : Redéploiement via Docker
 
-# Reconstruire
-docker-compose build --no-cache
+## Développement
 
-# Redémarrer
-docker-compose up -d
+### Structure du Projet
+```
+logiflow/
+├── client/src/          # Frontend React
+│   ├── components/      # Composants réutilisables
+│   ├── pages/          # Pages de l'application
+│   └── lib/            # Utilitaires
+├── server/             # Backend Express
+│   ├── routes.ts       # Routes API
+│   ├── storage.ts      # Couche d'accès aux données
+│   └── index.ts        # Point d'entrée
+├── shared/             # Types partagés
+├── init.sql           # Initialisation base de données
+└── docker-compose.yml # Configuration Docker
 ```
 
-### Sauvegarde
+### Commandes Utiles
 ```bash
-# Sauvegarde base de données
-docker-compose exec postgres pg_dump -U logiflow_admin logiflow_db > backup.sql
+# Développement
+npm run dev
 
-# Restauration
-docker-compose exec -T postgres psql -U logiflow_admin logiflow_db < backup.sql
+# Build production
+npm run build
+
+# Migration base de données
+npm run db:push
+
+# Tests
+npm run test
 ```
 
-### Nettoyage
-```bash
-# Supprimer les volumes (attention : perte de données)
-docker-compose down -v
+## Documentation
 
-# Nettoyer les images
-docker system prune -a
-```
+Pour plus de détails techniques, consultez `replit.md` qui contient :
+- Architecture complète du système
+- Historique des modifications
+- Préférences utilisateur
+- Configuration avancée
 
-## 📞 Support
+## Versions
 
-### Logs utiles
-- Erreurs applicatives dans les logs Docker
-- Statut des services avec `docker-compose ps`
-- Health checks automatiques
-
-### Configuration NocoDB
-- URL : https://nocodb.ffnancy.fr
-- Configuration par magasin
-- Vérification automatique des factures
-
-## 🎯 Statut du Projet
-
-**✅ PRODUCTION READY**
-
-- Toutes les fonctionnalités implémentées
-- Tests de déploiement réussis
-- Documentation complète
-- Scripts automatisés
-- Sécurité renforcée
-- Performance optimisée
-
-L'application est prête pour un déploiement en production immédiat.
+- **Version actuelle** : 2.0.0
+- **Date de release** : Juillet 2025
+- **Compatibilité** : Node.js 18+, PostgreSQL 13+

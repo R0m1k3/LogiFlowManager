@@ -35,10 +35,6 @@ CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
     color VARCHAR NOT NULL,
-    nocodb_config_id INTEGER,
-    nocodb_table_id VARCHAR,
-    nocodb_table_name VARCHAR,
-    invoice_column_name VARCHAR DEFAULT 'RefFacture',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -147,41 +143,6 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     PRIMARY KEY (role_id, permission_id)
 );
 
--- Customer Orders table
-CREATE TABLE IF NOT EXISTS customer_orders (
-    id SERIAL PRIMARY KEY,
-    customer_name VARCHAR NOT NULL,
-    customer_phone VARCHAR,
-    customer_email VARCHAR,
-    supplier_id INTEGER NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
-    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-    product_description TEXT NOT NULL,
-    quantity INTEGER NOT NULL DEFAULT 1,
-    unit_price DECIMAL(10,2),
-    total_price DECIMAL(10,2),
-    order_date DATE NOT NULL,
-    status VARCHAR NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'available', 'collected', 'cancelled')),
-    notes TEXT,
-    created_by VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- NocoDB configuration table
-CREATE TABLE IF NOT EXISTS nocodb_configs (
-    id SERIAL PRIMARY KEY,
-    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-    project_id VARCHAR NOT NULL,
-    table_id VARCHAR NOT NULL,
-    table_name VARCHAR NOT NULL,
-    invoice_column_name VARCHAR NOT NULL DEFAULT 'RefFacture',
-    api_token VARCHAR,
-    base_url VARCHAR DEFAULT 'https://nocodb.ffnancy.fr',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(group_id)
-);
-
 -- Note: No default data inserted
 -- Groups and suppliers will be created by administrators as needed
 -- Roles and permissions will be initialized by the application
@@ -233,19 +194,6 @@ CREATE INDEX IF NOT EXISTS idx_permissions_name ON permissions (name);
 CREATE INDEX IF NOT EXISTS idx_permissions_category ON permissions (category);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions (role_id);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions (permission_id);
-
--- Customer Orders indexes
-CREATE INDEX IF NOT EXISTS idx_customer_orders_customer_name ON customer_orders (customer_name);
-CREATE INDEX IF NOT EXISTS idx_customer_orders_supplier_id ON customer_orders (supplier_id);
-CREATE INDEX IF NOT EXISTS idx_customer_orders_group_id ON customer_orders (group_id);
-CREATE INDEX IF NOT EXISTS idx_customer_orders_order_date ON customer_orders (order_date);
-CREATE INDEX IF NOT EXISTS idx_customer_orders_status ON customer_orders (status);
-CREATE INDEX IF NOT EXISTS idx_customer_orders_created_by ON customer_orders (created_by);
-
--- NocoDB configuration indexes
-CREATE INDEX IF NOT EXISTS idx_nocodb_configs_group_id ON nocodb_configs (group_id);
-CREATE INDEX IF NOT EXISTS idx_nocodb_configs_project_id ON nocodb_configs (project_id);
-CREATE INDEX IF NOT EXISTS idx_nocodb_configs_table_id ON nocodb_configs (table_id);
 
 -- Notification de fin
 DO $$
