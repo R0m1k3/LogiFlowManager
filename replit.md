@@ -463,6 +463,15 @@ Changelog:
 - July 14, 2025. Affichage semaines avec publicités organisées par mois avec codes couleur magasins
 - July 14, 2025. Légendes explicatives et tooltips informatifs sur toutes les vues
 - July 14, 2025. Interface optimisée avec navigation fluide entre vues liste et calendrier
+- July 14, 2025. **BOUTON MASQUAGE VUE D'ENSEMBLE** - Ajout contrôle pour cacher/afficher le tableau annuel
+- July 14, 2025. Bouton "Vue d'ensemble" dans barre d'outils avec état visuel (actif/inactif)
+- July 14, 2025. Transition fluide entre modes d'affichage, préservation de toutes les fonctionnalités
+- July 14, 2025. **AFFICHAGE COMPLET PUBLICITÉS ANNUELLES** - Vue d'ensemble enrichie avec toutes les publicités
+- July 14, 2025. Points bleus indiquant nombre de publicités par semaine (max 3 visibles)
+- July 14, 2025. Tooltips détaillés avec numéros PUB au survol des semaines
+- July 14, 2025. Indicateurs magasins repositionnés en coin supérieur droit des cases
+- July 14, 2025. Légende enrichie expliquant tous les indicateurs visuels
+- July 14, 2025. Interface plus informative permettant vue rapide de toute l'année
 
 ## User Preferences
 

@@ -345,18 +345,33 @@ export default function Publicities() {
                           <div
                             key={`${monthIndex}-${weekIndex}-${week.weekNumber}`}
                             className={`
-                              h-6 rounded border text-xs flex items-center justify-center cursor-pointer
+                              h-8 rounded border text-xs flex flex-col items-center justify-center cursor-pointer relative
                               ${hasPublicity 
                                 ? 'bg-blue-50 border-blue-200 text-blue-800' 
                                 : 'bg-gray-50 border-gray-200 text-gray-500'
                               }
                               hover:shadow-sm transition-shadow
                             `}
-                            title={`Semaine ${week.weekNumber} - ${hasPublicity ? `${week.publicities.length} publicité(s)` : 'Aucune publicité'}`}
+                            title={`Semaine ${week.weekNumber} - ${hasPublicity ? `${week.publicities.length} publicité(s): ${week.publicities.map(p => p.pubNumber).join(', ')}` : 'Aucune publicité'}`}
                           >
                             <span className="text-xs font-medium">{week.weekNumber}</span>
                             {hasPublicity && (
-                              <div className="flex gap-0.5 ml-1">
+                              <div className="flex gap-0.5 mt-0.5">
+                                {week.publicities.slice(0, 3).map((pub, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="w-1 h-1 rounded-full bg-blue-600"
+                                    title={pub.pubNumber}
+                                  />
+                                ))}
+                                {week.publicities.length > 3 && (
+                                  <div className="w-1 h-1 rounded-full bg-gray-400" title={`+${week.publicities.length - 3} autres`} />
+                                )}
+                              </div>
+                            )}
+                            {/* Store participation indicators */}
+                            {storeColors.length > 0 && (
+                              <div className="absolute top-0 right-0 flex gap-0.5 p-0.5">
                                 {storeColors.slice(0, 2).map((color, idx) => (
                                   <div
                                     key={idx}
@@ -379,28 +394,41 @@ export default function Publicities() {
             </div>
             
             {/* Legend */}
-            <div className="flex items-center justify-between text-sm text-gray-600 pt-2 border-t">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded"></div>
-                  <span>Semaine avec publicité</span>
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded"></div>
+                    <span>Semaine avec publicité</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-50 border border-gray-200 rounded"></div>
+                    <span>Semaine sans publicité</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-50 border border-gray-200 rounded"></div>
-                  <span>Semaine sans publicité</span>
+                  <div className="flex gap-1">
+                    {groups.slice(0, 3).map(group => (
+                      <div 
+                        key={group.id}
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: group.color }}
+                      />
+                    ))}
+                  </div>
+                  <span>Indicateurs magasins (coin supérieur droit)</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  {groups.slice(0, 3).map(group => (
-                    <div 
-                      key={group.id}
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: group.color }}
-                    />
-                  ))}
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 rounded-full bg-blue-600"></div>
+                    <div className="w-1 h-1 rounded-full bg-blue-600"></div>
+                    <div className="w-1 h-1 rounded-full bg-blue-600"></div>
+                  </div>
+                  <span>Nombre de publicités (points bleus)</span>
                 </div>
-                <span>Indicateurs magasins</span>
+                <span>• Survolez les semaines pour voir les détails des publicités</span>
               </div>
             </div>
           </div>
