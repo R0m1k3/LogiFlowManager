@@ -72,7 +72,18 @@ export default function Deliveries() {
   const deliveriesUrl = `/api/deliveries${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
   
   const { data: deliveries = [], isLoading } = useQuery<DeliveryWithRelations[]>({
-    queryKey: [deliveriesUrl, selectedStoreId],
+    queryKey: ['/api/deliveries', selectedStoreId, user?.role],
+    queryFn: async () => {
+      const url = deliveriesUrl;
+      console.log('🚚 Fetching deliveries from:', url);
+      const response = await fetch(url, { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error('Failed to fetch deliveries');
+      }
+      const data = await response.json();
+      console.log('🚚 Deliveries received:', data.length, 'items');
+      return data;
+    },
   });
 
   const { data: groups = [] } = useQuery({
