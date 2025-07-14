@@ -37,11 +37,39 @@ RUN echo "=== BUILD VERIFICATION ===" && \
     echo "index.html exists:" && \
     ls -la dist/public/index.html
 
-# Build backend
-RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm --outfile=dist/index.js --external:vite --external:@vitejs/* --external:@replit/* --external:tsx --external:openid-client --external:@neondatabase/serverless --external:ws --external:drizzle-orm --external:pg --external:express --external:connect-pg-simple --external:passport --external:passport-local --external:express-session --external:bcrypt --external:zod --external:express-rate-limit
+# Build backend avec tous les modules externes
+RUN npx esbuild server/index.production.ts \
+    --platform=node \
+    --bundle \
+    --format=esm \
+    --outfile=dist/index.js \
+    --external:vite \
+    --external:@vitejs/* \
+    --external:@replit/* \
+    --external:tsx \
+    --external:openid-client \
+    --external:@neondatabase/serverless \
+    --external:ws \
+    --external:drizzle-orm \
+    --external:pg \
+    --external:express \
+    --external:connect-pg-simple \
+    --external:passport \
+    --external:passport-local \
+    --external:express-session \
+    --external:bcrypt \
+    --external:zod \
+    --external:express-rate-limit \
+    --external:memoizee \
+    --external:nanoid \
+    --external:date-fns
 
 # Production stage
 FROM node:20-alpine AS production
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++ && \
+    ln -sf python3 /usr/bin/python
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -53,6 +81,9 @@ WORKDIR /app
 # Install production dependencies only
 COPY --from=build /app/package*.json ./
 RUN npm ci --only=production && npm cache clean --force
+
+# Clean up build dependencies
+RUN apk del python3 make g++
 
 # Copy built application from build stage
 COPY --from=build --chown=nextjs:nodejs /app/dist ./dist
