@@ -522,14 +522,14 @@ export default function BLReconciliation() {
     reconcileMutation.mutate(delivery.id);
   };
 
-  const filteredDeliveries = deliveriesWithBL.filter((delivery: any) => {
+  const filteredDeliveries = Array.isArray(deliveriesWithBL) ? deliveriesWithBL.filter((delivery: any) => {
     if (!searchTerm) return true;
     return (
       delivery.supplier?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       delivery.blNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       delivery.invoiceReference?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  });
+  }) : [];
 
   if (isLoading) {
     return (

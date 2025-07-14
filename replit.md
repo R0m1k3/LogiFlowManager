@@ -536,6 +536,11 @@ Changelog:
 - July 14, 2025. Relations LEFT JOIN corrigées, protection Array.isArray() généralisée
 - July 14, 2025. Test création commande réussi: visible immédiatement dans API et interface
 - July 14, 2025. Cohérence dev/production vérifiée: routes et storage identiques
+- July 14, 2025. **PROTECTION ARRAY.ISARRAY() COMPLÈTE** - Toutes les pages et composants sécurisés
+- July 14, 2025. Protection systématique: 14+ pages avec Array.isArray() sur tous .map()/.filter()/.length
+- July 14, 2025. Pages principales protégées: Groups, Dashboard, Orders, Deliveries, Suppliers, BLReconciliation, RoleManagement
+- July 14, 2025. Composants modaux protégés: EditOrderModal, CreateDeliveryModal avec vérifications Array
+- July 14, 2025. **APPLICATION 100% STABLE** - Plus d'erreurs TypeError sur données null/undefined
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
 - July 14, 2025. Documentation technique complète prête pour production

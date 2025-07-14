@@ -108,7 +108,7 @@ export default function Orders() {
     },
   });
 
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = Array.isArray(orders) ? orders.filter(order => {
     const matchesSearch = order.supplier?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.group?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.comments?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -116,7 +116,7 @@ export default function Orders() {
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     
     return matchesSearch && matchesStatus;
-  });
+  }) : [];
 
   const getStatusBadge = (status: string) => {
     switch (status) {

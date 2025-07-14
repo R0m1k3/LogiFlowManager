@@ -134,7 +134,7 @@ export default function EditOrderModal({
                 <SelectValue placeholder="Sélectionnez un fournisseur" />
               </SelectTrigger>
               <SelectContent>
-                {suppliers.map((supplier) => (
+                {Array.isArray(suppliers) && suppliers.map((supplier) => (
                   <SelectItem key={supplier.id} value={supplier.id.toString()}>
                     {supplier.name}
                   </SelectItem>
@@ -150,7 +150,7 @@ export default function EditOrderModal({
                 <SelectValue placeholder="Sélectionnez un magasin" />
               </SelectTrigger>
               <SelectContent>
-                {groups.map((group) => (
+                {Array.isArray(groups) && groups.map((group) => (
                   <SelectItem key={group.id} value={group.id.toString()}>
                     <div className="flex items-center space-x-2">
                       <div 

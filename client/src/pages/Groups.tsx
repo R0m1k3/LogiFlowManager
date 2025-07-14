@@ -185,13 +185,13 @@ export default function Groups() {
     },
   });
 
-  const filteredGroups = groups.filter(group =>
+  const filteredGroups = Array.isArray(groups) ? groups.filter(group =>
     group.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   const getGroupStats = (groupId: number) => {
-    const groupOrders = orders.filter(order => order.groupId === groupId);
-    const groupDeliveries = deliveries.filter(delivery => delivery.groupId === groupId);
+    const groupOrders = Array.isArray(orders) ? orders.filter(order => order.groupId === groupId) : [];
+    const groupDeliveries = Array.isArray(deliveries) ? deliveries.filter(delivery => delivery.groupId === groupId) : [];
     
     return {
       orders: groupOrders.length,

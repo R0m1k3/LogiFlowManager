@@ -174,7 +174,7 @@ export default function CreateDeliveryModal({
                 <SelectValue placeholder="Sélectionnez un fournisseur" />
               </SelectTrigger>
               <SelectContent>
-                {suppliers.map((supplier) => (
+                {Array.isArray(suppliers) && suppliers.map((supplier) => (
                   <SelectItem key={supplier.id} value={supplier.id.toString()}>
                     {supplier.name}
                   </SelectItem>
@@ -192,12 +192,12 @@ export default function CreateDeliveryModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Aucune commande liée</SelectItem>
-                  {finalFilteredOrders.map((order) => (
+                  {Array.isArray(finalFilteredOrders) && finalFilteredOrders.map((order) => (
                     <SelectItem key={order.id} value={order.id.toString()}>
                       #{order.id} - {order.supplier.name} - {format(new Date(order.plannedDate), 'dd/MM/yyyy')}
                     </SelectItem>
                   ))}
-                  {finalFilteredOrders.length === 0 && (
+                  {(!Array.isArray(finalFilteredOrders) || finalFilteredOrders.length === 0) && (
                     <SelectItem value="disabled" disabled>
                       Aucune commande disponible pour ce fournisseur
                     </SelectItem>

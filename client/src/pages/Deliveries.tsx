@@ -169,7 +169,7 @@ export default function Deliveries() {
     },
   });
 
-  const filteredDeliveries = deliveries.filter(delivery => {
+  const filteredDeliveries = Array.isArray(deliveries) ? deliveries.filter(delivery => {
     const matchesSearch = delivery.supplier?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          delivery.group?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          delivery.comments?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -177,7 +177,7 @@ export default function Deliveries() {
     const matchesStatus = statusFilter === "all" || delivery.status === statusFilter;
     
     return matchesSearch && matchesStatus;
-  });
+  }) : [];
 
   const getStatusBadge = (status: string) => {
     switch (status) {

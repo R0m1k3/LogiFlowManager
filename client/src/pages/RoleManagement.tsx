@@ -271,19 +271,19 @@ export default function RoleManagement() {
   };
 
   // Filter roles - with safety checks
-  const filteredRoles = roles.filter(role =>
+  const filteredRoles = Array.isArray(roles) ? roles.filter(role =>
     (role.displayName || role.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (role.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   // Group permissions by category
-  const permissionsByCategory = permissions.reduce((acc, permission) => {
+  const permissionsByCategory = Array.isArray(permissions) ? permissions.reduce((acc, permission) => {
     if (!acc[permission.category]) {
       acc[permission.category] = [];
     }
     acc[permission.category].push(permission);
     return acc;
-  }, {} as Record<string, Permission[]>);
+  }, {} as Record<string, Permission[]>) : {};
 
   const getRoleIcon = (role: RoleWithPermissions) => {
     if (role.name === 'admin') return <Crown className="w-5 h-5 text-yellow-500" />;

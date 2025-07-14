@@ -155,15 +155,15 @@ export default function Suppliers() {
     },
   });
 
-  const filteredSuppliers = suppliers.filter(supplier =>
+  const filteredSuppliers = Array.isArray(suppliers) ? suppliers.filter(supplier =>
     supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supplier.contact?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supplier.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   const getSupplierStats = (supplierId: number) => {
-    const supplierOrders = orders.filter(order => order.supplierId === supplierId);
-    const supplierDeliveries = deliveries.filter(delivery => delivery.supplierId === supplierId);
+    const supplierOrders = Array.isArray(orders) ? orders.filter(order => order.supplierId === supplierId) : [];
+    const supplierDeliveries = Array.isArray(deliveries) ? deliveries.filter(delivery => delivery.supplierId === supplierId) : [];
     
     return {
       orders: supplierOrders.length,

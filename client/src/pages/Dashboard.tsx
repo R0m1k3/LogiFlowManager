@@ -90,50 +90,50 @@ export default function Dashboard() {
   });
 
   // Données dérivées pour les sections
-  const recentOrders = allOrders
+  const recentOrders = Array.isArray(allOrders) ? allOrders
     .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 3);
+    .slice(0, 3) : [];
   
-  const upcomingDeliveries = allDeliveries
+  const upcomingDeliveries = Array.isArray(allDeliveries) ? allDeliveries
     .filter((d: any) => d.status === 'planned')
     .sort((a: any, b: any) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
-    .slice(0, 2);
+    .slice(0, 2) : [];
 
   // Calculs pour les statistiques
-  const pendingOrdersCount = allOrders.filter((order: any) => order.status === 'pending').length;
+  const pendingOrdersCount = Array.isArray(allOrders) ? allOrders.filter((order: any) => order.status === 'pending').length : 0;
   const averageDeliveryTime = Math.round(stats?.averageDeliveryTime || 2);
-  const deliveredThisMonth = allDeliveries.filter((delivery: any) => {
+  const deliveredThisMonth = Array.isArray(allDeliveries) ? allDeliveries.filter((delivery: any) => {
     const deliveryDate = new Date(delivery.deliveredDate || delivery.createdAt);
     const now = new Date();
     return deliveryDate.getMonth() === now.getMonth() && 
            deliveryDate.getFullYear() === now.getFullYear() && 
            delivery.status === 'delivered';
-  }).length;
+  }).length : 0;
 
   // Calculer le total réel des palettes
-  const totalPalettes = allDeliveries.reduce((total: number, delivery: any) => {
+  const totalPalettes = Array.isArray(allDeliveries) ? allDeliveries.reduce((total: number, delivery: any) => {
     if (delivery.unit === 'palettes') {
       return total + (delivery.quantity || 0);
     }
     return total;
-  }, 0);
+  }, 0) : 0;
 
   // Statistiques pour les commandes clients
   const ordersByStatus = {
-    pending: allOrders.filter((o: any) => o.status === 'pending').length,
-    planned: allOrders.filter((o: any) => o.status === 'planned').length,
-    delivered: allOrders.filter((o: any) => o.status === 'delivered').length,
-    total: allOrders.length
+    pending: Array.isArray(allOrders) ? allOrders.filter((o: any) => o.status === 'pending').length : 0,
+    planned: Array.isArray(allOrders) ? allOrders.filter((o: any) => o.status === 'planned').length : 0,
+    delivered: Array.isArray(allOrders) ? allOrders.filter((o: any) => o.status === 'delivered').length : 0,
+    total: Array.isArray(allOrders) ? allOrders.length : 0
   };
 
   // Statistiques pour les commandes clients (nouveau module)
   const customerOrderStats = {
-    waiting: customerOrders.filter((o: any) => o.status === 'En attente de Commande').length,
-    inProgress: customerOrders.filter((o: any) => o.status === 'Commande en Cours').length,
-    available: customerOrders.filter((o: any) => o.status === 'Disponible').length,
-    withdrawn: customerOrders.filter((o: any) => o.status === 'Retiré').length,
-    canceled: customerOrders.filter((o: any) => o.status === 'Annulé').length,
-    total: customerOrders.length
+    waiting: Array.isArray(customerOrders) ? customerOrders.filter((o: any) => o.status === 'En attente de Commande').length : 0,
+    inProgress: Array.isArray(customerOrders) ? customerOrders.filter((o: any) => o.status === 'Commande en Cours').length : 0,
+    available: Array.isArray(customerOrders) ? customerOrders.filter((o: any) => o.status === 'Disponible').length : 0,
+    withdrawn: Array.isArray(customerOrders) ? customerOrders.filter((o: any) => o.status === 'Retiré').length : 0,
+    canceled: Array.isArray(customerOrders) ? customerOrders.filter((o: any) => o.status === 'Annulé').length : 0,
+    total: Array.isArray(customerOrders) ? customerOrders.length : 0
   };
 
   return (
