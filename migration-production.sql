@@ -33,6 +33,20 @@ BEGIN
         ALTER TABLE customer_orders ADD COLUMN quantity INTEGER DEFAULT 1;
         RAISE NOTICE 'Colonne quantity ajoutée à la table customer_orders';
     END IF;
+
+    -- Vérifier et ajouter quantity si manquante dans orders
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'orders' AND column_name = 'quantity') THEN
+        ALTER TABLE orders ADD COLUMN quantity INTEGER;
+        RAISE NOTICE 'Colonne quantity ajoutée à la table orders';
+    END IF;
+
+    -- Vérifier et ajouter unit si manquante dans orders
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'orders' AND column_name = 'unit') THEN
+        ALTER TABLE orders ADD COLUMN unit VARCHAR(50);
+        RAISE NOTICE 'Colonne unit ajoutée à la table orders';
+    END IF;
 END $$;
 
 -- 2. Corriger les contraintes de status si nécessaire
