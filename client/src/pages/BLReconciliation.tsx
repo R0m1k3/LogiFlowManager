@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { safeFormat } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -715,13 +716,13 @@ export default function BLReconciliation() {
                         </td>
                         <td className="px-3 py-2 text-sm">
                           <div className="text-gray-900">
-                            {format(new Date(delivery.scheduledDate), 'dd/MM/yy', { locale: fr })}
+                            {safeFormat(delivery.scheduledDate, 'dd/MM/yy')}
                           </div>
                         </td>
                         <td className="px-3 py-2 text-sm">
                           <div className="text-gray-900">
                             {delivery.reconciled && delivery.updatedAt ? 
-                              format(new Date(delivery.updatedAt), 'dd/MM/yy', { locale: fr }) : 
+                              safeFormat(delivery.updatedAt, 'dd/MM/yy') : 
                               '-'
                             }
                           </div>

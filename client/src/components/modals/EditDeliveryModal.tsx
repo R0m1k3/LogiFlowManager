@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { format } from "date-fns";
+import { safeFormat } from "@/lib/dateUtils";
 import type { Group, Supplier, DeliveryWithRelations, OrderWithRelations } from "@shared/schema";
 
 interface EditDeliveryModalProps {
@@ -63,7 +64,7 @@ export default function EditDeliveryModal({
         supplierId: delivery.supplierId.toString(),
         groupId: delivery.groupId.toString(),
         orderId: delivery.orderId ? delivery.orderId.toString() : "none",
-        scheduledDate: format(new Date(delivery.scheduledDate), 'yyyy-MM-dd'),
+        scheduledDate: safeFormat(delivery.scheduledDate, 'yyyy-MM-dd'),
         quantity: delivery.quantity.toString(),
         unit: delivery.unit,
         notes: delivery.notes || "",
@@ -198,7 +199,7 @@ export default function EditDeliveryModal({
                   <SelectItem value="none">Aucune commande liée</SelectItem>
                   {availableOrders.map((order) => (
                     <SelectItem key={order.id} value={order.id.toString()}>
-                      Commande #{order.id} - {order.supplier.name} - {format(new Date(order.plannedDate), 'dd/MM/yyyy')}
+                      Commande #{order.id} - {order.supplier.name} - {safeFormat(order.plannedDate, 'dd/MM/yyyy')}
                     </SelectItem>
                   ))}
                 </SelectContent>

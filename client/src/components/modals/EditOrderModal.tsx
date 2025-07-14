@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { format } from "date-fns";
+import { safeFormat } from "@/lib/dateUtils";
 import type { Group, Supplier, OrderWithRelations } from "@shared/schema";
 
 interface EditOrderModalProps {
@@ -50,7 +51,7 @@ export default function EditOrderModal({
       setFormData({
         supplierId: order.supplierId.toString(),
         groupId: order.groupId.toString(),
-        plannedDate: format(new Date(order.plannedDate), 'yyyy-MM-dd'),
+        plannedDate: safeFormat(order.plannedDate, 'yyyy-MM-dd'),
         notes: order.notes || "",
       });
     }

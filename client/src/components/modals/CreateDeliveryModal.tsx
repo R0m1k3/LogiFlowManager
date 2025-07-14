@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { format } from "date-fns";
+import { safeFormat } from "@/lib/dateUtils";
 import type { Group, Supplier, OrderWithRelations } from "@shared/schema";
 
 interface CreateDeliveryModalProps {
@@ -194,7 +195,7 @@ export default function CreateDeliveryModal({
                   <SelectItem value="none">Aucune commande liée</SelectItem>
                   {Array.isArray(finalFilteredOrders) && finalFilteredOrders.map((order) => (
                     <SelectItem key={order.id} value={order.id.toString()}>
-                      #{order.id} - {order.supplier.name} - {format(new Date(order.plannedDate), 'dd/MM/yyyy')}
+                      #{order.id} - {order.supplier.name} - {safeFormat(order.plannedDate, 'dd/MM/yyyy')}
                     </SelectItem>
                   ))}
                   {(!Array.isArray(finalFilteredOrders) || finalFilteredOrders.length === 0) && (

@@ -1,5 +1,6 @@
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
+import { safeDate } from "@/lib/dateUtils";
 import { Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { OrderWithRelations, DeliveryWithRelations } from "@shared/schema";
@@ -54,12 +55,14 @@ export default function CalendarGrid({
   const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
   const getItemsForDate = (date: Date) => {
-    const dayOrders = orders.filter(order => 
-      isSameDay(new Date(order.plannedDate), date)
-    );
-    const dayDeliveries = deliveries.filter(delivery => 
-      isSameDay(new Date(delivery.scheduledDate), date)
-    );
+    const dayOrders = orders.filter(order => {
+      const orderDate = safeDate(order.plannedDate);
+      return orderDate && isSameDay(orderDate, date);
+    });
+    const dayDeliveries = deliveries.filter(delivery => {
+      const deliveryDate = safeDate(delivery.scheduledDate);
+      return deliveryDate && isSameDay(deliveryDate, date);
+    });
     
     return { orders: dayOrders, deliveries: dayDeliveries };
   };

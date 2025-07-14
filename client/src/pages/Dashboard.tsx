@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Package, ShoppingCart, TrendingUp, Clock, MapPin, User, AlertTriangle, CheckCircle, Truck, FileText, BarChart3, Megaphone } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { safeFormat, safeDate } from "@/lib/dateUtils";
 import type { PublicityWithRelations } from "@shared/schema";
 
 export default function Dashboard() {
@@ -91,7 +90,11 @@ export default function Dashboard() {
 
   // Données dérivées pour les sections
   const recentOrders = Array.isArray(allOrders) ? allOrders
-    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort((a: any, b: any) => {
+      const dateA = safeDate(a.createdAt);
+      const dateB = safeDate(b.createdAt);
+      return (dateB ? dateB.getTime() : 0) - (dateA ? dateA.getTime() : 0);
+    })
     .slice(0, 3) : [];
   
   const upcomingDeliveries = Array.isArray(allDeliveries) ? allDeliveries
@@ -103,7 +106,7 @@ export default function Dashboard() {
   const pendingOrdersCount = Array.isArray(allOrders) ? allOrders.filter((order: any) => order.status === 'pending').length : 0;
   const averageDeliveryTime = Math.round(stats?.averageDeliveryTime || 2);
   const deliveredThisMonth = Array.isArray(allDeliveries) ? allDeliveries.filter((delivery: any) => {
-    const deliveryDate = new Date(delivery.deliveredDate || delivery.createdAt);
+    const deliveryDate = safeDate(delivery.deliveredDate || delivery.createdAt);
     const now = new Date();
     return deliveryDate.getMonth() === now.getMonth() && 
            deliveryDate.getFullYear() === now.getFullYear() && 
@@ -243,7 +246,7 @@ export default function Dashboard() {
                     {order.status === 'delivered' ? 'Livrée' : order.status === 'planned' ? 'Planifiée' : 'En attente'}
                   </Badge>
                   <p className="text-xs text-gray-500 mt-1">
-                    {format(new Date(order.plannedDate), "d MMM", { locale: fr })}
+                    {safeFormat(order.plannedDate, "d MMM")}
                   </p>
                 </div>
               </div>
@@ -276,7 +279,7 @@ export default function Dashboard() {
                     {delivery.quantity} {delivery.unit}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {format(new Date(delivery.scheduledDate), "d MMM", { locale: fr })}
+                    {safeFormat(delivery.scheduledDate, "d MMM")}
                   </p>
                 </div>
               </div>
@@ -316,7 +319,7 @@ export default function Dashboard() {
                           À venir
                         </Badge>
                         <p className="text-xs text-gray-500 mt-1">
-                          {format(new Date(publicity.startDate), "d MMM", { locale: fr })}
+                          {safeFormat(publicity.startDate, "d MMM")}
                         </p>
                       </div>
                     </div>

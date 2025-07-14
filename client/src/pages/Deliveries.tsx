@@ -23,8 +23,7 @@ import {
   Check,
   Package
 } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { safeFormat } from "@/lib/dateUtils";
 import CreateDeliveryModal from "@/components/modals/CreateDeliveryModal";
 import EditDeliveryModal from "@/components/modals/EditDeliveryModal";
 import OrderDetailModal from "@/components/modals/OrderDetailModal";
@@ -374,7 +373,7 @@ export default function Deliveries() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="flex items-center">
                             <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                            {format(new Date(delivery.scheduledDate), 'dd MMM yyyy', { locale: fr })}
+                            {safeFormat(delivery.scheduledDate, 'dd MMM yyyy')}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -487,7 +486,7 @@ export default function Deliveries() {
         onConfirm={confirmDeleteDelivery}
         title="Supprimer la livraison"
         description="Êtes-vous sûr de vouloir supprimer cette livraison ?"
-        itemName={deliveryToDelete ? `${deliveryToDelete.supplier?.name} - ${format(new Date(deliveryToDelete.scheduledDate), 'dd/MM/yyyy', { locale: fr })}` : undefined}
+        itemName={deliveryToDelete ? `${deliveryToDelete.supplier?.name} - ${safeFormat(deliveryToDelete.scheduledDate, 'dd/MM/yyyy')}` : undefined}
         isLoading={deleteMutation.isPending}
       />
     </div>

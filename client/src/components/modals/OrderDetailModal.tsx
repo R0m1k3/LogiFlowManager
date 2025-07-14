@@ -7,8 +7,7 @@ import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { safeFormat } from "@/lib/dateUtils";
 import EditOrderModal from "./EditOrderModal";
 import EditDeliveryModal from "./EditDeliveryModal";
 import ValidateDeliveryModal from "./ValidateDeliveryModal";
@@ -198,7 +197,7 @@ export default function OrderDetailModal({
                   Date prévue
                 </label>
                 <p className="text-gray-900">
-                  {format(new Date(isDelivery ? item.scheduledDate : item.plannedDate), 'dd MMMM yyyy', { locale: fr })}
+                  {safeFormat(isDelivery ? item.scheduledDate : item.plannedDate, 'dd MMMM yyyy')}
                 </p>
               </div>
               {/* Afficher la quantité seulement pour les livraisons */}
@@ -234,7 +233,7 @@ export default function OrderDetailModal({
                     Date de livraison
                   </label>
                   <p className="text-gray-900">
-                    {format(new Date(item.deliveredDate), 'dd MMMM yyyy, HH:mm', { locale: fr })}
+                    {safeFormat(item.deliveredDate, 'dd MMMM yyyy, HH:mm')}
                   </p>
                 </div>
               )}
@@ -275,7 +274,7 @@ export default function OrderDetailModal({
                       <div>
                         <p className="font-medium text-gray-900">#LIV-{delivery.id}</p>
                         <p className="text-sm text-gray-600">
-                          {format(new Date(delivery.plannedDate), 'dd MMMM yyyy', { locale: fr })}
+                          {safeFormat(delivery.plannedDate, 'dd MMMM yyyy')}
                         </p>
                       </div>
                     </div>
@@ -297,7 +296,7 @@ export default function OrderDetailModal({
                   <div>
                     <p className="font-medium text-gray-900">#CMD-{item.order.id}</p>
                     <p className="text-sm text-gray-600">
-                      {format(new Date(item.order.plannedDate), 'dd MMMM yyyy', { locale: fr })}
+                      {safeFormat(item.order.plannedDate, 'dd MMMM yyyy')}
                     </p>
                   </div>
                 </div>

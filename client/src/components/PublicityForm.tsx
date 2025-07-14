@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { safeDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { PublicityWithRelations, Group } from "@shared/schema";
@@ -50,8 +51,8 @@ export default function PublicityForm({ publicity, groups, onSuccess, selectedYe
     defaultValues: {
       pubNumber: publicity?.pubNumber || "",
       designation: publicity?.designation || "",
-      startDate: publicity?.startDate ? new Date(publicity.startDate) : undefined,
-      endDate: publicity?.endDate ? new Date(publicity.endDate) : undefined,
+      startDate: publicity?.startDate ? safeDate(publicity.startDate) : undefined,
+      endDate: publicity?.endDate ? safeDate(publicity.endDate) : undefined,
       year: publicity?.year || selectedYear || 2025, // Utilise l'année sélectionnée ou 2025 par défaut
       participatingGroups: publicity?.participations?.map(p => p.groupId) || [],
     },

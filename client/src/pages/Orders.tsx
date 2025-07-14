@@ -21,8 +21,7 @@ import {
   Building,
   User
 } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { safeFormat } from "@/lib/dateUtils";
 import CreateOrderModal from "@/components/modals/CreateOrderModal";
 import EditOrderModal from "@/components/modals/EditOrderModal";
 import OrderDetailModal from "@/components/modals/OrderDetailModal";
@@ -294,7 +293,7 @@ export default function Orders() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="flex items-center">
                             <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                            {format(new Date(order.plannedDate), 'dd MMM yyyy', { locale: fr })}
+                            {safeFormat(order.plannedDate, 'dd MMM yyyy')}
                           </div>
                         </td>
 
@@ -382,7 +381,7 @@ export default function Orders() {
         onConfirm={confirmDeleteOrder}
         title="Supprimer la commande"
         description="Êtes-vous sûr de vouloir supprimer cette commande ?"
-        itemName={orderToDelete ? `${orderToDelete.supplier?.name} - ${format(new Date(orderToDelete.plannedDate), 'dd/MM/yyyy', { locale: fr })}` : undefined}
+        itemName={orderToDelete ? `${orderToDelete.supplier?.name} - ${safeFormat(orderToDelete.plannedDate, 'dd/MM/yyyy')}` : undefined}
         isLoading={deleteMutation.isPending}
       />
     </div>
