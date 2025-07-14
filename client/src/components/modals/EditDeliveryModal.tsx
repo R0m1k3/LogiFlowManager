@@ -35,7 +35,7 @@ export default function EditDeliveryModal({
     scheduledDate: "",
     quantity: "",
     unit: "palettes",
-    comments: "",
+    notes: "",
   });
 
   const { data: suppliers = [] } = useQuery<Supplier[]>({
@@ -66,7 +66,7 @@ export default function EditDeliveryModal({
         scheduledDate: format(new Date(delivery.scheduledDate), 'yyyy-MM-dd'),
         quantity: delivery.quantity.toString(),
         unit: delivery.unit,
-        comments: delivery.comments || "",
+        notes: delivery.notes || "",
       });
     }
   }, [delivery]);
@@ -128,7 +128,7 @@ export default function EditDeliveryModal({
       scheduledDate: formData.scheduledDate,
       quantity: parseInt(formData.quantity),
       unit: formData.unit,
-      comments: formData.comments || undefined,
+      notes: formData.notes || undefined,
     });
   };
 
@@ -243,12 +243,12 @@ export default function EditDeliveryModal({
           </div>
 
           <div>
-            <Label htmlFor="comments">Commentaires</Label>
+            <Label htmlFor="notes">Commentaires</Label>
             <Textarea
-              id="comments"
+              id="notes"
               placeholder="Commentaires optionnels..."
-              value={formData.comments}
-              onChange={(e) => handleChange('comments', e.target.value)}
+              value={formData.notes}
+              onChange={(e) => handleChange('notes', e.target.value)}
               rows={3}
             />
           </div>

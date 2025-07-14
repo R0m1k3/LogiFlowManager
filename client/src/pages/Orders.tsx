@@ -111,7 +111,7 @@ export default function Orders() {
   const filteredOrders = Array.isArray(orders) ? orders.filter(order => {
     const matchesSearch = order.supplier?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.group?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.comments?.toLowerCase().includes(searchTerm.toLowerCase());
+                         order.notes?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     

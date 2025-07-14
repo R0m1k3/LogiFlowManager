@@ -34,7 +34,7 @@ export default function CreateOrderModal({
     supplierId: "",
     groupId: "",
     plannedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : "",
-    comments: "",
+    notes: "",
   });
 
   const { data: suppliers = [] } = useQuery<Supplier[]>({
@@ -119,7 +119,7 @@ export default function CreateOrderModal({
       supplierId: parseInt(formData.supplierId),
       groupId: parseInt(formData.groupId),
       plannedDate: formData.plannedDate,
-      comments: formData.comments || undefined,
+      notes: formData.notes || undefined,
     });
   };
 
@@ -187,11 +187,11 @@ export default function CreateOrderModal({
           </div>
 
           <div>
-            <Label htmlFor="comments">Commentaires</Label>
+            <Label htmlFor="notes">Commentaires</Label>
             <Textarea
-              id="comments"
-              value={formData.comments}
-              onChange={(e) => handleChange('comments', e.target.value)}
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => handleChange('notes', e.target.value)}
               placeholder="Commentaires additionnels..."
               rows={3}
             />

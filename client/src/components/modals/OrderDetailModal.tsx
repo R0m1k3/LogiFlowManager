@@ -250,13 +250,13 @@ export default function OrderDetailModal({
           </div>
 
           {/* Comments */}
-          {item.comments && (
+          {item.notes && (
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Commentaires
               </label>
               <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-gray-700">{item.comments}</p>
+                <p className="text-gray-700">{item.notes}</p>
               </div>
             </div>
           )}

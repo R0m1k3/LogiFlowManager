@@ -545,6 +545,10 @@ Changelog:
 - July 14, 2025. Protection optional chaining (?.color) dans Publicities.tsx pour éviter erreurs couleur
 - July 14, 2025. Protection Array.isArray() dans RoleManagement.tsx pour éviter erreurs de rendu React #310
 - July 14, 2025. Fallback couleur '#666666' appliqué sur toutes les références style backgroundColor
+- July 14, 2025. **PROBLÈME BDD PRODUCTION RÉSOLU** - Correction incohérence schéma 'comments' vs 'notes'
+- July 14, 2025. Harmonisation complète frontend avec base PostgreSQL: tous composants utilisent 'notes'
+- July 14, 2025. API /api/orders retourne maintenant les commandes correctement (2 commandes visibles)
+- July 14, 2025. Correction 6 composants modaux et pages: CreateOrderModal, EditOrderModal, OrderDetailModal, EditDeliveryModal, Orders.tsx, Deliveries.tsx
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
 - July 14, 2025. Documentation technique complète prête pour production

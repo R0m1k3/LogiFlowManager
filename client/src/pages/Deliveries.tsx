@@ -172,7 +172,7 @@ export default function Deliveries() {
   const filteredDeliveries = Array.isArray(deliveries) ? deliveries.filter(delivery => {
     const matchesSearch = delivery.supplier?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          delivery.group?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         delivery.comments?.toLowerCase().includes(searchTerm.toLowerCase());
+                         delivery.notes?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || delivery.status === statusFilter;
     
