@@ -447,6 +447,8 @@ Changelog:
 - July 14, 2025. Sauvegarde automatique avant mise à jour, arrêt seulement de l'application (DB conservée)
 - July 14, 2025. Script restore-data.sh créé pour restaurer depuis une sauvegarde si nécessaire
 - July 14, 2025. **MISE À JOUR SÉCURISÉE** - Vos données existantes seront préservées lors du redéploiement
+- July 14, 2025. **SOLUTION BCRYPT FINALE** - Modification approche esbuild: --external:* au lieu de bundling pour éviter problèmes modules natifs
+- July 14, 2025. Script fix-bcrypt-final.sh créé pour résolution définitive du problème bcrypt en production Docker
 - July 11, 2025. **SYSTÈME DE GESTION DES RÔLES COMPLET POUR PRODUCTION** - Déploiement du système complet
 - July 11, 2025. Ajout de toutes les méthodes rôles/permissions dans storage.production.ts avec SQL brut
 - July 11, 2025. Ajout de toutes les routes API rôles/permissions dans routes.production.ts

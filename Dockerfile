@@ -37,9 +37,9 @@ RUN echo "=== BUILD VERIFICATION ===" && \
     echo "index.html exists:" && \
     ls -la dist/public/index.html
 
-# Build backend with production file  
-RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm --outfile=dist/index.js \
-  --packages=external
+# Build backend with production file - no bundling for native modules
+RUN npx esbuild server/index.production.ts --platform=node --format=esm --outfile=dist/index.js \
+  --external:* --loader:.ts=ts
 
 # Production stage
 FROM node:20-alpine AS production
@@ -61,6 +61,7 @@ RUN npm ci && npm cache clean --force
 # Copy built application from build stage
 COPY --from=build --chown=nextjs:nodejs /app/dist ./dist
 COPY --from=build --chown=nextjs:nodejs /app/shared ./shared
+COPY --from=build --chown=nextjs:nodejs /app/server ./server
 
 # Create uploads directory with proper permissions
 RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
