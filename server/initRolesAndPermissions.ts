@@ -52,6 +52,14 @@ const defaultPermissions = [
   { name: "publicities_update", displayName: "Modifier les publicités", description: "Modifier les publicités existantes", category: "publicities", action: "update", resource: "publicities" },
   { name: "publicities_delete", displayName: "Supprimer les publicités", description: "Supprimer des publicités", category: "publicities", action: "delete", resource: "publicities" },
   
+  // Customer Orders permissions
+  { name: "customer_orders_read", displayName: "Voir les commandes client", description: "Accès en lecture aux commandes client", category: "customer_orders", action: "read", resource: "customer_orders" },
+  { name: "customer_orders_create", displayName: "Créer des commandes client", description: "Créer de nouvelles commandes client", category: "customer_orders", action: "create", resource: "customer_orders" },
+  { name: "customer_orders_update", displayName: "Modifier les commandes client", description: "Modifier les commandes client existantes", category: "customer_orders", action: "update", resource: "customer_orders" },
+  { name: "customer_orders_delete", displayName: "Supprimer les commandes client", description: "Supprimer des commandes client", category: "customer_orders", action: "delete", resource: "customer_orders" },
+  { name: "customer_orders_print", displayName: "Imprimer étiquettes", description: "Imprimer les étiquettes des commandes client", category: "customer_orders", action: "print", resource: "customer_orders" },
+  { name: "customer_orders_notify", displayName: "Notifier les clients", description: "Envoyer des notifications aux clients", category: "customer_orders", action: "notify", resource: "customer_orders" },
+  
   // Roles permissions
   { name: "roles_read", displayName: "Voir les rôles", description: "Accès en lecture aux rôles", category: "roles", action: "read", resource: "roles" },
   { name: "roles_create", displayName: "Créer des rôles", description: "Créer de nouveaux rôles", category: "roles", action: "create", resource: "roles" },
@@ -85,7 +93,8 @@ const defaultRoles = [
       "reconciliation_read", "reconciliation_update",
       "groups_read", "groups_create", "groups_update", "groups_delete",
       "suppliers_read", "suppliers_create", "suppliers_update", "suppliers_delete",
-      "publicities_read", "publicities_create", "publicities_update", "publicities_delete"
+      "publicities_read", "publicities_create", "publicities_update", "publicities_delete",
+      "customer_orders_read", "customer_orders_create", "customer_orders_update", "customer_orders_delete", "customer_orders_print", "customer_orders_notify"
     ]
   },
   {
@@ -98,7 +107,8 @@ const defaultRoles = [
     permissions: [
       "dashboard_read",
       "calendar_read", "calendar_create",
-      "publicities_read"
+      "publicities_read",
+      "customer_orders_read", "customer_orders_create", "customer_orders_update", "customer_orders_print", "customer_orders_notify"
     ]
   }
 ];

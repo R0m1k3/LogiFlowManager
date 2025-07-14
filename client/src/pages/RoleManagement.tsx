@@ -297,8 +297,28 @@ export default function RoleManagement() {
       case 'create': return <Plus className="w-4 h-4" />;
       case 'update': return <Edit className="w-4 h-4" />;
       case 'delete': return <Trash2 className="w-4 h-4" />;
+      case 'validate': return <CheckCircle className="w-4 h-4" />;
+      case 'print': return <FileText className="w-4 h-4" />;
+      case 'notify': return <Users className="w-4 h-4" />;
       default: return <Settings className="w-4 h-4" />;
     }
+  };
+
+  const getCategoryDisplayName = (category: string) => {
+    const categoryMap: Record<string, string> = {
+      'dashboard': 'Tableau de bord',
+      'calendar': 'Calendrier',
+      'orders': 'Commandes',
+      'deliveries': 'Livraisons',
+      'reconciliation': 'Rapprochement',
+      'users': 'Utilisateurs',
+      'groups': 'Magasins',
+      'suppliers': 'Fournisseurs',
+      'publicities': 'Publicités',
+      'customer_orders': 'Commandes Client',
+      'roles': 'Rôles'
+    };
+    return categoryMap[category] || category;
   };
 
   if (rolesLoading) {
@@ -557,8 +577,8 @@ export default function RoleManagement() {
             <div className="space-y-6">
               {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
                 <div key={category} className="space-y-3">
-                  <h4 className="font-medium text-gray-900 capitalize border-b pb-2">
-                    {category}
+                  <h4 className="font-medium text-gray-900 border-b pb-2">
+                    {getCategoryDisplayName(category)}
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {categoryPermissions.map((permission) => {

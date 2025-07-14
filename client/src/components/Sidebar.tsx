@@ -102,10 +102,13 @@ export default function Sidebar() {
     },
     { 
       path: "/groups", 
-      label: "Groupes/Magasins", 
+      label: "Magasins", 
       icon: Users, 
       roles: ["admin", "manager"] 
     },
+  ];
+
+  const adminItems = [
     { 
       path: "/users", 
       label: "Utilisateurs", 
@@ -200,6 +203,40 @@ export default function Sidebar() {
           </>
         )}
       </nav>
+
+      {/* Administration Section */}
+      {adminItems.some(item => item.roles.includes(user?.role || '')) && (
+        <div className="border-t border-gray-200 py-4 px-3">
+          <div className="mb-2">
+            <h3 className="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Administration
+            </h3>
+          </div>
+          <div className="space-y-1">
+            {adminItems.map((item) => {
+              if (!item.roles.includes(user?.role || '')) return null;
+              
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <Link key={item.path} href={item.path}>
+                  <div
+                    className={`flex items-center px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 ${
+                      active
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                        : 'text-gray-700'
+                    }`}
+                  >
+                    <Icon className="mr-3 h-4 w-4" />
+                    {item.label}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* User Profile & Logout */}
       <div className="border-t border-gray-200 p-4">

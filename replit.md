@@ -472,6 +472,13 @@ Changelog:
 - July 14, 2025. Indicateurs magasins repositionnés en coin supérieur droit des cases
 - July 14, 2025. Légende enrichie expliquant tous les indicateurs visuels
 - July 14, 2025. Interface plus informative permettant vue rapide de toute l'année
+- July 14, 2025. **SYSTÈME DE RÔLES ENRICHI** - Ajout permissions complètes pour module commandes clients
+- July 14, 2025. Permissions customer_orders avec actions: read, create, update, delete, print, notify
+- July 14, 2025. Employés ont accès complet au module commandes client (création, modification, impression, notification)
+- July 14, 2025. Sidebar réorganisée : "Groupes/Magasins" → "Magasins", "Gestion" → "Administration"
+- July 14, 2025. Section Administration déplacée en bas de sidebar au-dessus du login pour admins
+- July 14, 2025. Interface de gestion des rôles avec noms de catégories français et nouvelles icônes d'actions
+- July 14, 2025. Icônes spécialisées pour validate, print, notify dans le système de permissions
 
 ## User Preferences
 
