@@ -1116,9 +1116,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // NocoDB Configuration routes
-  app.get('/api/nocodb-config', requireAuth, async (req: Request, res: Response) => {
+  app.get('/api/nocodb-config', isAuthenticated, async (req: any, res) => {
     try {
-      if (req.user?.role !== 'admin') {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
       }
 
@@ -1130,9 +1131,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/nocodb-config/:id', requireAuth, async (req: Request, res: Response) => {
+  app.get('/api/nocodb-config/:id', isAuthenticated, async (req: any, res) => {
     try {
-      if (req.user?.role !== 'admin') {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
       }
 
@@ -1150,15 +1152,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/nocodb-config', requireAuth, async (req: Request, res: Response) => {
+  app.post('/api/nocodb-config', isAuthenticated, async (req: any, res) => {
     try {
-      if (req.user?.role !== 'admin') {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
       }
 
       const configData = {
         ...req.body,
-        createdBy: req.user.id,
+        createdBy: req.user.claims ? req.user.claims.sub : req.user.id,
       };
 
       const config = await storage.createNocodbConfig(configData);
@@ -1169,9 +1172,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/nocodb-config/:id', requireAuth, async (req: Request, res: Response) => {
+  app.put('/api/nocodb-config/:id', isAuthenticated, async (req: any, res) => {
     try {
-      if (req.user?.role !== 'admin') {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
       }
 
@@ -1184,9 +1188,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/nocodb-config/:id', requireAuth, async (req: Request, res: Response) => {
+  app.delete('/api/nocodb-config/:id', isAuthenticated, async (req: any, res) => {
     try {
-      if (req.user?.role !== 'admin') {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
       }
 
