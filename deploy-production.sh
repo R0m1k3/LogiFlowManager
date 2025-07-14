@@ -36,13 +36,22 @@ print_error() {
 # Vérifier que Docker est disponible
 if ! command -v docker &> /dev/null; then
     print_error "Docker n'est pas installé ou n'est pas dans le PATH"
+    print_error "Veuillez installer Docker et Docker Compose pour déployer l'application"
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+# Vérifier Docker Compose (version moderne ou legacy)
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+elif docker compose version &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker compose"
+else
     print_error "Docker Compose n'est pas installé ou n'est pas dans le PATH"
+    print_error "Veuillez installer Docker Compose pour déployer l'application"
     exit 1
 fi
+
+print_status "Utilisation de: $DOCKER_COMPOSE_CMD"
 
 # Vérifier que les fichiers nécessaires existent
 required_files=("docker-compose.yml" "Dockerfile" "init.sql" "migration-production.sql")
@@ -70,7 +79,7 @@ fi
 
 # Arrêter les conteneurs existants
 print_status "Arrêt des conteneurs existants..."
-docker-compose down --remove-orphans 2>/dev/null || true
+$DOCKER_COMPOSE_CMD down --remove-orphans 2>/dev/null || true
 
 # Supprimer les images obsolètes
 print_status "Nettoyage des images obsolètes..."
@@ -78,8 +87,8 @@ docker image prune -f --filter "label=project=logiflow" 2>/dev/null || true
 
 # Construire et démarrer les services
 print_status "Construction et démarrage des services..."
-docker-compose build --no-cache
-docker-compose up -d
+$DOCKER_COMPOSE_CMD build --no-cache
+$DOCKER_COMPOSE_CMD up -d
 
 # Attendre que la base de données soit prête
 print_status "Attente de l'initialisation de la base de données..."
@@ -87,7 +96,7 @@ max_attempts=30
 attempt=0
 
 while [ $attempt -lt $max_attempts ]; do
-    if docker-compose exec -T postgres pg_isready -U logiflow_admin -d logiflow_db >/dev/null 2>&1; then
+    if $DOCKER_COMPOSE_CMD exec -T postgres pg_isready -U logiflow_admin -d logiflow_db >/dev/null 2>&1; then
         print_status "Base de données prête"
         break
     fi
@@ -99,7 +108,7 @@ done
 
 if [ $attempt -eq $max_attempts ]; then
     print_error "Timeout lors de l'attente de la base de données"
-    docker-compose logs postgres
+    $DOCKER_COMPOSE_CMD logs postgres
     exit 1
 fi
 
@@ -121,7 +130,7 @@ done
 
 if [ $attempt -eq $max_attempts ]; then
     print_error "Timeout lors de l'attente de l'application"
-    docker-compose logs logiflow-app
+    $DOCKER_COMPOSE_CMD logs logiflow-app
     exit 1
 fi
 
@@ -138,7 +147,7 @@ else
 fi
 
 # Test de la base de données
-if docker-compose exec -T postgres psql -U logiflow_admin -d logiflow_db -c "SELECT 1;" >/dev/null 2>&1; then
+if $DOCKER_COMPOSE_CMD exec -T postgres psql -U logiflow_admin -d logiflow_db -c "SELECT 1;" >/dev/null 2>&1; then
     print_status "✓ Base de données: OK"
 else
     print_error "✗ Base de données: FAILED"
@@ -154,17 +163,17 @@ echo "Base de données: Port 5434 (externe)"
 echo "Authentification: admin / admin"
 echo ""
 echo "Conteneurs actifs:"
-docker-compose ps
+$DOCKER_COMPOSE_CMD ps
 echo ""
 echo "Logs disponibles avec:"
-echo "  docker-compose logs -f logiflow-app"
-echo "  docker-compose logs -f postgres"
+echo "  $DOCKER_COMPOSE_CMD logs -f logiflow-app"
+echo "  $DOCKER_COMPOSE_CMD logs -f postgres"
 echo ""
 
 # Optionnel: Afficher les logs récents
 if [ "$1" = "--logs" ]; then
     print_status "Affichage des logs récents..."
-    docker-compose logs --tail=50
+    $DOCKER_COMPOSE_CMD logs --tail=50
 fi
 
 print_status "Déploiement production terminé avec succès!"

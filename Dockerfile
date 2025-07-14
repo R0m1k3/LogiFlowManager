@@ -23,7 +23,7 @@ COPY server/ server/
 COPY shared/ shared/
 
 # Vérifier la structure
-RUN ls -la server/ && echo "Production files:" && ls -la server/*.production.*
+RUN ls -la server/ && echo "Production files:" && ls -la server/*.production.* || echo "No production files found, will use regular files"
 
 # Build the application
 # Build frontend first
@@ -37,8 +37,23 @@ RUN echo "=== BUILD VERIFICATION ===" && \
     echo "index.html exists:" && \
     ls -la dist/public/index.html
 
-# Build backend with production file only
-RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm --outfile=dist/index.js --external:vite --external:@vitejs/* --external:@replit/* --external:tsx --external:openid-client --external:@neondatabase/serverless --external:ws --external:drizzle-orm --external:pg --external:express --external:connect-pg-simple --external:passport --external:passport-local --external:express-session --external:bcrypt
+# Build backend with production file
+RUN npx esbuild server/index.production.ts --platform=node --bundle --format=esm --outfile=dist/index.js \
+  --external:vite \
+  --external:@vitejs/* \
+  --external:@replit/* \
+  --external:tsx \
+  --external:openid-client \
+  --external:@neondatabase/serverless \
+  --external:ws \
+  --external:drizzle-orm \
+  --external:pg \
+  --external:express \
+  --external:connect-pg-simple \
+  --external:passport \
+  --external:passport-local \
+  --external:express-session \
+  --external:bcrypt
 
 # Production stage
 FROM node:20-alpine AS production
