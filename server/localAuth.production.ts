@@ -1,8 +1,8 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import bcrypt from 'bcrypt';
 import session from 'express-session';
 import { pool } from './initDatabase.production';
+import { hashPassword, comparePasswords } from './auth-utils.production';
 import type { Express } from 'express';
 
 // Import connect-pg-simple using ES6 import
@@ -28,13 +28,7 @@ declare global {
   }
 }
 
-export async function hashPassword(password: string) {
-  return await bcrypt.hash(password, 10);
-}
-
-async function comparePasswords(supplied: string, stored: string) {
-  return await bcrypt.compare(supplied, stored);
-}
+// Les fonctions hashPassword et comparePasswords sont importées depuis auth-utils.production
 
 export function setupLocalAuth(app: Express) {
   // Configure session with PostgreSQL store

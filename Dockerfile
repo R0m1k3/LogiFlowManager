@@ -57,7 +57,7 @@ RUN npx esbuild server/index.production.ts \
     --external:passport \
     --external:passport-local \
     --external:express-session \
-    --external:bcrypt \
+
     --external:zod \
     --external:express-rate-limit \
     --external:memoizee \
@@ -66,10 +66,6 @@ RUN npx esbuild server/index.production.ts \
 
 # Production stage
 FROM node:20-alpine AS production
-
-# Install dependencies for native modules
-RUN apk add --no-cache python3 make g++ && \
-    ln -sf python3 /usr/bin/python
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -81,9 +77,6 @@ WORKDIR /app
 # Install production dependencies only
 COPY --from=build /app/package*.json ./
 RUN npm ci --only=production && npm cache clean --force
-
-# Clean up build dependencies
-RUN apk del python3 make g++
 
 # Copy built application from build stage
 COPY --from=build --chown=nextjs:nodejs /app/dist ./dist

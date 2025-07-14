@@ -1,4 +1,6 @@
 import { pool } from "./db.production";
+import { hashPassword } from './auth-utils.production';
+import { nanoid } from 'nanoid';
 import type { IStorage } from "./storage";
 import type { 
   User, 
@@ -85,19 +87,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
+    // Hash password if provided
+    const hashedPassword = userData.password ? await hashPassword(userData.password) : null;
+    
     const result = await pool.query(`
       INSERT INTO users (id, username, email, name, first_name, last_name, profile_image_url, password, role, password_changed)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `, [
-      userData.id,
+      userData.id || nanoid(),
       userData.username,
       userData.email,
       userData.name,
       userData.firstName,
       userData.lastName,
       userData.profileImageUrl,
-      userData.password,
+      hashedPassword,
       userData.role || 'employee',
       userData.passwordChanged || false
     ]);
@@ -109,17 +114,24 @@ export class DatabaseStorage implements IStorage {
     const values = [];
     let paramIndex = 1;
 
-    Object.entries(userData).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(userData)) {
       if (value !== undefined) {
-        const dbKey = key === 'firstName' ? 'first_name' : 
-                     key === 'lastName' ? 'last_name' : 
-                     key === 'profileImageUrl' ? 'profile_image_url' :
-                     key === 'passwordChanged' ? 'password_changed' : key;
-        fields.push(`${dbKey} = $${paramIndex}`);
-        values.push(value);
+        if (key === 'password') {
+          // Hash password before storing
+          const hashedPassword = await hashPassword(value as string);
+          fields.push(`password = $${paramIndex}`);
+          values.push(hashedPassword);
+        } else {
+          const dbKey = key === 'firstName' ? 'first_name' : 
+                       key === 'lastName' ? 'last_name' : 
+                       key === 'profileImageUrl' ? 'profile_image_url' :
+                       key === 'passwordChanged' ? 'password_changed' : key;
+          fields.push(`${dbKey} = $${paramIndex}`);
+          values.push(value);
+        }
         paramIndex++;
       }
-    });
+    }
 
     values.push(id);
     const result = await pool.query(`

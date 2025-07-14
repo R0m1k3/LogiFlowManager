@@ -401,9 +401,9 @@ async function createDefaultAdmin() {
     );
 
     if (existingAdmin.rows.length === 0) {
-      // Create admin user with bcrypt hash for 'admin'
-      const bcrypt = await import('bcrypt');
-      const hashedPassword = await bcrypt.hash('admin', 10);
+      // Import hash function without bcrypt
+      const { hashPassword } = await import('./auth-utils.production');
+      const hashedPassword = await hashPassword('admin');
       
       await pool.query(`
         INSERT INTO users (id, username, email, name, first_name, last_name, password, role, password_changed)
