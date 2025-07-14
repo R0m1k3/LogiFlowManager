@@ -710,20 +710,61 @@ export class DatabaseStorage implements IStorage {
 
   // Roles and permissions methods
   async getRoles(): Promise<any[]> {
-    const result = await pool.query('SELECT * FROM roles ORDER BY name');
+    const result = await pool.query(`
+      SELECT r.*, 
+             rp.permission_id,
+             p.name as permission_name,
+             p.description as permission_description,
+             p.category as permission_category
+      FROM roles r
+      LEFT JOIN role_permissions rp ON r.id = rp.role_id
+      LEFT JOIN permissions p ON rp.permission_id = p.id
+      ORDER BY r.name, p.category, p.name
+    `);
+    
     console.log('🔍 getRoles debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
     
-    // Protection contre null/undefined et transformation structure
-    const roles = result.rows || [];
-    return Array.isArray(roles) ? roles.map(role => ({
-      id: role.id,
-      name: role.name,
-      description: role.description,
-      isSystem: role.is_system,
-      createdAt: role.created_at,
-      updatedAt: role.updated_at,
-      permissions: [] // Sera peuplé par getRolePermissions si nécessaire
-    })) : [];
+    // Protection et transformation en structure Drizzle avec permissions imbriquées
+    const rolesMap = new Map();
+    (result.rows || []).forEach(row => {
+      const roleId = row.id;
+      
+      if (!rolesMap.has(roleId)) {
+        rolesMap.set(roleId, {
+          id: row.id,
+          name: row.name,
+          displayName: row.display_name || row.name,
+          description: row.description || '',
+          color: row.color || '#6b7280',
+          isActive: row.is_active !== false,
+          isSystem: row.is_system || false,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          permissions: [],
+          rolePermissions: []
+        });
+      }
+      
+      // Ajouter permission si elle existe
+      if (row.permission_id) {
+        const permission = {
+          id: row.permission_id,
+          name: row.permission_name,
+          description: row.permission_description,
+          category: row.permission_category,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
+        
+        rolesMap.get(roleId).permissions.push(permission);
+        rolesMap.get(roleId).rolePermissions.push({
+          roleId: roleId,
+          permissionId: row.permission_id
+        });
+      }
+    });
+    
+    return Array.from(rolesMap.values());
   }
 
   async getRole(id: number): Promise<any> {
@@ -733,19 +774,39 @@ export class DatabaseStorage implements IStorage {
 
   async createRole(role: InsertRole): Promise<Role> {
     const result = await pool.query(`
-      INSERT INTO roles (name, description, is_system) 
-      VALUES ($1, $2, $3) 
+      INSERT INTO roles (name, display_name, description, color, is_active, is_system) 
+      VALUES ($1, $2, $3, $4, $5, $6) 
       RETURNING *
-    `, [role.name, role.description, role.isSystem || false]);
+    `, [
+      role.name, 
+      role.displayName || role.name, 
+      role.description || '', 
+      role.color || '#6b7280',
+      role.isActive !== false,
+      role.isSystem || false
+    ]);
     return result.rows[0];
   }
 
   async updateRole(id: number, role: Partial<InsertRole>): Promise<Role> {
     const result = await pool.query(`
-      UPDATE roles SET name = $1, description = $2, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $3
+      UPDATE roles SET 
+        name = $1, 
+        display_name = $2, 
+        description = $3, 
+        color = $4, 
+        is_active = $5, 
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $6
       RETURNING *
-    `, [role.name, role.description, id]);
+    `, [
+      role.name, 
+      role.displayName, 
+      role.description, 
+      role.color, 
+      role.isActive,
+      id
+    ]);
     return result.rows[0];
   }
 
@@ -767,6 +828,28 @@ export class DatabaseStorage implements IStorage {
       createdAt: perm.created_at,
       updatedAt: perm.updated_at
     })) : [];
+  }
+
+  async getRolePermissions(roleId: number): Promise<RolePermission[]> {
+    const result = await pool.query('SELECT * FROM role_permissions WHERE role_id = $1', [roleId]);
+    return result.rows.map(row => ({
+      roleId: row.role_id,
+      permissionId: row.permission_id
+    }));
+  }
+
+  async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
+    // Supprimer les permissions existantes
+    await pool.query('DELETE FROM role_permissions WHERE role_id = $1', [roleId]);
+    
+    // Ajouter les nouvelles permissions
+    for (const permissionId of permissionIds) {
+      await pool.query(`
+        INSERT INTO role_permissions (role_id, permission_id) 
+        VALUES ($1, $2)
+        ON CONFLICT (role_id, permission_id) DO NOTHING
+      `, [roleId, permissionId]);
+    }
   }
 
   async createPermission(permission: InsertPermission): Promise<Permission> {

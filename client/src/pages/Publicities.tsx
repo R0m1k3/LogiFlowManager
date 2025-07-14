@@ -155,11 +155,26 @@ export default function Publicities() {
       { weekStartsOn: 1 }
     );
 
-    return weeks.map(weekStart => {
+    console.log(`📅 getYearWeeks debug pour ${selectedYear}:`, {
+      yearStart: format(yearStart, 'yyyy-MM-dd EEEE', { locale: fr }),
+      yearEnd: format(yearEnd, 'yyyy-MM-dd EEEE', { locale: fr }),
+      totalWeeks: weeks.length
+    });
+
+    return weeks.map((weekStart, index) => {
       const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
       const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
       const month = getMonth(weekStart);
       const participation = getWeekParticipation(weekStart, weekEnd);
+      
+      // Debug première semaine pour vérifier
+      if (index < 3) {
+        console.log(`📅 Semaine ${weekNumber}:`, {
+          debut: format(weekStart, 'yyyy-MM-dd EEEE', { locale: fr }),
+          fin: format(weekEnd, 'yyyy-MM-dd EEEE', { locale: fr }),
+          participations: participation.publicities.length
+        });
+      }
       
       return {
         weekStart,
@@ -389,7 +404,7 @@ export default function Publicities() {
                               }
                               hover:shadow-sm transition-shadow
                             `}
-                            title={`Semaine ${week.weekNumber} - ${hasPublicity ? `${week.publicities.map(p => p.pubNumber).join(', ')}` : 'Aucune publicité'}`}
+                            title={`Semaine ${week.weekNumber} (${format(week.weekStart, 'dd/MM', { locale: fr })} - ${format(week.weekEnd, 'dd/MM', { locale: fr })}) - ${hasPublicity ? `${week.publicities.map(p => p.pubNumber).join(', ')}` : 'Aucune publicité'}`}
                           >
                             <span className="text-xs font-medium">{week.weekNumber}</span>
                             {/* Store participation indicators */}

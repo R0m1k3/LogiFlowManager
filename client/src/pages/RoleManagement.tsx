@@ -58,8 +58,32 @@ export default function RoleManagement() {
   const [selectedRole, setSelectedRole] = useState<RoleWithPermissions | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Redirect if not admin
-  if (user?.role !== 'admin') {
+  // Debug et vérification admin
+  console.log('🔐 RoleManagement user check:', { 
+    userExists: !!user, 
+    userRole: user?.role, 
+    isAdmin: user?.role === 'admin',
+    userObject: user 
+  });
+  
+  // Protection contre utilisateur non connecté ou non admin
+  if (!user) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Connexion requise</h3>
+              <p className="text-gray-600">Vous devez être connecté pour accéder à cette page.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (user.role !== 'admin') {
     return (
       <div className="p-6">
         <Card>
@@ -68,6 +92,7 @@ export default function RoleManagement() {
               <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Accès restreint</h3>
               <p className="text-gray-600">Cette page est réservée aux administrateurs.</p>
+              <p className="text-sm text-gray-500 mt-2">Rôle actuel: {user.role}</p>
             </div>
           </CardContent>
         </Card>
@@ -86,7 +111,7 @@ export default function RoleManagement() {
     },
   });
 
-  // Queries
+  // Queries avec protection
   const { data: roles = [], isLoading: rolesLoading } = useQuery<RoleWithPermissions[]>({
     queryKey: ['/api/roles'],
   });
@@ -94,6 +119,19 @@ export default function RoleManagement() {
   const { data: permissions = [] } = useQuery<Permission[]>({
     queryKey: ['/api/permissions'],
   });
+
+  // Protection React Error #310 - Vérification Array
+  console.log('🔐 RoleManagement data:', { 
+    rolesLoading, 
+    rolesCount: Array.isArray(roles) ? roles.length : 'NOT_ARRAY',
+    permissionsCount: Array.isArray(permissions) ? permissions.length : 'NOT_ARRAY',
+    rolesType: typeof roles,
+    permissionsType: typeof permissions 
+  });
+  
+  // Protection: s'assurer que roles et permissions sont des arrays
+  const safeRoles = Array.isArray(roles) ? roles : [];
+  const safePermissions = Array.isArray(permissions) ? permissions : [];
 
   // Mutations
   const createRoleMutation = useMutation({

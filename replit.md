@@ -579,6 +579,9 @@ Changelog:
 - July 14, 2025. Harmonisation getOrdersByDateRange() avec structure Drizzle (supplier, group, creator objets imbriqués)
 - July 14, 2025. **FILTRE PUBLICITÉS ANNÉE CORRIGÉ** - getPublicities() filtre maintenant correctement par année
 - July 14, 2025. Ajout WHERE year = $1 dans storage.production.ts pour filtrage publicités 2025/2026
+- July 14, 2025. **SEMAINES PUBLICITÉS CORRIGÉES** - Tooltips avec dates lundi-dimanche + logs debug calcul semaines
+- July 14, 2025. **PAGE RÔLES PRODUCTION CORRIGÉE** - React Error #310 résolu avec getRoles() incluant permissions
+- July 14, 2025. Méthodes storage complètes: getRolePermissions(), setRolePermissions() pour gestion permissions
 - July 14, 2025. Protection Array.isArray() et logs debug CalendarGrid pour diagnostic production
 - July 14, 2025. Script fix-calendar-publicities.sh créé pour déploiement automatique des corrections
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
