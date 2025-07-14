@@ -415,10 +415,6 @@ export default function Publicities() {
                 </div>
               </div>
               <div className="flex items-center gap-4 text-xs text-gray-500">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-1 rounded-full bg-blue-600"></div>
-                  <span>Présence de publicité (point bleu)</span>
-                </div>
                 <span>• Survolez les semaines pour voir les détails des publicités</span>
               </div>
             </div>
