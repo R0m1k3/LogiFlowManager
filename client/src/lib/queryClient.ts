@@ -55,10 +55,17 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      refetchOnMount: true, // Cohérent avec useAuth
       refetchOnReconnect: false,
-      staleTime: Infinity,
-      retry: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes  
+      retry: (failureCount, error: any) => {
+        // Ne pas retry les erreurs d'authentification
+        if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
+          return false;
+        }
+        return failureCount < 2;
+      },
     },
     mutations: {
       retry: false,

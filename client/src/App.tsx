@@ -22,14 +22,13 @@ import CustomerOrders from "@/pages/CustomerOrders";
 import Layout from "@/components/Layout";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH === 'true' || import.meta.env.MODE === 'development';
 
-  // Debug logging pour production
-  console.log('Router - isAuthenticated:', isAuthenticated);
-  console.log('Router - isLoading:', isLoading);
-  console.log('Router - USE_LOCAL_AUTH:', USE_LOCAL_AUTH);
-  console.log('Router - Current path:', window.location.pathname);
+  // Debug logging pour production (réduit pour éviter spam)
+  if (import.meta.env.MODE === 'development') {
+    console.log('Router - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'user:', user?.username);
+  }
 
   if (isLoading) {
     return (

@@ -136,7 +136,10 @@ export default function Sidebar() {
 
   const hasPermission = (roles: string[]) => {
     const hasRole = user?.role && roles.includes(user.role);
-    console.log('hasPermission check:', { userRole: user?.role, roles, hasRole });
+    // Debug uniquement en développement pour éviter spam console
+    if (import.meta.env.MODE === 'development') {
+      console.log('hasPermission check:', { userRole: user?.role, roles, hasRole });
+    }
     return hasRole;
   };
 
