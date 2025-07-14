@@ -32,6 +32,7 @@ import {
   UserCheck,
   Lock,
   Unlock,
+  FileText,
 } from "lucide-react";
 import type { Role, Permission, RoleWithPermissions } from "@shared/schema";
 
