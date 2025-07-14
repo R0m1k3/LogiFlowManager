@@ -420,7 +420,7 @@ export default function Publicities() {
                       <div 
                         key={group.id}
                         className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: group.color }}
+                        style={{ backgroundColor: group?.color || '#666666' }}
                       />
                     ))}
                   </div>
@@ -571,7 +571,7 @@ export default function Publicities() {
                         <div 
                           key={group.id}
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: group.color }}
+                          style={{ backgroundColor: group?.color || '#666666' }}
                         />
                       ))}
                     </div>
@@ -657,7 +657,7 @@ export default function Publicities() {
                                     <Badge key={participation.groupId} variant="outline" className="text-xs">
                                       <div 
                                         className="w-2 h-2 rounded-full mr-1" 
-                                        style={{ backgroundColor: participation.group.color }}
+                                        style={{ backgroundColor: participation.group?.color || '#666666' }}
                                       />
                                       {participation.group.name}
                                     </Badge>
@@ -805,7 +805,7 @@ export default function Publicities() {
                       <Badge key={participation.groupId} variant="outline">
                         <div 
                           className="w-3 h-3 rounded-full mr-2" 
-                          style={{ backgroundColor: participation.group.color }}
+                          style={{ backgroundColor: participation.group?.color || '#666666' }}
                         />
                         {participation.group.name}
                       </Badge>

@@ -375,7 +375,7 @@ export default function RoleManagement() {
 
       {/* Roles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRoles.map((role) => (
+        {Array.isArray(filteredRoles) && filteredRoles.map((role) => (
           <Card key={role.id} className="shadow-sm hover:shadow-md transition-all duration-200 border-gray-200">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
@@ -588,13 +588,13 @@ export default function RoleManagement() {
 
           <ScrollArea className="h-96 pr-4">
             <div className="space-y-6">
-              {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
+              {Object.entries(permissionsByCategory || {}).map(([category, categoryPermissions]) => (
                 <div key={category} className="space-y-3">
                   <h4 className="font-semibold text-gray-900 border-b border-gray-200 pb-2">
                     {getCategoryDisplayName(category)}
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
-                    {categoryPermissions.map((permission) => {
+                    {Array.isArray(categoryPermissions) && categoryPermissions.map((permission) => {
                       const isChecked = selectedRole?.rolePermissions?.some(
                         rp => rp.permissionId === permission.id
                       ) || false;
@@ -607,7 +607,7 @@ export default function RoleManagement() {
                             onCheckedChange={(checked) => {
                               if (!selectedRole) return;
                               
-                              const currentPermissionIds = selectedRole.rolePermissions?.map(rp => rp.permissionId) || [];
+                              const currentPermissionIds = Array.isArray(selectedRole.rolePermissions) ? selectedRole.rolePermissions.map(rp => rp.permissionId) : [];
                               let newPermissionIds;
                               
                               if (checked) {
