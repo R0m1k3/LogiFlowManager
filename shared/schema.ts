@@ -107,6 +107,7 @@ export const deliveries = pgTable("deliveries", {
   invoiceReference: varchar("invoice_reference"), // Référence facture
   invoiceAmount: decimal("invoice_amount", { precision: 10, scale: 2 }), // Montant facture
   reconciled: boolean("reconciled").default(false), // Rapprochement effectué
+  validatedAt: timestamp("validated_at"),
   createdBy: varchar("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -170,15 +171,15 @@ export const rolePermissions = pgTable("role_permissions", {
 }));
 
 // NocoDB configuration
-export const nocodbConfig = pgTable("nocodb_config", {
+export const nocodbConfig = pgTable("nocodb_configs", {
   id: serial("id").primaryKey(),
-  name: varchar("name").notNull(), // Nom de la configuration
-  baseUrl: varchar("base_url").notNull(), // URL de l'instance NocoDB
-  projectId: varchar("project_id").notNull(), // NocoDB Project ID
-  apiToken: varchar("api_token").notNull(), // Personal API Token
-  description: text("description"), // Description de la configuration
-  isActive: boolean("is_active").default(true), // Configuration active ou non
-  createdBy: varchar("created_by").notNull(),
+  groupId: integer("group_id").notNull(),
+  projectId: varchar("project_id").notNull(),
+  tableId: varchar("table_id").notNull(),
+  tableName: varchar("table_name").notNull(),
+  invoiceColumnName: varchar("invoice_column_name").notNull().default("RefFacture"),
+  apiToken: varchar("api_token"),
+  baseUrl: varchar("base_url").default("https://nocodb.ffnancy.fr"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -186,31 +187,19 @@ export const nocodbConfig = pgTable("nocodb_config", {
 // Customer Orders (Commandes Client)
 export const customerOrders = pgTable("customer_orders", {
   id: serial("id").primaryKey(),
-  // Information de commande
-  orderTaker: varchar("order_taker").notNull(), // Qui a pris la commande
-  customerName: varchar("customer_name").notNull(), // Nom du client
-  customerPhone: varchar("customer_phone").notNull(), // N° de téléphone
-  
-  // Information produit
-  productDesignation: text("product_designation").notNull(), // Désignation du produit
-  productReference: varchar("product_reference"), // Référence
-  gencode: varchar("gencode").notNull(), // Code à barres (obligatoire)
-  quantity: integer("quantity").notNull().default(1), // Quantité commandée
-  supplierId: integer("supplier_id").notNull(), // Fournisseur
-  
-  // Statuts
-  status: varchar("status").notNull().default("En attente de Commande"), // Statut du produit
-  
-  // Options financières
-  deposit: decimal("deposit", { precision: 10, scale: 2 }).default("0.00"), // Acompte
-  isPromotionalPrice: boolean("is_promotional_price").default(false), // Prix publicité
-  
-  // Communication client
-  customerNotified: boolean("customer_notified").default(false), // Client appelé
-  
-  // Métadonnées
-  groupId: integer("group_id").notNull(), // Magasin
-  createdBy: varchar("created_by").notNull(), // Créateur
+  customerName: varchar("customer_name").notNull(),
+  customerPhone: varchar("customer_phone"),
+  customerEmail: varchar("customer_email"),
+  supplierId: integer("supplier_id").notNull(),
+  groupId: integer("group_id").notNull(),
+  productDescription: text("product_description").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }),
+  totalPrice: decimal("total_price", { precision: 10, scale: 2 }),
+  orderDate: date("order_date").notNull(),
+  status: varchar("status").notNull().default("pending"),
+  notes: text("notes"),
+  createdBy: varchar("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
