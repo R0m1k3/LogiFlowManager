@@ -77,12 +77,17 @@ export function CustomerOrderForm({
   });
 
   const handleSubmit = (data: CustomerOrderFormData) => {
+    console.log("Form submission data:", data);
+    console.log("Form errors:", form.formState.errors);
+    console.log("Form is valid:", form.formState.isValid);
+    
     // Convert deposit string to number
     const submitData = {
       ...data,
       deposit: data.deposit ? parseFloat(data.deposit) : 0,
       groupId: parseInt(data.groupId.toString()),
     };
+    console.log("Processed submit data:", submitData);
     onSubmit(submitData);
   };
 
@@ -91,9 +96,10 @@ export function CustomerOrderForm({
     ? groups 
     : user?.userGroups?.map(ug => ug.group) || [];
 
-  // Auto-select group for non-admin users with single group
-  if (user?.role !== 'admin' && availableGroups.length === 1 && !form.getValues('groupId')) {
-    form.setValue('groupId', availableGroups[0].id);
+  // Auto-select group for users
+  const currentGroupId = form.getValues('groupId');
+  if (!currentGroupId && user?.userGroups?.[0]?.groupId) {
+    form.setValue('groupId', user.userGroups[0].groupId);
   }
 
   return (
@@ -270,6 +276,11 @@ export function CustomerOrderForm({
           <Button 
             type="submit"
             disabled={isLoading}
+            onClick={(e) => {
+              console.log("Submit button clicked");
+              console.log("Form state:", form.formState);
+              console.log("Form values:", form.getValues());
+            }}
           >
             {isLoading ? "Enregistrement..." : order ? "Modifier" : "Créer"}
           </Button>
