@@ -89,9 +89,21 @@ export default function Publicities() {
     const weekPublicities = publicities.filter(pub => {
       const pubStart = new Date(pub.startDate);
       const pubEnd = new Date(pub.endDate);
-      return isWithinInterval(weekStart, { start: pubStart, end: pubEnd }) ||
-             isWithinInterval(weekEnd, { start: pubStart, end: pubEnd }) ||
-             (pubStart <= weekStart && weekEnd <= pubEnd);
+      
+      // More robust overlap detection: check if any part of the publicity period overlaps with the week
+      const overlaps = (pubStart <= weekEnd && pubEnd >= weekStart);
+      
+      // Debug: log for October weeks
+      if (weekStart.getMonth() === 9 && weekStart.getDate() <= 7) { // October, first week
+        console.log(`Week ${weekStart.toLocaleDateString()} - ${weekEnd.toLocaleDateString()}:`, {
+          pubNumber: pub.pubNumber,
+          pubStart: pubStart.toLocaleDateString(),
+          pubEnd: pubEnd.toLocaleDateString(),
+          overlaps
+        });
+      }
+      
+      return overlaps;
     });
 
     const participatingStores = new Set<number>();
@@ -371,16 +383,22 @@ export default function Publicities() {
                             )}
                             {/* Store participation indicators */}
                             {storeColors.length > 0 && (
-                              <div className="absolute top-0 right-0 flex gap-0.5 p-0.5">
-                                {storeColors.slice(0, 2).map((color, idx) => (
+                              <div className="absolute top-0.5 right-0.5 flex flex-wrap gap-0.5 max-w-[16px]">
+                                {storeColors.slice(0, 4).map((color, idx) => (
                                   <div
                                     key={idx}
-                                    className="w-1 h-1 rounded-full"
+                                    className="w-1.5 h-1.5 rounded-full"
                                     style={{ backgroundColor: color }}
+                                    title={`Magasin ${idx + 1}`}
                                   />
                                 ))}
-                                {storeColors.length > 2 && (
-                                  <div className="w-1 h-1 rounded-full bg-gray-400" />
+                                {storeColors.length > 4 && (
+                                  <div 
+                                    className="w-1.5 h-1.5 rounded-full bg-gray-400 text-white text-xs flex items-center justify-center"
+                                    title={`+${storeColors.length - 4} autres magasins`}
+                                  >
+                                    +
+                                  </div>
                                 )}
                               </div>
                             )}
