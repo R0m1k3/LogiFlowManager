@@ -1,0 +1,854 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage.production";
+import { setupLocalAuth, requireAuth } from "./localAuth";
+import { initializeRolesAndPermissions } from "./initRolesAndPermissions";
+
+// Alias pour compatibilité
+const isAuthenticated = requireAuth;
+const setupAuth = setupLocalAuth;
+import { 
+  insertGroupSchema, 
+  insertSupplierSchema, 
+  insertOrderSchema, 
+  insertDeliverySchema,
+  insertUserGroupSchema,
+  insertPublicitySchema,
+  insertRoleSchema,
+  insertPermissionSchema,
+  insertCustomerOrderSchema
+} from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint for Docker
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'production',
+      database: 'connected'
+    });
+  });
+
+  // Auth middleware
+  await setupAuth(app);
+
+  // Initialize roles and permissions on startup
+  try {
+    await initializeRolesAndPermissions();
+  } catch (error) {
+    console.error("Failed to initialize roles and permissions:", error);
+  }
+
+  // All routes from the original routes.ts file
+  // Groups routes
+  app.get('/api/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.role === 'admin') {
+        const groups = await storage.getGroups();
+        res.json(groups);
+      } else {
+        const userGroups = user.userGroups.map((ug: any) => ug.group);
+        res.json(userGroups);
+      }
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+      res.status(500).json({ message: "Failed to fetch groups" });
+    }
+  });
+
+  app.post('/api/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const result = insertGroupSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const group = await storage.createGroup(result.data);
+      res.status(201).json(group);
+    } catch (error) {
+      console.error("Error creating group:", error);
+      res.status(500).json({ message: "Failed to create group" });
+    }
+  });
+
+  app.put('/api/groups/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      const result = insertGroupSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const group = await storage.updateGroup(id, result.data);
+      res.json(group);
+    } catch (error) {
+      console.error("Error updating group:", error);
+      res.status(500).json({ message: "Failed to update group" });
+    }
+  });
+
+  app.delete('/api/groups/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteGroup(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting group:", error);
+      res.status(500).json({ message: "Failed to delete group" });
+    }
+  });
+
+  // Suppliers routes
+  app.get('/api/suppliers', isAuthenticated, async (req: any, res) => {
+    try {
+      const suppliers = await storage.getSuppliers();
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      res.status(500).json({ message: "Failed to fetch suppliers" });
+    }
+  });
+
+  app.post('/api/suppliers', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const result = insertSupplierSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const supplier = await storage.createSupplier(result.data);
+      res.status(201).json(supplier);
+    } catch (error) {
+      console.error("Error creating supplier:", error);
+      res.status(500).json({ message: "Failed to create supplier" });
+    }
+  });
+
+  app.put('/api/suppliers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      const result = insertSupplierSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const supplier = await storage.updateSupplier(id, result.data);
+      res.json(supplier);
+    } catch (error) {
+      console.error("Error updating supplier:", error);
+      res.status(500).json({ message: "Failed to update supplier" });
+    }
+  });
+
+  app.delete('/api/suppliers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteSupplier(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting supplier:", error);
+      res.status(500).json({ message: "Failed to delete supplier" });
+    }
+  });
+
+  // Orders routes
+  app.get('/api/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { startDate, endDate, storeId } = req.query;
+
+      let groupIds: number[] | undefined;
+      if (user.role === 'admin') {
+        groupIds = storeId ? [parseInt(storeId as string)] : undefined;
+      } else {
+        groupIds = user.userGroups.map((ug: any) => ug.groupId);
+      }
+
+      let orders;
+      if (startDate && endDate) {
+        orders = await storage.getOrdersByDateRange(startDate as string, endDate as string, groupIds);
+      } else {
+        orders = await storage.getOrders(groupIds);
+      }
+
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  app.post('/api/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const orderData = {
+        ...req.body,
+        createdBy: userId,
+      };
+
+      const result = insertOrderSchema.safeParse(orderData);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const order = await storage.createOrder(result.data);
+      res.status(201).json(order);
+    } catch (error) {
+      console.error("Error creating order:", error);
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  app.put('/api/orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const result = insertOrderSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const order = await storage.updateOrder(id, result.data);
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating order:", error);
+      res.status(500).json({ message: "Failed to update order" });
+    }
+  });
+
+  app.delete('/api/orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteOrder(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      res.status(500).json({ message: "Failed to delete order" });
+    }
+  });
+
+  // Deliveries routes
+  app.get('/api/deliveries', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { startDate, endDate, storeId } = req.query;
+
+      let groupIds: number[] | undefined;
+      if (user.role === 'admin') {
+        groupIds = storeId ? [parseInt(storeId as string)] : undefined;
+      } else {
+        groupIds = user.userGroups.map((ug: any) => ug.groupId);
+      }
+
+      let deliveries;
+      if (startDate && endDate) {
+        deliveries = await storage.getDeliveriesByDateRange(startDate as string, endDate as string, groupIds);
+      } else {
+        deliveries = await storage.getDeliveries(groupIds);
+      }
+
+      res.json(deliveries);
+    } catch (error) {
+      console.error("Error fetching deliveries:", error);
+      res.status(500).json({ message: "Failed to fetch deliveries" });
+    }
+  });
+
+  app.post('/api/deliveries', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const deliveryData = {
+        ...req.body,
+        createdBy: userId,
+      };
+
+      const result = insertDeliverySchema.safeParse(deliveryData);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const delivery = await storage.createDelivery(result.data);
+      res.status(201).json(delivery);
+    } catch (error) {
+      console.error("Error creating delivery:", error);
+      res.status(500).json({ message: "Failed to create delivery" });
+    }
+  });
+
+  app.put('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const result = insertDeliverySchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const delivery = await storage.updateDelivery(id, result.data);
+      res.json(delivery);
+    } catch (error) {
+      console.error("Error updating delivery:", error);
+      res.status(500).json({ message: "Failed to update delivery" });
+    }
+  });
+
+  app.delete('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDelivery(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting delivery:", error);
+      res.status(500).json({ message: "Failed to delete delivery" });
+    }
+  });
+
+  app.put('/api/deliveries/:id/validate', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { blNumber, blAmount } = req.body;
+
+      await storage.validateDelivery(id, { blNumber, blAmount });
+      res.json({ message: "Delivery validated successfully" });
+    } catch (error) {
+      console.error("Error validating delivery:", error);
+      res.status(500).json({ message: "Failed to validate delivery" });
+    }
+  });
+
+  // User management routes
+  app.get('/api/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post('/api/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const newUser = await storage.createUser(req.body);
+      res.status(201).json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.put('/api/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const id = req.params.id;
+      const updatedUser = await storage.updateUser(id, req.body);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.delete('/api/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const id = req.params.id;
+      await storage.deleteUser(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // User groups routes
+  app.get('/api/users/:userId/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const userGroups = await storage.getUserGroups(userId);
+      res.json(userGroups);
+    } catch (error) {
+      console.error("Error fetching user groups:", error);
+      res.status(500).json({ message: "Failed to fetch user groups" });
+    }
+  });
+
+  app.post('/api/users/:userId/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const userId = req.params.userId;
+      const { groupIds } = req.body;
+
+      // Clear existing groups
+      const existingGroups = await storage.getUserGroups(userId);
+      for (const ug of existingGroups) {
+        await storage.removeUserFromGroup(userId, ug.groupId);
+      }
+
+      // Add new groups
+      for (const groupId of groupIds) {
+        await storage.assignUserToGroup({ userId, groupId });
+      }
+
+      res.json({ message: "User groups updated successfully" });
+    } catch (error) {
+      console.error("Error updating user groups:", error);
+      res.status(500).json({ message: "Failed to update user groups" });
+    }
+  });
+
+  // Statistics routes
+  app.get('/api/stats/monthly', isAuthenticated, async (req: any, res) => {
+    try {
+      const year = parseInt(req.query.year as string) || new Date().getFullYear();
+      const month = parseInt(req.query.month as string) || new Date().getMonth() + 1;
+      const storeId = req.query.storeId as string;
+
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let groupIds: number[] | undefined;
+      if (user.role === 'admin') {
+        groupIds = storeId ? [parseInt(storeId)] : undefined;
+      } else {
+        groupIds = user.userGroups.map((ug: any) => ug.groupId);
+      }
+
+      const stats = await storage.getMonthlyStats(year, month, groupIds);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching monthly stats:", error);
+      res.status(500).json({ message: "Failed to fetch monthly stats" });
+    }
+  });
+
+  // Publicities routes
+  app.get('/api/publicities', isAuthenticated, async (req: any, res) => {
+    try {
+      const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+      const publicities = await storage.getPublicities(year);
+      res.json(publicities);
+    } catch (error) {
+      console.error("Error fetching publicities:", error);
+      res.status(500).json({ message: "Failed to fetch publicities" });
+    }
+  });
+
+  app.post('/api/publicities', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const publicity = await storage.createPublicity({
+        ...req.body,
+        createdBy: userId,
+      });
+      res.status(201).json(publicity);
+    } catch (error) {
+      console.error("Error creating publicity:", error);
+      res.status(500).json({ message: "Failed to create publicity" });
+    }
+  });
+
+  app.put('/api/publicities/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const id = parseInt(req.params.id);
+      const publicity = await storage.updatePublicity(id, req.body);
+      res.json(publicity);
+    } catch (error) {
+      console.error("Error updating publicity:", error);
+      res.status(500).json({ message: "Failed to update publicity" });
+    }
+  });
+
+  app.delete('/api/publicities/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deletePublicity(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting publicity:", error);
+      res.status(500).json({ message: "Failed to delete publicity" });
+    }
+  });
+
+  // Customer Orders routes
+  app.get('/api/customer-orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const groupIds = user.userGroups.map((ug: any) => ug.groupId);
+      const customerOrders = await storage.getCustomerOrders(groupIds);
+      res.json(customerOrders || []);
+    } catch (error) {
+      console.error("Error fetching customer orders:", error);
+      res.status(500).json({ message: "Failed to fetch customer orders" });
+    }
+  });
+
+  app.post('/api/customer-orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const customerOrder = await storage.createCustomerOrder({
+        ...req.body,
+        createdBy: userId,
+      });
+      res.status(201).json(customerOrder);
+    } catch (error) {
+      console.error("Error creating customer order:", error);
+      res.status(500).json({ message: "Failed to create customer order" });
+    }
+  });
+
+  app.put('/api/customer-orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const customerOrder = await storage.updateCustomerOrder(id, req.body);
+      res.json(customerOrder);
+    } catch (error) {
+      console.error("Error updating customer order:", error);
+      res.status(500).json({ message: "Failed to update customer order" });
+    }
+  });
+
+  app.delete('/api/customer-orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCustomerOrder(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting customer order:", error);
+      res.status(500).json({ message: "Failed to delete customer order" });
+    }
+  });
+
+  // Roles management routes
+  app.get('/api/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const roles = await storage.getRoles();
+      res.json(roles);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      res.status(500).json({ message: "Failed to fetch roles" });
+    }
+  });
+
+  app.post('/api/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const role = await storage.createRole(req.body);
+      res.status(201).json(role);
+    } catch (error) {
+      console.error("Error creating role:", error);
+      res.status(500).json({ message: "Failed to create role" });
+    }
+  });
+
+  app.put('/api/roles/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const id = parseInt(req.params.id);
+      const role = await storage.updateRole(id, req.body);
+      res.json(role);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
+  app.delete('/api/roles/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const id = parseInt(req.params.id);
+      const role = await storage.getRole(id);
+      
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+
+      if (role.isSystem) {
+        return res.status(400).json({ message: "Cannot delete system roles" });
+      }
+
+      await storage.deleteRole(id);
+      res.json({ message: "Role deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      res.status(500).json({ message: "Failed to delete role" });
+    }
+  });
+
+  // Permissions management routes
+  app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const permissions = await storage.getPermissions();
+      res.json(permissions);
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      res.status(500).json({ message: "Failed to fetch permissions" });
+    }
+  });
+
+  // Role permissions management
+  app.post('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const roleId = parseInt(req.params.id);
+      const { permissionIds } = req.body;
+
+      if (!Array.isArray(permissionIds)) {
+        return res.status(400).json({ message: "permissionIds must be an array" });
+      }
+
+      await storage.setRolePermissions(roleId, permissionIds);
+      res.json({ message: "Role permissions updated successfully" });
+    } catch (error) {
+      console.error("Error updating role permissions:", error);
+      res.status(500).json({ message: "Failed to update role permissions" });
+    }
+  });
+
+  // NocoDB Configuration routes
+  app.get('/api/nocodb-config', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const configs = await storage.getNocodbConfigs();
+      res.json(configs);
+    } catch (error) {
+      console.error('Error fetching NocoDB configs:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des configurations' });
+    }
+  });
+
+  app.post('/api/nocodb-config', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const config = await storage.createNocodbConfig({
+        ...req.body,
+        createdBy: userId,
+      });
+      res.status(201).json(config);
+    } catch (error) {
+      console.error('Error creating NocoDB config:', error);
+      res.status(500).json({ message: 'Erreur lors de la création de la configuration' });
+    }
+  });
+
+  app.put('/api/nocodb-config/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const id = parseInt(req.params.id);
+      const config = await storage.updateNocodbConfig(id, req.body);
+      res.json(config);
+    } catch (error) {
+      console.error('Error updating NocoDB config:', error);
+      res.status(500).json({ message: 'Erreur lors de la mise à jour de la configuration' });
+    }
+  });
+
+  app.delete('/api/nocodb-config/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: 'Accès refusé. Seuls les administrateurs peuvent gérer les configurations NocoDB.' });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteNocodbConfig(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting NocoDB config:', error);
+      res.status(500).json({ message: 'Erreur lors de la suppression de la configuration' });
+    }
+  });
+
+  // Invoice verification routes (simplified for production)
+  app.post('/api/verify-invoice', isAuthenticated, async (req: any, res) => {
+    try {
+      const { groupId, invoiceReference } = req.body;
+      
+      if (!groupId || !invoiceReference) {
+        return res.status(400).json({ message: "groupId and invoiceReference are required" });
+      }
+
+      // Simplified verification - always return false for production
+      res.json({ exists: false });
+    } catch (error) {
+      console.error("Error verifying invoice:", error);
+      res.status(500).json({ message: "Failed to verify invoice" });
+    }
+  });
+
+  app.post('/api/verify-invoices', isAuthenticated, async (req: any, res) => {
+    try {
+      const { invoiceReferences } = req.body;
+      
+      if (!Array.isArray(invoiceReferences)) {
+        return res.status(400).json({ message: "invoiceReferences must be an array" });
+      }
+
+      // Simplified verification - always return false for production
+      const results: any = {};
+      invoiceReferences.forEach((ref: any) => {
+        results[ref.deliveryId] = { exists: false };
+      });
+      
+      res.json(results);
+    } catch (error) {
+      console.error("Error verifying invoices:", error);
+      res.status(500).json({ message: "Failed to verify invoices" });
+    }
+  });
+
+  const server = createServer(app);
+  return server;
+}

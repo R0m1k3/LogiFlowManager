@@ -1,10 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
 import { setupSecurityHeaders, setupRateLimiting, setupInputSanitization } from "./security";
 import { setupCompression } from "./cache";
 import { monitor, setupMonitoringEndpoints } from "./monitoring";
 import path from "path";
 import fs from "fs";
+import { storage } from "./storage.production";
 
 const app = express();
 
@@ -79,6 +79,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  const { registerRoutes } = await import('./routes.production');
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

@@ -56,6 +56,7 @@ RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/heal
 if [ "$RESPONSE" = "200" ]; then
     echo "✅ Application accessible sur http://localhost:3000"
     echo "✅ Connexion admin: admin/admin"
+    echo "✅ Base de données PostgreSQL standard (non WebSocket)"
 else
     echo "❌ Application non accessible (HTTP: $RESPONSE)"
     echo "Vérification des logs..."
