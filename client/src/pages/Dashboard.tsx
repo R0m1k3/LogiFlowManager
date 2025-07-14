@@ -41,6 +41,7 @@ export default function Dashboard() {
   // Construire les URLs pour récupérer toutes les données (pas de filtrage par date)
   const ordersUrl = `/api/orders${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
   const deliveriesUrl = `/api/deliveries${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
+  const customerOrdersUrl = `/api/customer-orders${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
 
   // Utiliser les mêmes clés de cache que les autres pages pour assurer la cohérence
   const { data: allOrders = [] } = useQuery({
@@ -49,6 +50,10 @@ export default function Dashboard() {
 
   const { data: allDeliveries = [] } = useQuery({
     queryKey: [deliveriesUrl, selectedStoreId],
+  });
+
+  const { data: customerOrders = [] } = useQuery({
+    queryKey: [customerOrdersUrl, selectedStoreId],
   });
 
   // Récupérer les publicités à venir (chercher dans 2024 ET 2025) - TOUTES les publicités
@@ -119,6 +124,16 @@ export default function Dashboard() {
     planned: allOrders.filter((o: any) => o.status === 'planned').length,
     delivered: allOrders.filter((o: any) => o.status === 'delivered').length,
     total: allOrders.length
+  };
+
+  // Statistiques pour les commandes clients (nouveau module)
+  const customerOrderStats = {
+    waiting: customerOrders.filter((o: any) => o.status === 'En attente de Commande').length,
+    inProgress: customerOrders.filter((o: any) => o.status === 'Commande en Cours').length,
+    available: customerOrders.filter((o: any) => o.status === 'Disponible').length,
+    withdrawn: customerOrders.filter((o: any) => o.status === 'Retiré').length,
+    canceled: customerOrders.filter((o: any) => o.status === 'Annulé').length,
+    total: customerOrders.length
   };
 
   return (
@@ -340,42 +355,49 @@ export default function Dashboard() {
 
       {/* Section Rapprochement BL */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Statut des livraisons */}
+        {/* Statistiques des commandes clients */}
         <Card className="bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
           <CardHeader className="pb-4 border-b border-gray-100">
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
-              <Package className="h-5 w-5 mr-3 text-blue-600" />
-              Statut des Livraisons
+              <User className="h-5 w-5 mr-3 text-purple-600" />
+              Commandes Clients
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 p-6">
             <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
               <div className="flex items-center space-x-3">
-                <div className="h-3 w-3 bg-orange-500"></div>
+                <div className="h-3 w-3 bg-red-500"></div>
                 <span className="text-sm font-medium text-gray-700">En attente</span>
               </div>
-              <span className="font-semibold text-orange-600 text-lg">{allDeliveries.filter((d: any) => d.status === 'planned').length}</span>
+              <span className="font-semibold text-red-600 text-lg">{customerOrderStats.waiting}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="h-3 w-3 bg-orange-500"></div>
+                <span className="text-sm font-medium text-gray-700">En cours</span>
+              </div>
+              <span className="font-semibold text-orange-600 text-lg">{customerOrderStats.inProgress}</span>
             </div>
             <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="h-3 w-3 bg-green-500"></div>
-                <span className="text-sm font-medium text-gray-700">Livrées</span>
+                <span className="text-sm font-medium text-gray-700">Disponibles</span>
               </div>
-              <span className="font-semibold text-green-600 text-lg">{allDeliveries.filter((d: any) => d.status === 'delivered').length}</span>
+              <span className="font-semibold text-green-600 text-lg">{customerOrderStats.available}</span>
             </div>
             <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="h-3 w-3 bg-blue-500"></div>
-                <span className="text-sm font-medium text-gray-700">Avec BL validé</span>
+                <span className="text-sm font-medium text-gray-700">Retirées</span>
               </div>
-              <span className="font-semibold text-blue-600 text-lg">{allDeliveries.filter((d: any) => d.blNumber && d.status === 'delivered').length}</span>
+              <span className="font-semibold text-blue-600 text-lg">{customerOrderStats.withdrawn}</span>
             </div>
             <div className="flex items-center justify-between border-t border-gray-200 pt-3 mt-3 p-3">
               <div className="flex items-center space-x-3">
                 <div className="h-3 w-3 bg-gray-500"></div>
-                <span className="text-sm font-semibold text-gray-800">Total livraisons</span>
+                <span className="text-sm font-semibold text-gray-800">Total commandes</span>
               </div>
-              <span className="font-bold text-xl text-gray-800">{allDeliveries.length}</span>
+              <span className="font-bold text-xl text-gray-800">{customerOrderStats.total}</span>
             </div>
           </CardContent>
         </Card>
