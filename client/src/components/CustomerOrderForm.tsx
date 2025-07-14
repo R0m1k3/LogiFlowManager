@@ -26,6 +26,7 @@ import { insertCustomerOrderSchema, type CustomerOrderWithRelations, type Group 
 
 const customerOrderFormSchema = insertCustomerOrderSchema.extend({
   deposit: z.string().optional(),
+  gencode: z.string().min(1, "Le gencode est obligatoire"),
 });
 
 type CustomerOrderFormData = z.infer<typeof customerOrderFormSchema>;
@@ -67,11 +68,11 @@ export function CustomerOrderForm({
       productDesignation: order?.productDesignation || "",
       productReference: order?.productReference || "",
       gencode: order?.gencode || "",
-      status: order?.status || "En attente de Commande",
+      status: "En attente de Commande", // Statut fixe
       deposit: order?.deposit ? order.deposit.toString() : "0",
       isPromotionalPrice: order?.isPromotionalPrice || false,
       customerNotified: order?.customerNotified || false,
-      groupId: order?.groupId || (user?.role !== 'admin' && user?.userGroups?.[0]?.groupId) || undefined,
+      groupId: order?.groupId || (user?.userGroups?.[0]?.groupId) || undefined, // Auto-sélection
     },
   });
 
@@ -145,32 +146,7 @@ export function CustomerOrderForm({
               )}
             />
 
-            {availableGroups.length > 1 && (
-              <FormField
-                control={form.control}
-                name="groupId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Magasin</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un magasin" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableGroups.map((group) => (
-                          <SelectItem key={group.id} value={group.id.toString()}>
-                            {group.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            {/* Magasin automatiquement sélectionné - pas de champ visible */}
           </div>
 
           {/* Informations produit */}
@@ -214,7 +190,7 @@ export function CustomerOrderForm({
               name="gencode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gencode (optionnel)</FormLabel>
+                  <FormLabel>Gencode (obligatoire)</FormLabel>
                   <FormControl>
                     <Input placeholder="Code à barres" {...field} />
                   </FormControl>
@@ -223,30 +199,7 @@ export function CustomerOrderForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Statut</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un statut" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Statut fixé automatiquement à "En attente de Commande" */}
           </div>
         </div>
 
@@ -299,30 +252,7 @@ export function CustomerOrderForm({
                 )}
               />
 
-              {form.watch('status') === 'Disponible' && (
-                <FormField
-                  control={form.control}
-                  name="customerNotified"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Client appelé
-                        </FormLabel>
-                        <p className="text-sm text-muted-foreground">
-                          Cocher si le client a été prévenu
-                        </p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              )}
+              {/* Case "Client appelé" cachée pour nouvelles commandes */}
             </div>
           </div>
         </div>

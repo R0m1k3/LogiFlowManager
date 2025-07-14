@@ -44,7 +44,6 @@ export default function CustomerOrders() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<CustomerOrderWithRelations | null>(null);
-  const [selectedStore, setSelectedStore] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch groups for store filter
@@ -52,17 +51,10 @@ export default function CustomerOrders() {
     queryKey: ['/api/groups'],
   });
 
-  // Fetch customer orders
+  // Fetch customer orders (no store filtering needed)
   const { data: customerOrders = [], isLoading } = useQuery<CustomerOrderWithRelations[]>({
-    queryKey: ['/api/customer-orders', selectedStore],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      if (selectedStore !== 'all') {
-        params.set('storeId', selectedStore);
-      }
-      const url = '/api/customer-orders' + (params.toString() ? `?${params.toString()}` : '');
-      return apiRequest(url);
-    },
+    queryKey: ['/api/customer-orders'],
+    queryFn: () => apiRequest('/api/customer-orders'),
   });
 
   // Create mutation
@@ -268,40 +260,18 @@ export default function CustomerOrders() {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Search Filter */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Filtres</CardTitle>
+          <CardTitle className="text-lg">Recherche</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            {user.role === 'admin' && (
-              <div className="flex-1">
-                <label className="text-sm font-medium">Magasin</label>
-                <Select value={selectedStore} onValueChange={setSelectedStore}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un magasin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les magasins</SelectItem>
-                    {groups.map((group) => (
-                      <SelectItem key={group.id} value={group.id.toString()}>
-                        {group.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div className="flex-1">
-              <label className="text-sm font-medium">Recherche</label>
-              <Input
-                placeholder="Nom client, produit, téléphone, référence..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
+        <CardContent>
+          <Input
+            placeholder="Nom client, produit, téléphone, référence, gencode..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-md"
+          />
         </CardContent>
       </Card>
 
@@ -322,8 +292,8 @@ export default function CustomerOrders() {
                   <TableHead>Client</TableHead>
                   <TableHead>Téléphone</TableHead>
                   <TableHead>Produit</TableHead>
+                  <TableHead>Gencode</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead>Magasin</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -349,15 +319,13 @@ export default function CustomerOrders() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status}
-                      </Badge>
+                      <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                        {order.gencode || "-"}
+                      </code>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        style={{ backgroundColor: order.group.color + "20", color: order.group.color }}
-                      >
-                        {order.group.name}
+                      <Badge className={getStatusColor(order.status)}>
+                        {order.status}
                       </Badge>
                     </TableCell>
                     <TableCell>

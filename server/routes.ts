@@ -1279,18 +1279,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      let groupIds: number[] | undefined;
-      
-      // Admin can see all orders or filter by specific store
-      if (user.role === 'admin') {
-        const storeId = req.query.storeId;
-        if (storeId && storeId !== 'all') {
-          groupIds = [parseInt(storeId)];
-        }
-      } else {
-        // Non-admin users see only their assigned groups
-        groupIds = user.userGroups.map(ug => ug.groupId);
-      }
+      // All users see only their assigned stores
+      const groupIds = user.userGroups.map(ug => ug.groupId);
 
       const customerOrders = await storage.getCustomerOrders(groupIds);
       console.log("Customer orders returned from storage:", customerOrders, "Type:", typeof customerOrders, "Is Array:", Array.isArray(customerOrders));
