@@ -19,8 +19,13 @@ import {
 } from "lucide-react";
 
 export default function Sidebar() {
-  const { user } = useAuth();
+  const { user, isLoading, error } = useAuth();
   const [location] = useLocation();
+
+  // Debug logging pour production
+  console.log('Sidebar - User:', user);
+  console.log('Sidebar - isLoading:', isLoading);
+  console.log('Sidebar - error:', error);
 
   const handleLogout = async () => {
     try {
@@ -130,8 +135,46 @@ export default function Sidebar() {
   ];
 
   const hasPermission = (roles: string[]) => {
-    return user?.role && roles.includes(user.role);
+    const hasRole = user?.role && roles.includes(user.role);
+    console.log('hasPermission check:', { userRole: user?.role, roles, hasRole });
+    return hasRole;
   };
+
+  // Si l'utilisateur n'est pas encore chargé, afficher un état de chargement
+  if (isLoading) {
+    return (
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-lg">
+        <div className="h-16 flex items-center justify-center border-b border-gray-200 bg-white">
+          <div className="flex items-center space-x-3">
+            <Store className="h-6 w-6 text-blue-600" />
+            <span className="text-lg font-semibold text-gray-900">LogiFlow</span>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </aside>
+    );
+  }
+
+  // Si l'utilisateur n'est pas authentifié, afficher seulement le logo
+  if (!user) {
+    return (
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-lg">
+        <div className="h-16 flex items-center justify-center border-b border-gray-200 bg-white">
+          <div className="flex items-center space-x-3">
+            <Store className="h-6 w-6 text-blue-600" />
+            <span className="text-lg font-semibold text-gray-900">LogiFlow</span>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center text-gray-500">
+            <p>Authentification requise</p>
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-lg">
@@ -147,7 +190,7 @@ export default function Sidebar() {
       <nav className="flex-1 py-4 px-3">
         <div className="space-y-1">
           {menuItems.map((item) => {
-            if (!item.roles.includes(user?.role || '')) return null;
+            if (!hasPermission(item.roles)) return null;
             
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -170,7 +213,7 @@ export default function Sidebar() {
         </div>
 
         {/* Management Section */}
-        {managementItems.some(item => item.roles.includes(user?.role || '')) && (
+        {managementItems.some(item => hasPermission(item.roles)) && (
           <>
             <div className="mt-6 mb-2">
               <h3 className="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -179,7 +222,7 @@ export default function Sidebar() {
             </div>
             <div className="space-y-1">
               {managementItems.map((item) => {
-                if (!item.roles.includes(user?.role || '')) return null;
+                if (!hasPermission(item.roles)) return null;
                 
                 const Icon = item.icon;
                 const active = isActive(item.path);
@@ -205,7 +248,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Administration Section */}
-      {adminItems.some(item => item.roles.includes(user?.role || '')) && (
+      {adminItems.some(item => hasPermission(item.roles)) && (
         <div className="border-t border-gray-200 py-4 px-3">
           <div className="mb-2">
             <h3 className="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -214,7 +257,7 @@ export default function Sidebar() {
           </div>
           <div className="space-y-1">
             {adminItems.map((item) => {
-              if (!item.roles.includes(user?.role || '')) return null;
+              if (!hasPermission(item.roles)) return null;
               
               const Icon = item.icon;
               const active = isActive(item.path);

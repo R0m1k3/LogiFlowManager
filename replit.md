@@ -140,6 +140,8 @@ Changelog:
 - July 14, 2025. **AUTHENTIFICATION ADMIN CORRIGÉE** - Hash généré dynamiquement au démarrage
 - July 14, 2025. **HASH ADMIN PRODUCTION FIXÉ** - Hash PBKDF2 mis à jour directement en base de données
 - July 14, 2025. **SCRIPT TEST AUTHENTIFICATION** - Créé test-auth-production.sh pour validation
+- July 14, 2025. **SIDEBAR PRODUCTION CORRIGÉE** - Ajout logs debug et gestion d'état d'authentification
+- July 14, 2025. **DIAGNOSTIC MENU SIDEBAR** - Créé debug-production-auth.sh pour tester l'authentification
 - July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
 - July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
 - July 14, 2025. Dockerfile mis à jour pour utiliser server/index.production.ts
