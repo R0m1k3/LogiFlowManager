@@ -15,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useStore } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle, X, Trash2, RefreshCw } from "lucide-react";
+import { Search, Plus, Edit, FileText, Euro, Calendar, Building2, CheckCircle, X, Trash2, RefreshCw, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format as formatDate } from "date-fns";
@@ -71,6 +71,7 @@ export default function BLReconciliation() {
   const [deliveryToDelete, setDeliveryToDelete] = useState<any>(null);
   const [invoiceVerifications, setInvoiceVerifications] = useState<Record<number, { exists: boolean; error?: string }>>({});
   const [isVerifyingInvoices, setIsVerifyingInvoices] = useState(false);
+  const [isVerifyingCurrentInvoice, setIsVerifyingCurrentInvoice] = useState(false);
 
   // Récupérer les livraisons validées avec BL
   const { data: deliveriesWithBL = [], isLoading } = useQuery({
@@ -102,6 +103,9 @@ export default function BLReconciliation() {
       console.log('All deliveries received:', deliveries);
       const filtered = deliveries.filter((d: any) => d.status === 'delivered');
       console.log('Filtered deliveries for BL reconciliation:', filtered);
+      
+      // Ne filtrer que les livraisons livrées (status === 'delivered')
+      // Toutes les livraisons livrées doivent apparaître, même sans BL encore saisi
       
       // Verify invoice references for deliveries with invoice data
       if (filtered.length > 0) {
@@ -170,7 +174,7 @@ export default function BLReconciliation() {
     if (!deliveriesWithBL || deliveriesWithBL.length === 0) return;
     
     const invoiceReferencesToVerify = deliveriesWithBL
-      .filter((delivery: any) => delivery.invoiceReference && delivery.groupId)
+      .filter((delivery: any) => delivery.invoiceReference && delivery.invoiceReference.trim() !== '' && delivery.groupId)
       .map((delivery: any) => ({
         groupId: delivery.groupId,
         invoiceReference: delivery.invoiceReference,
@@ -181,6 +185,7 @@ export default function BLReconciliation() {
     if (invoiceReferencesToVerify.length > 0) {
       setIsVerifyingInvoices(true);
       try {
+        console.log('🔍 Verifying invoices:', invoiceReferencesToVerify);
         const verificationResponse = await fetch('/api/verify-invoices', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -190,6 +195,7 @@ export default function BLReconciliation() {
         
         if (verificationResponse.ok) {
           const verificationResults = await verificationResponse.json();
+          console.log('✅ Verification results:', verificationResults);
           setInvoiceVerifications(verificationResults);
           toast({
             title: "Vérification terminée",
@@ -206,6 +212,12 @@ export default function BLReconciliation() {
       } finally {
         setIsVerifyingInvoices(false);
       }
+    } else {
+      toast({
+        title: "Aucune facture à vérifier",
+        description: "Aucune référence facture trouvée dans les BL validés",
+        variant: "default",
+      });
     }
   };
 
@@ -225,6 +237,54 @@ export default function BLReconciliation() {
       invoiceAmount: "",
     },
   });
+
+  // Fonction pour vérifier une facture en temps réel
+  const verifyInvoiceRealtime = async (invoiceRef: string) => {
+    if (!invoiceRef || !invoiceRef.trim() || !selectedDelivery) return;
+    
+    setIsVerifyingCurrentInvoice(true);
+    try {
+      console.log('🔍 Real-time verification for:', invoiceRef);
+      const verificationResponse = await fetch('/api/verify-invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          invoiceReferences: [{
+            groupId: selectedDelivery.groupId,
+            invoiceReference: invoiceRef.trim(),
+            deliveryId: selectedDelivery.id,
+            supplierName: selectedDelivery.supplier?.name,
+          }]
+        }),
+      });
+      
+      if (verificationResponse.ok) {
+        const verificationResults = await verificationResponse.json();
+        console.log('✅ Real-time verification result:', verificationResults);
+        setInvoiceVerifications(prev => ({ ...prev, ...verificationResults }));
+      }
+    } catch (error) {
+      console.error('Error in real-time verification:', error);
+    } finally {
+      setIsVerifyingCurrentInvoice(false);
+    }
+  };
+
+  // Debounce pour la vérification en temps réel
+  useEffect(() => {
+    const invoiceRef = form.watch("invoiceReference");
+    if (!invoiceRef || !invoiceRef.trim()) {
+      setIsVerifyingCurrentInvoice(false);
+      return;
+    }
+    
+    const timeoutId = setTimeout(() => {
+      verifyInvoiceRealtime(invoiceRef);
+    }, 1000); // Attendre 1 seconde après la dernière saisie
+    
+    return () => clearTimeout(timeoutId);
+  }, [form.watch("invoiceReference"), selectedDelivery]);
 
   const updateReconciliationMutation = useMutation({
     mutationFn: async (data: { id: number; blNumber: string; blAmount: string; invoiceReference: string; invoiceAmount: string }) => {
@@ -253,10 +313,11 @@ export default function BLReconciliation() {
           query.queryKey[0] === '/api/deliveries'
       });
       
-      // Vérifier immédiatement la facture si une référence a été ajoutée
-      if (variables.invoiceReference) {
+      // Vérifier immédiatement la facture si une référence a été ajoutée ou modifiée
+      if (variables.invoiceReference && variables.invoiceReference.trim() !== '') {
         const verifyInvoice = async () => {
           try {
+            console.log('🔍 Immediate verification for:', variables.invoiceReference);
             const verificationResponse = await fetch('/api/verify-invoices', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -273,10 +334,28 @@ export default function BLReconciliation() {
             
             if (verificationResponse.ok) {
               const verificationResults = await verificationResponse.json();
+              console.log('✅ Immediate verification result:', verificationResults);
               setInvoiceVerifications(prev => ({ ...prev, ...verificationResults }));
+              
+              // Notification du résultat
+              const result = verificationResults[variables.id];
+              if (result) {
+                toast({
+                  title: result.exists ? "Facture trouvée" : "Facture non trouvée",
+                  description: result.exists ? 
+                    `La facture ${variables.invoiceReference} a été trouvée dans NocoDB` :
+                    `La facture ${variables.invoiceReference} n'a pas été trouvée dans NocoDB`,
+                  variant: result.exists ? "default" : "destructive",
+                });
+              }
             }
           } catch (error) {
             console.error('Error verifying invoice reference:', error);
+            toast({
+              title: "Erreur de vérification",
+              description: "Impossible de vérifier la facture dans NocoDB",
+              variant: "destructive",
+            });
           }
         };
         
@@ -863,12 +942,45 @@ export default function BLReconciliation() {
                     <FormItem>
                       <FormLabel>Référence Facture</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Ex: FAC-2024-001"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Input 
+                            placeholder="Ex: FAC-2024-001"
+                            {...field}
+                          />
+                          {/* Indicateur de vérification en temps réel */}
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                            {isVerifyingCurrentInvoice && (
+                              <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                            )}
+                            {!isVerifyingCurrentInvoice && field.value && field.value.trim() && selectedDelivery && invoiceVerifications[selectedDelivery.id] && (
+                              <div className="flex items-center space-x-1">
+                                {invoiceVerifications[selectedDelivery.id].exists ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" title="Facture trouvée dans NocoDB" />
+                                ) : (
+                                  <X className="w-4 h-4 text-red-500" title="Facture non trouvée dans NocoDB" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
+                      {/* Status de vérification */}
+                      {!isVerifyingCurrentInvoice && field.value && field.value.trim() && selectedDelivery && invoiceVerifications[selectedDelivery.id] && (
+                        <div className="mt-2">
+                          {invoiceVerifications[selectedDelivery.id].exists ? (
+                            <p className="text-sm text-green-600 flex items-center space-x-1">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Facture trouvée dans NocoDB</span>
+                            </p>
+                          ) : (
+                            <p className="text-sm text-red-600 flex items-center space-x-1">
+                              <X className="w-3 h-3" />
+                              <span>Facture non trouvée dans NocoDB</span>
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </FormItem>
                   )}
                 />
