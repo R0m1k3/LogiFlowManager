@@ -453,6 +453,9 @@ Changelog:
 - July 14, 2025. Dockerfile modifié: CMD tsx server/index.production.ts au lieu de node dist/index.js pour compatibilité bcrypt
 - July 14, 2025. **INSTALLATION FORCÉE BCRYPT** - Ajout npm install bcrypt && npm rebuild bcrypt dans Dockerfile pour forcer compilation
 - July 14, 2025. Script fix-bcrypt-rebuild.sh créé pour rebuild complet avec installation explicite de bcrypt
+- July 14, 2025. **RETOUR CONFIGURATION SIMPLE** - Création Dockerfile simple sans bcrypt qui fonctionnait avant
+- July 14, 2025. Serveur production simplifié (index.production.js) sans authentification complexe pour test
+- July 14, 2025. Script fix-production-simple.sh pour revenir à configuration stable
 - July 11, 2025. **SYSTÈME DE GESTION DES RÔLES COMPLET POUR PRODUCTION** - Déploiement du système complet
 - July 11, 2025. Ajout de toutes les méthodes rôles/permissions dans storage.production.ts avec SQL brut
 - July 11, 2025. Ajout de toutes les routes API rôles/permissions dans routes.production.ts
