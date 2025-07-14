@@ -34,6 +34,7 @@ const nocodbConfigFormSchema = z.object({
   name: z.string().min(1, "Le nom est obligatoire"),
   baseUrl: z.string().url("L'URL doit être valide").min(1, "L'URL de base est obligatoire"),
   apiToken: z.string().min(1, "Le token API est obligatoire"),
+  projectId: z.string().min(1, "L'ID du projet est obligatoire"),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
 });
@@ -135,6 +136,7 @@ export default function NocoDBConfig() {
       name: "",
       baseUrl: "",
       apiToken: "",
+      projectId: "",
       description: "",
       isActive: true,
     },
@@ -168,6 +170,7 @@ export default function NocoDBConfig() {
       name: config.name,
       baseUrl: config.baseUrl,
       apiToken: config.apiToken,
+      projectId: config.projectId,
       description: config.description || "",
       isActive: config.isActive,
     });
@@ -312,6 +315,14 @@ export default function NocoDBConfig() {
                     </div>
                   </div>
                   <div>
+                    <label className="text-sm font-medium text-gray-600">ID du projet</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                        {config.projectId}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
                     <label className="text-sm font-medium text-gray-600">Token API</label>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded flex-1">
@@ -386,6 +397,23 @@ export default function NocoDBConfig() {
                       <Input 
                         type="password" 
                         placeholder="xc-token-xxxxxxxxxxxxxx" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="projectId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID du projet</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="p_xxxxxxxxxxxxxx" 
                         {...field} 
                       />
                     </FormControl>
@@ -503,6 +531,23 @@ export default function NocoDBConfig() {
                       <Input 
                         type="password" 
                         placeholder="xc-token-xxxxxxxxxxxxxx" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="projectId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID du projet</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="p_xxxxxxxxxxxxxx" 
                         {...field} 
                       />
                     </FormControl>
