@@ -1,0 +1,78 @@
+alidationError: The 'X-Forwarded-For' header is set but the Express 'trust proxy' setting is false (default). This could indicate a misconfiguration which would prevent express-rate-limit from accurately identifying users. See https://express-rate-limit.github.io/ERR_ERL_UNEXPECTED_X_FORWARDED_FOR/ for more information.
+
+    at Object.xForwardedForHeader (file:///app/node_modules/express-rate-limit/dist/index.mjs:157:13)
+
+    at wrappedValidations.<computed> [as xForwardedForHeader] (file:///app/node_modules/express-rate-limit/dist/index.mjs:369:22)
+
+    at Object.keyGenerator (file:///app/node_modules/express-rate-limit/dist/index.mjs:630:20)
+
+    at file:///app/node_modules/express-rate-limit/dist/index.mjs:682:32
+
+    at async file:///app/node_modules/express-rate-limit/dist/index.mjs:663:5 {
+
+  code: 'ERR_ERL_UNEXPECTED_X_FORWARDED_FOR',
+
+  help: 'https://express-rate-limit.github.io/ERR_ERL_UNEXPECTED_X_FORWARDED_FOR/'
+
+}
+
+❌ Login failed: Invalid password for user: admin
+
+7:15:11 PM [express] POST /api/login 401 in 18ms :: [SENSITIVE DATA HIDDEN]
+
+❌ Login failed: Invalid password for user: admin
+
+7:15:15 PM [express] POST /api/login 401 in 3ms :: [SENSITIVE DATA HIDDEN]
+
+7:15:40 PM [express] HEAD /api/health 200 in 1ms
+
+7:16:10 PM [express] HEAD /api/health 200 in 1ms
+
+7:16:40 PM [express] HEAD /api/health 200 in 1ms
+
+7:17:10 PM [express] HEAD /api/health 200 in 0ms
+
+7:17:40 PM [express] HEAD /api/health 200 in 1ms
+
+7:18:10 PM [express] HEAD /api/health 200 in 0ms
+
+7:18:40 PM [express] HEAD /api/health 200 in 1ms
+
+7:19:10 PM [express] HEAD /api/health 200 in 1ms
+
+7:19:40 PM [express] HEAD /api/health 200 in 1ms
+
+7:20:10 PM [express] HEAD /api/health 200 in 1ms
+
+7:20:40 PM [express] HEAD /api/health 200 in 0ms
+
+7:21:10 PM [express] HEAD /api/health 200 in 1ms
+
+7:21:41 PM [express] HEAD /api/health 200 in 1ms
+
+7:22:11 PM [express] HEAD /api/health 200 in 1ms
+
+7:22:41 PM [express] HEAD /api/health 200 in 0ms
+
+7:23:11 PM [express] HEAD /api/health 200 in 1ms
+
+7:23:41 PM [express] HEAD /api/health 200 in 0ms
+
+7:24:11 PM [express] HEAD /api/health 200 in 1ms
+
+7:24:41 PM [express] HEAD /api/health 200 in 0ms
+
+7:25:11 PM [express] HEAD /api/health 200 in 0ms
+
+7:25:41 PM [express] HEAD /api/health 200 in 1ms
+
+❌ Login failed: Invalid password for user: admin
+
+7:26:04 PM [express] POST /api/login 401 in 16ms :: [SENSITIVE DATA HIDDEN]
+
+7:26:11 PM [express] HEAD /api/health 200 in 1ms
+
+
+      
+      
+    

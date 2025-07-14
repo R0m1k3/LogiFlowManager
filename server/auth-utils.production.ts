@@ -43,5 +43,7 @@ export function isBcryptHash(hash: string): boolean {
   return hash.startsWith('$2a$') || hash.startsWith('$2b$') || hash.startsWith('$2y$');
 }
 
-// Hash par défaut pour l'admin (password: "admin")
-export const DEFAULT_ADMIN_HASH = 'a1b2c3d4e5f6789:6d8a4b2f9e7c1a8b3d5f7e9c2a6b8d4f1e3c5a7b9d2f4e6a8c1b3d5f7e9c2a6b8d4f1e3c5a7b9d2f4e6a8c1b3d5f7e9c2a6b8d4f1e3c5a7b9d2f4e6a8c1b3d5f7e';
+// Fonction pour générer le hash par défaut de l'admin
+export async function getDefaultAdminHash(): Promise<string> {
+  return await hashPassword('admin');
+}

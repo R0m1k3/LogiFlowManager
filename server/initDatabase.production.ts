@@ -402,7 +402,7 @@ async function createDefaultAdmin() {
 
     if (existingAdmin.rows.length === 0) {
       // Import hash function without bcrypt
-      const { hashPassword } = await import('./auth-utils.production');
+      const { hashPassword } = await import('./auth-utils.production.js');
       const hashedPassword = await hashPassword('admin');
       
       await pool.query(`

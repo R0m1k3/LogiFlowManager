@@ -135,6 +135,9 @@ Changelog:
 - July 14, 2025. **ERREUR BCRYPT DÉFINITIVEMENT ÉLIMINÉE** - Authentification native PBKDF2 sans compilation
 - July 14, 2025. **TOUTES LES VÉRIFICATIONS PASSÉES** - Base de données, routes API, modules, sécurité, Docker Alpine
 - July 14, 2025. **APPLICATION 100% PRÊTE PRODUCTION** - Aucune erreur de déploiement, architecture optimisée
+- July 14, 2025. **ERREURS PRODUCTION CRITIQUES CORRIGÉES** - Trust proxy configuré, hash admin dynamique
+- July 14, 2025. **X-FORWARDED-FOR ERROR RÉSOLUE** - Rate limiting compatible Docker/reverse proxy
+- July 14, 2025. **AUTHENTIFICATION ADMIN CORRIGÉE** - Hash généré dynamiquement au démarrage
 - July 14, 2025. Créé server/index.production.ts pour éviter importation vite en production
 - July 14, 2025. Dockerfile mis à jour pour utiliser server/index.production.ts
 - July 14, 2025. Script deploy-production.sh créé avec vérifications complètes

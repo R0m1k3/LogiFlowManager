@@ -8,6 +8,9 @@ import fs from "fs";
 
 const app = express();
 
+// Configuration trust proxy pour éviter l'erreur X-Forwarded-For
+app.set('trust proxy', true);
+
 // Fonction de log pour la production
 function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
