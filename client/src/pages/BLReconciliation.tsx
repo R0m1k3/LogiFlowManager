@@ -153,12 +153,12 @@ export default function BLReconciliation() {
     // des factures basées sur les BL numbers ou autres critères
   };
 
-  // Vérification automatique toutes les 30 secondes
+  // Vérification automatique toutes les 30 minutes
   useEffect(() => {
     if (deliveriesWithBL && deliveriesWithBL.length > 0) {
       const interval = setInterval(() => {
         checkPendingInvoices();
-      }, 30000); // 30 secondes
+      }, 30 * 60 * 1000); // 30 minutes
       
       return () => clearInterval(interval);
     }
