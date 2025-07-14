@@ -166,17 +166,17 @@ export default function CustomerOrders() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "En attente de Commande":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-50 text-yellow-700 border border-yellow-200";
       case "Commande en Cours":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-50 text-blue-700 border border-blue-200";
       case "Disponible":
-        return "bg-green-100 text-green-800";
+        return "bg-green-50 text-green-700 border border-green-200";
       case "Retiré":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-50 text-gray-700 border border-gray-200";
       case "Annulé":
-        return "bg-red-100 text-red-800";
+        return "bg-red-50 text-red-700 border border-red-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-50 text-gray-700 border border-gray-200";
     }
   };
 
@@ -244,129 +244,216 @@ export default function CustomerOrders() {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Étiquette - ${order.customerName}</title>
+            <title>Commande #${order.id}</title>
             <style>
               body { 
                 font-family: Arial, sans-serif; 
                 padding: 20px; 
-                background-color: #f8f9fa;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
+                background-color: #f5f5f5;
                 margin: 0;
               }
-              .label { 
+              .container {
+                max-width: 600px;
+                margin: 0 auto;
                 background: white;
-                border: 2px solid #ddd; 
-                border-radius: 12px;
-                padding: 24px; 
-                width: 400px; 
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
               }
               .header { 
-                text-align: center; 
-                font-weight: bold; 
-                font-size: 18px;
-                margin-bottom: 20px; 
-                color: #2563eb;
-                text-transform: uppercase;
-              }
-              .details { 
-                margin: 16px 0; 
-                line-height: 1.6;
-              }
-              .detail-row {
                 display: flex;
-                margin-bottom: 12px;
-                align-items: flex-start;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #e5e7eb;
               }
-              .detail-label {
+              .title {
+                font-size: 20px;
+                font-weight: bold;
+                color: #111827;
+              }
+              .status-badge {
+                background-color: #fef3c7;
+                color: #92400e;
+                padding: 4px 12px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 500;
+              }
+              .section {
+                margin-bottom: 20px;
+                padding: 15px;
+                background-color: #f9fafb;
+                border-radius: 6px;
+                border: 1px solid #e5e7eb;
+              }
+              .section-title {
+                font-size: 16px;
                 font-weight: 600;
                 color: #374151;
-                min-width: 100px;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              }
+              .section-content {
+                color: #1f2937;
+                line-height: 1.6;
+              }
+              .field-row {
+                display: flex;
+                margin-bottom: 8px;
+              }
+              .field-label {
+                font-weight: 500;
+                color: #374151;
+                min-width: 120px;
                 margin-right: 8px;
               }
-              .detail-value {
-                color: #1f2937;
-                flex: 1;
+              .field-value {
+                color: #111827;
               }
               .reference-code {
                 background-color: #f3f4f6;
-                padding: 4px 8px;
-                border-radius: 4px;
+                padding: 2px 6px;
+                border-radius: 3px;
                 font-family: 'Courier New', monospace;
-                font-size: 14px;
+                font-size: 13px;
+                color: #374151;
               }
               .quantity-badge {
-                background-color: #e5e7eb;
-                padding: 4px 12px;
-                border-radius: 16px;
-                font-family: 'Courier New', monospace;
+                background-color: #10b981;
+                color: white;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 12px;
                 font-weight: 600;
                 display: inline-block;
               }
-              .barcode { 
-                text-align: center; 
-                font-family: 'Courier New', monospace; 
-                font-size: 20px; 
-                margin: 16px 0; 
-                padding: 12px;
-                background-color: #f9fafb;
-                border-radius: 6px;
-                border: 1px dashed #d1d5db;
-              }
-              .store-info {
-                background-color: #eff6ff;
-                padding: 12px;
-                border-radius: 6px;
-                margin-top: 16px;
+              .barcode-section {
                 text-align: center;
-                border-left: 4px solid #2563eb;
+                margin: 15px 0;
+              }
+              .barcode {
+                font-family: 'Courier New', monospace;
+                font-size: 24px;
+                font-weight: bold;
+                color: #111827;
+                letter-spacing: 2px;
+                margin: 10px 0;
+              }
+              .barcode-number {
+                font-size: 14px;
+                color: #6b7280;
+                margin-top: 5px;
+              }
+              .store-badge {
+                background-color: #dbeafe;
+                color: #1e40af;
+                padding: 4px 12px;
+                border-radius: 4px;
+                font-size: 13px;
+                font-weight: 500;
+                display: inline-block;
+              }
+              .creation-date {
+                color: #6b7280;
+                font-size: 13px;
               }
             </style>
           </head>
           <body>
-            <div class="label">
-              <div class="header">COMMANDE CLIENT</div>
-              <div class="details">
-                <div class="detail-row">
-                  <span class="detail-label">Client:</span>
-                  <span class="detail-value">${order.customerName}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Téléphone:</span>
-                  <span class="detail-value">${order.customerPhone}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Produit:</span>
-                  <span class="detail-value">${order.productDesignation}</span>
-                </div>
-                ${order.productReference ? `
-                <div class="detail-row">
-                  <span class="detail-label">Référence:</span>
-                  <span class="detail-value">
-                    <span class="reference-code">${order.productReference}</span>
-                  </span>
-                </div>` : ''}
-                <div class="detail-row">
-                  <span class="detail-label">Quantité:</span>
-                  <span class="detail-value">
-                    <span class="quantity-badge">${order.quantity || 1}</span>
-                  </span>
-                </div>
-                ${order.gencode ? `
-                <div class="detail-row">
-                  <span class="detail-label">Code barre:</span>
-                  <span class="detail-value">
-                    <div class="barcode">${order.gencode}</div>
-                  </span>
-                </div>` : ''}
+            <div class="container">
+              <div class="header">
+                <div class="title">Commande #${order.id}</div>
+                <div class="status-badge">${order.status}</div>
               </div>
-              <div class="store-info">
-                <div style="font-weight: 600; margin-bottom: 4px;">${order.group.name}</div>
-                <div style="font-size: 14px; color: #6b7280;">
-                  ${format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })}
+              <div class="creation-date">Créée le ${format(new Date(order.createdAt), 'dd MMMM yyyy', { locale: fr })} à ${format(new Date(order.createdAt), 'HH:mm')}</div>
+              
+              <div class="section">
+                <div class="section-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  Informations Client
+                </div>
+                <div class="section-content">
+                  <div class="field-row">
+                    <span class="field-label">Nom:</span>
+                    <span class="field-value">${order.customerName}</span>
+                  </div>
+                  <div class="field-row">
+                    <span class="field-label">📞 Téléphone:</span>
+                    <span class="field-value">${order.customerPhone}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                  </svg>
+                  Informations Produit
+                </div>
+                <div class="section-content">
+                  <div class="field-row">
+                    <span class="field-label">Désignation:</span>
+                  </div>
+                  <div style="background-color: #f3f4f6; padding: 8px; border-radius: 4px; margin-bottom: 12px;">
+                    ${order.productDesignation}
+                  </div>
+                  ${order.productReference ? `
+                  <div class="field-row">
+                    <span class="field-label">Référence:</span>
+                    <span class="field-value">
+                      <span class="reference-code">${order.productReference}</span>
+                    </span>
+                  </div>` : ''}
+                  <div class="field-row">
+                    <span class="field-label">Quantité:</span>
+                    <span class="field-value">
+                      <span class="quantity-badge">${order.quantity || 1}</span>
+                    </span>
+                  </div>
+                  ${order.gencode ? `
+                  <div class="field-row">
+                    <span class="field-label">Code à barres:</span>
+                  </div>
+                  <div class="barcode-section">
+                    <div class="barcode">|||||||||||||||</div>
+                    <div class="barcode-number">${order.gencode}</div>
+                  </div>` : ''}
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  Informations Commande
+                </div>
+                <div class="section-content">
+                  <div class="field-row">
+                    <span class="field-label">Prise par:</span>
+                    <span class="field-value">${order.orderTaker}</span>
+                  </div>
+                  <div class="field-row">
+                    <span class="field-label">🏪 Magasin:</span>
+                    <span class="field-value">
+                      <span class="store-badge">${order.group.name}</span>
+                    </span>
+                  </div>
+                  <div class="field-row">
+                    <span class="field-label">📅 Date de création:</span>
+                    <span class="field-value">${format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })} à ${format(new Date(order.createdAt), 'HH:mm')}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -469,7 +556,7 @@ export default function CustomerOrders() {
                     </TableCell>
                     <TableCell>
                       <Badge 
-                        className={`${getStatusColor(order.status)} cursor-pointer hover:opacity-80 transition-opacity`}
+                        className={`${getStatusColor(order.status)} cursor-pointer hover:opacity-80 transition-opacity rounded-none`}
                         onClick={() => openStatusModal(order)}
                       >
                         {order.status}
@@ -612,7 +699,7 @@ export default function CustomerOrders() {
                   }}
                   disabled={statusMutation.isPending}
                 >
-                  <Badge className={`${getStatusColor(status)} mr-2`}>
+                  <Badge className={`${getStatusColor(status)} mr-2 rounded-none`}>
                     {status}
                   </Badge>
                 </Button>
