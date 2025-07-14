@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -245,25 +246,128 @@ export default function CustomerOrders() {
           <head>
             <title>Étiquette - ${order.customerName}</title>
             <style>
-              body { font-family: Arial, sans-serif; padding: 20px; }
-              .label { border: 2px solid #000; padding: 15px; width: 400px; }
-              .header { text-align: center; font-weight: bold; margin-bottom: 10px; }
-              .barcode { text-align: center; font-family: 'Courier New', monospace; font-size: 24px; margin: 10px 0; }
-              .details { margin: 10px 0; }
+              body { 
+                font-family: Arial, sans-serif; 
+                padding: 20px; 
+                background-color: #f8f9fa;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+              }
+              .label { 
+                background: white;
+                border: 2px solid #ddd; 
+                border-radius: 12px;
+                padding: 24px; 
+                width: 400px; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              }
+              .header { 
+                text-align: center; 
+                font-weight: bold; 
+                font-size: 18px;
+                margin-bottom: 20px; 
+                color: #2563eb;
+                text-transform: uppercase;
+              }
+              .details { 
+                margin: 16px 0; 
+                line-height: 1.6;
+              }
+              .detail-row {
+                display: flex;
+                margin-bottom: 12px;
+                align-items: flex-start;
+              }
+              .detail-label {
+                font-weight: 600;
+                color: #374151;
+                min-width: 100px;
+                margin-right: 8px;
+              }
+              .detail-value {
+                color: #1f2937;
+                flex: 1;
+              }
+              .reference-code {
+                background-color: #f3f4f6;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+              }
+              .quantity-badge {
+                background-color: #e5e7eb;
+                padding: 4px 12px;
+                border-radius: 16px;
+                font-family: 'Courier New', monospace;
+                font-weight: 600;
+                display: inline-block;
+              }
+              .barcode { 
+                text-align: center; 
+                font-family: 'Courier New', monospace; 
+                font-size: 20px; 
+                margin: 16px 0; 
+                padding: 12px;
+                background-color: #f9fafb;
+                border-radius: 6px;
+                border: 1px dashed #d1d5db;
+              }
+              .store-info {
+                background-color: #eff6ff;
+                padding: 12px;
+                border-radius: 6px;
+                margin-top: 16px;
+                text-align: center;
+                border-left: 4px solid #2563eb;
+              }
             </style>
           </head>
           <body>
             <div class="label">
               <div class="header">COMMANDE CLIENT</div>
               <div class="details">
-                <strong>Client:</strong> ${order.customerName}<br>
-                <strong>Téléphone:</strong> ${order.customerPhone}<br>
-                <strong>Produit:</strong> ${order.productDesignation}<br>
-                ${order.productReference ? `<strong>Référence:</strong> ${order.productReference}<br>` : ''}
-                <strong>Quantité:</strong> ${order.quantity || 1}<br>
-                ${order.gencode ? `<strong>Code barre:</strong><br><div class="barcode">${order.gencode}</div>` : ''}
-                <strong>Magasin:</strong> ${order.group.name}<br>
-                <strong>Date:</strong> ${format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                <div class="detail-row">
+                  <span class="detail-label">Client:</span>
+                  <span class="detail-value">${order.customerName}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Téléphone:</span>
+                  <span class="detail-value">${order.customerPhone}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Produit:</span>
+                  <span class="detail-value">${order.productDesignation}</span>
+                </div>
+                ${order.productReference ? `
+                <div class="detail-row">
+                  <span class="detail-label">Référence:</span>
+                  <span class="detail-value">
+                    <span class="reference-code">${order.productReference}</span>
+                  </span>
+                </div>` : ''}
+                <div class="detail-row">
+                  <span class="detail-label">Quantité:</span>
+                  <span class="detail-value">
+                    <span class="quantity-badge">${order.quantity || 1}</span>
+                  </span>
+                </div>
+                ${order.gencode ? `
+                <div class="detail-row">
+                  <span class="detail-label">Code barre:</span>
+                  <span class="detail-value">
+                    <div class="barcode">${order.gencode}</div>
+                  </span>
+                </div>` : ''}
+              </div>
+              <div class="store-info">
+                <div style="font-weight: 600; margin-bottom: 4px;">${order.group.name}</div>
+                <div style="font-size: 14px; color: #6b7280;">
+                  ${format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                </div>
               </div>
             </div>
             <script>window.print(); window.close();</script>
@@ -480,6 +584,9 @@ export default function CustomerOrders() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Changer le statut</DialogTitle>
+            <DialogDescription>
+              Sélectionnez un nouveau statut pour cette commande client.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

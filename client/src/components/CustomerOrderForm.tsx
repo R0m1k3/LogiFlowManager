@@ -146,10 +146,9 @@ export function CustomerOrderForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           {/* Informations de commande */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Informations de commande</h3>
+          <h3 className="text-lg font-medium">Informations de commande</h3>
             
             <FormField
               control={form.control}
@@ -219,10 +218,7 @@ export function CustomerOrderForm({
             />
 
             {/* Magasin automatiquement sélectionné - pas de champ visible */}
-          </div>
-
-          {/* Informations produit */}
-          <div className="space-y-4">
+          
             <h3 className="text-lg font-medium">Informations produit</h3>
             
             <FormField
@@ -293,14 +289,10 @@ export function CustomerOrderForm({
             />
 
             {/* Statut fixé automatiquement à "En attente de Commande" */}
-          </div>
-        </div>
 
-        {/* Options supplémentaires */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Options supplémentaires</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Options supplémentaires */}
+            <h3 className="text-lg font-medium">Options supplémentaires</h3>
+            
             <FormField
               control={form.control}
               name="deposit"
@@ -321,33 +313,30 @@ export function CustomerOrderForm({
               )}
             />
 
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="isPromotionalPrice"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Prix publicité
-                      </FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Cocher si le produit était en promotion
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="isPromotionalPrice"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Prix publicité
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Cocher si le produit était en promotion
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
 
-              {/* Case "Client appelé" cachée pour nouvelles commandes */}
-            </div>
-          </div>
+            {/* Case "Client appelé" cachée pour nouvelles commandes */}
         </div>
 
         {/* Actions */}
