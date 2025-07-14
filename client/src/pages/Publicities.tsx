@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Calendar, Edit, Trash2, Eye, Filter } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2, Eye, Filter, Grid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,13 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useStore } from "@/components/Layout";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachWeekOfInterval, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isWithinInterval } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { PublicityWithRelations, Group } from "@shared/schema";
 import PublicityForm from "@/components/PublicityForm";
 
 export default function Publicities() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Année courante par défaut
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Mois courant par défaut
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list'); // Mode d'affichage
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -75,6 +77,39 @@ export default function Publicities() {
     }
   });
 
+  // Generate month options
+  const monthOptions = Array.from({ length: 12 }, (_, i) => ({
+    value: i,
+    label: format(new Date(2024, i, 1), 'MMMM', { locale: fr })
+  }));
+
+  // Calendar helper functions
+  const getWeekParticipation = (weekStart: Date, weekEnd: Date) => {
+    const weekPublicities = publicities.filter(pub => {
+      const pubStart = new Date(pub.startDate);
+      const pubEnd = new Date(pub.endDate);
+      return isWithinInterval(weekStart, { start: pubStart, end: pubEnd }) ||
+             isWithinInterval(weekEnd, { start: pubStart, end: pubEnd }) ||
+             (pubStart <= weekStart && weekEnd <= pubEnd);
+    });
+
+    const participatingStores = new Set<number>();
+    weekPublicities.forEach(pub => {
+      pub.participations.forEach(participation => {
+        participatingStores.add(participation.groupId);
+      });
+    });
+
+    return {
+      publicities: weekPublicities,
+      participatingStores: Array.from(participatingStores),
+      storeColors: Array.from(participatingStores).map(storeId => {
+        const group = groups.find(g => g.id === storeId);
+        return group?.color || '#666666';
+      })
+    };
+  };
+
   const handleView = (publicity: PublicityWithRelations) => {
     setSelectedPublicity(publicity);
     setIsViewModalOpen(true);
@@ -117,6 +152,26 @@ export default function Publicities() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* View Mode Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="h-8"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('calendar')}
+              className="h-8"
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+          </div>
+
           {/* Year Filter */}
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-500" />
@@ -136,6 +191,25 @@ export default function Publicities() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Month Filter (only for calendar view) */}
+          {viewMode === 'calendar' && (
+            <Select
+              value={selectedMonth.toString()}
+              onValueChange={(value) => setSelectedMonth(parseInt(value))}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((month) => (
+                  <SelectItem key={month.value} value={month.value.toString()}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           {canModify && (
             <Button onClick={() => setIsCreateModalOpen(true)}>
@@ -200,7 +274,7 @@ export default function Publicities() {
         </Card>
       </div>
 
-      {/* Publicities List */}
+      {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -215,12 +289,135 @@ export default function Publicities() {
             <p className="text-gray-600 mb-6">
               Commencez par créer votre première campagne publicitaire.
             </p>
-            {canCreateOrEdit && (
+            {canModify && (
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Créer une publicité
               </Button>
             )}
+          </CardContent>
+        </Card>
+      ) : viewMode === 'calendar' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Vue calendrier - {monthOptions[selectedMonth].label} {selectedYear}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {/* Days of week headers */}
+                {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
+                  <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
+                    {day}
+                  </div>
+                ))}
+                
+                {/* Calendar days */}
+                {(() => {
+                  const monthStart = startOfMonth(new Date(selectedYear, selectedMonth, 1));
+                  const monthEnd = endOfMonth(monthStart);
+                  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
+                  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+                  
+                  const days = eachDayOfInterval({ start: startDate, end: endDate });
+                  
+                  return days.map(day => {
+                    const isCurrentMonth = isSameMonth(day, monthStart);
+                    const dayPublicities = publicities.filter(pub => {
+                      const pubStart = new Date(pub.startDate);
+                      const pubEnd = new Date(pub.endDate);
+                      return day >= pubStart && day <= pubEnd;
+                    });
+                    
+                    const participatingStores = new Set<number>();
+                    dayPublicities.forEach(pub => {
+                      pub.participations.forEach(participation => {
+                        participatingStores.add(participation.groupId);
+                      });
+                    });
+                    
+                    return (
+                      <div 
+                        key={day.toISOString()} 
+                        className={`
+                          p-2 min-h-[60px] border border-gray-200 rounded-lg
+                          ${isCurrentMonth ? 'bg-white' : 'bg-gray-50'}
+                          ${dayPublicities.length > 0 ? 'ring-2 ring-blue-200' : ''}
+                        `}
+                      >
+                        <div className="text-sm font-medium text-gray-900 mb-1">
+                          {format(day, 'd')}
+                        </div>
+                        {dayPublicities.length > 0 && (
+                          <div className="space-y-1">
+                            {dayPublicities.slice(0, 2).map(pub => (
+                              <div 
+                                key={pub.id} 
+                                className="text-xs bg-blue-100 text-blue-800 rounded px-1 py-0.5 truncate"
+                                title={pub.designation}
+                              >
+                                {pub.pubNumber}
+                              </div>
+                            ))}
+                            {dayPublicities.length > 2 && (
+                              <div className="text-xs text-gray-500">
+                                +{dayPublicities.length - 2} autre{dayPublicities.length > 3 ? 's' : ''}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {/* Store participation indicators */}
+                        {participatingStores.size > 0 && (
+                          <div className="flex gap-1 mt-1">
+                            {Array.from(participatingStores).slice(0, 3).map(storeId => {
+                              const group = groups.find(g => g.id === storeId);
+                              return (
+                                <div 
+                                  key={storeId}
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: group?.color || '#666666' }}
+                                  title={group?.name}
+                                />
+                              );
+                            })}
+                            {participatingStores.size > 3 && (
+                              <div className="text-xs text-gray-500">+{participatingStores.size - 3}</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+              
+              {/* Legend */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Légende</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-100 border border-blue-200 rounded"></div>
+                    <span>Jour avec publicité</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {groups.slice(0, 3).map(group => (
+                        <div 
+                          key={group.id}
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: group.color }}
+                        />
+                      ))}
+                    </div>
+                    <span>Magasins participants</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -373,6 +570,7 @@ export default function Publicities() {
           </DialogHeader>
           <PublicityForm
             groups={groups}
+            selectedYear={selectedYear}
             onSuccess={closeModals}
           />
         </DialogContent>
@@ -390,6 +588,7 @@ export default function Publicities() {
           <PublicityForm
             publicity={selectedPublicity}
             groups={groups}
+            selectedYear={selectedYear}
             onSuccess={closeModals}
           />
         </DialogContent>

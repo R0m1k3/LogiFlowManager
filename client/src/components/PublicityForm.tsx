@@ -36,9 +36,10 @@ interface PublicityFormProps {
   publicity?: PublicityWithRelations | null;
   groups: Group[];
   onSuccess: () => void;
+  selectedYear?: number; // Année sélectionnée depuis le filtre principal
 }
 
-export default function PublicityForm({ publicity, groups, onSuccess }: PublicityFormProps) {
+export default function PublicityForm({ publicity, groups, onSuccess, selectedYear }: PublicityFormProps) {
   const [startCalendarOpen, setStartCalendarOpen] = useState(false);
   const [endCalendarOpen, setEndCalendarOpen] = useState(false);
   const { toast } = useToast();
@@ -51,7 +52,7 @@ export default function PublicityForm({ publicity, groups, onSuccess }: Publicit
       designation: publicity?.designation || "",
       startDate: publicity?.startDate ? new Date(publicity.startDate) : undefined,
       endDate: publicity?.endDate ? new Date(publicity.endDate) : undefined,
-      year: publicity?.year || 2025, // Par défaut 2025 pour le plan pub
+      year: publicity?.year || selectedYear || 2025, // Utilise l'année sélectionnée ou 2025 par défaut
       participatingGroups: publicity?.participations?.map(p => p.groupId) || [],
     },
   });
