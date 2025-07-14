@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Script de déploiement complet - Correction NocoDB Production
+# Date: 2025-07-14
+# Objectif: Résoudre définitivement l'erreur "relation nocodb_configs does not exist"
+
+echo "🚀 === DÉPLOIEMENT CORRECTION NOCODB PRODUCTION ==="
+echo "⏰ $(date)"
+echo ""
+
+echo "📋 === PLAN DE CORRECTION ==="
+echo "1. ✅ Routes NocoDB ajoutées dans routes.production.ts"
+echo "2. ✅ Méthodes storage ajoutées dans storage.production.ts"
+echo "3. ✅ Migration SQL auto-application dans initDatabase.production.ts"
+echo "4. 🔄 Application migration SQL en production"
+echo "5. 🔄 Redémarrage application"
+echo ""
+
+echo "🎯 === INSTRUCTIONS POUR L'UTILISATEUR ==="
+echo ""
+echo "ÉTAPE 1: APPLIQUER LA MIGRATION SQL"
+echo "Connectez-vous à votre base PostgreSQL production:"
+echo "   psql -h localhost -p 5434 -U logiflow_admin -d logiflow_db"
+echo ""
+echo "Puis exécutez UNE des deux options:"
+echo ""
+echo "OPTION A - Migration rapide spécifique:"
+echo "   \\i apply-nocodb-table.sql"
+echo ""
+echo "OPTION B - Migration complète (recommandée):"
+echo "   \\i migration-production.sql"
+echo ""
+
+echo "ÉTAPE 2: REDÉMARRER L'APPLICATION"
+echo "Redémarrez le conteneur Docker:"
+echo "   docker-compose restart logiflow-app"
+echo ""
+
+echo "ÉTAPE 3: VÉRIFICATION"
+echo "Après redémarrage, testez:"
+echo "1. Connectez-vous avec admin/admin"
+echo "2. Accédez à l'administration"
+echo "3. Créez une configuration NocoDB"
+echo ""
+
+echo "🔧 === DÉTAILS TECHNIQUES ==="
+echo "✅ Erreur résolue: \"relation nocodb_configs does not exist\""
+echo "✅ Routes API NocoDB: GET, POST, PUT, DELETE /api/nocodb-config"
+echo "✅ Méthodes storage: getNocodbConfigs, createNocodbConfig, etc."
+echo "✅ Migration automatique: Table nocodb_configs + colonnes groups"
+echo "✅ Initialisation auto: Future démarrages créeront automatiquement la table"
+echo ""
+
+echo "📁 === FICHIERS CRÉÉS ==="
+echo "✅ apply-nocodb-table.sql - Migration spécifique NocoDB"
+echo "✅ migration-production.sql - Migration complète (existante)"
+echo "✅ fix-nocodb-urgent.sh - Instructions détaillées"
+echo "✅ deploy-nocodb-fix.sh - Ce script de déploiement"
+echo ""
+
+echo "🎉 === RÉSOLUTION COMPLÈTE ==="
+echo "Une fois la migration appliquée et l'application redémarrée:"
+echo "❌ L'erreur \"Cannot POST /api/nocodb-config\" sera résolue"
+echo "❌ L'erreur \"relation nocodb_configs does not exist\" sera résolue"
+echo "✅ Le module de configuration NocoDB sera pleinement fonctionnel"
+echo "✅ La vérification automatique des factures sera disponible"
+echo ""
+
+echo "🔄 === PRÊT POUR DÉPLOIEMENT ==="
+echo "Toutes les corrections sont maintenant en place !"
+echo "Suivez les étapes ci-dessus pour appliquer en production."

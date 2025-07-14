@@ -221,6 +221,27 @@ export async function initializeDatabase() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions (role_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions (permission_id)`);
 
+    // AJOUT TABLE NOCODB_CONFIGS
+    console.log("🔧 Creating nocodb_configs table...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS nocodb_configs (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        base_url VARCHAR(500) NOT NULL,
+        api_token VARCHAR(500) NOT NULL,
+        project_id VARCHAR(255) NOT NULL,
+        description TEXT,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Index pour nocodb_configs
+    console.log("🔧 Creating nocodb_configs indexes...");
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_nocodb_configs_name ON nocodb_configs (name)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_nocodb_configs_active ON nocodb_configs (is_active)`);
+
     // Note: No default test data inserted in production
     // Groups and suppliers will be created by administrators as needed
     console.log("✅ Database schema ready - no test data inserted");
@@ -297,6 +318,73 @@ export async function initializeDatabase() {
         console.log('✅ [MIGRATION] Contrainte orders_status_check corrigée - "delivered" maintenant autorisé');
       } catch (constraintError) {
         console.warn('⚠️ [MIGRATION] Erreur contrainte orders:', constraintError.message);
+      }
+      
+      // MIGRATION NOCODB - Ajout colonnes NocoDB dans groups
+      console.log('🔧 [MIGRATION] Vérification des colonnes NocoDB dans groups...');
+      
+      // Vérifier et ajouter nocodb_config_id
+      const nocodbConfigIdCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'groups' AND column_name = 'nocodb_config_id'
+        );
+      `);
+      
+      if (!nocodbConfigIdCheck.rows[0]?.exists) {
+        console.log('🔧 [MIGRATION] Ajout de la colonne nocodb_config_id...');
+        await pool.query(`ALTER TABLE groups ADD COLUMN nocodb_config_id INTEGER REFERENCES nocodb_configs(id);`);
+        console.log('✅ [MIGRATION] Colonne nocodb_config_id ajoutée');
+      } else {
+        console.log('✅ [MIGRATION] Colonne nocodb_config_id déjà présente');
+      }
+      
+      // Vérifier et ajouter nocodb_table_id
+      const nocodbTableIdCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'groups' AND column_name = 'nocodb_table_id'
+        );
+      `);
+      
+      if (!nocodbTableIdCheck.rows[0]?.exists) {
+        console.log('🔧 [MIGRATION] Ajout de la colonne nocodb_table_id...');
+        await pool.query(`ALTER TABLE groups ADD COLUMN nocodb_table_id VARCHAR(255);`);
+        console.log('✅ [MIGRATION] Colonne nocodb_table_id ajoutée');
+      } else {
+        console.log('✅ [MIGRATION] Colonne nocodb_table_id déjà présente');
+      }
+      
+      // Vérifier et ajouter nocodb_table_name
+      const nocodbTableNameCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'groups' AND column_name = 'nocodb_table_name'
+        );
+      `);
+      
+      if (!nocodbTableNameCheck.rows[0]?.exists) {
+        console.log('🔧 [MIGRATION] Ajout de la colonne nocodb_table_name...');
+        await pool.query(`ALTER TABLE groups ADD COLUMN nocodb_table_name VARCHAR(255);`);
+        console.log('✅ [MIGRATION] Colonne nocodb_table_name ajoutée');
+      } else {
+        console.log('✅ [MIGRATION] Colonne nocodb_table_name déjà présente');
+      }
+      
+      // Vérifier et ajouter invoice_column_name
+      const invoiceColumnCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'groups' AND column_name = 'invoice_column_name'
+        );
+      `);
+      
+      if (!invoiceColumnCheck.rows[0]?.exists) {
+        console.log('🔧 [MIGRATION] Ajout de la colonne invoice_column_name...');
+        await pool.query(`ALTER TABLE groups ADD COLUMN invoice_column_name VARCHAR(255) DEFAULT 'RefFacture';`);
+        console.log('✅ [MIGRATION] Colonne invoice_column_name ajoutée');
+      } else {
+        console.log('✅ [MIGRATION] Colonne invoice_column_name déjà présente');
       }
       
       console.log('✅ [MIGRATION] Migration automatique des colonnes terminée');

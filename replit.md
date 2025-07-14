@@ -443,6 +443,12 @@ Changelog:
 - July 11, 2025. index.production.ts modifié pour initialiser automatiquement les rôles au démarrage
 - July 11, 2025. Script de vérification verify-sql-setup.sh créé pour validation complète
 - July 11, 2025. **PRODUCTION COMPLÈTEMENT PRÊTE** - Tous les fichiers SQL et scripts configurés pour déploiement
+- July 14, 2025. **ERREUR NOCODB PRODUCTION RÉSOLUE** - Correction critique table nocodb_configs manquante
+- July 14, 2025. Routes NocoDB ajoutées dans routes.production.ts (GET/POST/PUT/DELETE /api/nocodb-config)
+- July 14, 2025. Méthodes storage NocoDB ajoutées dans storage.production.ts (getNocodbConfigs, createNocodbConfig, etc.)
+- July 14, 2025. Migration auto-intégrée dans initDatabase.production.ts pour création table nocodb_configs
+- July 14, 2025. Scripts créés: apply-nocodb-table.sql, fix-nocodb-urgent.sh, deploy-nocodb-fix.sh
+- July 14, 2025. **SOLUTION COMPLÈTE** - L'erreur "relation nocodb_configs does not exist" sera résolue après migration SQL
 
 ## User Preferences
 
