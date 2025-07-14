@@ -56,7 +56,7 @@ WORKDIR /app
 
 # Install ALL dependencies (including bcrypt) for production
 COPY --from=build /app/package*.json ./
-RUN npm ci --production=false && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Copy built application from build stage
 COPY --from=build --chown=nextjs:nodejs /app/dist ./dist
