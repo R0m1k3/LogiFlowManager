@@ -269,24 +269,68 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrdersByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<any[]> {
-    let query = `
-      SELECT o.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
-             u.username as creator_username
+    let whereClause = 'WHERE o.planned_date BETWEEN $1 AND $2';
+    let params = [startDate, endDate];
+    
+    if (groupIds && groupIds.length > 0) {
+      whereClause += ' AND o.group_id = ANY($3)';
+      params.push(groupIds);
+    }
+    
+    const result = await pool.query(`
+      SELECT o.*, 
+             s.id as supplier_id, s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone,
+             g.id as group_id, g.name as group_name, g.color as group_color,
+             u.id as creator_id, u.username as creator_username, u.email as creator_email, u.name as creator_name
       FROM orders o
       LEFT JOIN suppliers s ON o.supplier_id = s.id
       LEFT JOIN groups g ON o.group_id = g.id
       LEFT JOIN users u ON o.created_by = u.id
-      WHERE o.planned_date BETWEEN $1 AND $2
-    `;
+      ${whereClause}
+      ORDER BY o.created_at DESC
+    `, params);
     
-    if (groupIds && groupIds.length > 0) {
-      query += ` AND o.group_id = ANY($3)`;
-      const result = await pool.query(query + ' ORDER BY o.created_at DESC', [startDate, endDate, groupIds]);
-      return result.rows || [];
-    } else {
-      const result = await pool.query(query + ' ORDER BY o.created_at DESC', [startDate, endDate]);
-      return result.rows || [];
-    }
+    console.log('📅 getOrdersByDateRange debug:', { startDate, endDate, groupIds, orderCount: result.rows.length });
+    
+    // Transformer pour correspondre exactement à la structure Drizzle
+    return (result.rows || []).map(row => ({
+      id: row.id,
+      supplierId: row.supplier_id,
+      groupId: row.group_id,
+      plannedDate: row.planned_date,
+      quantity: row.quantity,
+      unit: row.unit,
+      status: row.status,
+      notes: row.notes,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      supplier: row.supplier_name ? {
+        id: row.supplier_id,
+        name: row.supplier_name,
+        contact: row.supplier_contact || '',
+        phone: row.supplier_phone || '',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      } : null,
+      group: row.group_name ? {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color || '#666666',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      } : null,
+      creator: row.creator_username ? {
+        id: row.creator_id,
+        username: row.creator_username,
+        email: row.creator_email || '',
+        name: row.creator_name || row.creator_username,
+        firstName: row.creator_name || row.creator_username,
+        lastName: '',
+        role: 'admin'
+      } : null,
+      deliveries: [] // Pas de deliveries dans cette méthode
+    }));
   }
 
   async getOrder(id: number): Promise<any> {
@@ -559,7 +603,17 @@ export class DatabaseStorage implements IStorage {
 
   // Publicities methods
   async getPublicities(year?: number, groupIds?: number[]): Promise<any[]> {
-    const publicities = await pool.query('SELECT * FROM publicities ORDER BY start_date DESC');
+    // Filtre par année si spécifiée
+    let whereClause = '';
+    let params = [];
+    
+    if (year) {
+      whereClause = 'WHERE year = $1';
+      params.push(year);
+    }
+    
+    const publicities = await pool.query(`SELECT * FROM publicities ${whereClause} ORDER BY start_date DESC`, params);
+    console.log('🎯 getPublicities debug:', { year, whereClause, publicityCount: publicities.rows.length });
     
     // Pour chaque publicité, récupérer ses participations
     const publicityData = await Promise.all(
@@ -591,6 +645,7 @@ export class DatabaseStorage implements IStorage {
       })
     );
     
+    console.log('🎯 getPublicities result:', publicityData.length, 'publicités pour année', year);
     return publicityData;
   }
 

@@ -55,14 +55,20 @@ export default function CalendarGrid({
   const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
   const getItemsForDate = (date: Date) => {
-    // Debug: Log des commandes reçues
-    if (orders.length > 0) {
+    // Debug: Log des commandes reçues (seulement une fois)
+    if (orders.length > 0 && date.getDate() === 1) {
       console.log('📅 CalendarGrid Debug - Orders received:', orders.length);
       console.log('📅 First order structure:', orders[0]);
-      console.log('📅 Available date fields in orders:', Object.keys(orders[0]).filter(key => key.includes('Date') || key.includes('date')));
+      console.log('📅 All orders dates:', orders.map(o => ({ id: o.id, plannedDate: o.plannedDate, supplier: o.supplier?.name })));
     }
     
     const dayOrders = orders.filter(order => {
+      // Protection contre undefined/null
+      if (!order || !order.supplier) {
+        console.warn('📅 Invalid order found:', order);
+        return false;
+      }
+      
       // Essayer plusieurs champs de date possibles
       const orderDate = safeDate(order.plannedDate || order.orderDate || order.createdAt);
       const matches = orderDate && isSameDay(orderDate, date);
@@ -72,8 +78,6 @@ export default function CalendarGrid({
           orderId: order.id,
           supplier: order.supplier?.name,
           plannedDate: order.plannedDate,
-          orderDate: order.orderDate,
-          createdAt: order.createdAt,
           matchingDate: format(date, 'yyyy-MM-dd')
         });
       }
@@ -82,6 +86,11 @@ export default function CalendarGrid({
     });
     
     const dayDeliveries = deliveries.filter(delivery => {
+      if (!delivery || !delivery.supplier) {
+        console.warn('📅 Invalid delivery found:', delivery);
+        return false;
+      }
+      
       const deliveryDate = safeDate(delivery.scheduledDate);
       return deliveryDate && isSameDay(deliveryDate, date);
     });
