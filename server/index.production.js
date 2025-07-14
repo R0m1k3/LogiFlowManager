@@ -1,6 +1,11 @@
-const express = require('express');
-const { join } = require('path');
-const { createServer } = require('http');
+import express from 'express';
+import { join } from 'path';
+import { createServer } from 'http';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const server = createServer(app);
