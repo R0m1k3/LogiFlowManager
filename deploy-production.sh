@@ -13,6 +13,19 @@ echo "⏰ Début: $(date)"
 echo ""
 echo "🔍 === VÉRIFICATIONS PRÉLIMINAIRES ==="
 
+# Vérifier que les fichiers SQL de migration existent
+if [ ! -f "migration-production.sql" ]; then
+    echo "❌ Fichier migration-production.sql manquant"
+    exit 1
+fi
+
+if [ ! -f "init.sql" ]; then
+    echo "❌ Fichier init.sql manquant"
+    exit 1
+fi
+
+echo "✅ Fichiers SQL de migration présents"
+
 if ! command -v docker &> /dev/null; then
     echo "❌ Docker n'est pas installé"
     exit 1
@@ -86,6 +99,17 @@ done
 
 echo ""
 echo "✅ Application prête"
+
+# Migration de la base de données
+echo ""
+echo "🗄️  === MIGRATION BASE DE DONNÉES ==="
+echo "Application des migrations SQL..."
+
+if docker-compose exec -T postgres psql -U logiflow_admin -d logiflow_db -f /docker-entrypoint-initdb.d/migration-production.sql; then
+    echo "✅ Migration SQL appliquée avec succès"
+else
+    echo "⚠️  Migration SQL: certaines modifications peuvent avoir été déjà appliquées"
+fi
 
 # Vérifications post-déploiement
 echo ""

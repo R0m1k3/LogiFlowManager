@@ -43,6 +43,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./migration-production.sql:/docker-entrypoint-initdb.d/migration-production.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U logiflow_admin -d logiflow_db"]
       interval: 10s

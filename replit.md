@@ -423,6 +423,13 @@ Changelog:
 - July 11, 2025. Mise en évidence du magasin actuellement sélectionné en vert s'il participe
 - July 11, 2025. Indication "Aucun magasin" en rouge pour les publicités sans participants
 - July 11, 2025. Solution plus claire que le filtrage : l'utilisateur voit toutes les publicités avec participation visible
+- July 14, 2025. **PRÉPARATION DÉPLOIEMENT PRODUCTION COMPLÈTE** - Création migration SQL sécurisée préservant les données
+- July 14, 2025. Script migration-production.sql pour mise à jour sans perte de données (ADD COLUMN IF NOT EXISTS, ON CONFLICT DO NOTHING)
+- July 14, 2025. Amélioration vérification NocoDB avec gestion casse et correspondance fournisseur
+- July 14, 2025. Optimisation vérifications automatiques: 30 minutes au lieu de 30 secondes pour réduire charge serveur
+- July 14, 2025. Script deploy-production.sh intégrant migration automatique base de données
+- July 14, 2025. Configuration docker-compose.yml mise à jour avec volume migration SQL
+- July 14, 2025. **PRÊT POUR PRODUCTION** - Toutes fonctionnalités intégrées, migration SQL sécurisée, préservation données
 - July 11, 2025. **SYSTÈME DE GESTION DES RÔLES COMPLET POUR PRODUCTION** - Déploiement du système complet
 - July 11, 2025. Ajout de toutes les méthodes rôles/permissions dans storage.production.ts avec SQL brut
 - July 11, 2025. Ajout de toutes les routes API rôles/permissions dans routes.production.ts
