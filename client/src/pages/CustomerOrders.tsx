@@ -54,13 +54,8 @@ export default function CustomerOrders() {
   // Fetch customer orders (no store filtering needed)
   const { data: customerOrders = [], isLoading } = useQuery<CustomerOrderWithRelations[]>({
     queryKey: ['/api/customer-orders'],
-    queryFn: () => apiRequest('/api/customer-orders').then(res => {
-      console.log("Frontend received customer orders:", res);
-      return res.json();
-    }),
+    queryFn: () => apiRequest('/api/customer-orders'),
   });
-
-  console.log("Customer orders in component:", customerOrders, "Length:", customerOrders.length);
 
   // Create mutation
   const createMutation = useMutation({
@@ -135,6 +130,22 @@ export default function CustomerOrders() {
     },
   });
 
+  // Status mutation
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) =>
+      apiRequest(`/api/customer-orders/${id}`, {
+        method: 'PUT',
+        body: { status },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
+      toast({
+        title: "Succès",
+        description: "Statut de la commande mis à jour",
+      });
+    },
+  });
+
   // Notification mutation
   const notificationMutation = useMutation({
     mutationFn: ({ id, customerNotified }: { id: number; customerNotified: boolean }) =>
@@ -174,6 +185,18 @@ export default function CustomerOrders() {
 
   const canShowButtons = (status: string) => {
     return status === "Disponible";
+  };
+
+  const statusOptions = [
+    "En attente de Commande",
+    "Commande en Cours", 
+    "Disponible",
+    "Retiré",
+    "Annulé"
+  ];
+
+  const handleStatusChange = (id: number, newStatus: string) => {
+    statusMutation.mutate({ id, status: newStatus });
   };
 
   const handleCreateOrder = (data: any) => {
@@ -331,9 +354,28 @@ export default function CustomerOrders() {
                       </code>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status}
-                      </Badge>
+                      <Select 
+                        value={order.status} 
+                        onValueChange={(value) => handleStatusChange(order.id, value)}
+                        disabled={statusMutation.isPending}
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue>
+                            <Badge className={getStatusColor(order.status)}>
+                              {order.status}
+                            </Badge>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              <Badge className={getStatusColor(status)}>
+                                {status}
+                              </Badge>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       {format(new Date(order.createdAt), 'dd/MM/yyyy', { locale: fr })}
