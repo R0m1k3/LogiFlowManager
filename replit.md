@@ -661,6 +661,9 @@ Changelog:
 - July 15, 2025. **SYSTÈME RÔLES 100% FONCTIONNEL** - Assignation rôles opérationnelle, protection contre utilisateurs fantômes
 - July 15, 2025. **NETTOYAGE COMPLET PROJET** - Suppression de tous les fichiers temporaires, scripts et documentations obsolètes
 - July 15, 2025. **STRUCTURE FINALE PROPRE** - Projet optimisé avec seulement 13 fichiers essentiels dans le répertoire racine
+- July 15, 2025. **ERREUR COULEURS RÔLES PRODUCTION RÉSOLUE** - Correction accès APIs dans routes.production.ts
+- July 15, 2025. **APIs ROLES/PERMISSIONS/USERS OUVERTES** - Permettre lecture pour tous utilisateurs authentifiés (nécessaire pour couleurs)
+- July 15, 2025. **RESTRICTIONS MODIF MAINTENUES** - Seuls admins peuvent créer/modifier/supprimer rôles et permissions
 - July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
 - July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel
 - July 15, 2025. **SYSTÈME DE RÔLES COMPLET FONCTIONNEL** - Résolution complète erreur 500 et implémentation rôle unique par utilisateur

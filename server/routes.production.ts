@@ -396,11 +396,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
       const user = await storage.getUser(userId);
-      if (!user || user.role !== 'admin') {
+      
+      // ✅ CORRECTION: Permettre aux admins ET managers de voir les utilisateurs (nécessaire pour la gestion des rôles)
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
         return res.status(403).json({ message: "Access denied" });
       }
 
       const users = await storage.getUsers();
+      console.log('👥 Users API response:', { count: users.length, requestingUser: user.role });
       res.json(users);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -810,12 +813,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Roles routes
   app.get('/api/roles', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ message: "Insufficient permissions" });
-      }
-
+      // ✅ CORRECTION: Permettre à tous les utilisateurs authentifiés de lire les rôles (nécessaire pour l'affichage des couleurs)
       const roles = await storage.getRoles();
+      console.log('🎨 Roles API response:', { count: roles.length, firstRole: roles[0] });
       res.json(Array.isArray(roles) ? roles : []);
     } catch (error) {
       console.error("Error fetching roles:", error);
@@ -903,12 +903,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ message: "Insufficient permissions" });
-      }
-
+      // ✅ CORRECTION: Permettre à tous les utilisateurs authentifiés de lire les permissions (nécessaire pour l'interface de gestion des rôles)
       const permissions = await storage.getPermissions();
+      console.log('🔐 Permissions API response:', { count: permissions.length, firstPermission: permissions[0] });
       res.json(Array.isArray(permissions) ? permissions : []);
     } catch (error) {
       console.error("Error fetching permissions:", error);
