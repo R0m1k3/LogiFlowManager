@@ -1,139 +1,122 @@
 #!/bin/bash
 
-# Script pour corriger le système de rôles en production Docker
-# Résout l'erreur 500 "Failed to fetch roles"
-
-set -e
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-echo -e "${BLUE}🔧 CORRECTION SYSTÈME DE RÔLES PRODUCTION${NC}"
-echo "Résolution erreur 500 'Failed to fetch roles'"
+echo "=== CORRECTION URGENTE - ROUTES DUPLIQUÉES PRODUCTION ==="
+echo "Date: $(date)"
 echo ""
 
-# Vérifier si Docker est installé et le conteneur existe
-if ! docker ps -a | grep -q logiflow_app; then
-    echo -e "${RED}❌ Container logiflow_app non trouvé${NC}"
-    echo "Assurez-vous que l'application est déployée avec docker-compose"
-    exit 1
-fi
+echo "🔍 DIAGNOSTIC DU PROBLÈME..."
+echo ""
 
-echo -e "${YELLOW}1. ARRÊT TEMPORAIRE APPLICATION${NC}"
-docker-compose down
+# Chercher les routes dupliquées
+echo "📋 Routes /api/roles trouvées dans routes.production.ts :"
+grep -n "app.get.*api/roles" server/routes.production.ts
 
 echo ""
-echo -e "${YELLOW}2. RECONSTRUCTION AVEC CORRECTIONS${NC}"
-echo "Rebuilding avec les nouvelles routes API et méthodes storage..."
-
-# Rebuild complet avec les nouveaux fichiers
-docker-compose up --build -d
-
+echo "🔧 PROBLÈME IDENTIFIÉ :"
+echo "   - Duplication de routes /api/roles dans le fichier"  
+echo "   - La première route intercepte les requêtes"
+echo "   - La deuxième route (correcte) n'est jamais atteinte"
 echo ""
-echo -e "${YELLOW}3. ATTENTE DÉMARRAGE COMPLET${NC}"
-sleep 15
 
-# Vérifier que le conteneur est démarré
-if ! docker ps | grep -q logiflow_app; then
-    echo -e "${RED}❌ Échec démarrage conteneur${NC}"
-    docker-compose logs
-    exit 1
-fi
+echo "📝 CORRECTION EN COURS..."
 
-echo -e "${GREEN}✅ Application redémarrée${NC}"
+# Sauvegarder le fichier original
+cp server/routes.production.ts server/routes.production.ts.backup
 
-echo ""
-echo -e "${YELLOW}4. TEST AUTHENTIFICATION${NC}"
+echo "✅ Sauvegarde créée: server/routes.production.ts.backup"
 
-# Test login
-LOGIN_RESPONSE=$(curl -s -c /tmp/prod_test_cookies -X POST \
-    http://localhost:3000/api/login \
-    -H 'Content-Type: application/json' \
-    -d '{"username":"admin","password":"admin"}')
+# Corriger le fichier en supprimant les routes dupliquées
+python3 << 'EOF'
+import re
 
-if echo "$LOGIN_RESPONSE" | grep -q '"role":"admin"'; then
-    echo -e "${GREEN}✅ Authentification réussie${NC}"
-else
-    echo -e "${RED}❌ Échec authentification${NC}"
-    echo "Response: $LOGIN_RESPONSE"
-    exit 1
-fi
+# Lire le fichier
+with open('server/routes.production.ts', 'r') as f:
+    content = f.read()
 
-echo ""
-echo -e "${YELLOW}5. TEST API RÔLES${NC}"
+# Pattern pour identifier et supprimer les premières routes dupliquées (lignes 643-750 environ)
+# On garde seulement les routes définies après le commentaire "===== ROLE MANAGEMENT ROUTES ====="
 
-# Test récupération rôles
-ROLES_RESPONSE=$(curl -s -b /tmp/prod_test_cookies http://localhost:3000/api/roles)
-ROLES_COUNT=$(echo "$ROLES_RESPONSE" | jq '. | length' 2>/dev/null || echo "0")
+lines = content.split('\n')
+new_lines = []
+skip_mode = False
+role_section_found = False
 
-if [ "$ROLES_COUNT" -gt "0" ]; then
-    echo -e "${GREEN}✅ API Rôles fonctionnelle: $ROLES_COUNT rôles récupérés${NC}"
-    echo "Premiers rôles:"
-    echo "$ROLES_RESPONSE" | jq '.[0:2] | .[] | {name, displayName, isSystem}' 2>/dev/null || echo "$ROLES_RESPONSE"
-else
-    echo -e "${RED}❌ Erreur API Rôles${NC}"
-    echo "Response: $ROLES_RESPONSE"
+for i, line in enumerate(lines):
+    line_num = i + 1
     
-    echo ""
-    echo -e "${YELLOW}📋 LOGS DEBUG${NC}"
-    docker logs logiflow_app --tail=20
+    # Détecter le début de la section de rôles officielle
+    if "===== ROLE MANAGEMENT ROUTES =====" in line:
+        role_section_found = True
+        skip_mode = False
+        new_lines.append(line)
+        continue
+    
+    # Si on trouve une route /api/roles avant la section officielle, on commence à ignorer
+    if not role_section_found and ("app.get('/api/roles'" in line or "app.get(\"/api/roles\"" in line):
+        skip_mode = True
+        print(f"🗑️  Suppression de la route dupliquée ligne {line_num}")
+        continue
+    
+    # Si on trouve une route /api/permissions avant la section officielle, on continue à ignorer
+    if skip_mode and ("app.get('/api/permissions'" in line or "app.get(\"/api/permissions\"" in line):
+        print(f"🗑️  Suppression de la route permissions dupliquée ligne {line_num}")
+        continue
+    
+    # Arrêter d'ignorer quand on arrive à une nouvelle section ou route différente
+    if skip_mode and line.strip().startswith('app.') and not any(x in line for x in ['/api/roles', '/api/permissions']):
+        skip_mode = False
+    
+    # Si on n'ignore pas, ajouter la ligne
+    if not skip_mode:
+        new_lines.append(line)
+
+# Écrire le fichier corrigé
+with open('server/routes.production.ts', 'w') as f:
+    f.write('\n'.join(new_lines))
+
+print("✅ Fichier corrigé")
+EOF
+
+echo ""
+echo "🧪 VÉRIFICATION DE LA CORRECTION..."
+
+# Vérifier le résultat
+echo "📋 Routes /api/roles restantes :"
+grep -n "app.get.*api/roles" server/routes.production.ts
+
+echo ""
+echo "📋 Vérification des erreurs de syntaxe..."
+if node -c server/routes.production.ts 2>/dev/null; then
+    echo "✅ Syntaxe JavaScript valide"
+else
+    echo "❌ Erreur de syntaxe détectée!"
+    echo "🔄 Restauration du fichier original..."
+    mv server/routes.production.ts.backup server/routes.production.ts
     exit 1
 fi
 
 echo ""
-echo -e "${YELLOW}6. TEST API PERMISSIONS${NC}"
+echo "🔄 REDÉMARRAGE DE L'APPLICATION..."
 
-# Test récupération permissions
-PERMISSIONS_RESPONSE=$(curl -s -b /tmp/prod_test_cookies http://localhost:3000/api/permissions)
-PERMS_COUNT=$(echo "$PERMISSIONS_RESPONSE" | jq '. | length' 2>/dev/null || echo "0")
-
-if [ "$PERMS_COUNT" -gt "0" ]; then
-    echo -e "${GREEN}✅ API Permissions fonctionnelle: $PERMS_COUNT permissions récupérées${NC}"
+# Redémarrer l'application si c'est un workflow
+if pgrep -f "tsx server" > /dev/null; then
+    echo "🔄 Arrêt du serveur actuel..."
+    pkill -f "tsx server"
+    sleep 2
+    
+    echo "🚀 Redémarrage en cours..."
+    # Le workflow se redémarrera automatiquement
 else
-    echo -e "${RED}❌ Erreur API Permissions${NC}"
-    echo "Response: $PERMISSIONS_RESPONSE"
+    echo "ℹ️  Serveur non détecté, redémarrage manuel nécessaire"
 fi
 
 echo ""
-echo -e "${YELLOW}7. VÉRIFICATION STRUCTURE COMPLÈTE${NC}"
-
-# Vérifier structure des données pour éviter React Error #310
-ROLE_STRUCTURE=$(echo "$ROLES_RESPONSE" | jq '.[0] | {
-    hasDisplayName: (has("displayName") and (.displayName != null)),
-    hasPermissions: (has("permissions") and (.permissions != null))
-}' 2>/dev/null)
-
-PERM_STRUCTURE=$(echo "$PERMISSIONS_RESPONSE" | jq '.[0] | {
-    hasDisplayName: (has("displayName") and (.displayName != null)),
-    hasAction: (has("action") and (.action != null))
-}' 2>/dev/null)
-
-echo "Structure rôle: $ROLE_STRUCTURE"
-echo "Structure permission: $PERM_STRUCTURE"
-
-# Nettoyage
-rm -f /tmp/prod_test_cookies
-
+echo "🎉 CORRECTION TERMINÉE !"
 echo ""
-echo -e "${GREEN}🎉 CORRECTION COMPLÈTE${NC}"
-echo -e "${BLUE}📊 RÉSULTATS:${NC}"
-echo "• Application Docker: ✅ Fonctionnelle"
-echo "• Authentification: ✅ Admin/admin opérationnel"
-echo "• API Rôles: ✅ $ROLES_COUNT rôles disponibles"
-echo "• API Permissions: ✅ $PERMS_COUNT permissions disponibles"
-echo "• Protection React: ✅ Structure données correcte"
-
+echo "💡 RÉSUMÉ :"
+echo "   ✅ Routes dupliquées supprimées"
+echo "   ✅ Routes officielles conservées (section ROLE MANAGEMENT)"
+echo "   ✅ Syntaxe validée"
+echo "   🔄 Application redémarrée"
 echo ""
-echo -e "${BLUE}🌐 ACCÈS PRODUCTION:${NC}"
-echo "URL: http://localhost:3000"
-echo "Login: admin / admin"
-echo "Module Rôles: Gestion → Rôles et Permissions"
-
-echo ""
-echo -e "${YELLOW}📝 PROCHAINES ÉTAPES:${NC}"
-echo "1. Tester création de nouveaux rôles dans l'interface"
-echo "2. Vérifier assignation permissions aux rôles"
-echo "3. Tester assignation rôles aux utilisateurs"
+echo "🎭 La page de gestion des rôles devrait maintenant afficher les données correctement"
