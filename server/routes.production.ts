@@ -1007,10 +1007,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.params.id;
       const { roleIds } = req.body;
       
+      console.log("🎯 setUserRoles request:", { userId, roleIds, assignedBy: user.id });
+      
       await storage.setUserRoles(userId, roleIds, user.id);
       res.json({ message: "User roles updated successfully" });
     } catch (error) {
       console.error("Error updating user roles:", error);
+      
+      // Gestion d'erreur spécifique avec message plus informatif
+      if (error.message.includes('does not exist')) {
+        return res.status(404).json({ message: error.message });
+      }
+      
       res.status(500).json({ message: "Failed to update user roles" });
     }
   });

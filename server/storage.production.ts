@@ -1174,12 +1174,25 @@ export class DatabaseStorage implements IStorage {
 
   async setUserRoles(userId: string, roleIds: number[], assignedBy: string): Promise<void> {
     try {
+      // Vérifier que l'utilisateur existe
+      const userExists = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+      if (userExists.rows.length === 0) {
+        throw new Error(`User with ID ${userId} does not exist`);
+      }
+
       // Delete existing user roles
       await pool.query('DELETE FROM user_roles WHERE user_id = $1', [userId]);
       
       // Insert new user role (only one role per user)
       if (roleIds.length > 0) {
         const roleId = roleIds[0]; // Take only the first role
+        
+        // Vérifier que le rôle existe
+        const roleExists = await pool.query('SELECT id FROM roles WHERE id = $1', [roleId]);
+        if (roleExists.rows.length === 0) {
+          throw new Error(`Role with ID ${roleId} does not exist`);
+        }
+
         await pool.query(`
           INSERT INTO user_roles (user_id, role_id, assigned_by, assigned_at)
           VALUES ($1, $2, $3, CURRENT_TIMESTAMP)

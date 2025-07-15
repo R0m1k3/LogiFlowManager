@@ -334,6 +334,18 @@ export default function RoleManagement() {
       return;
     }
 
+    // Validation: vérifier que l'utilisateur existe dans la liste actuelle
+    const userExists = users.some(u => u.id === selectedUser.id);
+    if (!userExists) {
+      toast({
+        title: "Erreur",
+        description: "L'utilisateur sélectionné n'existe plus. Veuillez actualiser la page.",
+        variant: "destructive",
+      });
+      console.error("❌ User not found in current users list:", selectedUser.id);
+      return;
+    }
+
     console.log("🚀 About to mutate:", {
       userId: selectedUser.id,
       roleIds: [selectedRoleForUser],
