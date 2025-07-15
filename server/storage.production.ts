@@ -874,8 +874,12 @@ export class DatabaseStorage implements IStorage {
         SELECT r.*, 
                rp.permission_id,
                p.name as permission_name,
+               p.display_name as permission_display_name,
                p.description as permission_description,
-               p.category as permission_category
+               p.category as permission_category,
+               p.action as permission_action,
+               p.created_at as permission_created_at,
+               p.updated_at as permission_updated_at
         FROM roles r
         LEFT JOIN role_permissions rp ON r.id = rp.role_id
         LEFT JOIN permissions p ON rp.permission_id = p.id
@@ -883,6 +887,12 @@ export class DatabaseStorage implements IStorage {
       `);
       
       console.log('🔍 getRoles debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
+      console.log('🔍 First result row:', result.rows?.[0] ? {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        permission_id: result.rows[0].permission_id,
+        permission_name: result.rows[0].permission_name
+      } : 'No rows');
       
       // Protection critique contre null/undefined
       if (!result || !result.rows) {
@@ -892,8 +902,17 @@ export class DatabaseStorage implements IStorage {
       
       // Protection et transformation en structure Drizzle avec permissions imbriquées
       const rolesMap = new Map();
-      (Array.isArray(result.rows) ? result.rows : []).forEach(row => {
+      const rows = Array.isArray(result.rows) ? result.rows : [];
+      console.log('🔍 Processing rows:', rows.length);
+      
+      rows.forEach((row, index) => {
       const roleId = row.id;
+      console.log(`🔍 Row ${index}:`, {
+        roleId: row.id, 
+        roleName: row.name, 
+        permissionId: row.permission_id,
+        permissionName: row.permission_name
+      });
       
       if (!rolesMap.has(roleId)) {
         rolesMap.set(roleId, {
@@ -916,12 +935,12 @@ export class DatabaseStorage implements IStorage {
         const permission = {
           id: row.permission_id,
           name: row.permission_name,
-          displayName: row.permission_name || '',     // ✅ Ajout displayName manquant
+          displayName: row.permission_display_name || row.permission_name || '',  // ✅ Utilise display_name de BDD
           description: row.permission_description,
           category: row.permission_category,
-          action: row.permission_name || '',          // ✅ Ajout action manquant
-          createdAt: row.created_at,
-          updatedAt: row.updated_at
+          action: row.permission_action || row.permission_name || '',             // ✅ Utilise action de BDD
+          createdAt: row.permission_created_at || row.created_at,
+          updatedAt: row.permission_updated_at || row.updated_at
         };
         
         rolesMap.get(roleId).permissions.push(permission);

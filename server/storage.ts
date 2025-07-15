@@ -742,6 +742,7 @@ export class DatabaseStorage implements IStorage {
 
   // Role operations
   async getRoles(): Promise<RoleWithPermissions[]> {
+    console.log('🔍 getRoles (storage.ts) called');
     const rolesData = await db.query.roles.findMany({
       with: {
         rolePermissions: {
@@ -752,7 +753,23 @@ export class DatabaseStorage implements IStorage {
       },
       orderBy: [roles.name],
     });
-    return rolesData;
+    
+    console.log('🔍 Found roles:', rolesData.length);
+    console.log('🔍 First role permissions:', rolesData[0]?.rolePermissions?.length || 0);
+    
+    // ✅ CORRECTION CRITIQUE: Assurer structure compatible frontend
+    const processedRoles = rolesData.map(role => ({
+      ...role,
+      permissions: role.rolePermissions?.map(rp => ({
+        ...rp.permission,
+        displayName: rp.permission.displayName || rp.permission.name || '',
+        action: rp.permission.action || rp.permission.name || ''
+      })) || []
+    }));
+    
+    console.log('✅ getRoles final result:', processedRoles.length, 'roles processed');
+    console.log('✅ Admin permissions count:', processedRoles.find(r => r.name === 'admin')?.permissions.length || 0);
+    return processedRoles;
   }
 
   async getRole(id: number): Promise<RoleWithPermissions | undefined> {
