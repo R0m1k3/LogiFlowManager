@@ -1143,16 +1143,13 @@ export class DatabaseStorage implements IStorage {
       // Delete existing user roles
       await pool.query('DELETE FROM user_roles WHERE user_id = $1', [userId]);
       
-      // Insert new user roles
+      // Insert new user role (only one role per user)
       if (roleIds.length > 0) {
-        const values = roleIds.map((roleId, index) => 
-          `($1, $${index + 2}, $${roleIds.length + 2}, CURRENT_TIMESTAMP)`
-        ).join(', ');
-        
+        const roleId = roleIds[0]; // Take only the first role
         await pool.query(`
           INSERT INTO user_roles (user_id, role_id, assigned_by, assigned_at)
-          VALUES ${values}
-        `, [userId, ...roleIds, assignedBy]);
+          VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+        `, [userId, roleId, assignedBy]);
       }
     } catch (error) {
       console.error("Error in setUserRoles:", error);

@@ -1148,15 +1148,15 @@ export class DatabaseStorage implements IStorage {
     // First, remove existing roles for this user
     await db.delete(userRoles).where(eq(userRoles.userId, userId));
     
-    // Then add new roles
+    // Then add new role (only one role per user)
     if (roleIds.length > 0) {
-      const values = roleIds.map(roleId => ({
+      const roleId = roleIds[0]; // Take only the first role
+      await db.insert(userRoles).values({
         userId,
         roleId,
         assignedBy,
         assignedAt: new Date(),
-      }));
-      await db.insert(userRoles).values(values);
+      });
     }
   }
 

@@ -614,11 +614,14 @@ Changelog:
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
 - July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
 - July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel
-- July 15, 2025. **SYSTÈME DE RÔLES PRODUCTION CORRIGÉ** - Résolution complète erreur 500 "Failed to fetch roles"
+- July 15, 2025. **SYSTÈME DE RÔLES COMPLET FONCTIONNEL** - Résolution complète erreur 500 et implémentation rôle unique par utilisateur
 - July 15, 2025. Routes API rôles ajoutées dans server/routes.production.ts avec authentification admin
 - July 15, 2025. Méthodes storage complètes ajoutées dans server/storage.production.ts avec SQL natif
 - July 15, 2025. Support complet: getRoles(), getPermissions(), createRole(), updateRole(), deleteRole()
 - July 15, 2025. Support permissions: setRolePermissions(), getRolePermissions(), setUserRoles()
+- July 15, 2025. **INTERFACE UTILISATEUR MODERNISÉE** - Radio buttons pour assignation d'un seul rôle par utilisateur
+- July 15, 2025. **PERMISSIONS FONCTIONNELLES** - Cases à cocher des permissions opérationnelles avec onCheckedChange
+- July 15, 2025. **CONTRAINTE RÔLE UNIQUE** - Modification setUserRoles() pour support d'un seul rôle par utilisateur
 - July 15, 2025. Script fix-roles-production.sh créé pour déploiement automatique corrections
 - July 15, 2025. Application prête redéploiement Docker avec système rôles fonctionnel
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants

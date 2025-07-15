@@ -201,17 +201,20 @@ export default function RoleManagement() {
     if (!selectedUser) return;
     
     const formData = new FormData(event.currentTarget);
-    const roleIds = [];
+    const selectedRoleId = formData.get('selectedRole');
     
-    for (const role of roles) {
-      if (formData.get(`role_${role.id}`)) {
-        roleIds.push(role.id);
-      }
+    if (!selectedRoleId) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un rôle",
+        variant: "destructive",
+      });
+      return;
     }
 
     updateUserRolesMutation.mutate({
       userId: selectedUser.id,
-      roleIds,
+      roleIds: [parseInt(selectedRoleId as string)],
     });
   };
 
@@ -373,9 +376,7 @@ export default function RoleManagement() {
                                 <Checkbox
                                   id={`permission-${permission.id}`}
                                   checked={hasPermission || false}
-                                  onCheckedChange={(checked) => 
-                                    handlePermissionToggle(permission.id, checked as boolean)
-                                  }
+                                  onCheckedChange={(checked) => handlePermissionToggle(permission.id, checked as boolean)}
                                 />
                                 <label
                                   htmlFor={`permission-${permission.id}`}
@@ -531,25 +532,33 @@ export default function RoleManagement() {
       <Dialog open={editUserRolesOpen} onOpenChange={setEditUserRolesOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Modifier les Rôles Utilisateur</DialogTitle>
+            <DialogTitle>Modifier le Rôle Utilisateur</DialogTitle>
             <DialogDescription>
-              Attribuez des rôles à {selectedUser?.name || selectedUser?.username}
+              Attribuez un rôle à {selectedUser?.name || selectedUser?.username}
             </DialogDescription>
           </DialogHeader>
           {selectedUser && (
             <form onSubmit={handleUserRolesUpdate} className="space-y-4">
               <div className="space-y-2">
+                <p className="text-sm font-medium">Sélectionnez un rôle :</p>
                 {Array.isArray(roles) && roles.map((role) => (
                   <div key={role.id} className="flex items-center space-x-2">
-                    <Checkbox
+                    <input
+                      type="radio"
                       id={`user-role-${role.id}`}
-                      name={`role_${role.id}`}
+                      name="selectedRole"
+                      value={role.id}
                       defaultChecked={selectedUser.role === role.name}
+                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
                     />
                     <label
                       htmlFor={`user-role-${role.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
                     >
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: role.color || '#666666' }}
+                      />
                       {role.displayName}
                     </label>
                   </div>
