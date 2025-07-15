@@ -147,8 +147,13 @@ export default function RoleManagement() {
       return await apiRequest(`/api/roles/${data.roleId}/permissions`, 'POST', { permissionIds: data.permissionIds });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole?.id] });
-      queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole?.id}/permissions`] });
+      // Invalider toutes les queries liées aux rôles et permissions
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+      if (selectedRole) {
+        queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole.id] });
+        queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
+      }
       toast({ title: "Permissions mises à jour avec succès" });
     },
     onError: (error) => {
@@ -162,6 +167,7 @@ export default function RoleManagement() {
       return await apiRequest(`/api/users/${data.userId}/roles`, 'POST', { roleIds: data.roleIds });
     },
     onSuccess: () => {
+      // Invalider toutes les queries utilisateurs et rôles
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
       queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
@@ -170,7 +176,9 @@ export default function RoleManagement() {
         queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole.id] });
         queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
       }
+      // Fermer le modal et réinitialiser selectedUser pour forcer le refresh
       setEditUserRolesOpen(false);
+      setSelectedUser(null);
       toast({ title: "Rôle utilisateur mis à jour avec succès" });
     },
     onError: (error) => {
@@ -210,6 +218,14 @@ export default function RoleManagement() {
     const newPermissions = checked
       ? [...currentPermissions, permissionId]
       : currentPermissions.filter(id => id !== permissionId);
+
+    console.log("🔍 Permission toggle:", {
+      permissionId,
+      checked,
+      currentPermissions,
+      newPermissions,
+      roleId: selectedRole.id
+    });
 
     updateRolePermissionsMutation.mutate({
       roleId: selectedRole.id,
@@ -445,11 +461,14 @@ export default function RoleManagement() {
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{user.role}</Badge>
+                      <Badge variant="outline">
+                        {user.userRoles?.[0]?.role?.displayName || user.role}
+                      </Badge>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
+                          console.log("🔍 Selected user for role edit:", user);
                           setSelectedUser(user as UserWithRoles);
                           setEditUserRolesOpen(true);
                         }}
@@ -576,7 +595,7 @@ export default function RoleManagement() {
                       id={`user-role-${role.id}`}
                       name="selectedRole"
                       value={role.id}
-                      defaultChecked={selectedUser.role === role.name}
+                      defaultChecked={selectedUser.userRoles?.[0]?.roleId === role.id}
                       className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
                     />
                     <label
