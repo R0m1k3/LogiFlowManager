@@ -175,21 +175,18 @@ export default function RoleManagement() {
       return result;
     },
     onSuccess: () => {
-      console.log("🚀 Mutation success - clearing cache and refetching");
+      console.log("🚀 Mutation success - invalidating cache");
       
-      // Solution radicale: vider complètement le cache ReactQuery 
-      queryClient.clear();
+      // Invalider les queries pour forcer un refresh
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
       
       // Fermer le modal et réinitialiser
       setEditUserRolesOpen(false);
       setSelectedUser(null);
       
-      // Forcer un rechargement complet de la page après un délai
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-      
-      toast({ title: "Rôle utilisateur mis à jour avec succès - page rechargée" });
+      toast({ title: "Rôle utilisateur mis à jour avec succès" });
     },
     onError: (error) => {
       toast({ title: "Erreur lors de la mise à jour du rôle utilisateur", description: error.message, variant: "destructive" });

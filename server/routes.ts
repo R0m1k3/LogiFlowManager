@@ -1660,6 +1660,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST route for user roles (used by frontend)
+  app.post('/api/users/:userId/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const userId = req.params.userId;
+      const { roleIds } = req.body;
+      
+      console.log("🔧 POST User roles API called:", { userId, roleIds, assignedBy: currentUser.id });
+      
+      if (!Array.isArray(roleIds)) {
+        return res.status(400).json({ message: "roleIds must be an array" });
+      }
+
+      const assignedBy = currentUser.id;
+      await storage.setUserRoles(userId, roleIds, assignedBy);
+      console.log("✅ User roles updated successfully:", { userId, roleIds });
+      res.json({ message: "User roles updated successfully" });
+    } catch (error) {
+      console.error("Error setting user roles:", error);
+      res.status(500).json({ message: "Failed to update user roles" });
+    }
+  });
+
   app.put('/api/users/:userId/roles', isAuthenticated, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
