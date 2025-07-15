@@ -9,13 +9,11 @@ async function throwIfResNotOk(res: Response) {
 
 export async function apiRequest(
   url: string,
-  options: {
-    method?: string;
-    body?: unknown;
-    headers?: Record<string, string>;
-  } = {}
-): Promise<Response> {
-  const { method = 'GET', body, headers = {} } = options;
+  method: string = 'GET',
+  body?: unknown,
+  headers: Record<string, string> = {}
+): Promise<any> {
+  console.log("🌐 API Request:", { url, method, body });
   
   const res = await fetch(url, {
     method,
@@ -27,7 +25,15 @@ export async function apiRequest(
     credentials: "include",
   });
 
+  console.log("🌐 API Response:", { status: res.status, ok: res.ok });
+  
   await throwIfResNotOk(res);
+  
+  // Return JSON response
+  if (res.headers.get('content-type')?.includes('application/json')) {
+    return await res.json();
+  }
+  
   return res;
 }
 

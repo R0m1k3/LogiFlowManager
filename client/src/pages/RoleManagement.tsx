@@ -171,26 +171,40 @@ export default function RoleManagement() {
   const updateUserRolesMutation = useMutation({
     mutationFn: async (data: { userId: string; roleIds: number[] }) => {
       console.log("🚀 Mutation started:", data);
-      const result = await apiRequest(`/api/users/${data.userId}/roles`, 'POST', { roleIds: data.roleIds });
-      console.log("🚀 Mutation result:", result);
-      return result;
+      try {
+        const result = await apiRequest(`/api/users/${data.userId}/roles`, 'POST', { roleIds: data.roleIds });
+        console.log("🚀 Mutation result:", result);
+        return result;
+      } catch (error) {
+        console.error("🚨 Mutation error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      console.log("🚀 Mutation success - invalidating cache");
+      console.log("🚀 Mutation success - forcing complete refresh");
       
-      // Invalider les queries pour forcer un refresh
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+      // Solution radicale : vider complètement le cache
+      queryClient.clear();
+      
+      // Forcer un rechargement complet de la page après un délai
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
       
       // Fermer le modal et réinitialiser
       setEditUserRolesOpen(false);
       setSelectedUser(null);
+      setSelectedRoleForUser(null);
       
-      toast({ title: "Rôle utilisateur mis à jour avec succès" });
+      toast({ title: "Rôle utilisateur mis à jour avec succès - page rechargée" });
     },
     onError: (error) => {
-      toast({ title: "Erreur lors de la mise à jour du rôle utilisateur", description: error.message, variant: "destructive" });
+      console.error("❌ User role mutation error:", error);
+      toast({ 
+        title: "Erreur lors de la mise à jour du rôle utilisateur", 
+        description: error.message || 'Erreur inconnue', 
+        variant: "destructive" 
+      });
     },
   });
 
