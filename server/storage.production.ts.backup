@@ -926,12 +926,12 @@ export class DatabaseStorage implements IStorage {
                      JSON_BUILD_OBJECT(
                        'id', p.id,
                        'name', p.name,
-                       'displayName', p.name,
+                       'displayName', p.display_name,
                        'description', p.description,
                        'category', p.category,
-                       'action', p.name,
-                       'resource', 'system',
-                       'isSystem', true,
+                       'action', p.action,
+                       'resource', p.resource,
+                       'isSystem', p.is_system,
                        'createdAt', p.created_at
                      )
                    END
@@ -942,7 +942,7 @@ export class DatabaseStorage implements IStorage {
         LEFT JOIN role_permissions rp ON r.id = rp.role_id
         LEFT JOIN permissions p ON rp.permission_id = p.id
         WHERE r.id = $1
-        GROUP BY r.id, r.name, r.description, r.created_at, r.updated_at
+        GROUP BY r.id, r.name, r.display_name, r.description, r.color, r.is_system, r.is_active, r.created_at, r.updated_at
       `, [id]);
       
       if (result.rows.length === 0) return undefined;
@@ -951,7 +951,7 @@ export class DatabaseStorage implements IStorage {
       return {
         id: row.id,
         name: row.name,
-        displayName: row.name,
+        displayName: row.display_name || row.name,
         description: row.description,
         color: row.color,
         isSystem: row.is_system,
@@ -969,23 +969,23 @@ export class DatabaseStorage implements IStorage {
   async createRole(roleData: InsertRole): Promise<Role> {
     try {
       const result = await pool.query(`
-        INSERT INTO roles (name, description, created_at, updated_at)
-        VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        INSERT INTO roles (name, display_name, description, color, is_system, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
       `, [
         roleData.name,
-        // roleData.displayName,
+        roleData.displayName,
         roleData.description,
-        // roleData.color,
-        // roleData.isSystem || false,
-        // roleData.isActive !== false
+        roleData.color,
+        roleData.isSystem || false,
+        roleData.isActive !== false
       ]);
       
       const row = result.rows[0];
       return {
         id: row.id,
         name: row.name,
-        displayName: row.name,
+        displayName: row.display_name || row.name,
         description: row.description,
         color: row.color,
         isSystem: row.is_system,
@@ -1045,7 +1045,7 @@ export class DatabaseStorage implements IStorage {
       return {
         id: row.id,
         name: row.name,
-        displayName: row.name,
+        displayName: row.display_name || row.name,
         description: row.description,
         color: row.color,
         isSystem: row.is_system,
@@ -1081,7 +1081,7 @@ export class DatabaseStorage implements IStorage {
       return result.rows.map(row => ({
         id: row.id,
         name: row.name,
-        displayName: row.name,
+        displayName: row.display_name || row.name,
         description: row.description,
         category: row.category,
         action: row.action || 'read',
