@@ -963,6 +963,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const roleId = parseInt(req.params.id);
+      const rolePermissions = await storage.getRolePermissions(roleId);
+      res.json(Array.isArray(rolePermissions) ? rolePermissions : []);
+    } catch (error) {
+      console.error("Error fetching role permissions:", error);
+      res.status(500).json({ message: "Failed to fetch role permissions" });
+    }
+  });
+
   app.post('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
