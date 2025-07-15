@@ -1159,6 +1159,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Role Management API Routes
+  
+  // Get all roles
+  app.get('/api/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const roles = await storage.getRoles();
+      res.json(Array.isArray(roles) ? roles : []);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      res.status(500).json([]);
+    }
+  });
+
+  // Get all permissions
+  app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const permissions = await storage.getPermissions();
+      res.json(Array.isArray(permissions) ? permissions : []);
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      res.status(500).json([]);
+    }
+  });
+
+  // Get permissions for a specific role
+  app.get('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const roleId = parseInt(req.params.id);
+      const rolePermissions = await storage.getRolePermissions(roleId);
+      res.json(Array.isArray(rolePermissions) ? rolePermissions : []);
+    } catch (error) {
+      console.error("Error fetching role permissions:", error);
+      res.status(500).json([]);
+    }
+  });
+
+  // Set permissions for a role
+  app.post('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const roleId = parseInt(req.params.id);
+      const { permissionIds } = req.body;
+
+      if (!Array.isArray(permissionIds)) {
+        return res.status(400).json({ message: "permissionIds must be an array" });
+      }
+
+      await storage.setRolePermissions(roleId, permissionIds);
+      console.log(`✅ Permissions updated for role ${roleId}:`, permissionIds);
+      res.json({ message: "Permissions updated successfully" });
+    } catch (error) {
+      console.error("Error setting role permissions:", error);
+      res.status(500).json({ message: "Failed to update permissions" });
+    }
+  });
+
+  // Set roles for a user  
+  app.post('/api/users/:userId/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { userId } = req.params;
+      const { roleIds } = req.body;
+
+      if (!Array.isArray(roleIds)) {
+        return res.status(400).json({ message: "roleIds must be an array" });
+      }
+
+      const assignedBy = req.user.claims ? req.user.claims.sub : req.user.id;
+      await storage.setUserRoles(userId, roleIds, assignedBy);
+      console.log(`✅ Roles updated for user ${userId}:`, roleIds);
+      res.json({ message: "User roles updated successfully" });
+    } catch (error) {
+      console.error("Error setting user roles:", error);
+      res.status(500).json({ message: "Failed to update user roles" });
+    }
+  });
+
+  // Get roles for a specific user
+  app.get('/api/users/:userId/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { userId } = req.params;
+      const userRoles = await storage.getUserRoles(userId);
+      res.json(Array.isArray(userRoles) ? userRoles : []);
+    } catch (error) {
+      console.error("Error fetching user roles:", error);
+      res.status(500).json([]);
+    }
+  });
+
   // Customer Orders routes
   app.get('/api/customer-orders', isAuthenticated, async (req: any, res) => {
     try {

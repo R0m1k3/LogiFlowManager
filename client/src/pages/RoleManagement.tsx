@@ -144,7 +144,7 @@ export default function RoleManagement() {
   // Update role permissions mutation
   const updateRolePermissionsMutation = useMutation({
     mutationFn: async (data: { roleId: number; permissionIds: number[] }) => {
-      return await apiRequest(`/api/roles/${data.roleId}/permissions`, 'PUT', { permissionIds: data.permissionIds });
+      return await apiRequest(`/api/roles/${data.roleId}/permissions`, 'POST', { permissionIds: data.permissionIds });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole?.id] });
@@ -159,7 +159,7 @@ export default function RoleManagement() {
   // Update user roles mutation
   const updateUserRolesMutation = useMutation({
     mutationFn: async (data: { userId: string; roleIds: number[] }) => {
-      return await apiRequest(`/api/users/${data.userId}/roles`, 'PUT', { roleIds: data.roleIds });
+      return await apiRequest(`/api/users/${data.userId}/roles`, 'POST', { roleIds: data.roleIds });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
