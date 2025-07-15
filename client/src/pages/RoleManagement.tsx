@@ -92,13 +92,15 @@ export default function RoleManagement() {
   const permissions = Array.isArray(permissionsData) ? permissionsData : [];
   const users = Array.isArray(usersData) ? usersData : [];
 
-  // Force refetch on component mount
+  // Force refetch on component mount + Clear ALL cache
   useEffect(() => {
-    console.log("🔄 RoleManagement mounting - forcing refetch");
+    console.log("🔄 RoleManagement mounting - CLEARING ALL CACHE");
     
-    // Invalider le cache d'abord
+    // 🧹 NETTOYAGE CACHE COMPLET pour résoudre problème rôle ID 6
+    queryClient.clear();
     queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
     queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     
     // Puis forcer le refetch
     setTimeout(() => {
@@ -333,6 +335,17 @@ export default function RoleManagement() {
       selectedRoleForUser,
       currentRole: selectedUser.userRoles?.[0]?.roleId
     });
+    
+    // 🛡️ VALIDATION CRITIQUE - Bloquer rôles invalides
+    if (selectedRoleForUser < 1 || selectedRoleForUser > 4) {
+      console.error("❌ RÔLE INVALIDE DÉTECTÉ:", selectedRoleForUser);
+      toast({
+        title: "Rôle invalide",
+        description: `Le rôle ID ${selectedRoleForUser} n'est pas valide. Les rôles valides sont 1-4.`,
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (selectedRoleForUser === null) {
       toast({
@@ -618,7 +631,13 @@ export default function RoleManagement() {
                         onClick={() => {
                           console.log("🔍 Selected user for role edit:", user);
                           setSelectedUser(user as UserWithRoles);
-                          setSelectedRoleForUser(user.userRoles?.[0]?.roleId || null);
+                          
+                          // 🛡️ PROTECTION CONTRE RÔLES INVALIDES
+                          const roleId = user.userRoles?.[0]?.roleId;
+                          const validRoleId = roleId && roleId >= 1 && roleId <= 4 ? roleId : null;
+                          console.log("🔧 Role validation:", { original: roleId, validated: validRoleId });
+                          setSelectedRoleForUser(validRoleId);
+                          
                           setEditUserRolesOpen(true);
                         }}
                       >

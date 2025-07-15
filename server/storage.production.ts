@@ -1260,32 +1260,50 @@ export class DatabaseStorage implements IStorage {
 
   async setUserRoles(userId: string, roleIds: number[], assignedBy: string): Promise<void> {
     try {
+      console.log(`🔧 setUserRoles called:`, { userId, roleIds, assignedBy });
+      
       // Vérifier que l'utilisateur existe
       const userExists = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
       if (userExists.rows.length === 0) {
+        console.error(`❌ User ${userId} not found`);
         throw new Error(`User with ID ${userId} does not exist`);
       }
+      console.log(`✅ User ${userId} exists`);
+
+      // Vérifier les rôles disponibles
+      const availableRoles = await pool.query('SELECT id, name FROM roles ORDER BY id');
+      console.log(`📋 Available roles:`, availableRoles.rows);
 
       // Delete existing user roles
-      await pool.query('DELETE FROM user_roles WHERE user_id = $1', [userId]);
+      const deleteResult = await pool.query('DELETE FROM user_roles WHERE user_id = $1', [userId]);
+      console.log(`🗑️  Deleted ${deleteResult.rowCount} existing roles for user ${userId}`);
       
       // Insert new user role (only one role per user)
       if (roleIds.length > 0) {
         const roleId = roleIds[0]; // Take only the first role
+        console.log(`🎯 Attempting to assign role ID: ${roleId}`);
         
         // Vérifier que le rôle existe
-        const roleExists = await pool.query('SELECT id FROM roles WHERE id = $1', [roleId]);
+        const roleExists = await pool.query('SELECT id, name FROM roles WHERE id = $1', [roleId]);
         if (roleExists.rows.length === 0) {
-          throw new Error(`Role with ID ${roleId} does not exist`);
+          console.error(`❌ Role ${roleId} not found in available roles:`, availableRoles.rows.map(r => r.id));
+          throw new Error(`Role with ID ${roleId} does not exist. Available roles: ${availableRoles.rows.map(r => `${r.id}(${r.name})`).join(', ')}`);
         }
+        
+        console.log(`✅ Role ${roleId} (${roleExists.rows[0].name}) exists`);
 
-        await pool.query(`
+        const insertResult = await pool.query(`
           INSERT INTO user_roles (user_id, role_id, assigned_by, assigned_at)
           VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+          RETURNING *
         `, [userId, roleId, assignedBy]);
+        
+        console.log(`✅ Successfully assigned role:`, insertResult.rows[0]);
+      } else {
+        console.log(`⚠️  No roles provided for user ${userId}`);
       }
     } catch (error) {
-      console.error("Error in setUserRoles:", error);
+      console.error("❌ Error in setUserRoles:", error);
       throw error;
     }
   }

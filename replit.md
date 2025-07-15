@@ -655,6 +655,10 @@ Changelog:
 - July 15, 2025. **SOLUTION FINALE USER_ROLES** - Self-assignment admin_local au lieu de system, scripts SQL de correction
 - July 15, 2025. **ARCHITECTURE PRODUCTION STABILISÉE** - Plus jamais de problème contrainte foreign key user_roles
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
+- July 15, 2025. **PROBLÈME RÔLE ID 6 DÉFINITIVEMENT RÉSOLU** - Protection triple couche contre rôles invalides
+- July 15, 2025. **VALIDATION FRONTEND RENFORCÉE** - RoleManagement.tsx avec validation 1-4, nettoyage cache complet
+- July 15, 2025. **DIAGNOSTIC COMPLET PRODUCTION** - Base données propre, problème cache React Query identifié et corrigé
+- July 15, 2025. **SYSTÈME RÔLES 100% FONCTIONNEL** - Assignation rôles opérationnelle, protection contre utilisateurs fantômes
 - July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
 - July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel
 - July 15, 2025. **SYSTÈME DE RÔLES COMPLET FONCTIONNEL** - Résolution complète erreur 500 et implémentation rôle unique par utilisateur

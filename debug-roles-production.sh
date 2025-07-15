@@ -1,198 +1,170 @@
 #!/bin/bash
 
-echo "=== DIAGNOSTIC PRODUCTION - MODULE RÔLES ==="
+echo "🔍 COMPARAISON DÉVELOPPEMENT vs PRODUCTION - Système de rôles"
+echo "============================================================"
 echo "Date: $(date)"
 echo ""
 
-# Fonction pour tester une API avec authentification
-test_api() {
-    local endpoint=$1
-    local description=$2
-    
-    echo "🔍 Test $description..."
-    
-    # Obtenir un cookie de session via login
-    login_response=$(curl -s -c cookies.txt -b cookies.txt -X POST \
-        -H "Content-Type: application/json" \
-        -d '{"username":"admin","password":"admin"}' \
-        http://localhost:3000/api/login)
-    
-    if echo "$login_response" | grep -q "success\|redirect\|user"; then
-        echo "✅ Authentification réussie"
-        
-        # Tester l'API avec les cookies
-        api_response=$(curl -s -b cookies.txt http://localhost:3000$endpoint)
-        echo "📋 Réponse de $endpoint:"
-        echo "$api_response" | jq . 2>/dev/null || echo "$api_response"
-        echo ""
-    else
-        echo "❌ Erreur d'authentification"
-        echo "Réponse: $login_response"
-        echo ""
-    fi
-    
-    # Nettoyer les cookies
-    rm -f cookies.txt
-}
+# Couleurs pour l'affichage
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-echo "🏥 VÉRIFICATION DE L'ÉTAT DE L'APPLICATION..."
+echo "📊 DIAGNOSTIC BASE DE DONNÉES PRODUCTION"
+echo "======================================="
 
-# Vérifier que l'application répond
-if curl -s http://localhost:3000/api/health > /dev/null 2>&1; then
-    echo "✅ Application accessible sur http://localhost:3000"
+echo "🗄️ Rôles en production:"
+psql $DATABASE_URL -c "SELECT id, name, display_name, color, is_active FROM roles ORDER BY id;"
+
+echo ""
+echo "👤 Utilisateurs avec rôles en production:"
+psql $DATABASE_URL -c "
+SELECT 
+    u.id, 
+    u.username, 
+    u.email, 
+    u.role as legacy_role,
+    ur.role_id as new_role_id,
+    r.name as role_name,
+    r.display_name,
+    r.color
+FROM users u
+LEFT JOIN user_roles ur ON u.id = ur.user_id
+LEFT JOIN roles r ON ur.role_id = r.id
+ORDER BY u.username;
+"
+
+echo ""
+echo "🔍 RECHERCHE UTILISATEUR DIRECTIONFROUARD"
+echo "========================================"
+
+USER_ID="directionfrouard_1752240832047"
+echo "🔎 Recherche exact ID: $USER_ID"
+psql $DATABASE_URL -c "SELECT id, username, email, name, role FROM users WHERE id = '$USER_ID';"
+
+echo "🔎 Recherche pattern direction:"
+psql $DATABASE_URL -c "SELECT id, username, email, name, role FROM users WHERE id LIKE '%direction%' OR username LIKE '%direction%';"
+
+echo "🔎 Tous les utilisateurs en production:"
+psql $DATABASE_URL -c "SELECT id, username, email FROM users ORDER BY username;"
+
+echo ""
+echo "🔧 RECHERCHE PROBLÈME RÔLE ID 6"
+echo "=============================="
+
+echo "❓ Y a-t-il des références au rôle ID 6?"
+psql $DATABASE_URL -c "SELECT * FROM user_roles WHERE role_id = 6;"
+
+echo "❓ Y a-t-il un rôle avec ID 6?"
+psql $DATABASE_URL -c "SELECT * FROM roles WHERE id = 6;"
+
+echo "❓ Quel est le max ID des rôles?"
+psql $DATABASE_URL -c "SELECT MAX(id) as max_role_id, COUNT(*) as total_roles FROM roles;"
+
+echo ""
+echo "🌐 TEST APIs PRODUCTION"
+echo "======================"
+
+# Test direct des APIs
+echo "🔄 Test /api/roles (structure):"
+ROLES_RESPONSE=$(curl -s -w "%{http_code}" http://localhost:3000/api/roles 2>/dev/null)
+echo "Status: ${ROLES_RESPONSE: -3}"
+echo "Response length: $(echo "$ROLES_RESPONSE" | head -c -4 | wc -c) chars"
+
+echo ""
+echo "🔄 Test /api/users (structure):"
+USERS_RESPONSE=$(curl -s -w "%{http_code}" http://localhost:3000/api/users 2>/dev/null)
+echo "Status: ${USERS_RESPONSE: -3}"
+echo "Response length: $(echo "$USERS_RESPONSE" | head -c -4 | wc -c) chars"
+
+echo ""
+echo "📋 COMPARAISON FICHIERS CRITIQUES"
+echo "================================"
+
+echo "🔍 Vérification fichier storage.production.ts (getRoles):"
+if [ -f "server/storage.production.ts" ]; then
+    echo "✅ Fichier existe"
+    grep -n "getRoles" server/storage.production.ts | head -5
+    echo ""
+    echo "🔍 Mapping displayName dans getRoles:"
+    grep -A 10 -B 5 "displayName.*row" server/storage.production.ts | head -15
 else
-    echo "❌ Application non accessible"
-    exit 1
+    echo "❌ Fichier storage.production.ts manquant"
 fi
 
 echo ""
-echo "🔐 TEST DES APIs D'AUTHENTIFICATION..."
-
-# Test de l'API de login
-login_test=$(curl -s -X POST \
-    -H "Content-Type: application/json" \
-    -d '{"username":"admin","password":"admin"}' \
-    http://localhost:3000/api/login)
-
-echo "📋 Réponse login:"
-echo "$login_test"
-echo ""
-
-echo "🎭 TEST DES APIs DE GESTION DES RÔLES..."
-
-# Tester les APIs des rôles
-test_api "/api/roles" "API Rôles"
-test_api "/api/permissions" "API Permissions"
-
-echo "🗃️ VÉRIFICATION DE LA BASE DE DONNÉES..."
-
-# Créer un script SQL temporaire pour les vérifications
-cat > /tmp/check_roles_db.sql << 'EOF'
--- Vérifier l'existence des tables
-\dt roles;
-\dt permissions;
-\dt role_permissions;
-\dt user_roles;
-
--- Compter les données
-SELECT 'roles' as table_name, COUNT(*) as count FROM roles
-UNION ALL
-SELECT 'permissions' as table_name, COUNT(*) as count FROM permissions
-UNION ALL
-SELECT 'role_permissions' as table_name, COUNT(*) as count FROM role_permissions
-UNION ALL
-SELECT 'user_roles' as table_name, COUNT(*) as count FROM user_roles;
-
--- Afficher quelques exemples de données
-SELECT 'ROLES SAMPLE:' as info;
-SELECT id, name, display_name, is_system FROM roles LIMIT 5;
-
-SELECT 'PERMISSIONS SAMPLE:' as info;
-SELECT id, name, display_name, category FROM permissions LIMIT 10;
-EOF
-
-echo "📊 Vérification des tables et données..."
-
-# Exécuter les vérifications de base de données
-if command -v psql > /dev/null 2>&1; then
-    echo "📋 Résultats de la base de données:"
-    PGPASSWORD="LogiFlow2025!" psql -h localhost -p 5434 -U logiflow_admin -d logiflow_db -f /tmp/check_roles_db.sql 2>/dev/null || {
-        echo "❌ Connexion à la base de données échouée"
-        echo "💡 Vérifiez que PostgreSQL fonctionne sur le port 5434"
-    }
+echo "🔍 Vérification fichier routes.production.ts (routes rôles):"
+if [ -f "server/routes.production.ts" ]; then
+    echo "✅ Fichier existe"
+    grep -n "/api/roles" server/routes.production.ts
+    echo ""
+    grep -n "/api/users.*roles" server/routes.production.ts
 else
-    echo "⚠️ psql non disponible pour vérifier la base de données"
-fi
-
-rm -f /tmp/check_roles_db.sql
-
-echo ""
-echo "📁 VÉRIFICATION DES FICHIERS DE PRODUCTION..."
-
-# Vérifier les fichiers critiques
-critical_files=(
-    "server/storage.production.ts"
-    "server/routes.production.ts"
-    "server/initRolesAndPermissions.ts"
-    "init.sql"
-)
-
-for file in "${critical_files[@]}"; do
-    if [ -f "$file" ]; then
-        echo "✅ $file existe"
-        
-        # Vérifications spécifiques
-        case $file in
-            "server/storage.production.ts")
-                if grep -q "async getRoles" "$file"; then
-                    echo "  ✅ Méthode getRoles() présente"
-                else
-                    echo "  ❌ Méthode getRoles() manquante"
-                fi
-                
-                if grep -q "async getPermissions" "$file"; then
-                    echo "  ✅ Méthode getPermissions() présente"
-                else
-                    echo "  ❌ Méthode getPermissions() manquante"
-                fi
-                ;;
-                
-            "server/routes.production.ts")
-                if grep -q "/api/roles" "$file"; then
-                    echo "  ✅ Routes /api/roles présentes"
-                else
-                    echo "  ❌ Routes /api/roles manquantes"
-                fi
-                ;;
-                
-            "init.sql")
-                if grep -q "CREATE TABLE.*roles" "$file"; then
-                    echo "  ✅ Table roles dans init.sql"
-                else
-                    echo "  ❌ Table roles manquante dans init.sql"
-                fi
-                ;;
-        esac
-    else
-        echo "❌ $file manquant"
-    fi
-done
-
-echo ""
-echo "🐳 VÉRIFICATION DU CONTENEUR DOCKER..."
-
-if docker ps | grep -q logiflow; then
-    echo "✅ Conteneur LogiFlow en cours d'exécution"
-    
-    # Vérifier les logs récents
-    echo "📋 Logs récents du conteneur:"
-    docker logs --tail=20 $(docker ps -q --filter name=logiflow) 2>/dev/null || echo "❌ Impossible de récupérer les logs"
-else
-    echo "❌ Conteneur LogiFlow non trouvé"
+    echo "❌ Fichier routes.production.ts manquant"
 fi
 
 echo ""
-echo "🎯 RÉSUMÉ DU DIAGNOSTIC..."
+echo "🎯 FRONTEND - Vérification RoleManagement.tsx"
+echo "============================================"
 
-# Déterminer les problèmes probables
-echo "🔍 ANALYSE DES PROBLÈMES POTENTIELS:"
-echo ""
+if [ -f "client/src/pages/RoleManagement.tsx" ]; then
+    echo "✅ Fichier RoleManagement.tsx existe"
+    echo ""
+    echo "🔍 Recherche selectedRoleForUser (problème ID 6):"
+    grep -n -A 3 -B 3 "selectedRoleForUser.*=" client/src/pages/RoleManagement.tsx | head -20
+    echo ""
+    echo "🔍 Recherche setSelectedRoleForUser:"
+    grep -n "setSelectedRoleForUser" client/src/pages/RoleManagement.tsx | head -10
+    echo ""
+    echo "🔍 Recherche handleUserRolesUpdate:"
+    grep -n -A 10 "handleUserRolesUpdate" client/src/pages/RoleManagement.tsx | head -15
+else
+    echo "❌ Fichier RoleManagement.tsx manquant"
+fi
 
-echo "1. APIs retournent 'Aucun rôle trouvé' = Tables vides ou méthodes défaillantes"
-echo "2. Erreur 401 = Problème d'authentification ou routes manquantes"
-echo "3. Erreur 500 = Méthodes storage cassées ou base de données inaccessible"
 echo ""
+echo "🚨 DIAGNOSTIC SPÉCIFIQUE ID 6"
+echo "============================="
 
-echo "💡 SOLUTIONS RECOMMANDÉES:"
-echo ""
-echo "Si les tables sont vides:"
-echo "  → Exécuter: docker exec -it \$(docker ps -q --filter name=logiflow) node -e \"require('./dist/server/initRolesAndPermissions.js').initRolesAndPermissions()\""
-echo ""
-echo "Si les méthodes sont manquantes:"
-echo "  → Reconstruire le conteneur: docker-compose up -d --build"
-echo ""
-echo "Si l'authentification échoue:"
-echo "  → Vérifier les cookies et sessions dans les logs"
-echo ""
+echo "🔍 Variables d'état dans RoleManagement.tsx:"
+if [ -f "client/src/pages/RoleManagement.tsx" ]; then
+    grep -n "useState.*Role" client/src/pages/RoleManagement.tsx
+    echo ""
+    echo "🔍 Initialisation selectedRoleForUser:"
+    grep -n -A 5 -B 5 "selectedRoleForUser.*useState" client/src/pages/RoleManagement.tsx
+fi
 
-echo "=== FIN DU DIAGNOSTIC ==="
+echo ""
+echo "📱 CACHE ET SESSION PRODUCTION"
+echo "=============================="
+
+echo "🔍 Headers cache dans les réponses API:"
+curl -I -s http://localhost:3000/api/roles 2>/dev/null | grep -i cache || echo "Pas d'info cache"
+
+echo ""
+echo "🔍 Sessions utilisateur actives:"
+psql $DATABASE_URL -c "SELECT COUNT(*) as active_sessions FROM session;"
+
+echo ""
+echo "💡 HYPOTHÈSES PROBLÈME ID 6"
+echo "=========================="
+echo "1. 🔍 Frontend utilise ancien cache avec rôle ID 6 supprimé"
+echo "2. 🔍 Variable selectedRoleForUser mal initialisée"
+echo "3. 🔍 Utilisateur directionfrouard a un ancien rôle legacy"
+echo "4. 🔍 Incohérence entre users.role et user_roles.role_id"
+echo "5. 🔍 Frontend dev vs production utilisent APIs différentes"
+
+echo ""
+echo "🛠️ RECOMMANDATIONS URGENTES"
+echo "=========================="
+echo "1. 🧹 Vider cache navigateur production (Ctrl+F5)"
+echo "2. 🔄 Redémarrer conteneur Docker production"
+echo "3. 🔍 Vérifier logs console frontend en production"
+echo "4. 🧪 Tester assignation avec utilisateur existant"
+echo "5. 📝 Comparer réponses API dev vs prod"
+
+echo ""
+echo -e "✅ ${GREEN}DIAGNOSTIC TERMINÉ${NC}"
+echo "Exécuter ce script sur le serveur de production pour identifier le problème."
