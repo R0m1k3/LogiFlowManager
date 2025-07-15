@@ -61,10 +61,7 @@ export default function NocoDBConfig() {
   // Mutations
   const createConfigMutation = useMutation({
     mutationFn: (data: NocodbConfigForm) => 
-      apiRequest('/api/nocodb-config', {
-        method: 'POST',
-        body: data,
-      }),
+      apiRequest('/api/nocodb-config', 'POST', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/nocodb-config'] });
       setShowCreateModal(false);
@@ -84,10 +81,7 @@ export default function NocoDBConfig() {
 
   const updateConfigMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<NocodbConfigForm> }) =>
-      apiRequest(`/api/nocodb-config/${id}`, {
-        method: 'PUT',
-        body: data,
-      }),
+      apiRequest(`/api/nocodb-config/${id}`, 'PUT', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/nocodb-config'] });
       setShowEditModal(false);
@@ -108,9 +102,7 @@ export default function NocoDBConfig() {
 
   const deleteConfigMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/nocodb-config/${id}`, {
-        method: 'DELETE',
-      }),
+      apiRequest(`/api/nocodb-config/${id}`, 'DELETE'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/nocodb-config'] });
       setShowDeleteModal(false);
