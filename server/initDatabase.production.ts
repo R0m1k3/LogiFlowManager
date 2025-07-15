@@ -161,8 +161,11 @@ async function createTablesIfNotExist() {
     CREATE TABLE IF NOT EXISTS roles (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) UNIQUE NOT NULL,
+      display_name VARCHAR(255) NOT NULL,
       description TEXT,
+      color VARCHAR(7) DEFAULT '#6b7280',
       is_system BOOLEAN DEFAULT false,
+      is_active BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -172,8 +175,12 @@ async function createTablesIfNotExist() {
     CREATE TABLE IF NOT EXISTS permissions (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) UNIQUE NOT NULL,
+      display_name VARCHAR(255) NOT NULL,
       description TEXT,
-      category VARCHAR(255),
+      category VARCHAR(255) NOT NULL,
+      action VARCHAR(255) NOT NULL,
+      resource VARCHAR(255) NOT NULL,
+      is_system BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -192,10 +199,8 @@ async function createTablesIfNotExist() {
       name VARCHAR(255) NOT NULL,
       base_url VARCHAR(255) NOT NULL,
       project_id VARCHAR(255) NOT NULL,
-      table_id VARCHAR(255) NOT NULL,
-      table_name VARCHAR(255) NOT NULL,
-      invoice_column_name VARCHAR(255) NOT NULL,
-      api_token TEXT,
+      api_token VARCHAR(255) NOT NULL,
+      description TEXT,
       is_active BOOLEAN DEFAULT true,
       created_by VARCHAR(255) REFERENCES users(id),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -360,6 +365,70 @@ async function addMissingColumns() {
     if (ordersUnitExists.rows.length === 0) {
       await pool.query('ALTER TABLE orders ADD COLUMN unit VARCHAR(50)');
       console.log('✅ Added unit column to orders');
+    }
+
+    // Add missing columns to roles table
+    const rolesColumnsToAdd = [
+      { name: 'display_name', type: 'VARCHAR(255)', default: null },
+      { name: 'color', type: 'VARCHAR(7)', default: "'#6b7280'" },
+      { name: 'is_active', type: 'BOOLEAN', default: 'true' }
+    ];
+
+    for (const column of rolesColumnsToAdd) {
+      const columnExists = await pool.query(`
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'roles' AND column_name = $1
+      `, [column.name]);
+      
+      if (columnExists.rows.length === 0) {
+        const defaultClause = column.default ? ` DEFAULT ${column.default}` : '';
+        await pool.query(`ALTER TABLE roles ADD COLUMN ${column.name} ${column.type}${defaultClause}`);
+        console.log(`✅ Added ${column.name} column to roles table`);
+        
+        // Migrate display_name from name if needed
+        if (column.name === 'display_name') {
+          await pool.query(`UPDATE roles SET display_name = name WHERE display_name IS NULL`);
+          console.log('✅ Migrated display_name data from name column');
+        }
+      }
+    }
+
+    // Add missing columns to permissions table
+    const permissionsColumnsToAdd = [
+      { name: 'display_name', type: 'VARCHAR(255)', default: null },
+      { name: 'action', type: 'VARCHAR(255)', default: "'read'" },
+      { name: 'resource', type: 'VARCHAR(255)', default: "'system'" },
+      { name: 'is_system', type: 'BOOLEAN', default: 'true' }
+    ];
+
+    for (const column of permissionsColumnsToAdd) {
+      const columnExists = await pool.query(`
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'permissions' AND column_name = $1
+      `, [column.name]);
+      
+      if (columnExists.rows.length === 0) {
+        const defaultClause = column.default ? ` DEFAULT ${column.default}` : '';
+        await pool.query(`ALTER TABLE permissions ADD COLUMN ${column.name} ${column.type}${defaultClause}`);
+        console.log(`✅ Added ${column.name} column to permissions table`);
+        
+        // Migrate display_name from name if needed
+        if (column.name === 'display_name') {
+          await pool.query(`UPDATE permissions SET display_name = name WHERE display_name IS NULL`);
+          console.log('✅ Migrated permissions display_name data');
+        }
+      }
+    }
+
+    // Add description column to nocodb_config table
+    const descriptionExists = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'nocodb_config' AND column_name = 'description'
+    `);
+    
+    if (descriptionExists.rows.length === 0) {
+      await pool.query('ALTER TABLE nocodb_config ADD COLUMN description TEXT');
+      console.log('✅ Added description column to nocodb_config');
     }
 
   } catch (error) {
