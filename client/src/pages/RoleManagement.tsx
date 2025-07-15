@@ -75,6 +75,21 @@ export default function RoleManagement() {
     enabled: !!selectedRole,
   });
 
+  // Get role permissions specifically
+  const { data: rolePermissions = [] } = useQuery<any[]>({
+    queryKey: [`/api/roles/${selectedRole?.id}/permissions`],
+    enabled: !!selectedRole,
+  });
+
+  console.log("🔍 Permissions Debug:", {
+    selectedRole,
+    rolePermissions,
+    rolePermissionsLength: rolePermissions?.length,
+    permissions: permissions.slice(0, 3),
+    permissionsLength: permissions.length,
+    queryKey: selectedRole ? `/api/roles/${selectedRole.id}/permissions` : 'No role selected'
+  });
+
   // Group permissions by category
   const permissionsByCategory = Array.isArray(permissions) ? permissions.reduce((acc, permission) => {
     if (!acc[permission.category]) {
@@ -135,6 +150,7 @@ export default function RoleManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole?.id}/permissions`] });
       toast({ title: "Permissions mises à jour avec succès" });
     },
     onError: (error) => {
@@ -149,11 +165,18 @@ export default function RoleManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+      // Rafraîchir les permissions du rôle sélectionné
+      if (selectedRole) {
+        queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole.id] });
+        queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
+      }
       setEditUserRolesOpen(false);
-      toast({ title: "Rôles utilisateur mis à jour avec succès" });
+      toast({ title: "Rôle utilisateur mis à jour avec succès" });
     },
     onError: (error) => {
-      toast({ title: "Erreur lors de la mise à jour des rôles utilisateur", description: error.message, variant: "destructive" });
+      toast({ title: "Erreur lors de la mise à jour du rôle utilisateur", description: error.message, variant: "destructive" });
     },
   });
 
@@ -185,7 +208,7 @@ export default function RoleManagement() {
   const handlePermissionToggle = (permissionId: number, checked: boolean) => {
     if (!selectedRole) return;
     
-    const currentPermissions = roleWithPermissions?.rolePermissions?.map(rp => rp.permissionId) || [];
+    const currentPermissions = rolePermissions?.map(rp => rp.permissionId) || [];
     const newPermissions = checked
       ? [...currentPermissions, permissionId]
       : currentPermissions.filter(id => id !== permissionId);
@@ -368,9 +391,16 @@ export default function RoleManagement() {
                         <h4 className="font-medium text-sm capitalize">{category}</h4>
                         <div className="space-y-1">
                           {Array.isArray(categoryPermissions) && categoryPermissions.map((permission) => {
-                            const hasPermission = roleWithPermissions?.rolePermissions?.some(
+                            const hasPermission = rolePermissions?.some(
                               rp => rp.permissionId === permission.id
                             );
+                            if (permission.id === 1) {
+                              console.log("🔍 Permission check for ID 1:", {
+                                hasPermission,
+                                rolePermissions: rolePermissions?.slice(0, 3),
+                                permissionId: permission.id
+                              });
+                            }
                             return (
                               <div key={permission.id} className="flex items-center space-x-2">
                                 <Checkbox
