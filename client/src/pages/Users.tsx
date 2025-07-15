@@ -37,6 +37,8 @@ export default function UsersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithGroups | null>(null);
   const [userGroups, setUserGroups] = useState<number[]>([]);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedUserForRole, setSelectedUserForRole] = useState<UserWithGroups | null>(null);
   
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -470,7 +472,12 @@ export default function UsersPage() {
     if (window.confirm("Êtes-vous sûr de vouloir modifier le rôle de cet utilisateur ?")) {
       updateUserRoleMutation.mutate({ userId, role: newRole });
     }
-  };
+  }
+
+  const handleRoleManagement = (user: UserWithGroups) => {
+    setSelectedUserForRole(user);
+    setShowRoleModal(true);
+  };;
 
   const handleToggleGroup = (userId: string, groupId: number, isAssigned: boolean) => {
     if (isAssigned) {
@@ -648,8 +655,32 @@ export default function UsersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            {getRoleIcon(userData.role)}
-                            <span className="ml-2">{getRoleBadge(userData.role)}</span>
+                            {/* Nouveau système de rôles avec couleurs dynamiques */}
+                            {Array.isArray(userData.roles) && userData.roles.length > 0 ? (
+                              userData.roles.map((role, index) => (
+                                <div key={role.id || index} className="flex items-center mr-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full mr-2 border-2 border-white shadow-sm"
+                                    style={{ backgroundColor: role.color || '#6b7280' }}
+                                  />
+                                  <Badge 
+                                    style={{ 
+                                      backgroundColor: role.color || '#6b7280',
+                                      color: 'white'
+                                    }}
+                                    className="text-xs font-medium"
+                                  >
+                                    {role.displayName || role.name}
+                                  </Badge>
+                                </div>
+                              ))
+                            ) : (
+                              // Fallback vers l'ancien système si pas de nouveaux rôles
+                              <div className="flex items-center">
+                                {getRoleIcon(userData.role)}
+                                <span className="ml-2">{getRoleBadge(userData.role)}</span>
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -677,20 +708,30 @@ export default function UsersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
-                            <Select
-                              value={userData.role}
-                              onValueChange={(value) => handleRoleChange(userData.id, value)}
+                            {/* Bouton de gestion des rôles avec couleur dynamique */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRoleManagement(userData)}
+                              title="Gérer les rôles"
+                              className="flex items-center space-x-2"
                               disabled={userData.id === user?.id}
                             >
-                              <SelectTrigger className="w-32">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="manager">Manager</SelectItem>
-                                <SelectItem value="employee">Employé</SelectItem>
-                              </SelectContent>
-                            </Select>
+                              <div 
+                                className="w-3 h-3 rounded-full"
+                                style={{ 
+                                  backgroundColor: (Array.isArray(userData.roles) && userData.roles.length > 0) 
+                                    ? userData.roles[0].color || '#6b7280'
+                                    : '#6b7280'
+                                }}
+                              />
+                              <span className="text-xs">
+                                {(Array.isArray(userData.roles) && userData.roles.length > 0) 
+                                  ? userData.roles[0].displayName || userData.roles[0].name || 'Rôle'
+                                  : userData.role || 'Aucun rôle'}
+                              </span>
+                              <Edit className="w-3 h-3" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
