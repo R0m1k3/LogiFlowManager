@@ -42,17 +42,20 @@ export default function RoleManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch roles with custom queryFn to bypass cache issues
+  // Fetch roles with aggressive cache busting
   const { data: rolesData = [], isLoading: rolesLoading, error: rolesError, refetch: refetchRoles } = useQuery<Role[]>({
-    queryKey: ['/api/roles'],
+    queryKey: ['/api/roles', Date.now()], // Force unique key
     queryFn: async () => {
-      console.log("🔄 Custom queryFn for roles - bypassing cache");
-      const response = await fetch('/api/roles', {
+      console.log("🔄 FORCE REFRESH - Fetching roles with cache busting");
+      const response = await fetch(`/api/roles?_t=${Date.now()}`, {
         credentials: 'include',
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
       });
       
@@ -64,7 +67,9 @@ export default function RoleManagement() {
       
       const data = await response.json();
       console.log("✅ ROLES FETCH SUCCESS:", data);
-      console.log("✅ Data length:", data?.length || 0);
+      data.forEach((role: any) => {
+        console.log(`🎨 Role ${role.displayName}: color=${role.color}`);
+      });
       return Array.isArray(data) ? data : [];
     },
     staleTime: 0,
@@ -82,17 +87,20 @@ export default function RoleManagement() {
     refetchOnMount: true,
   });
 
-  // Fetch users with data cleaning
-  const { data: usersData = [], isLoading: usersLoading } = useQuery<User[]>({
-    queryKey: ['/api/users'],
+  // Fetch users with aggressive cache busting and real-time updates
+  const { data: usersData = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery<User[]>({
+    queryKey: ['/api/users', Date.now()], // Force unique key
     queryFn: async () => {
-      console.log("🔄 Custom queryFn for users - bypassing cache");
-      const response = await fetch('/api/users', {
+      console.log("🔄 FORCE REFRESH - Fetching users with cache busting");
+      const response = await fetch(`/api/users?_t=${Date.now()}`, {
         credentials: 'include',
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
       });
       
@@ -109,7 +117,7 @@ export default function RoleManagement() {
       const cleanedUsers = Array.isArray(data) ? data.map(user => {
         if (user.userRoles && Array.isArray(user.userRoles)) {
           user.userRoles = user.userRoles.filter(ur => ur.roleId >= 1 && ur.roleId <= 4);
-          console.log(`🧹 Cleaned user ${user.username} roles:`, user.userRoles);
+          console.log(`🧹 User ${user.username} has role:`, user.userRoles[0]?.role?.displayName, 'Color:', user.userRoles[0]?.role?.color);
         }
         return user;
       }) : [];
@@ -292,12 +300,28 @@ export default function RoleManagement() {
         throw error;
       }
     },
-    onSuccess: () => {
-      console.log("🚀 Mutation success - invalidating cache");
+    onSuccess: (data, variables) => {
+      console.log("🚀 Mutation success - force refreshing cache", { data, variables });
       
-      // Invalider seulement les queries nécessaires
+      // 🔄 FORCE REFRESH - Invalider TOUT le cache pour mise à jour immédiate
+      queryClient.clear();
+      
+      // Puis invalider spécifiquement les queries importantes
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      
+      // Forcer le refetch immédiat des données utilisateurs
+      setTimeout(() => {
+        console.log("🔄 Force refreshing ALL data after role assignment");
+        refetchRoles();
+        refetchUsers();
+        // Force refresh avec nouvelle timestamp
+        queryClient.invalidateQueries({ 
+          predicate: (query) => 
+            query.queryKey[0] === '/api/users' || 
+            query.queryKey[0] === '/api/roles'
+        });
+      }, 100);
       
       // Fermer le modal et réinitialiser
       setEditUserRolesOpen(false);
@@ -535,7 +559,9 @@ export default function RoleManagement() {
                     
                     {/* Original complex rendering */}
                     {roles.map((role) => {
-                      console.log("🔍 Rendering role:", role.displayName);
+                      // 🎨 CORRECTION COULEUR - Utiliser la vraie couleur de l'API
+                      const roleColor = role.color || '#666666';
+                      console.log("🔍 Rendering role:", role.displayName, "Color:", roleColor);
                       return (
                         <div
                           key={role.id}
@@ -547,10 +573,15 @@ export default function RoleManagement() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: role.color || '#666666' }}
+                                className="w-4 h-4 rounded-full border"
+                                style={{ 
+                                  backgroundColor: roleColor,
+                                  borderColor: roleColor
+                                }}
+                                title={`Couleur: ${roleColor}`}
                               />
                               <span className="font-medium">{role.displayName}</span>
+                              <span className="text-xs text-muted-foreground">({roleColor})</span>
                               {role.isSystem && (
                                 <Badge variant="secondary" className="text-xs">Système</Badge>
                               )}
@@ -662,7 +693,14 @@ export default function RoleManagement() {
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">
+                      <Badge 
+                        variant="outline"
+                        style={{
+                          backgroundColor: user.userRoles?.[0]?.role?.color || '#666666',
+                          color: 'white',
+                          borderColor: user.userRoles?.[0]?.role?.color || '#666666'
+                        }}
+                      >
                         {user.userRoles?.[0]?.role?.displayName || user.role}
                       </Badge>
                       <Button
