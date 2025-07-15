@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupSecurityHeaders, setupRateLimiting, setupInputSanitization } from "./security";
 import { setupCompression } from "./cache";
 import { monitor, setupMonitoringEndpoints } from "./monitoring";
+import { initRolesAndPermissions } from "./initRolesAndPermissions";
 
 const app = express();
 
@@ -48,6 +49,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize roles and permissions on startup
+  try {
+    await initRolesAndPermissions();
+  } catch (error) {
+    console.error("Failed to initialize roles and permissions:", error);
+    // Continue startup even if role initialization fails
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

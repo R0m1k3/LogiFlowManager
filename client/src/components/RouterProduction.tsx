@@ -14,6 +14,7 @@ import Publicities from "@/pages/Publicities";
 
 import NocoDBConfig from "@/pages/NocoDBConfig";
 import CustomerOrders from "@/pages/CustomerOrders";
+import RoleManagement from "@/pages/RoleManagement";
 import Layout from "@/components/Layout";
 
 function RouterProduction() {
@@ -52,6 +53,7 @@ function RouterProduction() {
           <Route path="/suppliers" component={Suppliers} />
           <Route path="/groups" component={Groups} />
           <Route path="/users" component={Users} />
+          <Route path="/roles" component={RoleManagement} />
           <Route path="/bl-reconciliation" component={BLReconciliation} />
           <Route path="/publicities" component={Publicities} />
           <Route path="/customer-orders" component={CustomerOrders} />

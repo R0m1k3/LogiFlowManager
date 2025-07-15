@@ -216,9 +216,20 @@ export const customerOrders = pgTable("customer_orders", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User Roles - Many to many relationship (supports multiple roles per user)
+export const userRoles = pgTable("user_roles", {
+  userId: varchar("user_id").notNull(),
+  roleId: integer("role_id").notNull(),
+  assignedBy: varchar("assigned_by").notNull(), // Who assigned this role
+  assignedAt: timestamp("assigned_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.roleId] })
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userGroups: many(userGroups),
+  userRoles: many(userRoles),
   createdOrders: many(orders),
   createdDeliveries: many(deliveries),
   createdPublicities: many(publicities),
@@ -308,8 +319,19 @@ export const publicityParticipationsRelations = relations(publicityParticipation
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
-  users: many(users),
+  userRoles: many(userRoles),
   rolePermissions: many(rolePermissions),
+}));
+
+export const userRolesRelations = relations(userRoles, ({ one }) => ({
+  user: one(users, {
+    fields: [userRoles.userId],
+    references: [users.id],
+  }),
+  role: one(roles, {
+    fields: [userRoles.roleId],
+    references: [roles.id],
+  }),
 }));
 
 export const permissionsRelations = relations(permissions, ({ many }) => ({
@@ -407,6 +429,10 @@ export const insertRolePermissionSchema = createInsertSchema(rolePermissions).om
   createdAt: true,
 });
 
+export const insertUserRoleSchema = createInsertSchema(userRoles).omit({
+  assignedAt: true,
+});
+
 export const insertNocodbConfigSchema = createInsertSchema(nocodbConfig).omit({
   id: true,
   createdAt: true,
@@ -477,8 +503,20 @@ export type InsertPermission = z.infer<typeof insertPermissionSchema>;
 export type RolePermission = typeof rolePermissions.$inferSelect;
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 
+export type UserRole = typeof userRoles.$inferSelect;
+export type InsertUserRole = z.infer<typeof insertUserRoleSchema>;
+
 export type RoleWithPermissions = Role & {
   rolePermissions: (RolePermission & { permission: Permission })[];
+};
+
+export type UserWithRoles = User & {
+  userRoles: (UserRole & { role: Role })[];
+};
+
+export type PermissionWithActions = Permission & {
+  action: string;
+  resource: string;
 };
 
 export type NocodbConfig = typeof nocodbConfig.$inferSelect;
