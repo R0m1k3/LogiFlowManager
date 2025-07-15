@@ -82,9 +82,46 @@ export default function RoleManagement() {
     refetchOnMount: true,
   });
 
-  // Fetch users
+  // Fetch users with data cleaning
   const { data: usersData = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
+    queryFn: async () => {
+      console.log("🔄 Custom queryFn for users - bypassing cache");
+      const response = await fetch('/api/users', {
+        credentials: 'include',
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("🚨 USERS FETCH ERROR:", { status: response.status, text: errorText });
+        throw new Error(`${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log("✅ USERS FETCH SUCCESS:", data);
+      
+      // 🧹 NETTOYAGE DES DONNÉES CORROMPUES - Filtrer les rôles invalides
+      const cleanedUsers = Array.isArray(data) ? data.map(user => {
+        if (user.userRoles && Array.isArray(user.userRoles)) {
+          user.userRoles = user.userRoles.filter(ur => ur.roleId >= 1 && ur.roleId <= 4);
+          console.log(`🧹 Cleaned user ${user.username} roles:`, user.userRoles);
+        }
+        return user;
+      }) : [];
+      
+      console.log("🧹 Users after cleaning:", cleanedUsers);
+      return cleanedUsers;
+    },
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: false
   });
 
   // Protection Array.isArray et logs debug RENFORCÉS
@@ -337,13 +374,16 @@ export default function RoleManagement() {
     });
     
     // 🛡️ VALIDATION CRITIQUE - Bloquer rôles invalides
-    if (selectedRoleForUser < 1 || selectedRoleForUser > 4) {
+    if (!selectedRoleForUser || selectedRoleForUser < 1 || selectedRoleForUser > 4) {
       console.error("❌ RÔLE INVALIDE DÉTECTÉ:", selectedRoleForUser);
       toast({
         title: "Rôle invalide",
         description: `Le rôle ID ${selectedRoleForUser} n'est pas valide. Les rôles valides sont 1-4.`,
         variant: "destructive",
       });
+      
+      // Force reset du selectedRoleForUser pour éviter les erreurs récurrentes
+      setSelectedRoleForUser(3); // Par défaut: employee
       return;
     }
     
@@ -632,9 +672,19 @@ export default function RoleManagement() {
                           console.log("🔍 Selected user for role edit:", user);
                           setSelectedUser(user as UserWithRoles);
                           
-                          // 🛡️ PROTECTION CONTRE RÔLES INVALIDES
+                          // 🛡️ PROTECTION RENFORCÉE CONTRE RÔLES INVALIDES
                           const roleId = user.userRoles?.[0]?.roleId;
-                          const validRoleId = roleId && roleId >= 1 && roleId <= 4 ? roleId : null;
+                          let validRoleId = null;
+                          
+                          // Validation stricte : seuls les rôles 1-4 sont autorisés
+                          if (roleId && typeof roleId === 'number' && roleId >= 1 && roleId <= 4) {
+                            validRoleId = roleId;
+                          } else {
+                            // Par défaut, assigner le rôle "employee" si pas de rôle valide
+                            validRoleId = 3; // employee
+                            console.warn("⚠️ Rôle invalide détecté, assignation par défaut à employee:", { userId: user.id, invalidRoleId: roleId });
+                          }
+                          
                           console.log("🔧 Role validation:", { original: roleId, validated: validRoleId });
                           setSelectedRoleForUser(validRoleId);
                           
