@@ -27,8 +27,8 @@ export default function AuthPage() {
     queryKey: ['/api/default-credentials-check'],
     queryFn: async () => {
       try {
-        const response = await apiRequest("GET", "/api/default-credentials-check");
-        return await response.json();
+        const response = await apiRequest("/api/default-credentials-check", "GET");
+        return response;
       } catch (error) {
         // If the endpoint doesn't exist or fails, assume we should show credentials
         return { showDefault: true };
@@ -50,11 +50,8 @@ export default function AuthPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof loginData) => {
-      const response = await apiRequest("/api/login", {
-        method: "POST",
-        body: data,
-      });
-      return await response.json();
+      const response = await apiRequest("/api/login", "POST", data);
+      return response;
     },
     onSuccess: (userData) => {
       // Update the user data in the cache
