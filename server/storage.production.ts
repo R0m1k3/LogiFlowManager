@@ -1054,23 +1054,23 @@ export class DatabaseStorage implements IStorage {
   async createRole(roleData: InsertRole): Promise<Role> {
     try {
       const result = await pool.query(`
-        INSERT INTO roles (name, description, created_at, updated_at)
-        VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        INSERT INTO roles (name, display_name, description, color, is_system, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
       `, [
         roleData.name,
-        // roleData.displayName,
-        roleData.description,
-        // roleData.color,
-        // roleData.isSystem || false,
-        // roleData.isActive !== false
+        roleData.displayName || roleData.name,
+        roleData.description || '',
+        roleData.color || '#6b7280',
+        roleData.isSystem || false,
+        roleData.isActive !== false
       ]);
       
       const row = result.rows[0];
       return {
         id: row.id,
         name: row.name,
-        displayName: row.name,
+        displayName: row.display_name || row.name,
         description: row.description,
         color: row.color,
         isSystem: row.is_system,
@@ -1130,7 +1130,7 @@ export class DatabaseStorage implements IStorage {
       return {
         id: row.id,
         name: row.name,
-        displayName: row.name,
+        displayName: row.display_name || row.name,
         description: row.description,
         color: row.color,
         isSystem: row.is_system,
