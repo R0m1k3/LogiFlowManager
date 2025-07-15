@@ -148,17 +148,13 @@ export default function RoleManagement() {
       return await apiRequest(`/api/roles/${data.roleId}/permissions`, 'POST', { permissionIds: data.permissionIds });
     },
     onSuccess: () => {
-      console.log("🚀 Permission mutation success - clearing cache");
+      console.log("🚀 Permission mutation success - invalidating cache");
       
-      // Solution radicale: vider complètement le cache ReactQuery
-      queryClient.clear();
-      
-      // Forcer un rechargement partiel après un délai
-      setTimeout(() => {
-        if (selectedRole) {
-          queryClient.refetchQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
-        }
-      }, 200);
+      // Invalider seulement les queries nécessaires
+      if (selectedRole) {
+        queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
       
       toast({ title: "Permissions mises à jour avec succès" });
     },
@@ -181,22 +177,18 @@ export default function RoleManagement() {
       }
     },
     onSuccess: () => {
-      console.log("🚀 Mutation success - forcing complete refresh");
+      console.log("🚀 Mutation success - invalidating cache");
       
-      // Solution radicale : vider complètement le cache
-      queryClient.clear();
-      
-      // Forcer un rechargement complet de la page après un délai
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // Invalider seulement les queries nécessaires
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
       
       // Fermer le modal et réinitialiser
       setEditUserRolesOpen(false);
       setSelectedUser(null);
       setSelectedRoleForUser(null);
       
-      toast({ title: "Rôle utilisateur mis à jour avec succès - page rechargée" });
+      toast({ title: "Rôle utilisateur mis à jour avec succès" });
     },
     onError: (error) => {
       console.error("❌ User role mutation error:", error);
