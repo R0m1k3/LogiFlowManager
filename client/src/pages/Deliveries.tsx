@@ -70,7 +70,7 @@ export default function Deliveries() {
   // Construire l'URL pour l'historique complet sans filtrage par date
   const deliveriesUrl = `/api/deliveries${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
   
-  const { data: deliveries = [], isLoading } = useQuery<DeliveryWithRelations[]>({
+  const { data: deliveriesData = [], isLoading } = useQuery<DeliveryWithRelations[]>({
     queryKey: ['/api/deliveries', selectedStoreId, user?.role],
     queryFn: async () => {
       const url = deliveriesUrl;
@@ -86,6 +86,9 @@ export default function Deliveries() {
     },
   });
 
+  // Production Bug Fix: Ensure array safety for all data operations
+  const deliveries = Array.isArray(deliveriesData) ? deliveriesData : [];
+
   console.log('🚚 Deliveries Debug:', { 
     isLoading, 
     deliveriesCount: deliveries?.length, 
@@ -94,9 +97,11 @@ export default function Deliveries() {
     deliveriesUrl 
   });
 
-  const { data: groups = [] } = useQuery({
+  const { data: groupsData = [] } = useQuery({
     queryKey: ['/api/groups'],
   });
+  
+  const groups = Array.isArray(groupsData) ? groupsData : [];
 
   const validateMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -143,9 +148,7 @@ export default function Deliveries() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/deliveries/${id}`, {
-        method: "DELETE",
-      });
+      await apiRequest(`/api/deliveries/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({

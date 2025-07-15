@@ -68,7 +68,7 @@ export default function Orders() {
   // Construire l'URL pour l'historique complet sans filtrage par date
   const ordersUrl = `/api/orders${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
   
-  const { data: orders = [], isLoading } = useQuery<OrderWithRelations[]>({
+  const { data: ordersData = [], isLoading } = useQuery<OrderWithRelations[]>({
     queryKey: [ordersUrl, selectedStoreId],
     queryFn: async () => {
       const response = await fetch(ordersUrl, { credentials: 'include' });
@@ -82,6 +82,9 @@ export default function Orders() {
     },
   });
 
+  // Production Bug Fix: Ensure array safety for all data operations
+  const orders = Array.isArray(ordersData) ? ordersData : [];
+  
   console.log('📦 Orders Debug:', { 
     isLoading, 
     ordersCount: orders?.length, 
@@ -90,13 +93,15 @@ export default function Orders() {
     ordersUrl 
   });
 
-  const { data: groups = [] } = useQuery({
+  const { data: groupsData = [] } = useQuery({
     queryKey: ['/api/groups'],
   });
+  
+  const groups = Array.isArray(groupsData) ? groupsData : [];
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/orders/${id}`);
+      await apiRequest(`/api/orders/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({
