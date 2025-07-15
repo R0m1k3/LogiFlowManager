@@ -293,21 +293,41 @@ async function addMissingColumns() {
       console.log('✅ Added validated_at column to deliveries');
     }
 
-    // Check and add name column to users
-    const nameExists = await pool.query(`
-      SELECT 1 FROM information_schema.columns 
-      WHERE table_name = 'users' AND column_name = 'name'
-    `);
-    
-    if (nameExists.rows.length === 0) {
-      await pool.query('ALTER TABLE users ADD COLUMN name VARCHAR(255)');
-      // Populate with existing data
-      await pool.query(`
-        UPDATE users SET name = COALESCE(first_name || ' ' || last_name, username, email) 
-        WHERE name IS NULL
-      `);
-      console.log('✅ Added name column to users and populated with existing data');
+    // Check and add MISSING columns to users table
+    const columnsToAdd = [
+      { name: 'name', type: 'VARCHAR(255)', default: null },
+      { name: 'first_name', type: 'VARCHAR(255)', default: null },
+      { name: 'last_name', type: 'VARCHAR(255)', default: null },
+      { name: 'profile_image_url', type: 'TEXT', default: null }
+    ];
+
+    for (const column of columnsToAdd) {
+      const columnExists = await pool.query(`
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = $1
+      `, [column.name]);
+      
+      if (columnExists.rows.length === 0) {
+        await pool.query(`ALTER TABLE users ADD COLUMN ${column.name} ${column.type}`);
+        console.log(`✅ Added ${column.name} column to users table`);
+      }
     }
+
+    // Populate name column if empty
+    await pool.query(`
+      UPDATE users SET name = COALESCE(
+        CASE 
+          WHEN first_name IS NOT NULL AND last_name IS NOT NULL THEN first_name || ' ' || last_name
+          WHEN first_name IS NOT NULL THEN first_name
+          WHEN last_name IS NOT NULL THEN last_name
+          ELSE username 
+        END,
+        username,
+        email
+      ) 
+      WHERE name IS NULL OR name = ''
+    `);
+    console.log('✅ Updated name column with existing data');
 
     // Check and add quantity column to customer_orders
     const quantityExists = await pool.query(`

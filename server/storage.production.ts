@@ -102,37 +102,57 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsers(): Promise<User[]> {
-    // Récupérer les utilisateurs avec leurs rôles
-    const result = await pool.query(`
-      SELECT 
-        u.*,
-        array_agg(
-          CASE WHEN ur.role_id IS NOT NULL THEN
-            json_build_object(
-              'id', r.id,
-              'name', r.name,
-              'displayName', r.display_name,
-              'description', r.description,
-              'color', r.color,
-              'isSystem', r.is_system,
-              'isActive', r.is_active
-            )
-          END
-        ) FILTER (WHERE ur.role_id IS NOT NULL) as roles
-      FROM users u
-      LEFT JOIN user_roles ur ON u.id = ur.user_id
-      LEFT JOIN roles r ON ur.role_id = r.id
-      GROUP BY u.id, u.username, u.email, u.name, u.first_name, u.last_name, 
-               u.profile_image_url, u.password, u.role, u.password_changed, 
-               u.created_at, u.updated_at
-      ORDER BY u.created_at DESC
-    `);
-    
-    // Mapper les résultats pour inclure les rôles dans le bon format
-    return result.rows.map(row => ({
-      ...row,
-      roles: row.roles || []  // S'assurer qu'il y a un array même si pas de rôles
-    }));
+    // Version simplifiée compatibile avec schéma production
+    // Éviter les colonnes qui peuvent ne pas exister
+    try {
+      const result = await pool.query(`
+        SELECT 
+          u.id,
+          u.username,
+          u.email,
+          u.name,
+          u.password,
+          u.role,
+          u.password_changed,
+          u.created_at,
+          u.updated_at,
+          array_agg(
+            CASE WHEN ur.role_id IS NOT NULL THEN
+              json_build_object(
+                'id', r.id,
+                'name', r.name,
+                'displayName', COALESCE(r.display_name, r.name),
+                'description', r.description,
+                'color', COALESCE(r.color, '#6b7280'),
+                'isSystem', COALESCE(r.is_system, false),
+                'isActive', COALESCE(r.is_active, true)
+              )
+            END
+          ) FILTER (WHERE ur.role_id IS NOT NULL) as roles
+        FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        GROUP BY u.id, u.username, u.email, u.name, u.password, u.role, u.password_changed, u.created_at, u.updated_at
+        ORDER BY u.created_at DESC
+      `);
+      
+      console.log(`✅ getUsers returned ${result.rows.length} users with roles`);
+      
+      // Mapper les résultats pour inclure les rôles dans le bon format
+      return result.rows.map(row => ({
+        ...row,
+        roles: row.roles || []  // S'assurer qu'il y a un array même si pas de rôles
+      }));
+    } catch (error) {
+      console.error('❌ Error in getUsers with roles, falling back to simple query:', error);
+      
+      // Fallback: requête simple sans rôles si erreur
+      const simpleResult = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
+      return simpleResult.rows.map(row => ({
+        ...row,
+        roles: []
+      }));
+    }
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
