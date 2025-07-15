@@ -129,6 +129,15 @@ export default function RoleManagement() {
     rolesIsArray: Array.isArray(roles)
   });
 
+  // Debug des couleurs spécifiquement
+  console.log("🎨 Colors Debug:", roles.map(role => ({
+    id: role.id,
+    name: role.name,
+    displayName: role.displayName,
+    color: role.color,
+    hasColor: !!role.color
+  })));
+
   // Force log the rendering decision
   console.log("🔍 Render Decision:", {
     showLoading: rolesLoading,
