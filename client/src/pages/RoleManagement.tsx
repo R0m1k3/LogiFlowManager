@@ -67,7 +67,20 @@ export default function RoleManagement() {
     roles,
     rolesLength: roles.length,
     rolesLoading,
-    rolesError: rolesError?.message
+    rolesError: rolesError?.message,
+    rolesDataType: typeof rolesData,
+    rolesDataIsArray: Array.isArray(rolesData),
+    rolesType: typeof roles,
+    rolesIsArray: Array.isArray(roles)
+  });
+
+  // Force log the rendering decision
+  console.log("🔍 Render Decision:", {
+    showLoading: rolesLoading,
+    showError: !!rolesError,
+    showEmpty: !rolesLoading && !rolesError && roles.length === 0,
+    showRoles: !rolesLoading && !rolesError && roles.length > 0,
+    finalCondition: !rolesLoading && !rolesError && roles.length > 0
   });
 
   // Get role with permissions
@@ -347,6 +360,11 @@ export default function RoleManagement() {
                 <CardDescription>Sélectionnez un rôle pour voir ses permissions</CardDescription>
               </CardHeader>
               <CardContent>
+                {/* DEBUG: Force show roles count */}
+                <div className="mb-4 p-2 bg-blue-100 border border-blue-300 rounded">
+                  <strong>DEBUG INFO:</strong> Roles count: {roles.length} | Loading: {rolesLoading.toString()} | Error: {rolesError?.message || 'none'}
+                </div>
+                
                 {rolesLoading ? (
                   <div className="text-center py-4">Chargement des rôles...</div>
                 ) : rolesError ? (
@@ -359,54 +377,70 @@ export default function RoleManagement() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {roles.map((role) => (
-                      <div
-                        key={role.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                          selectedRole?.id === role.id ? 'border-primary bg-primary/5' : 'hover:bg-muted'
-                        }`}
-                        onClick={() => setSelectedRole(role)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: role.color || '#666666' }}
-                            />
-                            <span className="font-medium">{role.displayName}</span>
-                            {role.isSystem && (
-                              <Badge variant="secondary" className="text-xs">Système</Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedRole(role);
-                                setEditRoleOpen(true);
-                              }}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            {!role.isSystem && (
+                    {/* DEBUG: Show simple list first */}
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <strong>SIMPLE LIST:</strong>
+                      <ul>
+                        {roles.map(role => (
+                          <li key={role.id} className="text-sm">
+                            • {role.displayName} (ID: {role.id})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    {/* Original complex rendering */}
+                    {roles.map((role) => {
+                      console.log("🔍 Rendering role:", role.displayName);
+                      return (
+                        <div
+                          key={role.id}
+                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                            selectedRole?.id === role.id ? 'border-primary bg-primary/5' : 'hover:bg-muted'
+                          }`}
+                          onClick={() => setSelectedRole(role)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: role.color || '#666666' }}
+                              />
+                              <span className="font-medium">{role.displayName}</span>
+                              {role.isSystem && (
+                                <Badge variant="secondary" className="text-xs">Système</Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteRoleMutation.mutate(role.id);
+                                  setSelectedRole(role);
+                                  setEditRoleOpen(true);
                                 }}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Edit className="w-4 h-4" />
                               </Button>
-                            )}
+                              {!role.isSystem && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteRoleMutation.mutate(role.id);
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
+                          <p className="text-sm text-muted-foreground mt-1">{role.description}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{role.description}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
