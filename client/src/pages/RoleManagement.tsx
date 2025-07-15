@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -42,14 +42,21 @@ export default function RoleManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch roles
-  const { data: rolesData = [], isLoading: rolesLoading, error: rolesError } = useQuery<Role[]>({
+  // Fetch roles with forced refetch
+  const { data: rolesData = [], isLoading: rolesLoading, error: rolesError, refetch: refetchRoles } = useQuery<Role[]>({
     queryKey: ['/api/roles'],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
-  // Fetch permissions
-  const { data: permissionsData = [], isLoading: permissionsLoading } = useQuery<Permission[]>({
+  // Fetch permissions with forced refetch
+  const { data: permissionsData = [], isLoading: permissionsLoading, refetch: refetchPermissions } = useQuery<Permission[]>({
     queryKey: ['/api/permissions'],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: true,
   });
 
   // Fetch users
@@ -57,10 +64,35 @@ export default function RoleManagement() {
     queryKey: ['/api/users'],
   });
 
-  // Protection Array.isArray et logs debug
+  // Protection Array.isArray et logs debug RENFORCÉS
   const roles = Array.isArray(rolesData) ? rolesData : [];
   const permissions = Array.isArray(permissionsData) ? permissionsData : [];
   const users = Array.isArray(usersData) ? usersData : [];
+
+  // Force refetch on component mount
+  useEffect(() => {
+    console.log("🔄 RoleManagement mounting - forcing refetch");
+    
+    // Invalider le cache d'abord
+    queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+    
+    // Puis forcer le refetch
+    setTimeout(() => {
+      refetchRoles();
+      refetchPermissions();
+    }, 100);
+  }, [refetchRoles, refetchPermissions, queryClient]);
+
+  // Solution de contournement: forcer re-rendu si les données sont vides mais le loading est false
+  useEffect(() => {
+    if (!rolesLoading && !rolesError && roles.length === 0) {
+      console.log("🔧 Empty roles detected - forcing refetch");
+      setTimeout(() => {
+        refetchRoles();
+      }, 500);
+    }
+  }, [rolesLoading, rolesError, roles.length, refetchRoles]);
 
   console.log("🔍 RoleManagement Debug:", {
     rolesData,
@@ -356,8 +388,23 @@ export default function RoleManagement() {
             {/* Roles List */}
             <Card>
               <CardHeader>
-                <CardTitle>Liste des Rôles</CardTitle>
-                <CardDescription>Sélectionnez un rôle pour voir ses permissions</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Liste des Rôles</CardTitle>
+                    <CardDescription>Sélectionnez un rôle pour voir ses permissions</CardDescription>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log("🔄 Manual refetch triggered");
+                      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+                      refetchRoles();
+                    }}
+                  >
+                    🔄 Actualiser
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {/* DEBUG: Force show roles count */}
