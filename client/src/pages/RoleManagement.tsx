@@ -164,7 +164,10 @@ export default function RoleManagement() {
   // Update user roles mutation
   const updateUserRolesMutation = useMutation({
     mutationFn: async (data: { userId: string; roleIds: number[] }) => {
-      return await apiRequest(`/api/users/${data.userId}/roles`, 'POST', { roleIds: data.roleIds });
+      console.log("🚀 Mutation started:", data);
+      const result = await apiRequest(`/api/users/${data.userId}/roles`, 'POST', { roleIds: data.roleIds });
+      console.log("🚀 Mutation result:", result);
+      return result;
     },
     onSuccess: () => {
       // Invalider toutes les queries utilisateurs et rôles
@@ -257,9 +260,16 @@ export default function RoleManagement() {
       return;
     }
 
+    const roleId = parseInt(selectedRoleId as string);
+    console.log("🚀 About to mutate:", {
+      userId: selectedUser.id,
+      roleIds: [roleId],
+      roleIdParsed: roleId
+    });
+
     updateUserRolesMutation.mutate({
       userId: selectedUser.id,
-      roleIds: [parseInt(selectedRoleId as string)],
+      roleIds: [roleId],
     });
   };
 
