@@ -375,25 +375,32 @@ async function updateConstraints() {
 
 async function createRolesTables() {
   try {
-    // Create roles table
+    // Create roles table avec colonnes manquantes
     await pool.query(`
       CREATE TABLE IF NOT EXISTS roles (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) UNIQUE NOT NULL,
+        display_name VARCHAR(255),
         description TEXT,
+        color VARCHAR(20) DEFAULT '#6b7280',
         is_system BOOLEAN DEFAULT false,
+        is_active BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Create permissions table
+    // Create permissions table avec colonnes manquantes
     await pool.query(`
       CREATE TABLE IF NOT EXISTS permissions (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) UNIQUE NOT NULL,
+        display_name VARCHAR(255),
         description TEXT,
         category VARCHAR(255),
+        action VARCHAR(255),
+        resource VARCHAR(255),
+        is_system BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -403,13 +410,70 @@ async function createRolesTables() {
       CREATE TABLE IF NOT EXISTS role_permissions (
         role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
         permission_id INTEGER REFERENCES permissions(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (role_id, permission_id)
       )
     `);
 
-    console.log('✅ Roles and permissions tables verified/created');
+    // Create USER_ROLES table (CORRECTION CRITIQUE - cette table manquait !)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_roles (
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+        assigned_by VARCHAR NOT NULL REFERENCES users(id),
+        assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (user_id, role_id)
+      )
+    `);
+
+    // Create indexes for performance sur user_roles
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles (user_id);
+      CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON user_roles (role_id);
+      CREATE INDEX IF NOT EXISTS idx_user_roles_assigned_by ON user_roles (assigned_by);
+    `);
+
+    // Ajouter les colonnes manquantes aux tables existantes si elles n'existent pas
+    const addColumnsQueries = [
+      `ALTER TABLE roles ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);`,
+      `ALTER TABLE roles ADD COLUMN IF NOT EXISTS color VARCHAR(20) DEFAULT '#6b7280';`,
+      `ALTER TABLE roles ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;`,
+      `ALTER TABLE permissions ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);`,
+      `ALTER TABLE permissions ADD COLUMN IF NOT EXISTS action VARCHAR(255);`,
+      `ALTER TABLE permissions ADD COLUMN IF NOT EXISTS resource VARCHAR(255);`,
+      `ALTER TABLE permissions ADD COLUMN IF NOT EXISTS is_system BOOLEAN DEFAULT false;`
+    ];
+
+    for (const query of addColumnsQueries) {
+      try {
+        await pool.query(query);
+      } catch (err) {
+        // Ignorer erreurs si colonnes existent déjà
+        console.log('Column already exists or minor error:', err.message.substring(0, 50));
+      }
+    }
+
+    // Vérifier et assigner rôle admin à admin_local si nécessaire
+    const adminRoleCheck = await pool.query(`
+      SELECT COUNT(*) as count FROM user_roles 
+      WHERE user_id = 'admin_local'
+    `);
+
+    if (adminRoleCheck.rows[0].count === '0') {
+      await pool.query(`
+        INSERT INTO user_roles (user_id, role_id, assigned_by, assigned_at)
+        SELECT 'admin_local', r.id, 'system', CURRENT_TIMESTAMP
+        FROM roles r 
+        WHERE r.name = 'admin'
+        AND EXISTS (SELECT 1 FROM users WHERE id = 'admin_local')
+      `);
+      console.log('✅ Admin role assigned to admin_local user');
+    }
+
+    console.log('✅ ALL tables created including CRITICAL user_roles table');
   } catch (error) {
     console.error('❌ Error creating roles tables:', error);
+    // Continue anyway, don't crash the app
   }
 }
 

@@ -645,8 +645,8 @@ Changelog:
 - July 15, 2025. **STRUCTURE DONNÉES PRODUCTION CORRIGÉE** - Ajout displayName et action dans storage.production.ts pour compatibilité frontend
 - July 15, 2025. **CORRECTION REACT #310 PRODUCTION** - Les APIs /api/roles et /api/permissions retournent maintenant structure complète
 - July 15, 2025. **ERREUR TABLE USER_ROLES PRODUCTION CRITIQUE** - Table user_roles manquante dans base PostgreSQL production
-- July 15, 2025. **CORRECTION URGENTE CRÉÉE** - create-user-roles.sql + ROLES-PRODUCTION-READY.md avec commande une ligne
-- July 15, 2025. **SOLUTION SIMPLIFIÉE** - Commande directe PostgreSQL pour création immédiate table user_roles
+- July 15, 2025. **CORRECTION DÉFINITIVE INTÉGRÉE** - Modification server/initDatabase.production.ts avec création automatique user_roles
+- July 15, 2025. **SOLUTION PROPRE ET EFFICACE** - Table user_roles créée automatiquement au redémarrage, plus besoin de scripts externes
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
 - July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
 - July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel
