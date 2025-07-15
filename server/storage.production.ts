@@ -941,19 +941,27 @@ export class DatabaseStorage implements IStorage {
   async getRoles(): Promise<Role[]> {
     try {
       const result = await pool.query(`
-        SELECT r.*, 
+        SELECT r.id, 
+               r.name, 
+               r.display_name,
+               r.description, 
+               r.color,
+               r.is_system,
+               r.is_active,
+               r.created_at,
+               r.updated_at,
                COALESCE(
                  JSON_AGG(
                    CASE WHEN p.id IS NOT NULL THEN
                      JSON_BUILD_OBJECT(
                        'id', p.id,
                        'name', p.name,
-                       'displayName', p.name,
+                       'displayName', p.display_name,
                        'description', p.description,
                        'category', p.category,
-                       'action', p.name,
-                       'resource', 'system',
-                       'isSystem', true,
+                       'action', p.action,
+                       'resource', p.resource,
+                       'isSystem', p.is_system,
                        'createdAt', p.created_at
                      )
                    END
@@ -963,14 +971,14 @@ export class DatabaseStorage implements IStorage {
         FROM roles r
         LEFT JOIN role_permissions rp ON r.id = rp.role_id
         LEFT JOIN permissions p ON rp.permission_id = p.id
-        GROUP BY r.id, r.name, r.description, r.created_at, r.updated_at
+        GROUP BY r.id, r.name, r.display_name, r.description, r.color, r.is_system, r.is_active, r.created_at, r.updated_at
         ORDER BY r.name
       `);
       
       return result.rows.map(row => ({
         id: row.id,
         name: row.name,
-        displayName: row.name,
+        displayName: row.display_name || row.name,
         description: row.description || '',
         color: row.color || '#6b7280',
         isSystem: row.is_system || false,
@@ -988,19 +996,27 @@ export class DatabaseStorage implements IStorage {
   async getRoleWithPermissions(id: number): Promise<Role | undefined> {
     try {
       const result = await pool.query(`
-        SELECT r.*, 
+        SELECT r.id, 
+               r.name, 
+               r.display_name,
+               r.description, 
+               r.color,
+               r.is_system,
+               r.is_active,
+               r.created_at,
+               r.updated_at,
                COALESCE(
                  JSON_AGG(
                    CASE WHEN p.id IS NOT NULL THEN
                      JSON_BUILD_OBJECT(
                        'id', p.id,
                        'name', p.name,
-                       'displayName', p.name,
+                       'displayName', p.display_name,
                        'description', p.description,
                        'category', p.category,
-                       'action', p.name,
-                       'resource', 'system',
-                       'isSystem', true,
+                       'action', p.action,
+                       'resource', p.resource,
+                       'isSystem', p.is_system,
                        'createdAt', p.created_at
                      )
                    END
@@ -1011,7 +1027,7 @@ export class DatabaseStorage implements IStorage {
         LEFT JOIN role_permissions rp ON r.id = rp.role_id
         LEFT JOIN permissions p ON rp.permission_id = p.id
         WHERE r.id = $1
-        GROUP BY r.id, r.name, r.description, r.created_at, r.updated_at
+        GROUP BY r.id, r.name, r.display_name, r.description, r.color, r.is_system, r.is_active, r.created_at, r.updated_at
       `, [id]);
       
       if (result.rows.length === 0) return undefined;
@@ -1020,11 +1036,11 @@ export class DatabaseStorage implements IStorage {
       return {
         id: row.id,
         name: row.name,
-        displayName: row.name,
-        description: row.description,
-        color: row.color,
-        isSystem: row.is_system,
-        isActive: row.is_active,
+        displayName: row.display_name || row.name,
+        description: row.description || '',
+        color: row.color || '#6b7280',
+        isSystem: row.is_system || false,
+        isActive: row.is_active !== false,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         permissions: Array.isArray(row.permissions) ? row.permissions : []
@@ -1143,19 +1159,20 @@ export class DatabaseStorage implements IStorage {
   async getPermissions(): Promise<Permission[]> {
     try {
       const result = await pool.query(`
-        SELECT * FROM permissions 
+        SELECT id, name, display_name, description, category, action, resource, is_system, created_at 
+        FROM permissions 
         ORDER BY category, name
       `);
       
       return result.rows.map(row => ({
         id: row.id,
         name: row.name,
-        displayName: row.name,
-        description: row.description,
+        displayName: row.display_name || row.name,
+        description: row.description || '',
         category: row.category,
         action: row.action || 'read',
         resource: row.resource,
-        isSystem: row.is_system,
+        isSystem: row.is_system || false,
         createdAt: row.created_at
       })) || [];
     } catch (error) {
