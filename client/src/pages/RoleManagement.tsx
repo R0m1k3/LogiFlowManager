@@ -315,23 +315,52 @@ export default function RoleManagement() {
     rolesData: roles?.slice(0, 2)
   });
 
-  // Filter roles - with safety checks
-  const filteredRoles = Array.isArray(roles) ? roles.filter(role =>
-    role && role.displayName && 
-    ((role.displayName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (role.name || '').toLowerCase().includes(searchTerm.toLowerCase()))
-  ) : [];
-
-  // Group permissions by category
-  const permissionsByCategory = Array.isArray(permissions) ? permissions.reduce((acc, permission) => {
-    if (!acc[permission.category]) {
-      acc[permission.category] = [];
+  // Filter roles - with safety checks renforcées
+  const filteredRoles = (() => {
+    if (!Array.isArray(roles)) {
+      console.warn('⚠️ RoleManagement: roles is not an array', typeof roles, roles);
+      return [];
     }
-    acc[permission.category].push(permission);
-    return acc;
-  }, {} as Record<string, Permission[]>) : {};
+    
+    return roles.filter(role => {
+      if (!role || typeof role !== 'object') {
+        console.warn('⚠️ RoleManagement: invalid role object', role);
+        return false;
+      }
+      
+      const displayName = role.displayName || role.name || '';
+      const name = role.name || '';
+      const searchLower = (searchTerm || '').toLowerCase();
+      
+      return displayName.toLowerCase().includes(searchLower) ||
+             name.toLowerCase().includes(searchLower);
+    });
+  })();
+
+  // Group permissions by category - avec protection renforcée
+  const permissionsByCategory = (() => {
+    if (!Array.isArray(permissions)) {
+      console.warn('⚠️ RoleManagement: permissions is not an array', typeof permissions, permissions);
+      return {};
+    }
+    
+    return permissions.reduce((acc, permission) => {
+      if (!permission || typeof permission !== 'object' || !permission.category) {
+        console.warn('⚠️ RoleManagement: invalid permission object', permission);
+        return acc;
+      }
+      
+      if (!acc[permission.category]) {
+        acc[permission.category] = [];
+      }
+      acc[permission.category].push(permission);
+      return acc;
+    }, {} as Record<string, Permission[]>);
+  })();
 
   const getRoleIcon = (role: RoleWithPermissions) => {
+    if (!role || !role.name) return <Users className="w-5 h-5 text-gray-500" />;
+    
     if (role.name === 'admin') return <Crown className="w-5 h-5 text-yellow-500" />;
     if (role.name === 'manager') return <Shield className="w-5 h-5 text-blue-500" />;
     if (role.name === 'employee') return <UserCheck className="w-5 h-5 text-green-500" />;
@@ -415,21 +444,27 @@ export default function RoleManagement() {
           />
         </div>
         <Badge variant="outline" className="text-sm px-3 py-1">
-          {filteredRoles.length} rôle{filteredRoles.length > 1 ? 's' : ''}
+          {Array.isArray(filteredRoles) ? filteredRoles.length : 0} rôle{(Array.isArray(filteredRoles) ? filteredRoles.length : 0) > 1 ? 's' : ''}
         </Badge>
       </div>
 
       {/* Roles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.isArray(filteredRoles) && filteredRoles.map((role) => (
+        {Array.isArray(filteredRoles) && filteredRoles.length > 0 ? filteredRoles.map((role) => {
+          if (!role || !role.id) {
+            console.warn('⚠️ RoleManagement: invalid role in map', role);
+            return null;
+          }
+          
+          return (
           <Card key={role.id} className="shadow-sm hover:shadow-md transition-all duration-200 border-gray-200">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(role)}
                   <div>
-                    <CardTitle className="text-lg font-semibold">{role.displayName || role.name}</CardTitle>
-                    <p className="text-sm text-gray-500">{role.name}</p>
+                    <CardTitle className="text-lg font-semibold">{role.displayName || role.name || 'Rôle sans nom'}</CardTitle>
+                    <p className="text-sm text-gray-500">{role.name || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -454,7 +489,7 @@ export default function RoleManagement() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">Permissions:</span>
                 <Badge variant="outline" className="text-xs">
-                  {role.rolePermissions?.length || 0}
+                  {Array.isArray(role.rolePermissions) ? role.rolePermissions.length : 0}
                 </Badge>
               </div>
 
@@ -493,7 +528,14 @@ export default function RoleManagement() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        }) : (
+          <div className="col-span-full text-center py-12">
+            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun rôle trouvé</h3>
+            <p className="text-gray-600">Aucun rôle ne correspond à votre recherche.</p>
+          </div>
+        )}
       </div>
 
       {/* Create/Edit Role Modal */}
