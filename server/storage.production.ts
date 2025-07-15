@@ -1095,6 +1095,40 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async createPermission(permissionData: InsertPermission): Promise<Permission> {
+    try {
+      const result = await pool.query(`
+        INSERT INTO permissions (
+          name, display_name, description, category, action, resource, is_system
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+      `, [
+        permissionData.name,
+        permissionData.displayName || permissionData.name,
+        permissionData.description || '',
+        permissionData.category,
+        permissionData.action || '',
+        permissionData.resource || '',
+        permissionData.isSystem || false
+      ]);
+      
+      return {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        displayName: result.rows[0].display_name || result.rows[0].name,
+        description: result.rows[0].description,
+        category: result.rows[0].category,
+        action: result.rows[0].action || 'read',
+        resource: result.rows[0].resource,
+        isSystem: result.rows[0].is_system,
+        createdAt: result.rows[0].created_at
+      };
+    } catch (error) {
+      console.error("Error in createPermission:", error);
+      throw error;
+    }
+  }
+
   async getRolePermissions(roleId: number): Promise<RolePermission[]> {
     try {
       const result = await pool.query(`

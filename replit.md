@@ -138,6 +138,12 @@ Changelog:
 - July 15, 2025. **ROUTES API COMPLÈTES** - Toutes routes CRUD testées et fonctionnelles avec authentification sécurisée
 - July 15, 2025. **BASE DE DONNÉES AUTOMATIQUE** - Tables créées automatiquement, migration sans perte de données
 - July 15, 2025. **SCRIPTS DÉPLOIEMENT** - Scripts SQL et bash créés pour mise à jour production
+- July 15, 2025. **AUDIT PRODUCTION COMPLET** - Table user_roles manquante identifiée et corrigée dans init.sql
+- July 15, 2025. **MÉTHODE CREATEPERMISSION AJOUTÉE** - Toutes méthodes storage complètes dans storage.production.ts
+- July 15, 2025. **SCRIPTS TESTS ET DÉPLOIEMENT** - roles-production-audit.sh, test-roles-production.sh, deploy-roles-system.sh
+- July 15, 2025. **SCHÉMA SQL CORRIGÉ** - Ajout colonnes display_name, color, is_active, action, resource, is_system
+- July 15, 2025. **INDEX PERFORMANCE AJOUTÉS** - Index optimisés pour requêtes roles, permissions, user_roles
+- July 15, 2025. **MODULE 100% PRÊT PRODUCTION** - Audit complet passé, toutes incohérences corrigées
 - July 14, 2025. **PRODUCTION DEPLOYMENT RÉSOLU** - Correction erreur vite MODULE_NOT_FOUND
 - July 14, 2025. **ERREUR BCRYPT DÉFINITIVEMENT ÉLIMINÉE** - Authentification native PBKDF2 sans compilation
 - July 14, 2025. **TOUTES LES VÉRIFICATIONS PASSÉES** - Base de données, routes API, modules, sécurité, Docker Alpine

@@ -120,8 +120,11 @@ CREATE TABLE IF NOT EXISTS publicity_participations (
 CREATE TABLE IF NOT EXISTS roles (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
+    display_name VARCHAR,
     description TEXT,
+    color VARCHAR DEFAULT '#6b7280',
     is_system BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -130,8 +133,12 @@ CREATE TABLE IF NOT EXISTS roles (
 CREATE TABLE IF NOT EXISTS permissions (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
+    display_name VARCHAR,
     description TEXT,
     category VARCHAR NOT NULL,
+    action VARCHAR,
+    resource VARCHAR,
+    is_system BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -141,6 +148,15 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     permission_id INTEGER NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (role_id, permission_id)
+);
+
+-- User Roles junction table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    assigned_by VARCHAR NOT NULL REFERENCES users(id),
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, role_id)
 );
 
 -- NocoDB configuration table
@@ -227,10 +243,16 @@ CREATE INDEX IF NOT EXISTS idx_publicity_participations_group_id ON publicity_pa
 -- Roles and permissions indexes
 CREATE INDEX IF NOT EXISTS idx_roles_name ON roles (name);
 CREATE INDEX IF NOT EXISTS idx_roles_is_system ON roles (is_system);
+CREATE INDEX IF NOT EXISTS idx_roles_is_active ON roles (is_active);
 CREATE INDEX IF NOT EXISTS idx_permissions_name ON permissions (name);
 CREATE INDEX IF NOT EXISTS idx_permissions_category ON permissions (category);
+CREATE INDEX IF NOT EXISTS idx_permissions_action ON permissions (action);
+CREATE INDEX IF NOT EXISTS idx_permissions_resource ON permissions (resource);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions (role_id);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions (permission_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON user_roles (role_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_assigned_by ON user_roles (assigned_by);
 
 -- NocoDB configuration indexes
 CREATE INDEX IF NOT EXISTS idx_nocodb_config_name ON nocodb_config (name);
