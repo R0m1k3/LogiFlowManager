@@ -997,6 +997,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User-Role association routes (AJOUTÉ POUR PRODUCTION)
+  app.get('/api/users/:userId/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const userId = req.params.userId;
+      const userRoles = await storage.getUserRoles(userId);
+      res.json(userRoles);
+    } catch (error) {
+      console.error("Error fetching user roles:", error);
+      res.status(500).json({ message: "Failed to fetch user roles" });
+    }
+  });
+
+  // POST route for user roles (used by frontend) - ROUTE MANQUANTE AJOUTÉE
+  app.post('/api/users/:userId/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const userId = req.params.userId;
+      const { roleIds } = req.body;
+      
+      console.log("🔧 POST User roles API called:", { userId, roleIds, assignedBy: currentUser.id });
+      
+      if (!Array.isArray(roleIds)) {
+        return res.status(400).json({ message: "roleIds must be an array" });
+      }
+      
+      await storage.setUserRoles(userId, roleIds, currentUser.id);
+      res.json({ message: "User roles updated successfully" });
+    } catch (error) {
+      console.error("Error updating user roles:", error);
+      
+      // Gestion d'erreur spécifique avec message plus informatif
+      if (error.message && error.message.includes('does not exist')) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to update user roles" });
+    }
+  });
+
   app.put('/api/users/:id/roles', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);

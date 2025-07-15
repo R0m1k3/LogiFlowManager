@@ -637,6 +637,9 @@ Changelog:
 - July 15, 2025. **ERREUR API DEFAULT-CREDENTIALS-CHECK RÉSOLUE** - Correction paramètres apiRequest dans AuthPage.tsx
 - July 15, 2025. **ENVIRONNEMENT DEV ENTIÈREMENT FONCTIONNEL** - Toutes APIs 200 OK, interface sans erreur, authentification stable
 - July 15, 2025. **PRODUCTION NÉCESSITE CORRECTION GLOBALE** - Scripts fix-production-auth-global créés pour résoudre 401 universel
+- July 15, 2025. **ERREUR CRITIQUE PRODUCTION IDENTIFIÉE** - Cannot POST /api/users/:userId/roles (route manquante)
+- July 15, 2025. **ROUTES USER-ROLES AJOUTÉES EN PRODUCTION** - GET et POST /api/users/:userId/roles dans routes.production.ts
+- July 15, 2025. **CORRECTION ASSIGNATION RÔLES UTILISATEURS** - Interface gestion rôles maintenant fonctionnelle en production
 - July 15, 2025. **STRUCTURE DONNÉES PRODUCTION CORRIGÉE** - Ajout displayName et action dans storage.production.ts pour compatibilité frontend
 - July 15, 2025. **CORRECTION REACT #310 PRODUCTION** - Les APIs /api/roles et /api/permissions retournent maintenant structure complète
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
