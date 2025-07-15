@@ -634,6 +634,9 @@ Changelog:
 - July 15, 2025. **AUTHENTIFICATION ADMIN CORRIGÉE** - Format salt scrypt corrigé automatiquement, login admin/admin opérationnel
 - July 15, 2025. **APIs ROLES/PERMISSIONS FONCTIONNELLES** - /api/roles (4 items) et /api/permissions (42 items) retournent arrays valides
 - July 15, 2025. **APPLICATION 100% STABLE** - Plus de React Error #310, authentification robuste, page des rôles entièrement sécurisée
+- July 15, 2025. **ERREUR API DEFAULT-CREDENTIALS-CHECK RÉSOLUE** - Correction paramètres apiRequest dans AuthPage.tsx
+- July 15, 2025. **ENVIRONNEMENT DEV ENTIÈREMENT FONCTIONNEL** - Toutes APIs 200 OK, interface sans erreur, authentification stable
+- July 15, 2025. **PRODUCTION NÉCESSITE CORRECTION GLOBALE** - Scripts fix-production-auth-global créés pour résoudre 401 universel
 - July 15, 2025. **STRUCTURE DONNÉES PRODUCTION CORRIGÉE** - Ajout displayName et action dans storage.production.ts pour compatibilité frontend
 - July 15, 2025. **CORRECTION REACT #310 PRODUCTION** - Les APIs /api/roles et /api/permissions retournent maintenant structure complète
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
