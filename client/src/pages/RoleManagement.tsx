@@ -176,6 +176,8 @@ export default function RoleManagement() {
         queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole.id] });
         queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
       }
+      // Forcer un refresh immédiat des données
+      queryClient.refetchQueries({ queryKey: ['/api/users'] });
       // Fermer le modal et réinitialiser selectedUser pour forcer le refresh
       setEditUserRolesOpen(false);
       setSelectedUser(null);
@@ -239,6 +241,12 @@ export default function RoleManagement() {
     
     const formData = new FormData(event.currentTarget);
     const selectedRoleId = formData.get('selectedRole');
+    
+    console.log("🔍 Form submission debug:", {
+      selectedUser: selectedUser.id,
+      selectedRoleId,
+      formDataEntries: Array.from(formData.entries())
+    });
     
     if (!selectedRoleId) {
       toast({
@@ -588,28 +596,36 @@ export default function RoleManagement() {
             <form onSubmit={handleUserRolesUpdate} className="space-y-4">
               <div className="space-y-2">
                 <p className="text-sm font-medium">Sélectionnez un rôle :</p>
-                {Array.isArray(roles) && roles.map((role) => (
-                  <div key={role.id} className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id={`user-role-${role.id}`}
-                      name="selectedRole"
-                      value={role.id}
-                      defaultChecked={selectedUser.userRoles?.[0]?.roleId === role.id}
-                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                    />
-                    <label
-                      htmlFor={`user-role-${role.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: role.color || '#666666' }}
+                <p className="text-xs text-muted-foreground">
+                  Rôle actuel : {selectedUser.userRoles?.[0]?.role?.displayName || selectedUser.role}
+                </p>
+                {Array.isArray(roles) && roles.map((role) => {
+                  const isCurrentRole = selectedUser.userRoles?.[0]?.roleId === role.id;
+                  console.log(`🔍 Role ${role.displayName} (ID: ${role.id}) - Current: ${isCurrentRole}`);
+                  return (
+                    <div key={role.id} className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id={`user-role-${role.id}`}
+                        name="selectedRole"
+                        value={role.id}
+                        defaultChecked={isCurrentRole}
+                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
                       />
-                      {role.displayName}
-                    </label>
-                  </div>
-                ))}
+                      <label
+                        htmlFor={`user-role-${role.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: role.color || '#666666' }}
+                        />
+                        {role.displayName}
+                        {isCurrentRole && <span className="text-xs text-green-600">(actuel)</span>}
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
               <Button type="submit" disabled={updateUserRolesMutation.isPending}>
                 {updateUserRolesMutation.isPending ? 'Mise à jour...' : 'Mettre à jour'}
