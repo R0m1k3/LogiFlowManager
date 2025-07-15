@@ -42,24 +42,36 @@ export default function RoleManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch roles with forced refetch AND debug
+  // Fetch roles with custom queryFn to bypass cache issues
   const { data: rolesData = [], isLoading: rolesLoading, error: rolesError, refetch: refetchRoles } = useQuery<Role[]>({
     queryKey: ['/api/roles'],
+    queryFn: async () => {
+      console.log("🔄 Custom queryFn for roles - bypassing cache");
+      const response = await fetch('/api/roles', {
+        credentials: 'include',
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("🚨 ROLES FETCH ERROR:", { status: response.status, text: errorText });
+        throw new Error(`${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log("✅ ROLES FETCH SUCCESS:", data);
+      console.log("✅ Data length:", data?.length || 0);
+      return Array.isArray(data) ? data : [];
+    },
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    onError: (error) => {
-      console.error("🚨 ROLES API ERROR:", error);
-      console.error("🚨 Error message:", error.message);
-      console.error("🚨 Error stack:", error.stack);
-    },
-    onSuccess: (data) => {
-      console.log("✅ ROLES API SUCCESS:", data);
-      console.log("✅ Data length:", data?.length || 0);
-      console.log("✅ Data type:", typeof data);
-      console.log("✅ Is array:", Array.isArray(data));
-    }
+    retry: false
   });
 
   // Fetch permissions with forced refetch
