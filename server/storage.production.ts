@@ -867,8 +867,501 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // ===== ROLE MANAGEMENT METHODS =====
 
+  async getRoles(): Promise<Role[]> {
+    try {
+      const result = await pool.query(`
+        SELECT r.*, 
+               COALESCE(
+                 JSON_AGG(
+                   CASE WHEN p.id IS NOT NULL THEN
+                     JSON_BUILD_OBJECT(
+                       'id', p.id,
+                       'name', p.name,
+                       'displayName', p.display_name,
+                       'description', p.description,
+                       'category', p.category,
+                       'action', p.action,
+                       'resource', p.resource,
+                       'isSystem', p.is_system,
+                       'createdAt', p.created_at
+                     )
+                   END
+                 ) FILTER (WHERE p.id IS NOT NULL),
+                 '[]'::json
+               ) as permissions
+        FROM roles r
+        LEFT JOIN role_permissions rp ON r.id = rp.role_id
+        LEFT JOIN permissions p ON rp.permission_id = p.id
+        GROUP BY r.id, r.name, r.display_name, r.description, r.color, r.is_system, r.is_active, r.created_at, r.updated_at
+        ORDER BY r.name
+      `);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        displayName: row.display_name || row.name,
+        description: row.description,
+        color: row.color,
+        isSystem: row.is_system,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        permissions: Array.isArray(row.permissions) ? row.permissions : []
+      })) || [];
+    } catch (error) {
+      console.error("Error in getRoles:", error);
+      return [];
+    }
+  }
 
+  async getRoleWithPermissions(id: number): Promise<Role | undefined> {
+    try {
+      const result = await pool.query(`
+        SELECT r.*, 
+               COALESCE(
+                 JSON_AGG(
+                   CASE WHEN p.id IS NOT NULL THEN
+                     JSON_BUILD_OBJECT(
+                       'id', p.id,
+                       'name', p.name,
+                       'displayName', p.display_name,
+                       'description', p.description,
+                       'category', p.category,
+                       'action', p.action,
+                       'resource', p.resource,
+                       'isSystem', p.is_system,
+                       'createdAt', p.created_at
+                     )
+                   END
+                 ) FILTER (WHERE p.id IS NOT NULL),
+                 '[]'::json
+               ) as permissions
+        FROM roles r
+        LEFT JOIN role_permissions rp ON r.id = rp.role_id
+        LEFT JOIN permissions p ON rp.permission_id = p.id
+        WHERE r.id = $1
+        GROUP BY r.id, r.name, r.display_name, r.description, r.color, r.is_system, r.is_active, r.created_at, r.updated_at
+      `, [id]);
+      
+      if (result.rows.length === 0) return undefined;
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        name: row.name,
+        displayName: row.display_name || row.name,
+        description: row.description,
+        color: row.color,
+        isSystem: row.is_system,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        permissions: Array.isArray(row.permissions) ? row.permissions : []
+      };
+    } catch (error) {
+      console.error("Error in getRoleWithPermissions:", error);
+      return undefined;
+    }
+  }
+
+  async createRole(roleData: InsertRole): Promise<Role> {
+    try {
+      const result = await pool.query(`
+        INSERT INTO roles (name, display_name, description, color, is_system, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING *
+      `, [
+        roleData.name,
+        roleData.displayName,
+        roleData.description,
+        roleData.color,
+        roleData.isSystem || false,
+        roleData.isActive !== false
+      ]);
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        name: row.name,
+        displayName: row.display_name || row.name,
+        description: row.description,
+        color: row.color,
+        isSystem: row.is_system,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error in createRole:", error);
+      throw error;
+    }
+  }
+
+  async updateRole(id: number, roleData: Partial<InsertRole>): Promise<Role> {
+    try {
+      const setParts = [];
+      const values = [];
+      let paramCount = 1;
+
+      if (roleData.name !== undefined) {
+        setParts.push(`name = $${paramCount}`);
+        values.push(roleData.name);
+        paramCount++;
+      }
+      if (roleData.displayName !== undefined) {
+        setParts.push(`display_name = $${paramCount}`);
+        values.push(roleData.displayName);
+        paramCount++;
+      }
+      if (roleData.description !== undefined) {
+        setParts.push(`description = $${paramCount}`);
+        values.push(roleData.description);
+        paramCount++;
+      }
+      if (roleData.color !== undefined) {
+        setParts.push(`color = $${paramCount}`);
+        values.push(roleData.color);
+        paramCount++;
+      }
+      if (roleData.isActive !== undefined) {
+        setParts.push(`is_active = $${paramCount}`);
+        values.push(roleData.isActive);
+        paramCount++;
+      }
+
+      setParts.push(`updated_at = CURRENT_TIMESTAMP`);
+      values.push(id);
+
+      const result = await pool.query(`
+        UPDATE roles 
+        SET ${setParts.join(', ')}
+        WHERE id = $${paramCount}
+        RETURNING *
+      `, values);
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        name: row.name,
+        displayName: row.display_name || row.name,
+        description: row.description,
+        color: row.color,
+        isSystem: row.is_system,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error in updateRole:", error);
+      throw error;
+    }
+  }
+
+  async deleteRole(id: number): Promise<void> {
+    try {
+      // Delete role permissions first
+      await pool.query('DELETE FROM role_permissions WHERE role_id = $1', [id]);
+      // Delete the role
+      await pool.query('DELETE FROM roles WHERE id = $1', [id]);
+    } catch (error) {
+      console.error("Error in deleteRole:", error);
+      throw error;
+    }
+  }
+
+  async getPermissions(): Promise<Permission[]> {
+    try {
+      const result = await pool.query(`
+        SELECT * FROM permissions 
+        ORDER BY category, name
+      `);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        displayName: row.display_name || row.name,
+        description: row.description,
+        category: row.category,
+        action: row.action || 'read',
+        resource: row.resource,
+        isSystem: row.is_system,
+        createdAt: row.created_at
+      })) || [];
+    } catch (error) {
+      console.error("Error in getPermissions:", error);
+      return [];
+    }
+  }
+
+  async getRolePermissions(roleId: number): Promise<RolePermission[]> {
+    try {
+      const result = await pool.query(`
+        SELECT rp.*, p.name as permission_name, r.name as role_name
+        FROM role_permissions rp
+        JOIN permissions p ON rp.permission_id = p.id
+        JOIN roles r ON rp.role_id = r.id
+        WHERE rp.role_id = $1
+      `, [roleId]);
+      
+      return result.rows.map(row => ({
+        roleId: row.role_id,
+        permissionId: row.permission_id,
+        createdAt: row.created_at
+      })) || [];
+    } catch (error) {
+      console.error("Error in getRolePermissions:", error);
+      return [];
+    }
+  }
+
+  async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
+    try {
+      // Delete existing permissions for this role
+      await pool.query('DELETE FROM role_permissions WHERE role_id = $1', [roleId]);
+      
+      // Insert new permissions
+      if (permissionIds.length > 0) {
+        const values = permissionIds.map((permId, index) => 
+          `($1, $${index + 2}, CURRENT_TIMESTAMP)`
+        ).join(', ');
+        
+        await pool.query(`
+          INSERT INTO role_permissions (role_id, permission_id, created_at)
+          VALUES ${values}
+        `, [roleId, ...permissionIds]);
+      }
+    } catch (error) {
+      console.error("Error in setRolePermissions:", error);
+      throw error;
+    }
+  }
+
+  async setUserRoles(userId: string, roleIds: number[], assignedBy: string): Promise<void> {
+    try {
+      // Delete existing user roles
+      await pool.query('DELETE FROM user_roles WHERE user_id = $1', [userId]);
+      
+      // Insert new user roles
+      if (roleIds.length > 0) {
+        const values = roleIds.map((roleId, index) => 
+          `($1, $${index + 2}, $${roleIds.length + 2}, CURRENT_TIMESTAMP)`
+        ).join(', ');
+        
+        await pool.query(`
+          INSERT INTO user_roles (user_id, role_id, assigned_by, assigned_at)
+          VALUES ${values}
+        `, [userId, ...roleIds, assignedBy]);
+      }
+    } catch (error) {
+      console.error("Error in setUserRoles:", error);
+      throw error;
+    }
+  }
+
+  // NocoDB Config methods
+  async getNocodbConfigs(): Promise<NocodbConfig[]> {
+    const result = await pool.query('SELECT * FROM nocodb_config ORDER BY name');
+    return result.rows;
+  }
+
+  async getNocodbConfig(id: number): Promise<NocodbConfig | undefined> {
+    const result = await pool.query('SELECT * FROM nocodb_config WHERE id = $1', [id]);
+    return result.rows[0] || undefined;
+  }
+
+  async createNocodbConfig(config: InsertNocodbConfig): Promise<NocodbConfig> {
+    const result = await pool.query(`
+      INSERT INTO nocodb_config (name, base_url, project_id, table_id, table_name, invoice_column_name, api_token, is_active, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
+    `, [
+      config.name,
+      config.baseUrl,
+      config.projectId,
+      config.tableId,
+      config.tableName,
+      config.invoiceColumnName,
+      config.apiToken,
+      config.isActive,
+      config.createdBy
+    ]);
+    return result.rows[0];
+  }
+
+  async updateNocodbConfig(id: number, config: Partial<InsertNocodbConfig>): Promise<NocodbConfig> {
+    const result = await pool.query(`
+      UPDATE nocodb_config SET 
+        name = $1, base_url = $2, project_id = $3, table_id = $4, 
+        table_name = $5, invoice_column_name = $6, api_token = $7, 
+        is_active = $8, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $9
+      RETURNING *
+    `, [
+      config.name,
+      config.baseUrl,
+      config.projectId,
+      config.tableId,
+      config.tableName,
+      config.invoiceColumnName,
+      config.apiToken,
+      config.isActive,
+      id
+    ]);
+    return result.rows[0];
+  }
+
+  async deleteNocodbConfig(id: number): Promise<void> {
+    await pool.query('DELETE FROM nocodb_config WHERE id = $1', [id]);
+  }
+
+  // Customer Orders methods
+  async getCustomerOrders(groupIds?: number[]): Promise<any[]> {
+    let whereClause = '';
+    let params = [];
+    
+    if (groupIds && groupIds.length > 0) {
+      whereClause = ' WHERE co.group_id = ANY($1)';
+      params = [groupIds];
+    }
+
+    const result = await pool.query(`
+      SELECT co.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
+             u.username as creator_username, u.name as creator_name
+      FROM customer_orders co
+      LEFT JOIN suppliers s ON co.supplier_id = s.id
+      LEFT JOIN groups g ON co.group_id = g.id  
+      LEFT JOIN users u ON co.created_by = u.id
+      ${whereClause}
+      ORDER BY co.created_at DESC
+    `, params);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      customerName: row.customer_name,
+      customerPhone: row.customer_phone,
+      customerEmail: row.customer_email,
+      supplierId: row.supplier_id,
+      supplierName: row.supplier_name,
+      groupId: row.group_id,
+      groupName: row.group_name,
+      groupColor: row.group_color,
+      quantity: row.quantity || 1,
+      status: row.status,
+      notes: row.notes,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      creator: {
+        username: row.creator_username,
+        name: row.creator_name
+      },
+      supplier: {
+        id: row.supplier_id,
+        name: row.supplier_name
+      },
+      group: {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color
+      }
+    }));
+  }
+
+  async getCustomerOrder(id: number): Promise<any> {
+    const result = await pool.query(`
+      SELECT co.*, s.name as supplier_name, g.name as group_name, g.color as group_color,
+             u.username as creator_username, u.name as creator_name
+      FROM customer_orders co
+      LEFT JOIN suppliers s ON co.supplier_id = s.id
+      LEFT JOIN groups g ON co.group_id = g.id
+      LEFT JOIN users u ON co.created_by = u.id
+      WHERE co.id = $1
+    `, [id]);
+
+    if (!result.rows[0]) return undefined;
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      customerName: row.customer_name,
+      customerPhone: row.customer_phone,
+      customerEmail: row.customer_email,
+      supplierId: row.supplier_id,
+      supplierName: row.supplier_name,
+      groupId: row.group_id,
+      groupName: row.group_name,
+      groupColor: row.group_color,
+      quantity: row.quantity || 1,
+      status: row.status,
+      notes: row.notes,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      creator: {
+        username: row.creator_username,
+        name: row.creator_name
+      },
+      supplier: {
+        id: row.supplier_id,
+        name: row.supplier_name
+      },
+      group: {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color
+      }
+    };
+  }
+
+  async createCustomerOrder(customerOrder: InsertCustomerOrder): Promise<CustomerOrder> {
+    const result = await pool.query(`
+      INSERT INTO customer_orders (customer_name, customer_phone, customer_email, supplier_id, group_id, quantity, status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
+    `, [
+      customerOrder.customerName,
+      customerOrder.customerPhone,
+      customerOrder.customerEmail,
+      customerOrder.supplierId,
+      customerOrder.groupId,
+      customerOrder.quantity || 1,
+      customerOrder.status || 'En attente de Commande',
+      customerOrder.notes,
+      customerOrder.createdBy
+    ]);
+    return result.rows[0];
+  }
+
+  async updateCustomerOrder(id: number, customerOrder: Partial<InsertCustomerOrder>): Promise<CustomerOrder> {
+    const result = await pool.query(`
+      UPDATE customer_orders SET 
+        customer_name = $1, customer_phone = $2, customer_email = $3,
+        supplier_id = $4, group_id = $5, quantity = $6, status = $7, notes = $8,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $9
+      RETURNING *
+    `, [
+      customerOrder.customerName,
+      customerOrder.customerPhone,
+      customerOrder.customerEmail,
+      customerOrder.supplierId,
+      customerOrder.groupId,
+      customerOrder.quantity,
+      customerOrder.status,
+      customerOrder.notes,
+      id
+    ]);
+    return result.rows[0];
+  }
+
+  async deleteCustomerOrder(id: number): Promise<void> {
+    await pool.query('DELETE FROM customer_orders WHERE id = $1', [id]);
+  }
+}
+
+export const storage = new DatabaseStorage();
 
 
 
