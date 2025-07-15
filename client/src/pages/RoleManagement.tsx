@@ -5,47 +5,37 @@ import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  Shield,
-  Plus,
-  Edit,
-  Trash2,
-  Users,
-  Settings,
-  Eye,
-  CheckCircle,
-  XCircle,
-  Crown,
-  UserCheck,
-  Lock,
-  Unlock,
-  FileText,
-} from "lucide-react";
-import type { Role, Permission, RoleWithPermissions } from "@shared/schema";
+import { Shield, Plus, Edit, Trash2, Settings, Lock, UserCheck } from "lucide-react";
 
-// Form schemas
-const roleFormSchema = z.object({
-  name: z.string().min(1, "Le nom est obligatoire").regex(/^[a-z_]+$/, "Le nom doit contenir uniquement des lettres minuscules et underscores"),
-  displayName: z.string().min(1, "Le nom d'affichage est obligatoire"),
-  description: z.string().optional(),
-  color: z.string().default("#6b7280"),
-  isActive: z.boolean().default(true),
-});
+interface Role {
+  id: number;
+  name: string;
+  displayName: string;
+  description?: string;
+  color: string;
+  isActive: boolean;
+  isSystem: boolean;
+  permissions?: Permission[];
+}
 
-type RoleForm = z.infer<typeof roleFormSchema>;
+interface Permission {
+  id: number;
+  name: string;
+  displayName: string;
+  description?: string;
+  category: string;
+  action: string;
+}
+
+interface RoleWithPermissions extends Role {
+  permissions: Permission[];
+}
 
 export default function RoleManagement() {
   const { user } = useAuthUnified();
@@ -57,33 +47,19 @@ export default function RoleManagement() {
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<RoleWithPermissions | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
 
-  // Debug et vérification admin
-  console.log('🔐 RoleManagement user check:', { 
-    userExists: !!user, 
-    userRole: user?.role, 
-    isAdmin: user?.role === 'admin',
-    userObject: user 
+  // Form states
+  const [roleForm, setRoleForm] = useState({
+    name: "",
+    displayName: "",
+    description: "",
+    color: "#6b7280",
+    isActive: true,
   });
-  
-  // Protection contre utilisateur non connecté ou non admin
-  if (!user) {
-    return (
-      <div className="p-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Connexion requise</h3>
-              <p className="text-gray-600">Vous devez être connecté pour accéder à cette page.</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  
-  if (user.role !== 'admin') {
+
+  // Protection admin
+  if (!user || user.role !== 'admin') {
     return (
       <div className="p-6">
         <Card>
@@ -92,7 +68,6 @@ export default function RoleManagement() {
               <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Accès restreint</h3>
               <p className="text-gray-600">Cette page est réservée aux administrateurs.</p>
-              <p className="text-sm text-gray-500 mt-2">Rôle actuel: {user.role}</p>
             </div>
           </CardContent>
         </Card>
@@ -100,55 +75,49 @@ export default function RoleManagement() {
     );
   }
 
-  const form = useForm<RoleForm>({
-    resolver: zodResolver(roleFormSchema),
-    defaultValues: {
-      name: "",
-      displayName: "",
-      description: "",
-      color: "#6b7280",
-      isActive: true,
-    },
-  });
-
-  // Queries avec protection
-  const { data: roles = [], isLoading: rolesLoading } = useQuery<RoleWithPermissions[]>({
+  // Queries avec protection React Error #310
+  const { data: rolesData = [], isLoading: rolesLoading } = useQuery<Role[]>({
     queryKey: ['/api/roles'],
+    retry: 1,
   });
 
-  const { data: permissions = [] } = useQuery<Permission[]>({
+  const { data: permissionsData = [], isLoading: permissionsLoading } = useQuery<Permission[]>({
     queryKey: ['/api/permissions'],
+    retry: 1,
   });
 
-  // Protection React Error #310 - Vérification Array
-  console.log('🔐 RoleManagement data:', { 
-    rolesLoading, 
-    rolesCount: Array.isArray(roles) ? roles.length : 'NOT_ARRAY',
-    permissionsCount: Array.isArray(permissions) ? permissions.length : 'NOT_ARRAY',
-    rolesType: typeof roles,
-    permissionsType: typeof permissions 
+  // **PROTECTION CRITIQUE REACT ERROR #310**
+  const safeRoles = Array.isArray(rolesData) ? rolesData : [];
+  const safePermissions = Array.isArray(permissionsData) ? permissionsData : [];
+
+  console.log('🔐 RoleManagement SAFE data:', { 
+    rolesCount: safeRoles.length,
+    permissionsCount: safePermissions.length,
+    rolesType: typeof rolesData,
+    permissionsType: typeof permissionsData,
+    isRolesArray: Array.isArray(rolesData),
+    isPermissionsArray: Array.isArray(permissionsData)
   });
-  
-  // Protection: s'assurer que roles et permissions sont des arrays
-  const safeRoles = Array.isArray(roles) ? roles : [];
-  const safePermissions = Array.isArray(permissions) ? permissions : [];
+
+  // Filtrage sécurisé
+  const filteredRoles = safeRoles.filter(role => 
+    role?.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    role?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Mutations
   const createRoleMutation = useMutation({
-    mutationFn: async (data: RoleForm) => {
+    mutationFn: async (data: typeof roleForm) => {
       return await apiRequest("/api/roles", {
         method: "POST",
         body: data,
       });
     },
     onSuccess: () => {
-      toast({
-        title: "Succès",
-        description: "Rôle créé avec succès",
-      });
+      toast({ title: "Succès", description: "Rôle créé avec succès" });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
       setShowCreateModal(false);
-      form.reset();
+      resetForm();
     },
     onError: (error: any) => {
       toast({
@@ -160,17 +129,14 @@ export default function RoleManagement() {
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: async (data: { id: number; updates: Partial<RoleForm> }) => {
+    mutationFn: async (data: { id: number; updates: Partial<typeof roleForm> }) => {
       return await apiRequest(`/api/roles/${data.id}`, {
         method: "PUT",
         body: data.updates,
       });
     },
     onSuccess: () => {
-      toast({
-        title: "Succès",
-        description: "Rôle mis à jour avec succès",
-      });
+      toast({ title: "Succès", description: "Rôle mis à jour avec succès" });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
       setShowEditModal(false);
       setSelectedRole(null);
@@ -186,15 +152,10 @@ export default function RoleManagement() {
 
   const deleteRoleMutation = useMutation({
     mutationFn: async (roleId: number) => {
-      return await apiRequest(`/api/roles/${roleId}`, {
-        method: "DELETE",
-      });
+      return await apiRequest(`/api/roles/${roleId}`, { method: "DELETE" });
     },
     onSuccess: () => {
-      toast({
-        title: "Succès",
-        description: "Rôle supprimé avec succès",
-      });
+      toast({ title: "Succès", description: "Rôle supprimé avec succès" });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
     },
     onError: (error: any) => {
@@ -206,31 +167,17 @@ export default function RoleManagement() {
     },
   });
 
-  const updateRolePermissionsMutation = useMutation({
+  const updatePermissionsMutation = useMutation({
     mutationFn: async (data: { roleId: number; permissionIds: number[] }) => {
       return await apiRequest(`/api/roles/${data.roleId}/permissions`, {
         method: "POST",
-        body: {
-          permissionIds: data.permissionIds,
-        },
+        body: { permissionIds: data.permissionIds },
       });
     },
-    onSuccess: async (_, variables) => {
-      toast({
-        title: "Succès",
-        description: "Permissions mises à jour avec succès",
-      });
-      // Invalider et attendre la mise à jour des données
-      await queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-      
-      // Mettre à jour l'état local du rôle sélectionné
-      const updatedRoles = await queryClient.getQueryData<RoleWithPermissions[]>(['/api/roles']);
-      if (updatedRoles && selectedRole) {
-        const updatedRole = updatedRoles.find(r => r.id === selectedRole.id);
-        if (updatedRole) {
-          setSelectedRole(updatedRole);
-        }
-      }
+    onSuccess: () => {
+      toast({ title: "Succès", description: "Permissions mises à jour avec succès" });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      setShowPermissionsModal(false);
     },
     onError: (error: any) => {
       toast({
@@ -242,178 +189,107 @@ export default function RoleManagement() {
   });
 
   // Handlers
-  const handleCreateRole = () => {
-    setShowCreateModal(true);
-    form.reset();
+  const resetForm = () => {
+    setRoleForm({
+      name: "",
+      displayName: "",
+      description: "",
+      color: "#6b7280",
+      isActive: true,
+    });
   };
 
-  const handleEditRole = (role: RoleWithPermissions) => {
-    setSelectedRole(role);
-    form.reset({
-      name: role.name,
-      displayName: role.displayName,
+  const handleCreateRole = () => {
+    setShowCreateModal(true);
+    resetForm();
+  };
+
+  const handleEditRole = (role: Role) => {
+    setSelectedRole(role as RoleWithPermissions);
+    setRoleForm({
+      name: role.name || "",
+      displayName: role.displayName || "",
       description: role.description || "",
       color: role.color || "#6b7280",
-      isActive: role.isActive,
+      isActive: role.isActive ?? true,
     });
     setShowEditModal(true);
   };
 
   const handleManagePermissions = (role: RoleWithPermissions) => {
     setSelectedRole(role);
+    const rolePermissions = Array.isArray(role.permissions) ? role.permissions : [];
+    setSelectedPermissions(rolePermissions.map(p => p.id));
     setShowPermissionsModal(true);
   };
 
-  const handleDeleteRole = (role: RoleWithPermissions) => {
+  const handleDeleteRole = (role: Role) => {
     if (role.isSystem) {
       toast({
         title: "Erreur",
-        description: "Les rôles système ne peuvent pas être supprimés",
+        description: "Impossible de supprimer un rôle système",
         variant: "destructive",
       });
       return;
     }
 
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le rôle "${role.displayName}" ?`)) {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le rôle "${role.displayName}" ?`)) {
       deleteRoleMutation.mutate(role.id);
     }
   };
 
-  const onSubmit = (data: RoleForm) => {
-    if (selectedRole) {
-      updateRoleMutation.mutate({ id: selectedRole.id, updates: data });
-    } else {
-      createRoleMutation.mutate(data);
-    }
+  const handleSubmitCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    createRoleMutation.mutate(roleForm);
   };
 
-  const handlePermissionChange = (permissionIds: number[]) => {
-    if (selectedRole) {
-      // Mettre à jour immédiatement l'état local pour un feedback visuel instantané
-      const updatedRolePermissions = permissionIds.map(permissionId => ({
-        roleId: selectedRole.id,
-        permissionId,
-      }));
-      
-      setSelectedRole({
-        ...selectedRole,
-        rolePermissions: updatedRolePermissions,
-      });
-
-      // Puis envoyer la mise à jour au serveur
-      updateRolePermissionsMutation.mutate({
-        roleId: selectedRole.id,
-        permissionIds,
-      });
-    }
+  const handleSubmitEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRole) return;
+    updateRoleMutation.mutate({ id: selectedRole.id, updates: roleForm });
   };
 
-  console.log('👥 RoleManagement Debug:', {
-    roles: Array.isArray(roles) ? roles.length : 'NOT_ARRAY',
-    rolesLoading,
-    permissions: Array.isArray(permissions) ? permissions.length : 'NOT_ARRAY',
-    rolesData: roles?.slice(0, 2)
-  });
-
-  // Filter roles - with safety checks renforcées
-  const filteredRoles = (() => {
-    if (!Array.isArray(roles)) {
-      console.warn('⚠️ RoleManagement: roles is not an array', typeof roles, roles);
-      return [];
-    }
-    
-    return roles.filter(role => {
-      if (!role || typeof role !== 'object') {
-        console.warn('⚠️ RoleManagement: invalid role object', role);
-        return false;
-      }
-      
-      const displayName = role.displayName || role.name || '';
-      const name = role.name || '';
-      const searchLower = (searchTerm || '').toLowerCase();
-      
-      return displayName.toLowerCase().includes(searchLower) ||
-             name.toLowerCase().includes(searchLower);
+  const handleSubmitPermissions = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRole) return;
+    updatePermissionsMutation.mutate({
+      roleId: selectedRole.id,
+      permissionIds: selectedPermissions,
     });
-  })();
+  };
 
-  // Group permissions by category - avec protection renforcée
-  const permissionsByCategory = (() => {
-    if (!Array.isArray(permissions)) {
-      console.warn('⚠️ RoleManagement: permissions is not an array', typeof permissions, permissions);
-      return {};
+  const togglePermission = (permissionId: number) => {
+    setSelectedPermissions(prev =>
+      prev.includes(permissionId)
+        ? prev.filter(id => id !== permissionId)
+        : [...prev, permissionId]
+    );
+  };
+
+  const getRoleStatusBadge = (role: Role) => {
+    if (role.isSystem) {
+      return <Badge variant="secondary">Système</Badge>;
     }
-    
-    return permissions.reduce((acc, permission) => {
-      if (!permission || typeof permission !== 'object' || !permission.category) {
-        console.warn('⚠️ RoleManagement: invalid permission object', permission);
-        return acc;
-      }
-      
-      if (!acc[permission.category]) {
-        acc[permission.category] = [];
-      }
-      acc[permission.category].push(permission);
-      return acc;
-    }, {} as Record<string, Permission[]>);
-  })();
-
-  const getRoleIcon = (role: RoleWithPermissions) => {
-    if (!role || !role.name) return <Users className="w-5 h-5 text-gray-500" />;
-    
-    if (role.name === 'admin') return <Crown className="w-5 h-5 text-yellow-500" />;
-    if (role.name === 'manager') return <Shield className="w-5 h-5 text-blue-500" />;
-    if (role.name === 'employee') return <UserCheck className="w-5 h-5 text-green-500" />;
-    return <Users className="w-5 h-5 text-gray-500" />;
+    return role.isActive ? (
+      <Badge className="bg-green-100 text-green-800">Actif</Badge>
+    ) : (
+      <Badge variant="outline">Inactif</Badge>
+    );
   };
 
-  const getPermissionIcon = (action: string) => {
-    switch (action) {
-      case 'read': return <Eye className="w-4 h-4" />;
-      case 'create': return <Plus className="w-4 h-4" />;
-      case 'update': return <Edit className="w-4 h-4" />;
-      case 'delete': return <Trash2 className="w-4 h-4" />;
-      case 'validate': return <CheckCircle className="w-4 h-4" />;
-      case 'print': return <FileText className="w-4 h-4" />;
-      case 'notify': return <Users className="w-4 h-4" />;
-      default: return <Settings className="w-4 h-4" />;
-    }
-  };
+  // Grouper les permissions par catégorie
+  const groupedPermissions = safePermissions.reduce((acc, permission) => {
+    const category = permission?.category || 'Autres';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(permission);
+    return acc;
+  }, {} as Record<string, Permission[]>);
 
-  const getCategoryDisplayName = (category: string) => {
-    const categoryMap: Record<string, string> = {
-      'dashboard': 'Tableau de bord',
-      'calendar': 'Calendrier',
-      'orders': 'Commandes',
-      'deliveries': 'Livraisons',
-      'reconciliation': 'Rapprochement',
-      'users': 'Utilisateurs',
-      'groups': 'Magasins',
-      'suppliers': 'Fournisseurs',
-      'publicities': 'Publicités',
-      'customer_orders': 'Commandes Client',
-      'roles': 'Rôles'
-    };
-    return categoryMap[category] || category;
-  };
-
-  if (rolesLoading) {
+  if (rolesLoading || permissionsLoading) {
     return (
       <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="h-8 bg-gray-300 rounded w-64"></div>
-              <div className="h-4 bg-gray-200 rounded w-96"></div>
-            </div>
-            <div className="h-10 bg-gray-300 rounded w-32"></div>
-          </div>
-          <div className="h-10 bg-gray-200 rounded w-64"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-64 bg-gray-200 rounded-lg shadow-sm"></div>
-            ))}
-          </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </div>
     );
@@ -424,325 +300,270 @@ export default function RoleManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Rôles</h1>
-          <p className="text-gray-600 mt-2">Créez et gérez les rôles et permissions du système</p>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <Shield className="w-8 h-8 mr-3 text-blue-600" />
+            Gestion des Rôles
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Gérez les rôles utilisateur et leurs permissions
+          </p>
         </div>
-        <Button onClick={handleCreateRole} className="bg-blue-600 hover:bg-blue-700 shadow-sm">
+        <Button onClick={handleCreateRole} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
-          Nouveau Rôle
+          Créer un rôle
         </Button>
       </div>
 
       {/* Search */}
-      <div className="flex items-center space-x-4">
-        <div className="flex-1 max-w-md">
-          <Input
-            placeholder="Rechercher un rôle..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="shadow-sm"
-          />
-        </div>
-        <Badge variant="outline" className="text-sm px-3 py-1">
-          {Array.isArray(filteredRoles) ? filteredRoles.length : 0} rôle{(Array.isArray(filteredRoles) ? filteredRoles.length : 0) > 1 ? 's' : ''}
-        </Badge>
+      <div className="max-w-md">
+        <Input
+          placeholder="Rechercher un rôle..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full"
+        />
       </div>
 
       {/* Roles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.isArray(filteredRoles) && filteredRoles.length > 0 ? filteredRoles.map((role) => {
-          if (!role || !role.id) {
-            console.warn('⚠️ RoleManagement: invalid role in map', role);
-            return null;
-          }
-          
-          return (
-          <Card key={role.id} className="shadow-sm hover:shadow-md transition-all duration-200 border-gray-200">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  {getRoleIcon(role)}
-                  <div>
-                    <CardTitle className="text-lg font-semibold">{role.displayName || role.name || 'Rôle sans nom'}</CardTitle>
-                    <p className="text-sm text-gray-500">{role.name || 'N/A'}</p>
+        {Array.isArray(filteredRoles) && filteredRoles.length > 0 ? (
+          filteredRoles.map((role) => (
+            <Card key={role.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: role.color || '#6b7280' }}
+                    />
+                    <CardTitle className="text-lg">{role.displayName || role.name}</CardTitle>
                   </div>
+                  {getRoleStatusBadge(role)}
                 </div>
-                <div className="flex items-center space-x-2">
-                  {role.isSystem && (
-                    <Badge variant="secondary" className="text-xs">
-                      Système
-                    </Badge>
-                  )}
-                  {role.isActive ? (
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-red-500" />
-                  )}
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  {role.description || 'Aucune description'}
+                </p>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">
+                    Permissions: {Array.isArray(role.permissions) ? role.permissions.length : 0}
+                  </span>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {role.description && (
-                <p className="text-sm text-gray-600 leading-relaxed">{role.description}</p>
-              )}
-              
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Permissions:</span>
-                <Badge variant="outline" className="text-xs">
-                  {Array.isArray(role.rolePermissions) ? role.rolePermissions.length : 0}
-                </Badge>
-              </div>
 
-              <Separator className="my-4" />
-
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleManagePermissions(role)}
-                  className="shadow-sm"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Permissions
-                </Button>
-                <div className="flex items-center space-x-1">
+                <div className="flex space-x-2">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => handleEditRole(role)}
-                    className="h-8 w-8 p-0"
+                    className="flex-1"
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="w-4 h-4 mr-1" />
+                    Modifier
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleManagePermissions(role as RoleWithPermissions)}
+                    className="flex-1"
+                  >
+                    <Settings className="w-4 h-4 mr-1" />
+                    Permissions
                   </Button>
                   {!role.isSystem && (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => handleDeleteRole(role)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          );
-        }) : (
+              </CardContent>
+            </Card>
+          ))
+        ) : (
           <div className="col-span-full text-center py-12">
-            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun rôle trouvé</h3>
-            <p className="text-gray-600">Aucun rôle ne correspond à votre recherche.</p>
+            <p className="text-gray-600">
+              {searchTerm ? 'Aucun rôle ne correspond à votre recherche.' : 'Commencez par créer un rôle.'}
+            </p>
           </div>
         )}
       </div>
 
-      {/* Create/Edit Role Modal */}
-      <Dialog open={showCreateModal || showEditModal} onOpenChange={(open) => {
-        if (!open) {
-          setShowCreateModal(false);
-          setShowEditModal(false);
-          setSelectedRole(null);
-        }
-      }}>
-        <DialogContent className="sm:max-w-lg rounded-2xl shadow-xl border-gray-200">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="text-xl font-semibold">
-              {selectedRole ? 'Modifier le Rôle' : 'Nouveau Rôle'}
-            </DialogTitle>
+      {/* Create Role Modal */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Créer un nouveau rôle</DialogTitle>
           </DialogHeader>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom d'affichage *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Gestionnaire" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <form onSubmit={handleSubmitCreate} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Nom technique</label>
+              <Input
+                value={roleForm.name}
+                onChange={(e) => setRoleForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="ex: manager_store"
+                required
               />
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom technique *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: manager" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Utilisé en interne, uniquement lettres minuscules et underscores
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Nom d'affichage</label>
+              <Input
+                value={roleForm.displayName}
+                onChange={(e) => setRoleForm(prev => ({ ...prev, displayName: e.target.value }))}
+                placeholder="ex: Manager de magasin"
+                required
               />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Description du rôle..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Input
+                value={roleForm.description}
+                onChange={(e) => setRoleForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Description du rôle"
               />
-
-              <FormField
-                control={form.control}
-                name="color"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Couleur</FormLabel>
-                    <FormControl>
-                      <Input type="color" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Couleur</label>
+              <Input
+                type="color"
+                value={roleForm.color}
+                onChange={(e) => setRoleForm(prev => ({ ...prev, color: e.target.value }))}
               />
-
-              <FormField
-                control={form.control}
-                name="isActive"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Rôle actif</FormLabel>
-                      <FormDescription>
-                        Les rôles inactifs ne peuvent pas être assignés
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={roleForm.isActive}
+                onCheckedChange={(checked) => setRoleForm(prev => ({ ...prev, isActive: checked }))}
               />
-
-              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setShowEditModal(false);
-                  }}
-                  className="shadow-sm"
-                >
-                  Annuler
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700 shadow-sm"
-                >
-                  {selectedRole ? 'Modifier' : 'Créer'}
-                </Button>
-              </div>
-            </form>
-          </Form>
+              <label className="text-sm">Rôle actif</label>
+            </div>
+            <div className="flex space-x-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)} className="flex-1">
+                Annuler
+              </Button>
+              <Button type="submit" className="flex-1" disabled={createRoleMutation.isPending}>
+                {createRoleMutation.isPending ? 'Création...' : 'Créer'}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 
-      {/* Permissions Management Modal */}
-      <Dialog open={showPermissionsModal} onOpenChange={(open) => {
-        if (!open) {
-          setShowPermissionsModal(false);
-          setSelectedRole(null);
-        }
-      }}>
-        <DialogContent className="sm:max-w-2xl rounded-2xl shadow-xl border-gray-200">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="text-xl font-semibold">
-              Permissions - {selectedRole?.displayName}
+      {/* Edit Role Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Modifier le rôle</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmitEdit} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Nom technique</label>
+              <Input
+                value={roleForm.name}
+                onChange={(e) => setRoleForm(prev => ({ ...prev, name: e.target.value }))}
+                disabled={selectedRole?.isSystem}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Nom d'affichage</label>
+              <Input
+                value={roleForm.displayName}
+                onChange={(e) => setRoleForm(prev => ({ ...prev, displayName: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Input
+                value={roleForm.description}
+                onChange={(e) => setRoleForm(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Couleur</label>
+              <Input
+                type="color"
+                value={roleForm.color}
+                onChange={(e) => setRoleForm(prev => ({ ...prev, color: e.target.value }))}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={roleForm.isActive}
+                onCheckedChange={(checked) => setRoleForm(prev => ({ ...prev, isActive: checked }))}
+              />
+              <label className="text-sm">Rôle actif</label>
+            </div>
+            <div className="flex space-x-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="flex-1">
+                Annuler
+              </Button>
+              <Button type="submit" className="flex-1" disabled={updateRoleMutation.isPending}>
+                {updateRoleMutation.isPending ? 'Modification...' : 'Modifier'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Permissions Modal */}
+      <Dialog open={showPermissionsModal} onOpenChange={setShowPermissionsModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>
+              Gérer les permissions - {selectedRole?.displayName}
             </DialogTitle>
           </DialogHeader>
-
-          <ScrollArea className="h-96 pr-4">
-            <div className="space-y-6">
-              {Object.entries(permissionsByCategory || {}).map(([category, categoryPermissions]) => (
-                <div key={category} className="space-y-3">
-                  <h4 className="font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                    {getCategoryDisplayName(category)}
-                  </h4>
-                  <div className="grid grid-cols-1 gap-3">
-                    {Array.isArray(categoryPermissions) && categoryPermissions.map((permission) => {
-                      const isChecked = selectedRole?.rolePermissions?.some(
-                        rp => rp.permissionId === permission.id
-                      ) || false;
-
-                      return (
-                        <div key={permission.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+          <form onSubmit={handleSubmitPermissions}>
+            <ScrollArea className="max-h-96 pr-4">
+              <div className="space-y-6">
+                {Object.entries(groupedPermissions).map(([category, permissions]) => (
+                  <div key={category}>
+                    <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                      <UserCheck className="w-4 h-4 mr-2" />
+                      {category}
+                    </h4>
+                    <div className="grid grid-cols-1 gap-2 ml-6">
+                      {Array.isArray(permissions) && permissions.map((permission) => (
+                        <div key={permission.id} className="flex items-center space-x-2">
                           <Checkbox
-                            id={`permission-${permission.id}`}
-                            checked={isChecked}
-                            onCheckedChange={(checked) => {
-                              if (!selectedRole) return;
-                              
-                              const currentPermissionIds = Array.isArray(selectedRole.rolePermissions) ? selectedRole.rolePermissions.map(rp => rp.permissionId) : [];
-                              let newPermissionIds;
-                              
-                              if (checked) {
-                                newPermissionIds = [...currentPermissionIds, permission.id];
-                              } else {
-                                newPermissionIds = currentPermissionIds.filter(id => id !== permission.id);
-                              }
-                              
-                              handlePermissionChange(newPermissionIds);
-                            }}
+                            checked={selectedPermissions.includes(permission.id)}
+                            onCheckedChange={() => togglePermission(permission.id)}
                           />
-                          <div className="flex items-center space-x-2 flex-1">
-                            {getPermissionIcon(permission.action)}
-                            <div>
-                              <label
-                                htmlFor={`permission-${permission.id}`}
-                                className="text-sm font-medium cursor-pointer"
-                              >
-                                {permission.displayName}
-                              </label>
-                              {permission.description && (
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {permission.description}
-                                </p>
-                              )}
-                            </div>
+                          <div className="flex-1">
+                            <label className="text-sm font-medium">
+                              {permission.displayName}
+                            </label>
+                            {permission.description && (
+                              <p className="text-xs text-gray-500">
+                                {permission.description}
+                              </p>
+                            )}
                           </div>
-                          <Badge variant="outline" className="text-xs">
-                            {permission.action}
-                          </Badge>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </ScrollArea>
+            <div className="flex space-x-2 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={() => setShowPermissionsModal(false)} className="flex-1">
+                Annuler
+              </Button>
+              <Button type="submit" className="flex-1" disabled={updatePermissionsMutation.isPending}>
+                {updatePermissionsMutation.isPending ? 'Mise à jour...' : 'Sauvegarder'}
+              </Button>
             </div>
-          </ScrollArea>
-
-          <div className="flex justify-end pt-4 border-t border-gray-200">
-            <Button
-              onClick={() => setShowPermissionsModal(false)}
-              className="shadow-sm"
-            >
-              Fermer
-            </Button>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

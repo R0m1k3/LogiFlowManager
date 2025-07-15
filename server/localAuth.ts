@@ -23,10 +23,30 @@ export async function hashPassword(password: string) {
 }
 
 async function comparePasswords(supplied: string, stored: string) {
+  console.log('🔐 comparePasswords:', { supplied: 'HIDDEN', stored: stored?.substring(0, 20) + '...', hasFormat: stored?.includes('.') });
+  
+  // Vérifier le format du mot de passe stocké
+  if (!stored || !stored.includes('.')) {
+    console.error('❌ Invalid password format:', { stored });
+    return false;
+  }
+  
   const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  if (!hashed || !salt) {
+    console.error('❌ Missing hash or salt:', { hasHash: !!hashed, hasSalt: !!salt });
+    return false;
+  }
+  
+  try {
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    const result = timingSafeEqual(hashedBuf, suppliedBuf);
+    console.log('🔐 Password comparison result:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ Error comparing passwords:', error);
+    return false;
+  }
 }
 
 async function createDefaultAdminUser() {
@@ -44,10 +64,21 @@ async function createDefaultAdminUser() {
         role: 'admin',
         passwordChanged: false,
       });
-      console.log('Admin user created: admin / admin');
+      console.log('✅ Admin user created: admin / admin');
+    } else {
+      // Corriger le mot de passe admin si le format est incorrect
+      if (!existingAdmin.password || !existingAdmin.password.includes('.')) {
+        console.log('🔧 Fixing admin password format...');
+        const hashedPassword = await hashPassword('admin');
+        await storage.updateUser(existingAdmin.id, { 
+          password: hashedPassword,
+          passwordChanged: false 
+        });
+        console.log('✅ Admin password format fixed');
+      }
     }
   } catch (error) {
-    console.error('Error creating admin user:', error);
+    console.error('Error managing admin user:', error);
   }
 }
 
