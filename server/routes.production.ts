@@ -14,8 +14,10 @@ import {
   insertDeliverySchema,
   insertUserGroupSchema,
   insertPublicitySchema,
-
-  insertCustomerOrderSchema
+  insertCustomerOrderSchema,
+  insertRoleSchema,
+  insertPermissionSchema,
+  insertUserRoleSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -800,6 +802,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error verifying invoices:", error);
       res.status(500).json({ message: "Failed to verify invoices" });
+    }
+  });
+
+  // ===== ROLE MANAGEMENT ROUTES =====
+
+  // Roles routes
+  app.get('/api/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const roles = await storage.getRoles();
+      res.json(Array.isArray(roles) ? roles : []);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      res.status(500).json({ message: "Failed to fetch roles" });
+    }
+  });
+
+  app.get('/api/roles/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      const role = await storage.getRoleWithPermissions(id);
+      
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+
+      res.json(role);
+    } catch (error) {
+      console.error("Error fetching role:", error);
+      res.status(500).json({ message: "Failed to fetch role" });
+    }
+  });
+
+  app.post('/api/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const result = insertRoleSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const role = await storage.createRole(result.data);
+      res.status(201).json(role);
+    } catch (error) {
+      console.error("Error creating role:", error);
+      res.status(500).json({ message: "Failed to create role" });
+    }
+  });
+
+  app.put('/api/roles/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      const result = insertRoleSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const role = await storage.updateRole(id, result.data);
+      res.json(role);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
+  app.delete('/api/roles/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteRole(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      res.status(500).json({ message: "Failed to delete role" });
+    }
+  });
+
+  app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const permissions = await storage.getPermissions();
+      res.json(Array.isArray(permissions) ? permissions : []);
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      res.status(500).json({ message: "Failed to fetch permissions" });
+    }
+  });
+
+  app.put('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const roleId = parseInt(req.params.id);
+      const { permissionIds } = req.body;
+      
+      await storage.setRolePermissions(roleId, permissionIds);
+      res.json({ message: "Role permissions updated successfully" });
+    } catch (error) {
+      console.error("Error updating role permissions:", error);
+      res.status(500).json({ message: "Failed to update role permissions" });
+    }
+  });
+
+  app.put('/api/users/:id/roles', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const userId = req.params.id;
+      const { roleIds } = req.body;
+      
+      await storage.setUserRoles(userId, roleIds, user.id);
+      res.json({ message: "User roles updated successfully" });
+    } catch (error) {
+      console.error("Error updating user roles:", error);
+      res.status(500).json({ message: "Failed to update user roles" });
     }
   });
 
