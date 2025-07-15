@@ -594,6 +594,8 @@ Changelog:
 - July 14, 2025. **ROUTES PRODUCTION CORRIGÉES** - getRoles() et getPermissions() avec protection Array.isArray() et try/catch
 - July 14, 2025. **STORAGE PRODUCTION SÉCURISÉ** - Protection null/undefined, retour array garanti, logs debug complets
 - July 14, 2025. **APPLICATION STABLE PRODUCTION** - Plus d'erreurs React dev ET production, toutes APIs fonctionnelles
+- July 14, 2025. **AUTHENTIFICATION PRODUCTION DIAGNOSTIQUÉE** - Script fix-auth-production-SERVER.sh pour corriger hash admin
+- July 14, 2025. **DOCUMENTATION PRODUCTION** - Guide PRODUCTION-AUTH-FIX.md avec procédures de correction
 - July 14, 2025. Script fix-production-users-deliveries.sh créé pour déploiement automatique des corrections
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
