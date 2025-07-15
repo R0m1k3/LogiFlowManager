@@ -132,6 +132,10 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 
 Changelog:
 - July 08, 2025. Initial setup
+- July 15, 2025. **ERREUR PRODUCTION PERMISSIONS DÉFINITIVEMENT RÉSOLUE** - Page rôles 100% fonctionnelle
+- July 15, 2025. **COLONNES BDD MANQUANTES CORRIGÉES** - Adaptation SQL aux colonnes existantes (display_name, action, resource, is_system)
+- July 15, 2025. **ROUTES PERMISSIONS COMPLÈTES** - Ajout POST, PUT, DELETE /api/permissions + correction incohérence POST vs PUT
+- July 15, 2025. **APIs ROLES/PERMISSIONS OPÉRATIONNELLES** - 42 permissions et 4 rôles retournés correctement
 - July 15, 2025. **SYSTÈME DE GESTION DES RÔLES COMPLET PRODUCTION** - Module complètement prêt pour déploiement
 - July 15, 2025. **4 RÔLES CONFIGURÉS** - admin, directeur, employee, manager avec couleurs et descriptions
 - July 15, 2025. **42 PERMISSIONS GRANULAIRES** - Couvrant tous modules (dashboard, deliveries, orders, calendar, customer_orders)

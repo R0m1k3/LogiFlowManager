@@ -916,7 +916,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
+  app.post('/api/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const permission = await storage.createPermission(req.body);
+      res.status(201).json(permission);
+    } catch (error) {
+      console.error("Error creating permission:", error);
+      res.status(500).json({ message: "Failed to create permission" });
+    }
+  });
+
+  app.put('/api/permissions/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      const permission = await storage.updatePermission(id, req.body);
+      res.json(permission);
+    } catch (error) {
+      console.error("Error updating permission:", error);
+      res.status(500).json({ message: "Failed to update permission" });
+    }
+  });
+
+  app.delete('/api/permissions/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deletePermission(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting permission:", error);
+      res.status(500).json({ message: "Failed to delete permission" });
+    }
+  });
+
+  app.post('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user || user.role !== 'admin') {
