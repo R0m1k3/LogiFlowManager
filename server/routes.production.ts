@@ -328,39 +328,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const result = insertDeliverySchema.partial().safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
-      }
-
-      const delivery = await storage.updateDelivery(id, result.data);
-      res.json(delivery);
-    } catch (error) {
-      console.error("Error updating delivery:", error);
-      res.status(500).json({ message: "Failed to update delivery" });
-    }
-  });
-
-  app.delete('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteDelivery(id);
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting delivery:", error);
-      res.status(500).json({ message: "Failed to delete delivery" });
-    }
-  });
-
-  app.put('/api/deliveries/:id/validate', isAuthenticated, async (req: any, res) => {
+  // Route spécifique AVANT la route générale pour éviter l'interception
+  app.post('/api/deliveries/:id/validate', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const { blNumber, blAmount } = req.body;
       
-      console.log('🔍 PUT /api/deliveries/:id/validate - Request:', { id, blNumber, blAmount });
+      console.log('🔍 POST /api/deliveries/:id/validate - Request:', { id, blNumber, blAmount });
       
       if (isNaN(id)) {
         return res.status(400).json({ message: "ID de livraison invalide" });
@@ -391,6 +365,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(500).json({ message: "Erreur lors de la validation de la livraison" });
+    }
+  });
+
+  app.put('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const result = insertDeliverySchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
+      }
+
+      const delivery = await storage.updateDelivery(id, result.data);
+      res.json(delivery);
+    } catch (error) {
+      console.error("Error updating delivery:", error);
+      res.status(500).json({ message: "Failed to update delivery" });
+    }
+  });
+
+  app.delete('/api/deliveries/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDelivery(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting delivery:", error);
+      res.status(500).json({ message: "Failed to delete delivery" });
     }
   });
 

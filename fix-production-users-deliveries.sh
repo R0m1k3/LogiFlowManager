@@ -11,9 +11,10 @@ NC='\033[0m' # No Color
 
 echo -e "${YELLOW}📋 CORRECTIFS INCLUS:${NC}"
 echo "   👤 Utilisateurs: Validation obligatoire + modification opérationnelle"
-echo "   🚛 Livraisons: Validation adaptative + gestion erreurs"
+echo "   🚛 Livraisons: Validation adaptative + gestion erreurs + route POST corrigée"
 echo "   📅 Calendrier: Livraisons visibles + logs debug"
 echo "   🔧 Routes API: Validation complète + messages d'erreur spécifiques"
+echo "   ✅ Ordre routes: Route validation AVANT route générale"
 echo ""
 
 # 1. Arrêter le conteneur LogiFlow

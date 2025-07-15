@@ -587,8 +587,9 @@ Changelog:
 - July 14, 2025. **PROBLÈMES PRODUCTION CRITIQUES RÉSOLUS** - Validation livraisons, modification utilisateurs, champs obligatoires
 - July 14, 2025. **VALIDATION LIVRAISONS ADAPTATIVE** - validateDelivery() vérifie colonnes existantes, gestion erreurs complète
 - July 14, 2025. **MODIFICATION UTILISATEURS OPÉRATIONNELLE** - updateUser() avec validation obligatoire, messages d'erreur spécifiques
-- July 14, 2025. **ROUTES API AMÉLIORÉES** - PUT /api/users/:id et PUT /api/deliveries/:id/validate avec validation complète
-- July 14, 2025. Script fix-calendar-publicities.sh créé pour déploiement automatique des corrections
+- July 14, 2025. **ROUTES API AMÉLIORÉES** - PUT /api/users/:id et POST /api/deliveries/:id/validate avec validation complète
+- July 14, 2025. **ERREUR 404 VALIDATION RÉSOLUE** - Route /api/deliveries/:id/validate déplacée AVANT route générale, POST au lieu de PUT
+- July 14, 2025. Script fix-production-users-deliveries.sh créé pour déploiement automatique des corrections
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
 - July 14, 2025. Documentation technique complète prête pour production
