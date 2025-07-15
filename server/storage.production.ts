@@ -58,11 +58,20 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUser(id);
     if (!user) return undefined;
 
+    // Récupérer les groupes de l'utilisateur
     const groupsResult = await pool.query(`
       SELECT g.*, ug.user_id, ug.group_id 
       FROM groups g 
       JOIN user_groups ug ON g.id = ug.group_id 
       WHERE ug.user_id = $1
+    `, [id]);
+
+    // Récupérer les rôles de l'utilisateur
+    const rolesResult = await pool.query(`
+      SELECT r.*, ur.assigned_by, ur.assigned_at
+      FROM roles r 
+      JOIN user_roles ur ON r.id = ur.role_id 
+      WHERE ur.user_id = $1
     `, [id]);
 
     return {
@@ -77,13 +86,53 @@ export class DatabaseStorage implements IStorage {
           createdAt: row.created_at,
           updatedAt: row.updated_at
         }
+      })),
+      roles: rolesResult.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        displayName: row.display_name,
+        description: row.description,
+        color: row.color,
+        isSystem: row.is_system,
+        isActive: row.is_active,
+        assignedBy: row.assigned_by,
+        assignedAt: row.assigned_at
       }))
     };
   }
 
   async getUsers(): Promise<User[]> {
-    const result = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
-    return result.rows;
+    // Récupérer les utilisateurs avec leurs rôles
+    const result = await pool.query(`
+      SELECT 
+        u.*,
+        array_agg(
+          CASE WHEN ur.role_id IS NOT NULL THEN
+            json_build_object(
+              'id', r.id,
+              'name', r.name,
+              'displayName', r.display_name,
+              'description', r.description,
+              'color', r.color,
+              'isSystem', r.is_system,
+              'isActive', r.is_active
+            )
+          END
+        ) FILTER (WHERE ur.role_id IS NOT NULL) as roles
+      FROM users u
+      LEFT JOIN user_roles ur ON u.id = ur.user_id
+      LEFT JOIN roles r ON ur.role_id = r.id
+      GROUP BY u.id, u.username, u.email, u.name, u.first_name, u.last_name, 
+               u.profile_image_url, u.password, u.role, u.password_changed, 
+               u.created_at, u.updated_at
+      ORDER BY u.created_at DESC
+    `);
+    
+    // Mapper les résultats pour inclure les rôles dans le bon format
+    return result.rows.map(row => ({
+      ...row,
+      roles: row.roles || []  // S'assurer qu'il y a un array même si pas de rôles
+    }));
   }
 
   async createUser(userData: UpsertUser): Promise<User> {

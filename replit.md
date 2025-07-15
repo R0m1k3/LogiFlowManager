@@ -647,6 +647,8 @@ Changelog:
 - July 15, 2025. **ERREUR TABLE USER_ROLES PRODUCTION CRITIQUE** - Table user_roles manquante dans base PostgreSQL production
 - July 15, 2025. **CORRECTION DÉFINITIVE INTÉGRÉE** - Modification server/initDatabase.production.ts avec création automatique user_roles
 - July 15, 2025. **SOLUTION PROPRE ET EFFICACE** - Table user_roles créée automatiquement au redémarrage, plus besoin de scripts externes
+- July 15, 2025. **AFFICHAGE RÔLES CORRIGÉ** - getUsers() et getUserWithGroups() récupèrent maintenant les rôles avec LEFT JOIN
+- July 15, 2025. **PROBLÈME INTERFACE RÉSOLU** - L'assignation de rôles maintenant visible en temps réel dans l'interface utilisateur
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
 - July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
 - July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel
