@@ -603,6 +603,8 @@ Changelog:
 - July 14, 2025. **ERREURS PRODUCTION CRITIQUES CORRIGÉES** - Résolution complète TypeError et données manquantes
 - July 14, 2025. **SCRIPT CORRECTION DÉFINITIVE** - fix-production-users-deliveries.sh pour résoudre TOUS les problèmes production
 - July 14, 2025. **REACT #310 + AUTH + BDD** - Correction schéma, hash admin, APIs, validation livraisons en un script
+- July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
+- July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
 - July 14, 2025. Documentation technique complète prête pour production
