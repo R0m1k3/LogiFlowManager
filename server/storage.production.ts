@@ -911,13 +911,15 @@ export class DatabaseStorage implements IStorage {
         });
       }
       
-      // Ajouter permission si elle existe
+      // Ajouter permission si elle existe - STRUCTURE COMPATIBLE FRONTEND
       if (row.permission_id) {
         const permission = {
           id: row.permission_id,
           name: row.permission_name,
+          displayName: row.permission_name || '',     // ✅ Ajout displayName manquant
           description: row.permission_description,
           category: row.permission_category,
+          action: row.permission_name || '',          // ✅ Ajout action manquant
           createdAt: row.created_at,
           updatedAt: row.updated_at
         };
@@ -997,13 +999,15 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      // Protection contre null/undefined et transformation structure
+      // Protection contre null/undefined et transformation structure COMPATIBLE FRONTEND
       const permissions = Array.isArray(result.rows) ? result.rows : [];
       const finalPermissions = permissions.map(perm => ({
         id: perm.id,
         name: perm.name || '',
+        displayName: perm.display_name || perm.name || '',  // ✅ Ajout displayName manquant
         description: perm.description || '',
         category: perm.category || 'other',
+        action: perm.action || perm.name || '',            // ✅ Ajout action manquant  
         createdAt: perm.created_at,
         updatedAt: perm.updated_at
       }));
