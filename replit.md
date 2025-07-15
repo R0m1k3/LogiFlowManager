@@ -596,6 +596,9 @@ Changelog:
 - July 14, 2025. **APPLICATION STABLE PRODUCTION** - Plus d'erreurs React dev ET production, toutes APIs fonctionnelles
 - July 14, 2025. **AUTHENTIFICATION PRODUCTION DIAGNOSTIQUÉE** - Script fix-auth-production-SERVER.sh pour corriger hash admin
 - July 14, 2025. **DOCUMENTATION PRODUCTION** - Guide PRODUCTION-AUTH-FIX.md avec procédures de correction
+- July 14, 2025. **ERREUR SCHÉMA BASE DONNÉES RÉSOLUE** - Script fix-database-schema-production.sh pour ajouter colonnes manquantes
+- July 14, 2025. **COLONNES USERS MANQUANTES** - Migration first_name, last_name, profile_image_url avec données existantes
+- July 14, 2025. **GUIDE MIGRATION SQL** - Documentation PRODUCTION-SCHEMA-FIX.md complète avec vérifications
 - July 14, 2025. Script fix-production-users-deliveries.sh créé pour déploiement automatique des corrections
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
