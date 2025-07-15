@@ -705,7 +705,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const roles = await storage.getRoles();
-      res.json(roles);
+      console.log('🔐 Production getRoles result:', { 
+        rolesType: typeof roles, 
+        isArray: Array.isArray(roles), 
+        length: Array.isArray(roles) ? roles.length : 'NOT_ARRAY',
+        sample: Array.isArray(roles) ? roles[0] : null 
+      });
+      
+      // Protection React #310 - S'assurer que roles est toujours un array
+      const safeRoles = Array.isArray(roles) ? roles : [];
+      res.json(safeRoles);
     } catch (error) {
       console.error("Error fetching roles:", error);
       res.status(500).json({ message: "Failed to fetch roles" });
@@ -782,7 +791,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const permissions = await storage.getPermissions();
-      res.json(permissions);
+      console.log('🔐 Production getPermissions result:', { 
+        permissionsType: typeof permissions, 
+        isArray: Array.isArray(permissions), 
+        length: Array.isArray(permissions) ? permissions.length : 'NOT_ARRAY',
+        sample: Array.isArray(permissions) ? permissions[0] : null 
+      });
+      
+      // Protection React #310 - S'assurer que permissions est toujours un array
+      const safePermissions = Array.isArray(permissions) ? permissions : [];
+      res.json(safePermissions);
     } catch (error) {
       console.error("Error fetching permissions:", error);
       res.status(500).json({ message: "Failed to fetch permissions" });

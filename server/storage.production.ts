@@ -869,23 +869,30 @@ export class DatabaseStorage implements IStorage {
 
   // Roles and permissions methods
   async getRoles(): Promise<any[]> {
-    const result = await pool.query(`
-      SELECT r.*, 
-             rp.permission_id,
-             p.name as permission_name,
-             p.description as permission_description,
-             p.category as permission_category
-      FROM roles r
-      LEFT JOIN role_permissions rp ON r.id = rp.role_id
-      LEFT JOIN permissions p ON rp.permission_id = p.id
-      ORDER BY r.name, p.category, p.name
-    `);
-    
-    console.log('🔍 getRoles debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
-    
-    // Protection et transformation en structure Drizzle avec permissions imbriquées
-    const rolesMap = new Map();
-    (result.rows || []).forEach(row => {
+    try {
+      const result = await pool.query(`
+        SELECT r.*, 
+               rp.permission_id,
+               p.name as permission_name,
+               p.description as permission_description,
+               p.category as permission_category
+        FROM roles r
+        LEFT JOIN role_permissions rp ON r.id = rp.role_id
+        LEFT JOIN permissions p ON rp.permission_id = p.id
+        ORDER BY r.name, p.category, p.name
+      `);
+      
+      console.log('🔍 getRoles debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
+      
+      // Protection critique contre null/undefined
+      if (!result || !result.rows) {
+        console.warn('⚠️ getRoles: result.rows is null/undefined');
+        return [];
+      }
+      
+      // Protection et transformation en structure Drizzle avec permissions imbriquées
+      const rolesMap = new Map();
+      (Array.isArray(result.rows) ? result.rows : []).forEach(row => {
       const roleId = row.id;
       
       if (!rolesMap.has(roleId)) {
@@ -923,7 +930,13 @@ export class DatabaseStorage implements IStorage {
       }
     });
     
-    return Array.from(rolesMap.values());
+    const finalRoles = Array.from(rolesMap.values());
+    console.log('✅ getRoles final result:', { isArray: Array.isArray(finalRoles), length: finalRoles.length });
+    return finalRoles;
+    } catch (error) {
+      console.error('❌ getRoles error:', error);
+      return []; // Toujours retourner un array vide en cas d'erreur
+    }
   }
 
   async getRole(id: number): Promise<any> {
@@ -974,19 +987,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPermissions(): Promise<Permission[]> {
-    const result = await pool.query('SELECT * FROM permissions ORDER BY category, name');
-    console.log('🔍 getPermissions debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
-    
-    // Protection contre null/undefined et transformation structure
-    const permissions = result.rows || [];
-    return Array.isArray(permissions) ? permissions.map(perm => ({
-      id: perm.id,
-      name: perm.name,
-      description: perm.description,
-      category: perm.category,
-      createdAt: perm.created_at,
-      updatedAt: perm.updated_at
-    })) : [];
+    try {
+      const result = await pool.query('SELECT * FROM permissions ORDER BY category, name');
+      console.log('🔍 getPermissions debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
+      
+      // Protection critique contre null/undefined
+      if (!result || !result.rows) {
+        console.warn('⚠️ getPermissions: result.rows is null/undefined');
+        return [];
+      }
+      
+      // Protection contre null/undefined et transformation structure
+      const permissions = Array.isArray(result.rows) ? result.rows : [];
+      const finalPermissions = permissions.map(perm => ({
+        id: perm.id,
+        name: perm.name || '',
+        description: perm.description || '',
+        category: perm.category || 'other',
+        createdAt: perm.created_at,
+        updatedAt: perm.updated_at
+      }));
+      
+      console.log('✅ getPermissions final result:', { isArray: Array.isArray(finalPermissions), length: finalPermissions.length });
+      return finalPermissions;
+    } catch (error) {
+      console.error('❌ getPermissions error:', error);
+      return []; // Toujours retourner un array vide en cas d'erreur
+    }
   }
 
   async getRolePermissions(roleId: number): Promise<RolePermission[]> {

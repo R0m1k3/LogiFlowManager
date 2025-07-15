@@ -15,6 +15,8 @@ echo "   🚛 Livraisons: Validation adaptative + gestion erreurs + route POST c
 echo "   📅 Calendrier: Livraisons visibles + logs debug"
 echo "   🔧 Routes API: Validation complète + messages d'erreur spécifiques"
 echo "   ✅ Ordre routes: Route validation AVANT route générale"
+echo "   🔐 React #310: Protection Array.isArray() dans storage + routes production"
+echo "   📊 Rôles & Permissions: Protection complète null/undefined"
 echo ""
 
 # 1. Arrêter le conteneur LogiFlow
