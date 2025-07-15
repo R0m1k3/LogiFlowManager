@@ -644,6 +644,8 @@ Changelog:
 - July 15, 2025. **APIS NOCODB FONCTIONNELLES** - createConfig, updateConfig, deleteConfig corrigées pour POST/PUT/DELETE
 - July 15, 2025. **STRUCTURE DONNÉES PRODUCTION CORRIGÉE** - Ajout displayName et action dans storage.production.ts pour compatibilité frontend
 - July 15, 2025. **CORRECTION REACT #310 PRODUCTION** - Les APIs /api/roles et /api/permissions retournent maintenant structure complète
+- July 15, 2025. **STRUCTURE DONNÉES PRODUCTION CORRIGÉE** - Ajout displayName et action dans storage.production.ts pour compatibilité frontend
+- July 15, 2025. **CORRECTION REACT #310 PRODUCTION** - Les APIs /api/roles et /api/permissions retournent maintenant structure complète
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
 - July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
 - July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel

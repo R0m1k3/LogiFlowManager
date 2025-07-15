@@ -1217,18 +1217,16 @@ export class DatabaseStorage implements IStorage {
 
   async createNocodbConfig(config: InsertNocodbConfig): Promise<NocodbConfig> {
     const result = await pool.query(`
-      INSERT INTO nocodb_config (name, base_url, project_id, table_id, table_name, invoice_column_name, api_token, is_active, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO nocodb_config (name, base_url, project_id, api_token, description, is_active, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `, [
       config.name,
       config.baseUrl,
       config.projectId,
-      config.tableId,
-      config.tableName,
-      config.invoiceColumnName,
       config.apiToken,
-      config.isActive,
+      config.description || '',
+      config.isActive || true,
       config.createdBy
     ]);
     return result.rows[0];
@@ -1237,19 +1235,16 @@ export class DatabaseStorage implements IStorage {
   async updateNocodbConfig(id: number, config: Partial<InsertNocodbConfig>): Promise<NocodbConfig> {
     const result = await pool.query(`
       UPDATE nocodb_config SET 
-        name = $1, base_url = $2, project_id = $3, table_id = $4, 
-        table_name = $5, invoice_column_name = $6, api_token = $7, 
-        is_active = $8, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+        name = $1, base_url = $2, project_id = $3, api_token = $4, 
+        description = $5, is_active = $6, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $7
       RETURNING *
     `, [
       config.name,
       config.baseUrl,
       config.projectId,
-      config.tableId,
-      config.tableName,
-      config.invoiceColumnName,
       config.apiToken,
+      config.description || '',
       config.isActive,
       id
     ]);
