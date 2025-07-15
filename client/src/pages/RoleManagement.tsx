@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Shield, Users, Settings, Plus, Edit, Trash2, Check, X } from "lucide-react";
+import { Plus, Edit, Trash2, Shield, Users, Settings } from "lucide-react";
 import type { Role, Permission, User } from "@shared/schema";
 
 interface RoleWithPermissions extends Role {
@@ -43,18 +42,31 @@ export default function RoleManagement() {
   const queryClient = useQueryClient();
 
   // Fetch roles
-  const { data: roles = [] } = useQuery<Role[]>({
+  const { data: rolesData = [], isLoading: rolesLoading, error: rolesError } = useQuery<Role[]>({
     queryKey: ['/api/roles'],
   });
 
   // Fetch permissions
-  const { data: permissions = [] } = useQuery<Permission[]>({
+  const { data: permissionsData = [], isLoading: permissionsLoading } = useQuery<Permission[]>({
     queryKey: ['/api/permissions'],
   });
 
   // Fetch users
-  const { data: users = [] } = useQuery<User[]>({
+  const { data: usersData = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
+  });
+
+  // Protection Array.isArray et logs debug
+  const roles = Array.isArray(rolesData) ? rolesData : [];
+  const permissions = Array.isArray(permissionsData) ? permissionsData : [];
+  const users = Array.isArray(usersData) ? usersData : [];
+
+  console.log("🔍 RoleManagement Debug:", {
+    rolesData,
+    roles,
+    rolesLength: roles.length,
+    rolesLoading,
+    rolesError: rolesError?.message
   });
 
   // Get role with permissions
@@ -64,13 +76,13 @@ export default function RoleManagement() {
   });
 
   // Group permissions by category
-  const permissionsByCategory = permissions.reduce((acc, permission) => {
+  const permissionsByCategory = Array.isArray(permissions) ? permissions.reduce((acc, permission) => {
     if (!acc[permission.category]) {
       acc[permission.category] = [];
     }
     acc[permission.category].push(permission);
     return acc;
-  }, {} as Record<string, Permission[]>);
+  }, {} as Record<string, Permission[]>) : {};
 
   // Create role mutation
   const createRoleMutation = useMutation({
@@ -109,7 +121,6 @@ export default function RoleManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-      setSelectedRole(null);
       toast({ title: "Rôle supprimé avec succès" });
     },
     onError: (error) => {
@@ -124,7 +135,7 @@ export default function RoleManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole?.id] });
-      toast({ title: "Permissions du rôle mises à jour" });
+      toast({ title: "Permissions mises à jour avec succès" });
     },
     onError: (error) => {
       toast({ title: "Erreur lors de la mise à jour des permissions", description: error.message, variant: "destructive" });
@@ -139,7 +150,7 @@ export default function RoleManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       setEditUserRolesOpen(false);
-      toast({ title: "Rôles utilisateur mis à jour" });
+      toast({ title: "Rôles utilisateur mis à jour avec succès" });
     },
     onError: (error) => {
       toast({ title: "Erreur lors de la mise à jour des rôles utilisateur", description: error.message, variant: "destructive" });
@@ -149,33 +160,32 @@ export default function RoleManagement() {
   const handleCreateRole = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const data = {
+    createRoleMutation.mutate({
       name: formData.get('name') as string,
       displayName: formData.get('displayName') as string,
       description: formData.get('description') as string,
       color: formData.get('color') as string,
-    };
-    createRoleMutation.mutate(data);
+    });
   };
 
   const handleUpdateRole = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedRole) return;
+    
     const formData = new FormData(event.currentTarget);
-    const data = {
+    updateRoleMutation.mutate({
       id: selectedRole.id,
       name: formData.get('name') as string,
       displayName: formData.get('displayName') as string,
       description: formData.get('description') as string,
       color: formData.get('color') as string,
-    };
-    updateRoleMutation.mutate(data);
+    });
   };
 
   const handlePermissionToggle = (permissionId: number, checked: boolean) => {
     if (!selectedRole) return;
     
-    const currentPermissions = roleWithPermissions?.rolePermissions.map(rp => rp.permissionId) || [];
+    const currentPermissions = roleWithPermissions?.rolePermissions?.map(rp => rp.permissionId) || [];
     const newPermissions = checked
       ? [...currentPermissions, permissionId]
       : currentPermissions.filter(id => id !== permissionId);
@@ -274,56 +284,68 @@ export default function RoleManagement() {
                 <CardDescription>Sélectionnez un rôle pour voir ses permissions</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {roles.map((role) => (
-                    <div
-                      key={role.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedRole?.id === role.id ? 'border-primary bg-primary/5' : 'hover:bg-muted'
-                      }`}
-                      onClick={() => setSelectedRole(role)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: role.color }}
-                          />
-                          <span className="font-medium">{role.displayName}</span>
-                          {role.isSystem && (
-                            <Badge variant="secondary" className="text-xs">Système</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedRole(role);
-                              setEditRoleOpen(true);
-                            }}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          {!role.isSystem && (
+                {rolesLoading ? (
+                  <div className="text-center py-4">Chargement des rôles...</div>
+                ) : rolesError ? (
+                  <div className="text-center py-4 text-red-500">
+                    Erreur: {rolesError.message}
+                  </div>
+                ) : roles.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    Aucun rôle trouvé
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {roles.map((role) => (
+                      <div
+                        key={role.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          selectedRole?.id === role.id ? 'border-primary bg-primary/5' : 'hover:bg-muted'
+                        }`}
+                        onClick={() => setSelectedRole(role)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: role.color || '#666666' }}
+                            />
+                            <span className="font-medium">{role.displayName}</span>
+                            {role.isSystem && (
+                              <Badge variant="secondary" className="text-xs">Système</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                deleteRoleMutation.mutate(role.id);
+                                setSelectedRole(role);
+                                setEditRoleOpen(true);
                               }}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Edit className="w-4 h-4" />
                             </Button>
-                          )}
+                            {!role.isSystem && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteRoleMutation.mutate(role.id);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
+                        <p className="text-sm text-muted-foreground mt-1">{role.description}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">{role.description}</p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -342,8 +364,8 @@ export default function RoleManagement() {
                       <div key={category} className="space-y-2">
                         <h4 className="font-medium text-sm capitalize">{category}</h4>
                         <div className="space-y-1">
-                          {categoryPermissions.map((permission) => {
-                            const hasPermission = roleWithPermissions?.rolePermissions.some(
+                          {Array.isArray(categoryPermissions) && categoryPermissions.map((permission) => {
+                            const hasPermission = roleWithPermissions?.rolePermissions?.some(
                               rp => rp.permissionId === permission.id
                             );
                             return (
@@ -361,6 +383,9 @@ export default function RoleManagement() {
                                 >
                                   {permission.displayName}
                                 </label>
+                                <Badge variant="outline" className="text-xs">
+                                  {permission.action}
+                                </Badge>
                               </div>
                             );
                           })}
@@ -369,7 +394,7 @@ export default function RoleManagement() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Sélectionnez un rôle pour voir ses permissions</p>
+                  <p className="text-muted-foreground text-center py-8">Sélectionnez un rôle pour voir ses permissions</p>
                 )}
               </CardContent>
             </Card>
@@ -384,7 +409,7 @@ export default function RoleManagement() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {users.map((user) => (
+                {Array.isArray(users) && users.map((user) => (
                   <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <p className="font-medium">{user.name || user.username}</p>
@@ -423,7 +448,7 @@ export default function RoleManagement() {
                   <div key={category} className="space-y-2">
                     <h3 className="font-medium capitalize">{category}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {categoryPermissions.map((permission) => (
+                      {Array.isArray(categoryPermissions) && categoryPermissions.map((permission) => (
                         <div key={permission.id} className="flex items-center justify-between p-2 border rounded">
                           <div>
                             <p className="font-medium text-sm">{permission.displayName}</p>
@@ -514,7 +539,7 @@ export default function RoleManagement() {
           {selectedUser && (
             <form onSubmit={handleUserRolesUpdate} className="space-y-4">
               <div className="space-y-2">
-                {roles.map((role) => (
+                {Array.isArray(roles) && roles.map((role) => (
                   <div key={role.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`user-role-${role.id}`}
