@@ -389,16 +389,37 @@ export default function RoleManagement() {
 
   const handleUserRolesUpdate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedUser || selectedRoleForUser === null) return;
     
-    console.log("🔍 Form submission debug:", {
-      selectedUser: selectedUser.id,
+    console.log("🔧 handleUserRolesUpdate TRIGGERED", {
+      selectedUser: selectedUser?.username,
+      selectedUserId: selectedUser?.id,
       selectedRoleForUser,
-      currentRole: selectedUser.userRoles?.[0]?.roleId
+      isPending: updateUserRolesMutation.isPending,
+      formTarget: event.currentTarget.tagName
     });
     
+    if (!selectedUser) {
+      console.error("❌ NO SELECTED USER");
+      toast({
+        title: "Erreur",
+        description: "Aucun utilisateur sélectionné",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (selectedRoleForUser === null || selectedRoleForUser === undefined) {
+      console.error("❌ NO ROLE SELECTED", { selectedRoleForUser });
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un rôle",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // 🛡️ VALIDATION CRITIQUE - Bloquer rôles invalides
-    if (!selectedRoleForUser || selectedRoleForUser < 1 || selectedRoleForUser > 4) {
+    if (selectedRoleForUser < 1 || selectedRoleForUser > 4) {
       console.error("❌ RÔLE INVALIDE DÉTECTÉ:", selectedRoleForUser);
       toast({
         title: "Rôle invalide",
@@ -410,32 +431,37 @@ export default function RoleManagement() {
       setSelectedRoleForUser(3); // Par défaut: employee
       return;
     }
-    
-    if (selectedRoleForUser === null) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner un rôle",
-        variant: "destructive",
-      });
-      return;
-    }
 
     // Validation: vérifier que l'utilisateur existe dans la liste actuelle
     const userExists = users.some(u => u.id === selectedUser.id);
     if (!userExists) {
+      console.error("❌ User not found in current users list:", selectedUser.id);
       toast({
         title: "Erreur",
         description: "L'utilisateur sélectionné n'existe plus. Veuillez actualiser la page.",
         variant: "destructive",
       });
-      console.error("❌ User not found in current users list:", selectedUser.id);
       return;
     }
 
-    console.log("🚀 About to mutate:", {
+    // Empêcher les soumissions multiples
+    if (updateUserRolesMutation.isPending) {
+      console.warn("⚠️ Mutation already pending, ignoring");
+      toast({
+        title: "Traitement en cours",
+        description: "Veuillez patienter...",
+        variant: "default",
+      });
+      return;
+    }
+
+    console.log("🚀 MUTATION READY - About to mutate:", {
       userId: selectedUser.id,
       roleIds: [selectedRoleForUser],
-      roleIdParsed: selectedRoleForUser
+      currentRole: selectedUser.userRoles?.[0]?.roleId,
+      roleIdParsed: selectedRoleForUser,
+      userExists,
+      validationPassed: true
     });
 
     updateUserRolesMutation.mutate({
@@ -528,11 +554,6 @@ export default function RoleManagement() {
                 </div>
               </CardHeader>
               <CardContent>
-                {/* DEBUG: Force show roles count */}
-                <div className="mb-4 p-2 bg-blue-100 border border-blue-300 rounded">
-                  <strong>DEBUG INFO:</strong> Roles count: {roles.length} | Loading: {rolesLoading.toString()} | Error: {rolesError?.message || 'none'}
-                </div>
-                
                 {rolesLoading ? (
                   <div className="text-center py-4">Chargement des rôles...</div>
                 ) : rolesError ? (
@@ -545,23 +566,8 @@ export default function RoleManagement() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {/* DEBUG: Show simple list first */}
-                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
-                      <strong>SIMPLE LIST:</strong>
-                      <ul>
-                        {roles.map(role => (
-                          <li key={role.id} className="text-sm">
-                            • {role.displayName} (ID: {role.id})
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    {/* Original complex rendering */}
                     {roles.map((role) => {
-                      // 🎨 CORRECTION COULEUR - Utiliser la vraie couleur de l'API
                       const roleColor = role.color || '#666666';
-                      console.log("🔍 Rendering role:", role.displayName, "Color:", roleColor);
                       return (
                         <div
                           key={role.id}
@@ -581,7 +587,6 @@ export default function RoleManagement() {
                                 title={`Couleur: ${roleColor}`}
                               />
                               <span className="font-medium">{role.displayName}</span>
-                              <span className="text-xs text-muted-foreground">({roleColor})</span>
                               {role.isSystem && (
                                 <Badge variant="secondary" className="text-xs">Système</Badge>
                               )}
@@ -859,7 +864,13 @@ export default function RoleManagement() {
                         value={role.id}
                         checked={selectedRoleForUser === role.id}
                         onChange={(e) => {
-                          console.log("🔧 Role selection changed:", { roleId: role.id, value: e.target.value });
+                          console.log("🔧 Role selection changed:", { 
+                            roleId: role.id, 
+                            roleName: role.displayName,
+                            value: e.target.value,
+                            checked: e.target.checked,
+                            previousSelection: selectedRoleForUser
+                          });
                           setSelectedRoleForUser(role.id);
                         }}
                         className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
@@ -879,9 +890,29 @@ export default function RoleManagement() {
                   );
                 })}
               </div>
-              <Button type="submit" disabled={updateUserRolesMutation.isPending}>
-                {updateUserRolesMutation.isPending ? 'Mise à jour...' : 'Mettre à jour'}
-              </Button>
+              <div className="flex justify-between">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    console.log("🔧 Cancel button clicked");
+                    setEditUserRolesOpen(false);
+                    setSelectedUser(null);
+                    setSelectedRoleForUser(null);
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateUserRolesMutation.isPending || selectedRoleForUser === null}
+                  onClick={(e) => {
+                    console.log("🔧 Submit button clicked", { selectedRoleForUser, isPending: updateUserRolesMutation.isPending });
+                  }}
+                >
+                  {updateUserRolesMutation.isPending ? 'Mise à jour...' : 'Mettre à jour'}
+                </Button>
+              </div>
             </form>
           )}
         </DialogContent>
