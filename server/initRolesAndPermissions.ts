@@ -13,8 +13,8 @@ export async function initRolesAndPermissions() {
 
     // Create default roles
     const adminRole = await storage.createRole({
-      name: "super_admin",
-      displayName: "Super Administrateur",
+      name: "admin",
+      displayName: "Administrateur",
       description: "Accès complet à toutes les fonctionnalités du système",
       color: "#dc2626",
       isSystem: true,
@@ -23,9 +23,9 @@ export async function initRolesAndPermissions() {
 
     const managerRole = await storage.createRole({
       name: "manager",
-      displayName: "Gestionnaire",
-      description: "Gestion des opérations et supervision d'équipe",
-      color: "#ea580c",
+      displayName: "Manager",
+      description: "Accès à la gestion des commandes, livraisons et fournisseurs",
+      color: "#2563eb",
       isSystem: true,
       isActive: true,
     });
@@ -33,13 +33,22 @@ export async function initRolesAndPermissions() {
     const employeeRole = await storage.createRole({
       name: "employee",
       displayName: "Employé",
-      description: "Accès de base aux fonctionnalités opérationnelles",
+      description: "Accès en lecture aux données et publicités",
       color: "#16a34a",
       isSystem: true,
       isActive: true,
     });
 
-    console.log("Created default roles:", { adminRole, managerRole, employeeRole });
+    const directeurRole = await storage.createRole({
+      name: "directeur",
+      displayName: "Directeur",
+      description: "Supervision générale et gestion stratégique",
+      color: "#7c3aed",
+      isSystem: true,
+      isActive: true,
+    });
+
+    console.log("Created default roles:", { adminRole, managerRole, employeeRole, directeurRole });
 
     // Create default permissions
     const permissions = [
