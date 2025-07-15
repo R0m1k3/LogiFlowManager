@@ -480,14 +480,15 @@ async function createRolesTables() {
     `);
 
     if (adminRoleCheck.rows[0].count === '0') {
+      // CORRECTION CRITIQUE: utiliser 'admin_local' au lieu de 'system' pour assigned_by
       await pool.query(`
         INSERT INTO user_roles (user_id, role_id, assigned_by, assigned_at)
-        SELECT 'admin_local', r.id, 'system', CURRENT_TIMESTAMP
+        SELECT 'admin_local', r.id, 'admin_local', CURRENT_TIMESTAMP
         FROM roles r 
         WHERE r.name = 'admin'
         AND EXISTS (SELECT 1 FROM users WHERE id = 'admin_local')
       `);
-      console.log('✅ Admin role assigned to admin_local user');
+      console.log('✅ Admin role assigned to admin_local user (self-assigned)');
     }
 
     console.log('✅ ALL tables created including CRITICAL user_roles table');

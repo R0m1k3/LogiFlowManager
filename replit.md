@@ -651,6 +651,9 @@ Changelog:
 - July 15, 2025. **PROBLÈME INTERFACE RÉSOLU** - L'assignation de rôles maintenant visible en temps réel dans l'interface utilisateur
 - July 15, 2025. **ERREUR PRODUCTION COLONNES UTILISATEURS CORRIGÉE** - Erreur "column u.first_name does not exist" résolue
 - July 15, 2025. **REQUÊTE GETUSERS SÉCURISÉE** - Fallback en cas d'erreur + migration automatique colonnes manquantes
+- July 15, 2025. **ERREUR CONTRAINTE CLÉ ÉTRANGÈRE RÉSOLUE DÉFINITIVEMENT** - Problem assigned_by='system' user inexistant corrigé
+- July 15, 2025. **SOLUTION FINALE USER_ROLES** - Self-assignment admin_local au lieu de system, scripts SQL de correction
+- July 15, 2025. **ARCHITECTURE PRODUCTION STABILISÉE** - Plus jamais de problème contrainte foreign key user_roles
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
 - July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
 - July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel
