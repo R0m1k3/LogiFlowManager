@@ -975,6 +975,24 @@ export class DatabaseStorage implements IStorage {
         ORDER BY r.name
       `);
       
+      // 🔍 DIAGNOSTIC: Log détaillé pour identifier le problème
+      console.log('🔍 DIAGNOSTIC RÔLES PRODUCTION:');
+      result.rows.forEach((row, index) => {
+        console.log(`Role ${index + 1}:`, {
+          id: row.id,
+          name: row.name,
+          displayName: row.display_name,
+          color: row.color,
+          isGrayColor: row.color === '#6b7280',
+          expectedColors: {
+            admin: '#dc2626',
+            manager: '#2563eb',
+            employee: '#16a34a',
+            directeur: '#7c3aed'
+          }
+        });
+      });
+      
       return result.rows.map(row => ({
         id: row.id,
         name: row.name,
