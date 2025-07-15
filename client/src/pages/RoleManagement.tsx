@@ -147,13 +147,18 @@ export default function RoleManagement() {
       return await apiRequest(`/api/roles/${data.roleId}/permissions`, 'POST', { permissionIds: data.permissionIds });
     },
     onSuccess: () => {
-      // Invalider toutes les queries liées aux rôles et permissions
-      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
-      if (selectedRole) {
-        queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole.id] });
-        queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
-      }
+      console.log("🚀 Permission mutation success - clearing cache");
+      
+      // Solution radicale: vider complètement le cache ReactQuery
+      queryClient.clear();
+      
+      // Forcer un rechargement partiel après un délai
+      setTimeout(() => {
+        if (selectedRole) {
+          queryClient.refetchQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
+        }
+      }, 200);
+      
       toast({ title: "Permissions mises à jour avec succès" });
     },
     onError: (error) => {
@@ -170,21 +175,21 @@ export default function RoleManagement() {
       return result;
     },
     onSuccess: () => {
-      // Invalider toutes les queries utilisateurs et rôles
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
-      // Rafraîchir les permissions du rôle sélectionné
-      if (selectedRole) {
-        queryClient.invalidateQueries({ queryKey: ['/api/roles', selectedRole.id] });
-        queryClient.invalidateQueries({ queryKey: [`/api/roles/${selectedRole.id}/permissions`] });
-      }
-      // Forcer un refresh immédiat des données
-      queryClient.refetchQueries({ queryKey: ['/api/users'] });
-      // Fermer le modal et réinitialiser selectedUser pour forcer le refresh
+      console.log("🚀 Mutation success - clearing cache and refetching");
+      
+      // Solution radicale: vider complètement le cache ReactQuery 
+      queryClient.clear();
+      
+      // Fermer le modal et réinitialiser
       setEditUserRolesOpen(false);
       setSelectedUser(null);
-      toast({ title: "Rôle utilisateur mis à jour avec succès" });
+      
+      // Forcer un rechargement complet de la page après un délai
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      
+      toast({ title: "Rôle utilisateur mis à jour avec succès - page rechargée" });
     },
     onError: (error) => {
       toast({ title: "Erreur lors de la mise à jour du rôle utilisateur", description: error.message, variant: "destructive" });
