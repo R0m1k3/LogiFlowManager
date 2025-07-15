@@ -676,6 +676,11 @@ Changelog:
 - July 15, 2025. **CONTRAINTE RÔLE UNIQUE** - Modification setUserRoles() pour support d'un seul rôle par utilisateur
 - July 15, 2025. Script fix-roles-production.sh créé pour déploiement automatique corrections
 - July 15, 2025. Application prête redéploiement Docker avec système rôles fonctionnel
+- July 15, 2025. **ERREUR "RÔLE ID 6" DÉFINITIVEMENT CORRIGÉE** - Nettoyage automatique des données corrompues
+- July 15, 2025. **PROTECTION RENFORCÉE FRONTEND** - Validation stricte des rôles 1-4, assignation automatique par défaut
+- July 15, 2025. **SCRIPTS CORRECTION PRODUCTION** - Créés fix-production-roles-data.sh et fix-production-roles.sql
+- July 15, 2025. **DONNÉES PRODUCTION CORROMPUES IDENTIFIÉES** - Rôles avec couleurs incorrectes et IDs invalides
+- July 15, 2025. **SOLUTION COMPLÈTE PRODUCTION** - Scripts SQL et bash pour corriger données de production
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
 - July 14, 2025. Documentation technique complète prête pour production
