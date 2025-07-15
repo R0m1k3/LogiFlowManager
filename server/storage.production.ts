@@ -868,64 +868,13 @@ export class DatabaseStorage implements IStorage {
   }
 
 
-  async getRole(id: number): Promise<any> {
-    const result = await pool.query('SELECT * FROM roles WHERE id = $1', [id]);
-    return result.rows[0] || undefined;
-  }
-
-  async createRole(role: InsertRole): Promise<Role> {
-    const result = await pool.query(`
-      INSERT INTO roles (name, display_name, description, color, is_active, is_system) 
-      VALUES ($1, $2, $3, $4, $5, $6) 
-      RETURNING *
-    `, [
-      role.name, 
-      role.displayName || role.name, 
-      role.description || '', 
-      role.color || '#6b7280',
-      role.isActive !== false,
-      role.isSystem || false
-    ]);
-    return result.rows[0];
-  }
-
-  async updateRole(id: number, role: Partial<InsertRole>): Promise<Role> {
-    const result = await pool.query(`
-      UPDATE roles SET 
-        name = $1, 
-        display_name = $2, 
-        description = $3, 
-        color = $4, 
-        is_active = $5, 
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $6
-      RETURNING *
-    `, [
-      role.name, 
-      role.displayName, 
-      role.description, 
-      role.color, 
-      role.isActive,
-      id
-    ]);
-    return result.rows[0];
-  }
-
-  async deleteRole(id: number): Promise<void> {
-    await pool.query('DELETE FROM roles WHERE id = $1', [id]);
-  }
 
 
 
 
-  async createPermission(permission: InsertPermission): Promise<Permission> {
-    const result = await pool.query(`
-      INSERT INTO permissions (name, description, category) 
-      VALUES ($1, $2, $3) 
-      RETURNING *
-    `, [permission.name, permission.description, permission.category]);
-    return result.rows[0];
-  }
+
+
+
 
 
 

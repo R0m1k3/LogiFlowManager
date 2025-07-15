@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.production";
 import { setupLocalAuth, requireAuth } from "./localAuth.production";
-import { initializeRolesAndPermissions } from "./initRolesAndPermissions.production";
+
 
 // Alias pour compatibilité
 const isAuthenticated = requireAuth;
@@ -14,8 +14,7 @@ import {
   insertDeliverySchema,
   insertUserGroupSchema,
   insertPublicitySchema,
-  insertRoleSchema,
-  insertPermissionSchema,
+
   insertCustomerOrderSchema
 } from "@shared/schema";
 import { z } from "zod";
@@ -34,12 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Initialize roles and permissions on startup
-  try {
-    await initializeRolesAndPermissions();
-  } catch (error) {
-    console.error("Failed to initialize roles and permissions:", error);
-  }
+
 
   // All routes from the original routes.ts file
   // Groups routes
@@ -699,9 +693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Permissions management routes
 
-  // Role permissions management
 
   // NocoDB Configuration routes
   app.get('/api/nocodb-config', isAuthenticated, async (req: any, res) => {
