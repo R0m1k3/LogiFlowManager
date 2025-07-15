@@ -50,10 +50,11 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 - **Publicities**: Advertising campaign management with year-based organization
 - **Publicity Participations**: Many-to-many relationship between campaigns and stores
 
-### Permission System
+### Permission System (Simplified)
 - **Admin**: Full access to all features, user management, and store switching
-- **Manager**: Supplier and group management across multiple stores
+- **Manager**: Supplier and group management across multiple stores  
 - **Employee**: View and create within assigned groups only
+- **Note**: Role-based permission system has been completely removed for simplification
 
 ### Store Management for Admins
 - **Store selector in header**: Admins can switch between stores or view all data
@@ -437,17 +438,12 @@ Changelog:
 - July 11, 2025. **MESSAGES D'ERREUR INFORMATIFS** - Détection erreurs contraintes unique username/email avec messages clairs en français
 - July 11, 2025. **GÉNÉRATION USERNAME UNIQUE** - Ajout timestamp pour éviter collisions lors création automatique username depuis email
 - July 11, 2025. **FRONTEND ERREURS AMÉLIORÉ** - Affichage messages d'erreur spécifiques de l'API au lieu de messages génériques
-- July 11, 2025. **SYSTÈME DE GESTION DES RÔLES DYNAMIQUE IMPLÉMENTÉ** - Création complète du système de rôles et permissions
-- July 11, 2025. Tables roles, permissions, role_permissions créées avec colonnes appropriées
-- July 11, 2025. Interface RoleManagement.tsx développée avec CRUD complet pour les rôles
-- July 11, 2025. Permissions configurables par catégorie (Dashboard, Calendar, Orders, Deliveries, Users, etc.)
-- July 11, 2025. Rôles par défaut initialisés automatiquement (admin, manager, employee)
-- July 11, 2025. Protection contre suppression des rôles système intégrée
-- July 11, 2025. API routes complètes pour gestion des rôles et permissions avec authentification admin
-- July 11, 2025. **PERMISSIONS CALENDRIER COMPLÈTES** - Ajout permissions complètes calendrier : read, create, update, delete
-- July 11, 2025. Modal permissions reste ouvert pendant modifications multiples avec feedback visuel instantané
-- July 11, 2025. Ordre des permissions réorganisé : validate avant delete, groupes renommés en "magasins"
-- July 11, 2025. Attribution permissions calendrier : admin (toutes), manager (toutes), employee (voir+créer seulement)
+- July 11, 2025. **SYSTÈME DE GESTION DES RÔLES SUPPRIMÉ** - Module de rôles et permissions complètement éliminé
+- July 11, 2025. Architecture simplifiée avec rôles basiques : admin, manager, employee  
+- July 11, 2025. Suppression tables roles, permissions, role_permissions de l'application
+- July 11, 2025. Interface RoleManagement.tsx supprimée du frontend
+- July 11, 2025. Toutes les API routes de gestion des rôles et permissions supprimées
+- July 11, 2025. Code nettoyé dans storage.ts, routes.ts et fichiers production correspondants
 - July 11, 2025. **MISE EN ÉVIDENCE DATE ACTUELLE** - Ajout fond subtil bleu pour la date du jour dans le calendrier
 - July 11, 2025. Date du jour avec fond bg-blue-50, ring-1 ring-blue-200 et texte text-blue-700 font-semibold
 - July 11, 2025. Transition douce au survol avec hover:bg-blue-100 pour la date actuelle
@@ -612,6 +608,10 @@ Changelog:
 - July 15, 2025. **SCRIPT REBUILD PRODUCTION** - fix-react-error-310-production.sh créé pour déploiement corrections en production
 - July 15, 2025. **ERREUR GITHUB ACTIONS RÉSOLUE** - Correction docker buildx cache avec setup-buildx-action
 - July 15, 2025. **BUILD DOCKER CORRIGÉ** - GitHub Container Registry maintenant fonctionnel
+- July 15, 2025. **SYSTÈME DE RÔLES COMPLÈTEMENT ÉLIMINÉ** - Suppression totale du module de gestion des rôles et permissions
+- July 15, 2025. Nettoyage complet : routes API, méthodes storage, interfaces TypeScript, imports et références
+- July 15, 2025. Architecture simplifiée : authentification basique admin/manager/employee sans système de permissions granulaires
+- July 15, 2025. Application allégée et optimisée pour déploiement production sans complexité des rôles
 - July 14, 2025. Suppression de tous les fichiers temporaires et redondants
 - July 14, 2025. Interface utilisateur simplifiée et optimisée pour tablettes
 - July 14, 2025. Documentation technique complète prête pour production

@@ -867,98 +867,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Roles and permissions methods
-  async getRoles(): Promise<any[]> {
-    try {
-      const result = await pool.query(`
-        SELECT r.*, 
-               rp.permission_id,
-               p.name as permission_name,
-               p.display_name as permission_display_name,
-               p.description as permission_description,
-               p.category as permission_category,
-               p.action as permission_action,
-               p.created_at as permission_created_at,
-               p.updated_at as permission_updated_at
-        FROM roles r
-        LEFT JOIN role_permissions rp ON r.id = rp.role_id
-        LEFT JOIN permissions p ON rp.permission_id = p.id
-        ORDER BY r.name, p.category, p.name
-      `);
-      
-      console.log('🔍 getRoles debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
-      console.log('🔍 First result row:', result.rows?.[0] ? {
-        id: result.rows[0].id,
-        name: result.rows[0].name,
-        permission_id: result.rows[0].permission_id,
-        permission_name: result.rows[0].permission_name
-      } : 'No rows');
-      
-      // Protection critique contre null/undefined
-      if (!result || !result.rows) {
-        console.warn('⚠️ getRoles: result.rows is null/undefined');
-        return [];
-      }
-      
-      // Protection et transformation en structure Drizzle avec permissions imbriquées
-      const rolesMap = new Map();
-      const rows = Array.isArray(result.rows) ? result.rows : [];
-      console.log('🔍 Processing rows:', rows.length);
-      
-      rows.forEach((row, index) => {
-      const roleId = row.id;
-      console.log(`🔍 Row ${index}:`, {
-        roleId: row.id, 
-        roleName: row.name, 
-        permissionId: row.permission_id,
-        permissionName: row.permission_name
-      });
-      
-      if (!rolesMap.has(roleId)) {
-        rolesMap.set(roleId, {
-          id: row.id,
-          name: row.name,
-          displayName: row.display_name || row.name,
-          description: row.description || '',
-          color: row.color || '#6b7280',
-          isActive: row.is_active !== false,
-          isSystem: row.is_system || false,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          permissions: [],
-          rolePermissions: []
-        });
-      }
-      
-      // Ajouter permission si elle existe - STRUCTURE COMPATIBLE FRONTEND
-      if (row.permission_id) {
-        const permission = {
-          id: row.permission_id,
-          name: row.permission_name,
-          displayName: row.permission_display_name || row.permission_name || '',  // ✅ Utilise display_name de BDD
-          description: row.permission_description,
-          category: row.permission_category,
-          action: row.permission_action || row.permission_name || '',             // ✅ Utilise action de BDD
-          createdAt: row.permission_created_at || row.created_at,
-          updatedAt: row.permission_updated_at || row.updated_at
-        };
-        
-        rolesMap.get(roleId).permissions.push(permission);
-        rolesMap.get(roleId).rolePermissions.push({
-          roleId: roleId,
-          permissionId: row.permission_id
-        });
-      }
-    });
-    
-    const finalRoles = Array.from(rolesMap.values());
-    console.log('✅ getRoles final result:', { isArray: Array.isArray(finalRoles), length: finalRoles.length });
-    return finalRoles;
-    } catch (error) {
-      console.error('❌ getRoles error:', error);
-      return []; // Toujours retourner un array vide en cas d'erreur
-    }
-  }
 
   async getRole(id: number): Promise<any> {
     const result = await pool.query('SELECT * FROM roles WHERE id = $1', [id]);
@@ -1007,59 +915,8 @@ export class DatabaseStorage implements IStorage {
     await pool.query('DELETE FROM roles WHERE id = $1', [id]);
   }
 
-  async getPermissions(): Promise<Permission[]> {
-    try {
-      const result = await pool.query('SELECT * FROM permissions ORDER BY category, name');
-      console.log('🔍 getPermissions debug:', { resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
-      
-      // Protection critique contre null/undefined
-      if (!result || !result.rows) {
-        console.warn('⚠️ getPermissions: result.rows is null/undefined');
-        return [];
-      }
-      
-      // Protection contre null/undefined et transformation structure COMPATIBLE FRONTEND
-      const permissions = Array.isArray(result.rows) ? result.rows : [];
-      const finalPermissions = permissions.map(perm => ({
-        id: perm.id,
-        name: perm.name || '',
-        displayName: perm.display_name || perm.name || '',  // ✅ Ajout displayName manquant
-        description: perm.description || '',
-        category: perm.category || 'other',
-        action: perm.action || perm.name || '',            // ✅ Ajout action manquant  
-        createdAt: perm.created_at,
-        updatedAt: perm.updated_at
-      }));
-      
-      console.log('✅ getPermissions final result:', { isArray: Array.isArray(finalPermissions), length: finalPermissions.length });
-      return finalPermissions;
-    } catch (error) {
-      console.error('❌ getPermissions error:', error);
-      return []; // Toujours retourner un array vide en cas d'erreur
-    }
-  }
 
-  async getRolePermissions(roleId: number): Promise<RolePermission[]> {
-    const result = await pool.query('SELECT * FROM role_permissions WHERE role_id = $1', [roleId]);
-    return result.rows.map(row => ({
-      roleId: row.role_id,
-      permissionId: row.permission_id
-    }));
-  }
 
-  async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
-    // Supprimer les permissions existantes
-    await pool.query('DELETE FROM role_permissions WHERE role_id = $1', [roleId]);
-    
-    // Ajouter les nouvelles permissions
-    for (const permissionId of permissionIds) {
-      await pool.query(`
-        INSERT INTO role_permissions (role_id, permission_id) 
-        VALUES ($1, $2)
-        ON CONFLICT (role_id, permission_id) DO NOTHING
-      `, [roleId, permissionId]);
-    }
-  }
 
   async createPermission(permission: InsertPermission): Promise<Permission> {
     const result = await pool.query(`
@@ -1070,29 +927,7 @@ export class DatabaseStorage implements IStorage {
     return result.rows[0];
   }
 
-  async getRolePermissions(roleId: number): Promise<RolePermission[]> {
-    const result = await pool.query('SELECT * FROM role_permissions WHERE role_id = $1', [roleId]);
-    console.log('🔍 getRolePermissions debug:', { roleId, resultType: typeof result.rows, isArray: Array.isArray(result.rows), length: result.rows?.length });
-    
-    // Protection contre null/undefined et transformation structure
-    const rolePermissions = result.rows || [];
-    return Array.isArray(rolePermissions) ? rolePermissions.map(rp => ({
-      roleId: rp.role_id,
-      permissionId: rp.permission_id,
-      createdAt: rp.created_at
-    })) : [];
-  }
 
-  async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
-    await pool.query('DELETE FROM role_permissions WHERE role_id = $1', [roleId]);
-    
-    for (const permissionId of permissionIds) {
-      await pool.query(`
-        INSERT INTO role_permissions (role_id, permission_id) 
-        VALUES ($1, $2)
-      `, [roleId, permissionId]);
-    }
-  }
 
   // NocoDB Config methods
   async getNocodbConfigs(): Promise<NocodbConfig[]> {

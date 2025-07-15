@@ -120,12 +120,7 @@ export default function Sidebar() {
       icon: UserCog, 
       roles: ["admin"] 
     },
-    { 
-      path: "/roles", 
-      label: "Gestion des Rôles", 
-      icon: Shield, 
-      roles: ["admin"] 
-    },
+
     { 
       path: "/nocodb-config", 
       label: "Configuration NocoDB", 

@@ -7,9 +7,7 @@ import {
   userGroups,
   publicities,
   publicityParticipations,
-  roles,
-  permissions,
-  rolePermissions,
+
   customerOrders,
   type User,
   type UpsertUser,
@@ -31,13 +29,7 @@ import {
   type PublicityParticipation,
   type InsertPublicityParticipation,
   type PublicityWithRelations,
-  type Role,
-  type InsertRole,
-  type Permission,
-  type InsertPermission,
-  type RolePermission,
-  type InsertRolePermission,
-  type RoleWithPermissions,
+
   nocodbConfig,
   type NocodbConfig,
   type InsertNocodbConfig,
@@ -116,20 +108,7 @@ export interface IStorage {
   getPublicityParticipations(publicityId: number): Promise<PublicityParticipation[]>;
   setPublicityParticipations(publicityId: number, groupIds: number[]): Promise<void>;
 
-  // Role operations
-  getRoles(): Promise<RoleWithPermissions[]>;
-  getRole(id: number): Promise<RoleWithPermissions | undefined>;
-  createRole(role: InsertRole): Promise<Role>;
-  updateRole(id: number, role: Partial<InsertRole>): Promise<Role>;
-  deleteRole(id: number): Promise<void>;
-  
-  // Permission operations
-  getPermissions(): Promise<Permission[]>;
-  createPermission(permission: InsertPermission): Promise<Permission>;
-  
-  // Role-Permission operations
-  getRolePermissions(roleId: number): Promise<RolePermission[]>;
-  setRolePermissions(roleId: number, permissionIds: number[]): Promise<void>;
+
   
   // NocoDB Configuration operations
   getNocodbConfigs(): Promise<NocodbConfig[]>;
@@ -740,103 +719,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Role operations
-  async getRoles(): Promise<RoleWithPermissions[]> {
-    console.log('🔍 getRoles (storage.ts) called');
-    const rolesData = await db.query.roles.findMany({
-      with: {
-        rolePermissions: {
-          with: {
-            permission: true,
-          },
-        },
-      },
-      orderBy: [roles.name],
-    });
-    
-    console.log('🔍 Found roles:', rolesData.length);
-    console.log('🔍 First role permissions:', rolesData[0]?.rolePermissions?.length || 0);
-    
-    // ✅ CORRECTION CRITIQUE: Assurer structure compatible frontend
-    const processedRoles = rolesData.map(role => ({
-      ...role,
-      permissions: role.rolePermissions?.map(rp => ({
-        ...rp.permission,
-        displayName: rp.permission.displayName || rp.permission.name || '',
-        action: rp.permission.action || rp.permission.name || ''
-      })) || []
-    }));
-    
-    console.log('✅ getRoles final result:', processedRoles.length, 'roles processed');
-    console.log('✅ Admin permissions count:', processedRoles.find(r => r.name === 'admin')?.permissions.length || 0);
-    return processedRoles;
-  }
 
-  async getRole(id: number): Promise<RoleWithPermissions | undefined> {
-    const role = await db.query.roles.findFirst({
-      where: eq(roles.id, id),
-      with: {
-        rolePermissions: {
-          with: {
-            permission: true,
-          },
-        },
-      },
-    });
-    return role;
-  }
 
-  async createRole(role: InsertRole): Promise<Role> {
-    const [newRole] = await db.insert(roles).values(role).returning();
-    return newRole;
-  }
 
-  async updateRole(id: number, role: Partial<InsertRole>): Promise<Role> {
-    const [updatedRole] = await db.update(roles)
-      .set({ ...role, updatedAt: new Date() })
-      .where(eq(roles.id, id))
-      .returning();
-    return updatedRole;
-  }
-
-  async deleteRole(id: number): Promise<void> {
-    // Supprimer d'abord les permissions associées
-    await db.delete(rolePermissions).where(eq(rolePermissions.roleId, id));
-    // Puis supprimer le rôle
-    await db.delete(roles).where(eq(roles.id, id));
-  }
-
-  // Permission operations
-  async getPermissions(): Promise<Permission[]> {
-    return await db.select().from(permissions).orderBy(permissions.category, permissions.name);
-  }
-
-  async createPermission(permission: InsertPermission): Promise<Permission> {
-    const [newPermission] = await db.insert(permissions).values(permission).returning();
-    return newPermission;
-  }
-
-  // Role-Permission operations
-  async getRolePermissions(roleId: number): Promise<RolePermission[]> {
-    return await db.select()
-      .from(rolePermissions)
-      .where(eq(rolePermissions.roleId, roleId));
-  }
-
-  async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
-    // Supprimer les permissions existantes
-    await db.delete(rolePermissions)
-      .where(eq(rolePermissions.roleId, roleId));
-
-    // Ajouter les nouvelles permissions
-    if (permissionIds.length > 0) {
-      const permissions = permissionIds.map(permissionId => ({
-        roleId,
-        permissionId
-      }));
-      await db.insert(rolePermissions).values(permissions);
-    }
-  }
 
   // NocoDB Configuration operations
   async getNocodbConfigs(): Promise<NocodbConfig[]> {
