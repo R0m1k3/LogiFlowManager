@@ -69,6 +69,19 @@ export default function UsersPage() {
     enabled: user?.role === 'admin',
   });
 
+  // Protection React Error #310 - Vérification Array pour users et groups
+  console.log('👥 Users page data:', { 
+    usersLoading, 
+    usersCount: Array.isArray(users) ? users.length : 'NOT_ARRAY',
+    groupsCount: Array.isArray(groups) ? groups.length : 'NOT_ARRAY',
+    usersType: typeof users,
+    groupsType: typeof groups 
+  });
+  
+  // Protection: s'assurer que users et groups sont des arrays
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeGroups = Array.isArray(groups) ? groups : [];
+
   const updateUserRoleMutation = useMutation({
     mutationFn: async (data: { userId: string; role: string }) => {
       await apiRequest(`/api/users/${data.userId}`, {
