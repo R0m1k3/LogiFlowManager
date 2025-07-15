@@ -38,6 +38,7 @@ export default function RoleManagement() {
   const [editRoleOpen, setEditRoleOpen] = useState(false);
   const [editUserRolesOpen, setEditUserRolesOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
+  const [selectedRoleForUser, setSelectedRoleForUser] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -242,18 +243,15 @@ export default function RoleManagement() {
 
   const handleUserRolesUpdate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedUser) return;
-    
-    const formData = new FormData(event.currentTarget);
-    const selectedRoleId = formData.get('selectedRole');
+    if (!selectedUser || selectedRoleForUser === null) return;
     
     console.log("🔍 Form submission debug:", {
       selectedUser: selectedUser.id,
-      selectedRoleId,
-      formDataEntries: Array.from(formData.entries())
+      selectedRoleForUser,
+      currentRole: selectedUser.userRoles?.[0]?.roleId
     });
     
-    if (!selectedRoleId) {
+    if (selectedRoleForUser === null) {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner un rôle",
@@ -262,16 +260,15 @@ export default function RoleManagement() {
       return;
     }
 
-    const roleId = parseInt(selectedRoleId as string);
     console.log("🚀 About to mutate:", {
       userId: selectedUser.id,
-      roleIds: [roleId],
-      roleIdParsed: roleId
+      roleIds: [selectedRoleForUser],
+      roleIdParsed: selectedRoleForUser
     });
 
     updateUserRolesMutation.mutate({
       userId: selectedUser.id,
-      roleIds: [roleId],
+      roleIds: [selectedRoleForUser],
     });
   };
 
@@ -490,6 +487,7 @@ export default function RoleManagement() {
                         onClick={() => {
                           console.log("🔍 Selected user for role edit:", user);
                           setSelectedUser(user as UserWithRoles);
+                          setSelectedRoleForUser(user.userRoles?.[0]?.roleId || null);
                           setEditUserRolesOpen(true);
                         }}
                       >
@@ -621,7 +619,11 @@ export default function RoleManagement() {
                         id={`user-role-${role.id}`}
                         name="selectedRole"
                         value={role.id}
-                        defaultChecked={isCurrentRole}
+                        checked={selectedRoleForUser === role.id}
+                        onChange={(e) => {
+                          console.log("🔧 Role selection changed:", { roleId: role.id, value: e.target.value });
+                          setSelectedRoleForUser(role.id);
+                        }}
                         className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
                       />
                       <label
