@@ -690,22 +690,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Get all users for admin avec protection Array.isArray()
-      const baseUsers = await storage.getUsers();
-      const safeBaseUsers = Array.isArray(baseUsers) ? baseUsers : [];
+      // Get all users with roles and groups for admin
+      const usersWithRoles = await storage.getUsersWithRolesAndGroups();
+      const safeUsers = Array.isArray(usersWithRoles) ? usersWithRoles : [];
       
-      const allUsers = await Promise.all(
-        safeBaseUsers.map(async (userData) => {
-          try {
-            return await storage.getUserWithGroups(userData.id);
-          } catch (error) {
-            console.warn(`Failed to get user with groups for ${userData.id}:`, error);
-            return null;
-          }
-        })
-      );
-      
-      const safeUsers = allUsers.filter(Boolean);
       console.log('🔐 API /api/users - Returning:', { isArray: Array.isArray(safeUsers), length: safeUsers.length });
       res.json(safeUsers);
     } catch (error) {

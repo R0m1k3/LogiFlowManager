@@ -60,6 +60,8 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   getUserWithGroups(id: string): Promise<UserWithGroups | undefined>;
   getUsers(): Promise<User[]>;
+  getUsersWithRoles(): Promise<UserWithRoles[]>;
+  getUsersWithRolesAndGroups(): Promise<(UserWithRoles & { userGroups: any[] })[]>;
   createUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, user: Partial<UpsertUser>): Promise<User>;
   deleteUser(id: string): Promise<void>;
@@ -219,6 +221,33 @@ export class DatabaseStorage implements IStorage {
 
   async getUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+
+  async getUsersWithRoles(): Promise<UserWithRoles[]> {
+    const baseUsers = await this.getUsers();
+    const usersWithRoles = await Promise.all(
+      baseUsers.map(async (user) => {
+        const userWithRoles = await this.getUserWithRoles(user.id);
+        return userWithRoles || { ...user, userRoles: [] };
+      })
+    );
+    return usersWithRoles;
+  }
+
+  async getUsersWithRolesAndGroups(): Promise<(UserWithRoles & { userGroups: any[] })[]> {
+    const baseUsers = await this.getUsers();
+    const usersWithRolesAndGroups = await Promise.all(
+      baseUsers.map(async (user) => {
+        const userWithRoles = await this.getUserWithRoles(user.id);
+        const userWithGroups = await this.getUserWithGroups(user.id);
+        return {
+          ...user,
+          userRoles: userWithRoles?.userRoles || [],
+          userGroups: userWithGroups?.userGroups || []
+        };
+      })
+    );
+    return usersWithRolesAndGroups;
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
@@ -1209,6 +1238,9 @@ export class DatabaseStorage implements IStorage {
       .from(userRoles)
       .innerJoin(roles, eq(userRoles.roleId, roles.id))
       .where(eq(userRoles.userId, userId));
+
+    // Debug user roles
+    console.log(`📊 getUserWithRoles(${userId}):`, { userRoleDataLength: userRoleData.length });
 
     return {
       ...user,

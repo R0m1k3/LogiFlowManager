@@ -81,13 +81,11 @@ export default function RoleManagement() {
     enabled: !!selectedRole,
   });
 
+  // Debug permissions
   console.log("🔍 Permissions Debug:", {
-    selectedRole,
-    rolePermissions,
+    selectedRole: selectedRole?.name,
     rolePermissionsLength: rolePermissions?.length,
-    permissions: permissions.slice(0, 3),
-    permissionsLength: permissions.length,
-    queryKey: selectedRole ? `/api/roles/${selectedRole.id}/permissions` : 'No role selected'
+    permissionsLength: permissions.length
   });
 
   // Group permissions by category
@@ -394,11 +392,11 @@ export default function RoleManagement() {
                             const hasPermission = rolePermissions?.some(
                               rp => rp.permissionId === permission.id
                             );
+                            // Debug permission check
                             if (permission.id === 1) {
                               console.log("🔍 Permission check for ID 1:", {
                                 hasPermission,
-                                rolePermissions: rolePermissions?.slice(0, 3),
-                                permissionId: permission.id
+                                rolePermissionsLength: rolePermissions?.length
                               });
                             }
                             return (
