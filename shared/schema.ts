@@ -176,6 +176,9 @@ export const nocodbConfig = pgTable("nocodb_config", {
   name: varchar("name").notNull(), // Nom de la configuration
   baseUrl: varchar("base_url").notNull(), // URL de l'instance NocoDB
   projectId: varchar("project_id").notNull(), // NocoDB Project ID
+  tableId: varchar("table_id"), // ID de la table dans NocoDB (optionnel en dev)
+  tableName: varchar("table_name"), // Nom de la table dans NocoDB (optionnel en dev)
+  invoiceColumnName: varchar("invoice_column_name"), // Nom de la colonne facture (optionnel en dev)
   apiToken: varchar("api_token").notNull(), // Personal API Token
   description: text("description"), // Description de la configuration
   isActive: boolean("is_active").default(true), // Configuration active ou non

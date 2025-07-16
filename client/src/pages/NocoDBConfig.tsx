@@ -35,6 +35,9 @@ const nocodbConfigFormSchema = z.object({
   baseUrl: z.string().url("L'URL doit être valide").min(1, "L'URL de base est obligatoire"),
   apiToken: z.string().min(1, "Le token API est obligatoire"),
   projectId: z.string().min(1, "L'ID du projet est obligatoire"),
+  tableId: z.string().optional(),
+  tableName: z.string().optional(),
+  invoiceColumnName: z.string().optional(),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
 });
@@ -129,6 +132,9 @@ export default function NocoDBConfig() {
       baseUrl: "",
       apiToken: "",
       projectId: "",
+      tableId: "",
+      tableName: "",
+      invoiceColumnName: "",
       description: "",
       isActive: true,
     },
@@ -163,6 +169,9 @@ export default function NocoDBConfig() {
       baseUrl: config.baseUrl,
       apiToken: config.apiToken,
       projectId: config.projectId,
+      tableId: config.tableId || "",
+      tableName: config.tableName || "",
+      invoiceColumnName: config.invoiceColumnName || "",
       description: config.description || "",
       isActive: config.isActive,
     });
@@ -416,6 +425,57 @@ export default function NocoDBConfig() {
 
               <FormField
                 control={createForm.control}
+                name="tableId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID de la table (optionnel)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="m_xxxxxxxxxxxxxx" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="tableName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom de la table (optionnel)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Table name in NocoDB" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="invoiceColumnName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom de la colonne facture (optionnel)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Invoice column name" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
@@ -540,6 +600,57 @@ export default function NocoDBConfig() {
                     <FormControl>
                       <Input 
                         placeholder="p_xxxxxxxxxxxxxx" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="tableId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID de la table (optionnel)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="m_xxxxxxxxxxxxxx" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="tableName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom de la table (optionnel)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Table name in NocoDB" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="invoiceColumnName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom de la colonne facture (optionnel)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Invoice column name" 
                         {...field} 
                       />
                     </FormControl>
