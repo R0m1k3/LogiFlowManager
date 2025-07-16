@@ -1443,24 +1443,101 @@ export class DatabaseStorage implements IStorage {
   async createNocodbConfig(config: InsertNocodbConfig): Promise<NocodbConfig> {
     console.log('📝 Creating NocoDB config with data:', config);
     
-    const result = await pool.query(`
-      INSERT INTO nocodb_config (
-        name, base_url, project_id, api_token, description, is_active, created_by
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *
-    `, [
-      config.name,
-      config.baseUrl,
-      config.projectId || '',
-      config.apiToken,
-      config.description || '',
-      config.isActive !== undefined ? config.isActive : true,
-      config.createdBy
-    ]);
-    
-    console.log('✅ NocoDB config created:', result.rows[0]);
-    return result.rows[0];
+    try {
+      // Première tentative avec la structure moderne
+      const result = await pool.query(`
+        INSERT INTO nocodb_config (
+          name, base_url, project_id, api_token, description, is_active, created_by
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+      `, [
+        config.name,
+        config.baseUrl,
+        config.projectId || '',
+        config.apiToken,
+        config.description || '',
+        config.isActive !== undefined ? config.isActive : true,
+        config.createdBy
+      ]);
+      
+      console.log('✅ NocoDB config created:', result.rows[0]);
+      return result.rows[0];
+      
+    } catch (error: any) {
+      // Si erreur de contrainte NOT NULL sur colonnes obsolètes
+      if (error.code === '23502' && (error.column === 'table_id' || error.column === 'table_name' || error.column === 'invoice_column_name')) {
+        console.log('🔧 Detected obsolete columns with NOT NULL constraints, attempting automatic fix...');
+        
+        try {
+          // Essayer de supprimer les colonnes obsolètes automatiquement
+          await pool.query(`
+            ALTER TABLE nocodb_config 
+            DROP COLUMN IF EXISTS table_id,
+            DROP COLUMN IF EXISTS table_name,
+            DROP COLUMN IF EXISTS invoice_column_name
+          `);
+          
+          console.log('✅ Obsolete columns removed successfully');
+          
+          // Réessayer l'insertion
+          const result = await pool.query(`
+            INSERT INTO nocodb_config (
+              name, base_url, project_id, api_token, description, is_active, created_by
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *
+          `, [
+            config.name,
+            config.baseUrl,
+            config.projectId || '',
+            config.apiToken,
+            config.description || '',
+            config.isActive !== undefined ? config.isActive : true,
+            config.createdBy
+          ]);
+          
+          console.log('✅ NocoDB config created after automatic fix:', result.rows[0]);
+          return result.rows[0];
+          
+        } catch (fixError) {
+          console.error('❌ Failed to automatically fix table structure:', fixError);
+          
+          // Dernier recours : insertion avec valeurs par défaut pour les colonnes obsolètes
+          try {
+            const result = await pool.query(`
+              INSERT INTO nocodb_config (
+                name, base_url, project_id, api_token, description, is_active, created_by,
+                table_id, table_name, invoice_column_name
+              )
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+              RETURNING *
+            `, [
+              config.name,
+              config.baseUrl,
+              config.projectId || '',
+              config.apiToken,
+              config.description || '',
+              config.isActive !== undefined ? config.isActive : true,
+              config.createdBy,
+              '', // table_id par défaut
+              '', // table_name par défaut
+              '' // invoice_column_name par défaut
+            ]);
+            
+            console.log('✅ NocoDB config created with legacy compatibility:', result.rows[0]);
+            return result.rows[0];
+            
+          } catch (legacyError) {
+            console.error('❌ All insertion methods failed:', legacyError);
+            throw error; // Rethrow l'erreur originale
+          }
+        }
+      } else {
+        console.error('❌ Error creating NocoDB config:', error);
+        throw error;
+      }
+    }
   }
 
   async updateNocodbConfig(id: number, config: Partial<InsertNocodbConfig>): Promise<NocodbConfig> {
