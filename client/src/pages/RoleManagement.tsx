@@ -546,9 +546,9 @@ export default function RoleManagement() {
                       <Badge 
                         variant="outline"
                         style={{
-                          backgroundColor: user.userRoles?.[0]?.role ? getRoleColor(user.userRoles[0].role.name) : '#666666',
-                          color: 'white',
-                          borderColor: user.userRoles?.[0]?.role ? getRoleColor(user.userRoles[0].role.name) : '#666666'
+                          backgroundColor: user.userRoles?.[0]?.role ? getRoleColor(user.userRoles[0].role.name) : '#f3f4f6',
+                          color: '#374151',
+                          borderColor: user.userRoles?.[0]?.role ? getRoleColor(user.userRoles[0].role.name) : '#d1d5db'
                         }}
                         onClick={() => {
                           console.log("🎨 Badge Color Debug:", {
