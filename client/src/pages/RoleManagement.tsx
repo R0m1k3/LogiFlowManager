@@ -289,7 +289,9 @@ export default function RoleManagement() {
     }
     
     // Validation: vérifier que le rôle est valide
-    if (selectedRoleForUser < 1 || selectedRoleForUser > 4) {
+    // Accepter les IDs de production existants (2,3,4,6) en plus des IDs standards (1,2,3,4)
+    const validRoleIds = [1, 2, 3, 4, 6]; // IDs acceptés
+    if (!validRoleIds.includes(selectedRoleForUser)) {
       toast({
         title: "Rôle invalide",
         description: "Le rôle sélectionné n'est pas valide",
@@ -550,7 +552,9 @@ export default function RoleManagement() {
                           
                           // Pré-sélectionner le rôle actuel de l'utilisateur
                           const currentRoleId = user.userRoles?.[0]?.roleId;
-                          const validRoleId = (currentRoleId >= 1 && currentRoleId <= 4) ? currentRoleId : 3;
+                          // Accepter les IDs de production existants (2,3,4,6) 
+                          const validRoleIds = [1, 2, 3, 4, 6];
+                          const validRoleId = validRoleIds.includes(currentRoleId) ? currentRoleId : 3;
                           setSelectedRoleForUser(validRoleId);
                           
                           setEditUserRolesOpen(true);
