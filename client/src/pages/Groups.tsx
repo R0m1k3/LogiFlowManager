@@ -59,13 +59,17 @@ export default function Groups() {
     queryKey: ['/api/nocodb-config'],
   });
 
-  // Protection contre les erreurs TypeError
+  // Protection renforcée contre les erreurs TypeError
   const nocodbConfigs = Array.isArray(rawNocodbConfigs) ? rawNocodbConfigs : [];
   
   console.log('🔍 Groups NocoDB Debug:', { 
     rawNocodbConfigs, 
+    rawType: typeof rawNocodbConfigs,
     nocodbConfigs,
-    isArray: Array.isArray(rawNocodbConfigs)
+    configsType: typeof nocodbConfigs,
+    isArray: Array.isArray(rawNocodbConfigs),
+    length: nocodbConfigs.length,
+    environment: window.location.hostname
   });
 
   const { data: orders = [] } = useQuery({

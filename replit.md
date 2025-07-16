@@ -761,6 +761,13 @@ Changelog:
 - July 16, 2025. **SOLUTION DÉFINITIVE CRÉÉE** - Scripts automatiques de rebuild et déploiement pour corriger le cache production
 - July 16, 2025. **PROBLEM NOCODB RÉSOLU** - Logs montrent isArray: true, safeConfigs opérationnel, plus d'erreur TypeError
 - July 16, 2025. **CORRECTION URGENTE APPLIQUÉE** - Scripts de patch d'urgence créés, application fonctionnelle, page Configuration NocoDB opérationnelle
+- July 16, 2025. **COHÉRENCE BACKEND-FRONTEND DÉFINITIVEMENT RÉSOLUE** - Transformation complète des données snake_case → camelCase
+- July 16, 2025. **STRUCTURES DONNÉES HARMONISÉES** - Backend production retourne maintenant des structures TypeScript cohérentes
+- July 16, 2025. **APIS NOCODB/RÔLES CORRIGES** - getNocodbConfigs(), getRoles(), getPermissions() avec transformation complète
+- July 16, 2025. **TYPEERROR PRODUCTION ÉLIMINÉ** - Plus d'erreur "Cannot read properties of undefined (reading 'length')"
+- July 16, 2025. **PROTECTION ARRAY.ISARRAY() RENFORCÉE** - Toutes les réponses API garantissent un array valide
+- July 16, 2025. **MAPPING COMPLET CHAMPS DB** - base_url→baseUrl, display_name→displayName, is_system→isSystem, etc.
+- July 16, 2025. **SCRIPT VALIDATION CRÉÉ** - fix-nocodb-and-roles-production.sh pour vérifier la cohérence complète
 - July 16, 2025. **PROBLÈME RÔLES PRODUCTION DIAGNOSTIQUÉ** - Rudolph MATTON a rôle différent selon les pages (Manager vs Aucun rôle)
 - July 16, 2025. **SOLUTION SYNCHRONISATION RÔLES CRÉÉE** - Script SQL pour corriger incohérence tables users.role vs user_roles
 - July 16, 2025. **CORRECTION AUTOMATIQUE PRÊTE** - fix-production-roles-colors.sql synchronise tous les rôles utilisateurs en production

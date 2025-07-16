@@ -58,19 +58,23 @@ export default function NocoDBConfig() {
     enabled: user?.role === 'admin',
   });
 
-  // Protection triple couche pour éviter les erreurs TypeError
+  // Protection quadruple couche pour éviter les erreurs TypeError
   const configs = rawConfigs || [];
   const safeConfigs = Array.isArray(configs) ? configs : [];
   
-  // Log pour debug production
+  // Log pour debug production avec plus de détails
   console.log('🔍 NocoDBConfig Debug:', { 
     rawConfigs, 
+    rawConfigsType: typeof rawConfigs,
     configs,
+    configsType: typeof configs,
     isArray: Array.isArray(configs), 
     safeConfigs, 
+    safeConfigsType: typeof safeConfigs,
     length: safeConfigs.length,
     error,
-    userRole: user?.role
+    userRole: user?.role,
+    environment: window.location.hostname
   });
 
   // Mutations

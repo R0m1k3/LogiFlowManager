@@ -1096,7 +1096,23 @@ export class DatabaseStorage implements IStorage {
         isActive: row.is_active !== false,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
-        permissions: Array.isArray(row.permissions) ? row.permissions : []
+        rolePermissions: Array.isArray(row.permissions) ? row.permissions.map(p => ({
+          id: p.id,
+          permissionId: p.id,
+          roleId: row.id,
+          createdAt: p.createdAt,
+          permission: {
+            id: p.id,
+            name: p.name,
+            displayName: p.displayName,
+            description: p.description,
+            category: p.category,
+            action: p.action,
+            resource: p.resource,
+            isSystem: p.isSystem,
+            createdAt: p.createdAt
+          }
+        })) : []
       })) || [];
     } catch (error) {
       console.error("Error in getRoles:", error);
@@ -1275,6 +1291,7 @@ export class DatabaseStorage implements IStorage {
         ORDER BY category, name
       `);
       
+      // Transformation des données snake_case vers camelCase pour cohérence TypeScript
       return result.rows.map(row => ({
         id: row.id,
         name: row.name,
@@ -1428,8 +1445,28 @@ export class DatabaseStorage implements IStorage {
         FROM nocodb_config 
         ORDER BY created_at DESC
       `);
-      console.log('📊 getNocodbConfigs result:', { rows: result.rows ? result.rows.length : 0, data: result.rows });
-      return Array.isArray(result.rows) ? result.rows : [];
+      
+      // Transformation des données snake_case vers camelCase pour cohérence TypeScript
+      const transformedData = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        baseUrl: row.base_url,
+        projectId: row.project_id,
+        apiToken: row.api_token,
+        description: row.description,
+        isActive: row.is_active,
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+      
+      console.log('📊 getNocodbConfigs result:', { 
+        rows: transformedData.length, 
+        transformed: true,
+        sample: transformedData[0] || 'empty'
+      });
+      
+      return Array.isArray(transformedData) ? transformedData : [];
     } catch (error) {
       console.error('❌ Error in getNocodbConfigs:', error);
       return [];
@@ -1443,7 +1480,23 @@ export class DatabaseStorage implements IStorage {
       FROM nocodb_config 
       WHERE id = $1
     `, [id]);
-    return result.rows[0] || undefined;
+    
+    if (!result.rows[0]) return undefined;
+    
+    // Transformation des données snake_case vers camelCase
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      name: row.name,
+      baseUrl: row.base_url,
+      projectId: row.project_id,
+      apiToken: row.api_token,
+      description: row.description,
+      isActive: row.is_active,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
   }
 
   async createNocodbConfig(config: InsertNocodbConfig): Promise<NocodbConfig> {
