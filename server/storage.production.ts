@@ -1765,6 +1765,94 @@ export class DatabaseStorage implements IStorage {
   async deleteCustomerOrder(id: number): Promise<void> {
     await pool.query('DELETE FROM customer_orders WHERE id = $1', [id]);
   }
+
+  // 🔧 MÉTHODES MANQUANTES POUR L'AFFICHAGE DES RÔLES
+  async getUserWithRoles(userId: string): Promise<any> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) return undefined;
+
+      const result = await pool.query(`
+        SELECT 
+          ur.user_id,
+          ur.role_id,
+          ur.assigned_by,
+          ur.assigned_at,
+          r.id as role_id,
+          r.name as role_name,
+          r.display_name as role_display_name,
+          r.description as role_description,
+          r.color as role_color,
+          r.is_system as role_is_system,
+          r.is_active as role_is_active,
+          r.created_at as role_created_at,
+          r.updated_at as role_updated_at
+        FROM user_roles ur
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE ur.user_id = $1
+      `, [userId]);
+
+      const userRoleData = result.rows.map(row => ({
+        userId: row.user_id,
+        roleId: row.role_id,
+        assignedBy: row.assigned_by,
+        assignedAt: row.assigned_at,
+        role: {
+          id: row.role_id,
+          name: row.role_name,
+          displayName: row.role_display_name,
+          description: row.role_description,
+          color: row.role_color,
+          isSystem: row.role_is_system,
+          isActive: row.role_is_active,
+          createdAt: row.role_created_at,
+          updatedAt: row.role_updated_at,
+        },
+      }));
+
+      console.log(`📊 getUserWithRoles(${userId}):`, { userRoleDataLength: userRoleData.length });
+
+      return {
+        ...user,
+        userRoles: userRoleData,
+      };
+    } catch (error) {
+      console.error("Error in getUserWithRoles:", error);
+      return undefined;
+    }
+  }
+
+  async getUsersWithRolesAndGroups(): Promise<any[]> {
+    console.log('🔍 getUsersWithRolesAndGroups called');
+    
+    try {
+      const baseUsers = await this.getUsers();
+      console.log('📊 Base users found:', baseUsers.length);
+      
+      const usersWithRolesAndGroups = await Promise.all(
+        baseUsers.map(async (user) => {
+          console.log(`🔍 Processing user: ${user.username}`);
+          const userWithRoles = await this.getUserWithRoles(user.id);
+          const userWithGroups = await this.getUserWithGroups(user.id);
+          
+          console.log(`📊 User ${user.username} groups:`, userWithGroups?.userGroups?.length || 0);
+          
+          return {
+            ...user,
+            userRoles: userWithRoles?.userRoles || [],
+            userGroups: userWithGroups?.userGroups || [],
+            roles: userWithRoles?.userRoles?.map(ur => ur.role) || []
+          };
+        })
+      );
+      
+      console.log('🔍 Final users with roles and groups:', usersWithRolesAndGroups.length);
+      return usersWithRolesAndGroups;
+    } catch (error) {
+      console.error("Error in getUsersWithRolesAndGroups:", error);
+      return [];
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
