@@ -53,10 +53,7 @@ export default function ValidateDeliveryModal({
         payload.blAmount = parseFloat(data.blAmount);
       }
       
-      await apiRequest(`/api/deliveries/${delivery.id}/validate`, {
-        method: "POST",
-        body: payload,
-      });
+      await apiRequest(`/api/deliveries/${delivery.id}/validate`, "POST", payload);
     },
     onSuccess: () => {
       toast({

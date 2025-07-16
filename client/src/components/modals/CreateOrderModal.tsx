@@ -68,10 +68,7 @@ export default function CreateOrderModal({
 
   const createOrderMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("/api/orders", {
-        method: "POST",
-        body: data,
-      });
+      await apiRequest("/api/orders", "POST", data);
     },
     onSuccess: () => {
       toast({

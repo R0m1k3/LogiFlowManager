@@ -72,9 +72,7 @@ export default function OrderDetailModal({
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const endpoint = isOrder ? `/api/orders/${id}` : `/api/deliveries/${id}`;
-      await apiRequest(endpoint, {
-        method: "DELETE",
-      });
+      await apiRequest(endpoint, "DELETE");
     },
     onSuccess: () => {
       toast({

@@ -89,10 +89,7 @@ export default function Suppliers() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest(`/api/suppliers/${selectedSupplier?.id}`, {
-        method: "PUT",
-        body: data,
-      });
+      await apiRequest(`/api/suppliers/${selectedSupplier?.id}`, "PUT", data);
     },
     onSuccess: () => {
       toast({
@@ -126,7 +123,7 @@ export default function Suppliers() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/suppliers/${id}`);
+      await apiRequest(`/api/suppliers/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({
