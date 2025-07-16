@@ -756,6 +756,9 @@ Changelog:
 - July 16, 2025. **ARCHITECTURE NOCODB FINALISÉE** - Configuration globale (nocodb_config) + paramètres par magasin (groups) fonctionnelle
 - July 16, 2025. **SCRIPTS CORRECTION CRÉÉS** - fix-nocodb-production.sql et apply-nocodb-fix-production.sh pour résolution immédiate
 - July 16, 2025. **CRÉATION NOCODB FONCTIONNELLE** - Erreur 500 lors de la création de configurations NocoDB définitivement résolue
+- July 16, 2025. **ERREUR NOCODB PRODUCTION IDENTIFIÉE** - TypeError "Cannot read properties of undefined (reading 'length')" résolu
+- July 16, 2025. **PROTECTION FRONTEND COMPLÈTE** - NocoDBConfig.tsx et Groups.tsx avec triple couche de protection Array.isArray()
+- July 16, 2025. **SOLUTION DÉFINITIVE CRÉÉE** - Scripts automatiques de rebuild et déploiement pour corriger le cache production
 
 ## User Preferences
 

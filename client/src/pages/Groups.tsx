@@ -55,8 +55,17 @@ export default function Groups() {
     queryKey: ['/api/groups'],
   });
 
-  const { data: nocodbConfigs = [] } = useQuery<NocodbConfig[]>({
+  const { data: rawNocodbConfigs = [] } = useQuery<NocodbConfig[]>({
     queryKey: ['/api/nocodb-config'],
+  });
+
+  // Protection contre les erreurs TypeError
+  const nocodbConfigs = Array.isArray(rawNocodbConfigs) ? rawNocodbConfigs : [];
+  
+  console.log('🔍 Groups NocoDB Debug:', { 
+    rawNocodbConfigs, 
+    nocodbConfigs,
+    isArray: Array.isArray(rawNocodbConfigs)
   });
 
   const { data: orders = [] } = useQuery({
