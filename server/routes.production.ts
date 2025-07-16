@@ -518,34 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/users/:userId/groups', isAuthenticated, async (req: any, res) => {
-    try {
-      const currentUserId = req.user.claims ? req.user.claims.sub : req.user.id;
-      const currentUser = await storage.getUser(currentUserId);
-      if (!currentUser || currentUser.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
-      const userId = req.params.userId;
-      const { groupIds } = req.body;
-
-      // Clear existing groups
-      const existingGroups = await storage.getUserGroups(userId);
-      for (const ug of existingGroups) {
-        await storage.removeUserFromGroup(userId, ug.groupId);
-      }
-
-      // Add new groups
-      for (const groupId of groupIds) {
-        await storage.assignUserToGroup({ userId, groupId });
-      }
-
-      res.json({ message: "User groups updated successfully" });
-    } catch (error) {
-      console.error("Error updating user groups:", error);
-      res.status(500).json({ message: "Failed to update user groups" });
-    }
-  });
+  // Route supprimée car dupliquée - utilisation de la route unique en bas du fichier
 
   // Statistics routes
   app.get('/api/stats/monthly', isAuthenticated, async (req: any, res) => {
@@ -1068,7 +1041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User-Group management routes (admin only) - ROUTES MANQUANTES AJOUTÉES
+  // User-Group management routes (admin only) - ROUTE UNIQUE CORRIGÉE
   app.post('/api/users/:userId/groups', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
@@ -1079,15 +1052,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.params.userId;
       const { groupId } = req.body;
       
-      console.log('📝 Assigning user to group:', { userId, groupId });
+      console.log('📝 Assigning user to group:', { userId, groupId, body: req.body });
+
+      // Vérifier que l'utilisateur et le groupe existent
+      const userExists = await storage.getUser(userId);
+      if (!userExists) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
       const userGroup = await storage.assignUserToGroup({ userId, groupId });
       console.log('✅ User assigned to group successfully');
       
       res.json(userGroup);
     } catch (error) {
-      console.error("Error assigning user to group:", error);
-      res.status(500).json({ message: "Failed to assign user to group" });
+      console.error("❌ Error assigning user to group:", error);
+      
+      // Message d'erreur plus détaillé
+      const errorMessage = error.message || "Failed to assign user to group";
+      res.status(500).json({ 
+        message: errorMessage,
+        details: error.toString()
+      });
     }
   });
 

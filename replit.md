@@ -722,6 +722,11 @@ Changelog:
 - July 16, 2025. **LOGS DÉTAILLÉS ATTRIBUTION** - Logs complets pour diagnostic problèmes assignation groupes
 - July 16, 2025. **CACHE INVALIDATION COMPLÈTE** - Invalidation users, roles, groups après toute modification
 - July 16, 2025. **CORRECTIONS COULEURS PRÉPARÉES** - Script deploy-roles-fix.sh pour couleurs standardisées production
+- July 16, 2025. **PROBLÈME ROUTES DUPLIQUÉES RÉSOLU** - Routes POST /api/users/:userId/groups dupliquées supprimées en production
+- July 16, 2025. **ATTRIBUTION GROUPES CORRIGÉE** - Route unique avec gestion d'erreur améliorée et validation utilisateur
+- July 16, 2025. **SCRIPTS CORRECTION URGENTE** - fix-production-urgent.sh créé pour synchroniser rôles et couleurs immédiatement
+- July 16, 2025. **INCOHÉRENCES DONNÉES IDENTIFIÉES** - Rudolph MATTON et autres utilisateurs avec rôles désynchronisés entre tables
+- July 16, 2025. **SOLUTION SYNCHRONISATION RÔLES** - Correction automatique incohérences entre colonne users.role et table user_roles
 
 ## User Preferences
 
