@@ -81,6 +81,20 @@ export default function UsersPage() {
     groupsType: typeof groups 
   });
   
+  // 🔍 Debug des couleurs de rôles
+  if (Array.isArray(users) && users.length > 0) {
+    console.log('🎨 Users roles colors debug:', users.map(u => ({
+      username: u.username,
+      oldRole: u.role,
+      userRoles: u.userRoles?.map(ur => ({
+        roleId: ur.roleId,
+        roleName: ur.role?.name,
+        roleColor: ur.role?.color
+      })) || 'NO_USER_ROLES',
+      roles: u.roles?.map(r => ({ name: r.name, color: r.color })) || 'NO_ROLES'
+    })));
+  }
+  
   // Protection: s'assurer que users et groups sont des arrays
   const safeUsers = Array.isArray(users) ? users : [];
   const safeGroups = Array.isArray(groups) ? groups : [];
@@ -686,8 +700,26 @@ export default function UsersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            {/* Nouveau système de rôles avec couleurs dynamiques */}
-                            {Array.isArray(userData.roles) && userData.roles.length > 0 ? (
+                            {/* 🔧 SYSTÈME DE RÔLES CORRIGÉ - Utilise les vraies couleurs de la DB */}
+                            {Array.isArray(userData.userRoles) && userData.userRoles.length > 0 ? (
+                              userData.userRoles.map((userRole, index) => (
+                                <div key={userRole.roleId || index} className="flex items-center mr-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full mr-2 border-2 border-white shadow-sm"
+                                    style={{ backgroundColor: userRole.role?.color || '#6b7280' }}
+                                  />
+                                  <Badge 
+                                    style={{ 
+                                      backgroundColor: userRole.role?.color || '#6b7280',
+                                      color: 'white'
+                                    }}
+                                    className="text-xs font-medium"
+                                  >
+                                    {userRole.role?.displayName || userRole.role?.name || 'Rôle inconnu'}
+                                  </Badge>
+                                </div>
+                              ))
+                            ) : Array.isArray(userData.roles) && userData.roles.length > 0 ? (
                               userData.roles.map((role, index) => (
                                 <div key={role.id || index} className="flex items-center mr-2">
                                   <div 
@@ -706,7 +738,7 @@ export default function UsersPage() {
                                 </div>
                               ))
                             ) : (
-                              // Fallback vers l'ancien système si pas de nouveaux rôles
+                              // Fallback final si aucune donnée de rôle n'est disponible
                               <div className="flex items-center">
                                 {getRoleIcon(userData.role)}
                                 <span className="ml-2">{getRoleBadge(userData.role)}</span>
