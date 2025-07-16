@@ -208,11 +208,17 @@ export default function RoleManagement() {
     onSuccess: (data, variables) => {
       console.log("✅ User role updated successfully");
       
-      // Force refresh all related data
+      // Force refresh all related data INCLUDING user roles display
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+      
+      // Force immediate refetch to update UI
       queryClient.refetchQueries({ queryKey: ['/api/users'] });
       queryClient.refetchQueries({ queryKey: ['/api/roles'] });
+      
+      // Also refresh any permission-related queries
+      queryClient.refetchQueries({ queryKey: ['/api/permissions'] });
       
       // Close modal and reset
       setEditUserRolesOpen(false);

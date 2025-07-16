@@ -445,7 +445,7 @@ export default function UsersPage() {
       firstName: editForm.firstName,
       lastName: editForm.lastName,
       email: editForm.email,
-      role: editForm.role,
+      // Rôle géré uniquement dans Administration > Gestion des Rôles
     };
 
     // Only include password if it's not empty
@@ -718,9 +718,10 @@ export default function UsersPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleGroupManager(userData)}
-                              title="Gérer les groupes"
+                              title="Gérer les magasins/groupes"
+                              className="text-green-600 hover:text-green-700"
                             >
-                              <Users className="w-4 h-4" />
+                              <UserCog className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -820,21 +821,15 @@ export default function UsersPage() {
                 </p>
               </div>
 
+              {/* Gestion des rôles déplacée dans Administration > Gestion des Rôles */}
               <div>
-                <Label htmlFor="edit-role">Rôle *</Label>
-                <Select 
-                  value={editForm.role} 
-                  onValueChange={(value) => setEditForm({...editForm, role: value as any})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Administrateur</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="employee">Employé</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Rôle actuel</Label>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium">{selectedUser?.role || 'N/A'}</span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Pour modifier le rôle, utilisez Administration → Gestion des Rôles
+                  </p>
+                </div>
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
@@ -868,13 +863,13 @@ export default function UsersPage() {
           setSelectedUser(null);
           setUserGroups([]);
         }}>
-          <DialogContent className="sm:max-w-md" aria-describedby="group-modal-description">
+          <DialogContent className="sm:max-w-lg" aria-describedby="group-modal-description">
             <DialogHeader>
-              <DialogTitle>
-                Gérer les Groupes - {selectedUser.firstName} {selectedUser.lastName}
+              <DialogTitle className="text-lg font-semibold">
+                Gérer les Magasins/Groupes - {selectedUser.name || `${selectedUser.firstName} ${selectedUser.lastName}`}
               </DialogTitle>
               <p id="group-modal-description" className="text-sm text-gray-600 mt-1">
-                Assigner ou retirer cet utilisateur des groupes/magasins
+                Assigner ou retirer cet utilisateur des magasins/groupes
               </p>
             </DialogHeader>
             

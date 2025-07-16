@@ -712,6 +712,11 @@ Changelog:
 - July 16, 2025. **PROBLÈME RÔLES PRODUCTION DIAGNOSTIQUÉ** - IDs incorrects (2,3,4,6) au lieu de (1,2,3,4) causent erreur validation
 - July 16, 2025. **SOLUTION URGENTE CRÉÉE** - Script quick-production-fix.sh pour mapper les IDs et corriger immédiatement
 - July 16, 2025. **CORRECTION AUTOMATIQUE** - Sauvegarde assignations, mappe IDs, corrige couleurs, redémarre application
+- July 16, 2025. **GESTION UTILISATEURS/GROUPES CORRIGÉE** - Méthode getUsers() production mise à jour pour récupérer les groupes
+- July 16, 2025. **ROUTES GROUPES AJOUTÉES** - API POST/DELETE /api/users/:userId/groups pour assignation magasins/groupes  
+- July 16, 2025. **INTERFACE RÔLES SIMPLIFIÉE** - Gestion rôles centralisée dans Administration > Gestion des Rôles uniquement
+- July 16, 2025. **MODAL GROUPES AMÉLIORÉ** - Interface claire pour assigner/retirer utilisateurs des magasins/groupes
+- July 16, 2025. **INVALIDATION CACHE RENFORCÉE** - Changements rôles se reflètent immédiatement dans page Utilisateurs
 
 ## User Preferences
 
