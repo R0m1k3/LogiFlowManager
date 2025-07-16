@@ -739,6 +739,9 @@ Changelog:
 - July 16, 2025. **INCOHÉRENCES RÔLES PAGES CORRIGÉES** - Synchronisation complète entre page Utilisateurs et page Gestion des Rôles
 - July 16, 2025. **COULEURS RÔLES STANDARDISÉES** - Admin rouge, Manager bleu, Employé vert, Directeur violet sur toutes les pages
 - July 16, 2025. **SYNCHRONISATION USER_ROLES COMPLÈTE** - Table user_roles alignée avec colonne users.role pour cohérence totale
+- July 16, 2025. **COULEURS RÔLES HARMONISÉES** - Système unifié roleUtils.ts pour couleurs cohérentes entre pages
+- July 16, 2025. **COULEURS DOUCES APPLIQUÉES** - Rouge clair (#f87171), Bleu clair (#60a5fa), Vert clair (#4ade80), Violet clair (#a78bfa)
+- July 16, 2025. **BADGES STYLE AMÉLIORÉ** - Arrière-plans clairs (bg-50) et bordures subtiles pour un rendu plus doux
 
 ## User Preferences
 
