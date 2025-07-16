@@ -1348,19 +1348,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNocodbConfig(config: InsertNocodbConfig): Promise<NocodbConfig> {
+    console.log('📝 Creating NocoDB config with data:', config);
+    
     const result = await pool.query(`
-      INSERT INTO nocodb_config (name, base_url, project_id, api_token, description, is_active, created_by)
+      INSERT INTO nocodb_config (name, base_url, api_token, description, is_active, created_by, project_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `, [
       config.name,
       config.baseUrl,
-      config.projectId,
       config.apiToken,
       config.description || '',
-      config.isActive || true,
-      config.createdBy
+      config.isActive !== undefined ? config.isActive : true,
+      config.createdBy,
+      config.projectId || ''
     ]);
+    
+    console.log('✅ NocoDB config created:', result.rows[0]);
     return result.rows[0];
   }
 
