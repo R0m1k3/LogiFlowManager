@@ -717,6 +717,11 @@ Changelog:
 - July 16, 2025. **INTERFACE RÔLES SIMPLIFIÉE** - Gestion rôles centralisée dans Administration > Gestion des Rôles uniquement
 - July 16, 2025. **MODAL GROUPES AMÉLIORÉ** - Interface claire pour assigner/retirer utilisateurs des magasins/groupes
 - July 16, 2025. **INVALIDATION CACHE RENFORCÉE** - Changements rôles se reflètent immédiatement dans page Utilisateurs
+- July 16, 2025. **SOLUTION PRODUCTION COMPLÈTE** - Scripts diagnostic et correction automatique des rôles et couleurs
+- July 16, 2025. **BOUTON GROUPES AMÉLIORÉ** - Bouton vert "Groupes" visible avec bordure et texte explicite
+- July 16, 2025. **LOGS DÉTAILLÉS ATTRIBUTION** - Logs complets pour diagnostic problèmes assignation groupes
+- July 16, 2025. **CACHE INVALIDATION COMPLÈTE** - Invalidation users, roles, groups après toute modification
+- July 16, 2025. **CORRECTIONS COULEURS PRÉPARÉES** - Script deploy-roles-fix.sh pour couleurs standardisées production
 
 ## User Preferences
 

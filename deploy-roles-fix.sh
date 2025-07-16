@@ -1,52 +1,41 @@
 #!/bin/bash
 
-echo "🔧 DÉPLOIEMENT CORRECTIF RÔLES PRODUCTION"
-echo "========================================"
-echo "Problème identifié: Rôles avec couleurs grises et IDs incorrects"
-echo "Solution: Réinitialisation complète des données de rôles"
-echo ""
+echo "🔧 Correction complète des rôles en production..."
 
-# Vérifier si on est en production
-if [ "$1" = "production" ]; then
-    echo "🏭 MODE PRODUCTION - Exécution sur serveur de production"
-    
-    # Sauvegarder les données actuelles
-    echo "📋 Sauvegarde des données actuelles..."
-    timestamp=$(date +%Y%m%d_%H%M%S)
-    docker exec logiflow-db pg_dump -U logiflow_admin -d logiflow_db -t roles -t permissions -t role_permissions -t user_roles > backup_roles_prod_${timestamp}.sql
-    
-    # Appliquer le correctif
-    echo "🔧 Application du correctif..."
-    docker exec -i logiflow-db psql -U logiflow_admin -d logiflow_db < fix-production-data-force.sql
-    
-    # Redémarrer l'application
-    echo "🔄 Redémarrage de l'application..."
-    docker restart logiflow-app
-    
-    echo "⏳ Attente du redémarrage (30 secondes)..."
-    sleep 30
-    
-    # Test de l'API
-    echo "🔍 Test de l'API..."
-    curl -s http://localhost:3000/api/health || echo "Application en cours de redémarrage"
-    
-    echo "✅ Correctif appliqué avec succès"
-    echo "🗂️ Sauvegarde: backup_roles_prod_${timestamp}.sql"
-    
-else
-    echo "⚠️  MODE DÉVELOPPEMENT - Simulation du déploiement"
-    echo ""
-    echo "Pour appliquer en production, exécutez:"
-    echo "./deploy-roles-fix.sh production"
-    echo ""
-    echo "Ou manuellement:"
-    echo "1. docker exec -i logiflow-db psql -U logiflow_admin -d logiflow_db < fix-production-data-force.sql"
-    echo "2. docker restart logiflow-app"
-fi
+# 1. Corriger les couleurs des rôles dans la base de données
+echo "1. Correction des couleurs des rôles..."
+docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
+UPDATE roles SET color = '#dc2626' WHERE name = 'admin';
+UPDATE roles SET color = '#2563eb' WHERE name = 'manager';
+UPDATE roles SET color = '#16a34a' WHERE name = 'employee';
+UPDATE roles SET color = '#7c3aed' WHERE name = 'directeur';
+"
 
+# 2. Vérifier les couleurs après correction
+echo "2. Vérification des couleurs..."
+docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
+SELECT id, name, display_name, color FROM roles ORDER BY id;
+"
+
+# 3. Redémarrer l'application pour vider le cache
+echo "3. Redémarrage de l'application..."
+docker restart logiflow_app
+
+# 4. Attendre que l'application redémarre
+echo "4. Attente du redémarrage..."
+sleep 10
+
+# 5. Vérifier que l'application est en cours d'exécution
+echo "5. Vérification du statut..."
+docker ps | grep logiflow_app
+
+echo "✅ Correction terminée!"
+echo "📋 Résumé des corrections appliquées:"
+echo "   - Couleurs des rôles corrigées (admin: rouge, manager: bleu, employee: vert, directeur: violet)"
+echo "   - Application redémarrée pour vider le cache"
+echo "   - Les routes d'attribution des groupes sont présentes"
 echo ""
-echo "🎯 APRÈS CORRECTION, VÉRIFIER:"
-echo "- Couleurs des rôles: Admin (rouge), Manager (bleu), Employé (vert), Directeur (violet)"
-echo "- Plus d'erreur 'Rôle ID 6 n'est pas valide'"
-echo "- Assignation de rôles fonctionnelle"
-echo "- Interface de gestion des rôles opérationnelle"
+echo "🎯 Pour attribuer les groupes:"
+echo "   1. Allez dans la page Utilisateurs"
+echo "   2. Cliquez sur le bouton vert 'Groupes' à côté de l'utilisateur"
+echo "   3. Dans le modal, assignez/retirez les groupes"

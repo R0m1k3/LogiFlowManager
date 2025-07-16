@@ -221,19 +221,27 @@ export default function UsersPage() {
 
   const assignGroupMutation = useMutation({
     mutationFn: async (data: { userId: string; groupId: number }) => {
-      await apiRequest(`/api/users/${data.userId}/groups`, {
+      console.log('📤 Assigning group:', data);
+      const response = await apiRequest(`/api/users/${data.userId}/groups`, {
         method: "POST",
         body: { groupId: data.groupId },
       });
+      console.log('✅ Group assignment response:', response);
+      return response;
     },
     onSuccess: () => {
+      console.log('✅ Group assigned successfully');
       toast({
         title: "Succès",
         description: "Utilisateur assigné au groupe avec succès",
       });
+      // Invalidation complète du cache
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('❌ Error assigning group:', error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Non autorisé",
@@ -245,9 +253,12 @@ export default function UsersPage() {
         }, 500);
         return;
       }
+      
+      // Show specific error message from API if available
+      const errorMessage = error?.response?.data?.message || "Impossible d'assigner l'utilisateur au groupe";
       toast({
         title: "Erreur",
-        description: "Impossible d'assigner l'utilisateur au groupe",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -255,18 +266,26 @@ export default function UsersPage() {
 
   const removeGroupMutation = useMutation({
     mutationFn: async (data: { userId: string; groupId: number }) => {
-      await apiRequest(`/api/users/${data.userId}/groups/${data.groupId}`, {
+      console.log('🗑️ Removing group:', data);
+      const response = await apiRequest(`/api/users/${data.userId}/groups/${data.groupId}`, {
         method: "DELETE",
       });
+      console.log('✅ Group removal response:', response);
+      return response;
     },
     onSuccess: () => {
+      console.log('✅ Group removed successfully');
       toast({
         title: "Succès",
         description: "Utilisateur retiré du groupe avec succès",
       });
+      // Invalidation complète du cache
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('❌ Error removing group:', error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Non autorisé",
@@ -278,9 +297,12 @@ export default function UsersPage() {
         }, 500);
         return;
       }
+      
+      // Show specific error message from API if available
+      const errorMessage = error?.response?.data?.message || "Impossible de retirer l'utilisateur du groupe";
       toast({
         title: "Erreur",
-        description: "Impossible de retirer l'utilisateur du groupe",
+        description: errorMessage,
         variant: "destructive",
       });
     },

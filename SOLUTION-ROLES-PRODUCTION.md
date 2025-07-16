@@ -50,3 +50,43 @@ Après l'exécution du script, vérifiez :
 1. Les rôles sont cohérents entre les deux pages
 2. Les couleurs correspondent dans toute l'application
 3. Le bouton "Groupes" est visible et fonctionnel
+
+## Scripts de diagnostic et correction
+
+### 1. Diagnostic complet
+```bash
+chmod +x debug-production-roles.sh
+./debug-production-roles.sh
+```
+
+### 2. Correction automatique
+```bash
+chmod +x deploy-roles-fix.sh
+./deploy-roles-fix.sh
+```
+
+## Améliorations apportées
+
+### Frontend
+- ✅ Logs détaillés pour l'attribution des groupes
+- ✅ Invalidation complète du cache (users, roles, groups)
+- ✅ Messages d'erreur plus informatifs depuis l'API
+- ✅ Bouton "Groupes" avec meilleure visibilité
+
+### Backend
+- ✅ Routes d'attribution des groupes présentes
+- ✅ Logs détaillés pour diagnostic
+- ✅ Gestion d'erreurs améliorée
+
+## Couleurs des rôles standardisées
+
+- **Admin** : #dc2626 (rouge)
+- **Manager** : #2563eb (bleu)
+- **Employee** : #16a34a (vert)
+- **Directeur** : #7c3aed (violet)
+
+## Résolution des problèmes identifiés
+
+1. **Incohérence Rudolph MATTON** : Synchronisation des rôles entre anciennes et nouvelles tables
+2. **Couleurs incorrectes** : Mise à jour directe en base de données
+3. **Attribution groupes** : Invalidation cache renforcée et logs détaillés

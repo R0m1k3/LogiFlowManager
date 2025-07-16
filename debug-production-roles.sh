@@ -1,54 +1,65 @@
 #!/bin/bash
 
-echo "🔍 DIAGNOSTIC DES RÔLES PRODUCTION vs DÉVELOPPEMENT"
-echo "=================================================="
+echo "🔍 Diagnostic complet des rôles en production..."
 
-echo ""
-echo "📊 DONNÉES PRODUCTION:"
-echo "====================="
-echo "D'après les logs, la production a:"
-echo "- count: 4"
-echo "- firstRole: { id: 2, name: 'admin', displayName: 'admin', color: '#6b7280' }"
-echo "- Couleur grise au lieu de rouge"
-echo "- ID 2 au lieu de 1"
-echo ""
+# 1. État actuel des rôles
+echo "=== ÉTAT ACTUEL DES RÔLES ==="
+docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
+SELECT 
+    r.id,
+    r.name,
+    r.display_name,
+    r.color,
+    r.description,
+    r.is_active
+FROM roles r
+ORDER BY r.id;
+"
 
-echo "📊 DONNÉES DÉVELOPPEMENT:"
-echo "========================"
-echo "D'après les logs de développement, nous avons:"
-echo "- Rôles avec bonnes couleurs: admin (#dc2626), manager (#2563eb), employee (#16a34a), directeur (#7c3aed)"
-echo "- IDs corrects: 1, 2, 3, 4"
-echo ""
+# 2. Assignations des rôles aux utilisateurs
+echo "=== ASSIGNATIONS DES RÔLES ==="
+docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
+SELECT 
+    u.username,
+    u.role as old_role_field,
+    r.name as assigned_role,
+    r.display_name,
+    r.color,
+    ur.assigned_at
+FROM users u
+LEFT JOIN user_roles ur ON u.id = ur.user_id
+LEFT JOIN roles r ON ur.role_id = r.id
+ORDER BY u.username;
+"
 
-echo "🔍 COMPARAISON DÉTAILLÉE:"
-echo "========================"
-echo "PRODUCTION     | DÉVELOPPEMENT"
-echo "-------------- | --------------"
-echo "ID 2, admin    | ID 1, admin"
-echo "Color #6b7280  | Color #dc2626"
-echo "displayName    | displayName"
-echo "'admin'        | 'Administrateur'"
-echo ""
+# 3. Groupes assignés aux utilisateurs
+echo "=== GROUPES ASSIGNÉS AUX UTILISATEURS ==="
+docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
+SELECT 
+    u.username,
+    g.name as group_name,
+    g.color as group_color
+FROM users u
+LEFT JOIN user_groups ug ON u.id = ug.user_id
+LEFT JOIN groups g ON ug.group_id = g.id
+ORDER BY u.username, g.name;
+"
 
-echo "🚨 PROBLÈME IDENTIFIÉ:"
-echo "====================="
-echo "1. Les IDs des rôles ne correspondent pas"
-echo "2. Les couleurs sont grises au lieu des couleurs spécifiques"
-echo "3. Les displayName ne sont pas correctement traduits"
-echo "4. La structure des données est différente"
-echo ""
+# 4. Vérifier les incohérences
+echo "=== INCOHÉRENCES DÉTECTÉES ==="
+docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
+SELECT 
+    u.username,
+    u.role as old_system_role,
+    r.name as new_system_role,
+    CASE 
+        WHEN u.role != r.name THEN 'INCOHÉRENT'
+        ELSE 'COHÉRENT'
+    END as status
+FROM users u
+JOIN user_roles ur ON u.id = ur.user_id
+JOIN roles r ON ur.role_id = r.id
+WHERE u.role != r.name;
+"
 
-echo "✅ SOLUTION NÉCESSAIRE:"
-echo "====================="
-echo "1. Réinitialiser complètement les données de rôles en production"
-echo "2. Recréer les rôles avec les bonnes couleurs et IDs"
-echo "3. Réassigner les permissions correctement"
-echo "4. Mettre à jour les assignations utilisateur-rôle"
-echo ""
-
-echo "💡 COMMANDE POUR CORRIGER:"
-echo "========================="
-echo "./apply-production-fix.sh"
-echo ""
-echo "Ou directement:"
-echo "docker exec -i logiflow-db psql -U logiflow_admin -d logiflow_db < fix-production-data-force.sql"
+echo "✅ Diagnostic terminé!"
