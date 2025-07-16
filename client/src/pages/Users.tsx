@@ -354,11 +354,13 @@ export default function UsersPage() {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Crown className="w-4 h-4 text-yellow-500" />;
+        return <Crown className="w-4 h-4 text-red-500" />;
       case 'manager':
         return <Shield className="w-4 h-4 text-blue-500" />;
       case 'employee':
-        return <User className="w-4 h-4 text-gray-500" />;
+        return <User className="w-4 h-4 text-green-500" />;
+      case 'directeur':
+        return <Shield className="w-4 h-4 text-purple-500" />;
       default:
         return <User className="w-4 h-4 text-gray-500" />;
     }
@@ -367,11 +369,13 @@ export default function UsersPage() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-yellow-100 text-yellow-800">Administrateur</Badge>;
+        return <Badge className="bg-red-100 text-red-800">Administrateur</Badge>;
       case 'manager':
         return <Badge className="bg-blue-100 text-blue-800">Manager</Badge>;
       case 'employee':
-        return <Badge className="bg-gray-100 text-gray-800">Employé</Badge>;
+        return <Badge className="bg-green-100 text-green-800">Employé</Badge>;
+      case 'directeur':
+        return <Badge className="bg-purple-100 text-purple-800">Directeur</Badge>;
       default:
         return <Badge variant="outline">{role}</Badge>;
     }

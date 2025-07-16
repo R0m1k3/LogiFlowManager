@@ -1,65 +1,65 @@
 #!/bin/bash
 
-echo "🔍 Diagnostic complet des rôles en production..."
+echo "🔍 DIAGNOSTIC INCOHÉRENCES RÔLES - Production..."
 
-# 1. État actuel des rôles
-echo "=== ÉTAT ACTUEL DES RÔLES ==="
+# 1. État exact des rôles en base de données
+echo "=== 1. ÉTAT COMPLET BASE DE DONNÉES ==="
 docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
 SELECT 
-    r.id,
-    r.name,
-    r.display_name,
-    r.color,
-    r.description,
-    r.is_active
-FROM roles r
-ORDER BY r.id;
-"
-
-# 2. Assignations des rôles aux utilisateurs
-echo "=== ASSIGNATIONS DES RÔLES ==="
-docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
-SELECT 
+    '=== UTILISATEURS ===',
     u.username,
-    u.role as old_role_field,
-    r.name as assigned_role,
-    r.display_name,
-    r.color,
-    ur.assigned_at
+    u.role as old_role_column,
+    ur.role_id as assigned_role_id,
+    r.name as assigned_role_name,
+    r.display_name as role_display,
+    r.color as role_color,
+    CASE 
+        WHEN ur.role_id IS NULL THEN '❌ AUCUN_ROLE_ASSIGNE'
+        WHEN u.role != r.name THEN '⚠️ INCOHERENT'
+        ELSE '✅ COHERENT'
+    END as status
 FROM users u
 LEFT JOIN user_roles ur ON u.id = ur.user_id
 LEFT JOIN roles r ON ur.role_id = r.id
 ORDER BY u.username;
 "
 
-# 3. Groupes assignés aux utilisateurs
-echo "=== GROUPES ASSIGNÉS AUX UTILISATEURS ==="
+# 2. État des rôles système
+echo -e "\n=== 2. RÔLES SYSTÈME ==="
 docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
-SELECT 
-    u.username,
-    g.name as group_name,
-    g.color as group_color
-FROM users u
-LEFT JOIN user_groups ug ON u.id = ug.user_id
-LEFT JOIN groups g ON ug.group_id = g.id
-ORDER BY u.username, g.name;
+SELECT id, name, display_name, color, description 
+FROM roles 
+ORDER BY id;
 "
 
-# 4. Vérifier les incohérences
-echo "=== INCOHÉRENCES DÉTECTÉES ==="
+# 3. Toutes les assignations de rôles
+echo -e "\n=== 3. ASSIGNATIONS RÔLES ==="
 docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
 SELECT 
+    ur.user_id,
     u.username,
-    u.role as old_system_role,
-    r.name as new_system_role,
-    CASE 
-        WHEN u.role != r.name THEN 'INCOHÉRENT'
-        ELSE 'COHÉRENT'
-    END as status
-FROM users u
-JOIN user_roles ur ON u.id = ur.user_id
+    ur.role_id,
+    r.name as role_name,
+    ur.assigned_by,
+    ur.assigned_at
+FROM user_roles ur
+JOIN users u ON ur.user_id = u.id
 JOIN roles r ON ur.role_id = r.id
-WHERE u.role != r.name;
+ORDER BY u.username;
 "
 
-echo "✅ Diagnostic terminé!"
+# 4. Incohérences spécifiques
+echo -e "\n=== 4. INCOHÉRENCES DÉTAILLÉES ==="
+docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
+SELECT 
+    'PROBLÈME: ' || u.username as issue,
+    'Page Utilisateurs: ' || COALESCE(u.role, 'NULL') as page_users,
+    'Page Rôles: ' || COALESCE(r.name, 'AUCUN') as page_roles,
+    'Solution: Synchroniser vers ' || COALESCE(r.name, u.role) as solution
+FROM users u
+LEFT JOIN user_roles ur ON u.id = ur.user_id
+LEFT JOIN roles r ON ur.role_id = r.id
+WHERE u.role != r.name OR ur.role_id IS NULL OR u.role IS NULL;
+"
+
+echo -e "\n✅ Diagnostic terminé. Analysez les incohérences ci-dessus."

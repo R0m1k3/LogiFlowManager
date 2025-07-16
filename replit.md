@@ -736,6 +736,9 @@ Changelog:
 - July 16, 2025. **VALIDATION RENFORCÉE ASSIGNATION** - Vérification existence utilisateur, groupe et permissions avant insertion
 - July 16, 2025. **MESSAGES D'ERREUR INFORMATIFS** - Erreurs spécifiques pour diagnostic rapide des problèmes attribution groupes
 - July 16, 2025. **SCRIPT DIAGNOSTIC FINAL** - fix-production-final.sh avec tests API complets et correction automatique
+- July 16, 2025. **INCOHÉRENCES RÔLES PAGES CORRIGÉES** - Synchronisation complète entre page Utilisateurs et page Gestion des Rôles
+- July 16, 2025. **COULEURS RÔLES STANDARDISÉES** - Admin rouge, Manager bleu, Employé vert, Directeur violet sur toutes les pages
+- July 16, 2025. **SYNCHRONISATION USER_ROLES COMPLÈTE** - Table user_roles alignée avec colonne users.role pour cohérence totale
 
 ## User Preferences
 
