@@ -106,10 +106,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsers(): Promise<User[]> {
-    // Version simplifiée compatibile avec schéma production
-    // Éviter les colonnes qui peuvent ne pas exister
+    // Version complète récupérant les utilisateurs avec leurs rôles ET groupes
     try {
-      const result = await pool.query(`
+      // Récupérer tous les utilisateurs
+      const usersResult = await pool.query(`
         SELECT 
           u.id,
           u.username,
@@ -119,48 +119,74 @@ export class DatabaseStorage implements IStorage {
           u.role,
           u.password_changed,
           u.created_at,
-          u.updated_at,
-          array_agg(
-            CASE WHEN ur.role_id IS NOT NULL THEN
-              json_build_object(
-                'id', r.id,
-                'name', r.name,
-                'displayName', COALESCE(r.display_name, r.name),
-                'description', r.description,
-                'color', COALESCE(r.color, '#6b7280'),
-                'isSystem', COALESCE(r.is_system, false),
-                'isActive', COALESCE(r.is_active, true)
-              )
-            END
-          ) FILTER (WHERE ur.role_id IS NOT NULL) as roles
+          u.updated_at
         FROM users u
-        LEFT JOIN user_roles ur ON u.id = ur.user_id
-        LEFT JOIN roles r ON ur.role_id = r.id
-        GROUP BY u.id, u.username, u.email, u.name, u.password, u.role, u.password_changed, u.created_at, u.updated_at
         ORDER BY u.created_at DESC
       `);
       
-      console.log(`✅ getUsers returned ${result.rows.length} users with roles`);
+      console.log(`✅ getUsers found ${usersResult.rows.length} users`);
       
-      // Mapper les résultats pour inclure les rôles dans le bon format attendu par le frontend
-      return result.rows.map(row => ({
-        ...row,
-        userRoles: (row.roles || []).map(role => ({
-          userId: row.id,
-          roleId: role.id,
-          assignedBy: 'admin_local',
-          assignedAt: new Date(),
-          role: role
-        }))
+      // Pour chaque utilisateur, récupérer ses rôles et groupes
+      const usersWithData = await Promise.all(usersResult.rows.map(async (user) => {
+        // Récupérer les rôles
+        const rolesResult = await pool.query(`
+          SELECT r.*, ur.assigned_by, ur.assigned_at
+          FROM roles r 
+          JOIN user_roles ur ON r.id = ur.role_id 
+          WHERE ur.user_id = $1
+        `, [user.id]);
+        
+        // Récupérer les groupes
+        const groupsResult = await pool.query(`
+          SELECT g.*, ug.user_id, ug.group_id 
+          FROM groups g 
+          JOIN user_groups ug ON g.id = ug.group_id 
+          WHERE ug.user_id = $1
+        `, [user.id]);
+        
+        return {
+          ...user,
+          userRoles: rolesResult.rows.map(role => ({
+            userId: user.id,
+            roleId: role.id,
+            assignedBy: role.assigned_by,
+            assignedAt: role.assigned_at,
+            role: {
+              id: role.id,
+              name: role.name,
+              displayName: role.display_name,
+              description: role.description,
+              color: role.color,
+              isSystem: role.is_system,
+              isActive: role.is_active
+            }
+          })),
+          userGroups: groupsResult.rows.map(group => ({
+            userId: group.user_id,
+            groupId: group.group_id,
+            group: {
+              id: group.id,
+              name: group.name,
+              color: group.color,
+              createdAt: group.created_at,
+              updatedAt: group.updated_at
+            }
+          }))
+        };
       }));
-    } catch (error) {
-      console.error('❌ Error in getUsers with roles, falling back to simple query:', error);
       
-      // Fallback: requête simple sans rôles si erreur
+      console.log(`✅ getUsers returned ${usersWithData.length} users with roles and groups`);
+      return usersWithData;
+      
+    } catch (error) {
+      console.error('❌ Error in getUsers with roles and groups, falling back to simple query:', error);
+      
+      // Fallback: requête simple sans rôles ni groupes si erreur
       const simpleResult = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
       return simpleResult.rows.map(row => ({
         ...row,
-        userRoles: []
+        userRoles: [],
+        userGroups: []
       }));
     }
   }

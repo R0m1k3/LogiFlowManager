@@ -1068,6 +1068,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User-Group management routes (admin only) - ROUTES MANQUANTES AJOUTÉES
+  app.post('/api/users/:userId/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const userId = req.params.userId;
+      const { groupId } = req.body;
+      
+      console.log('📝 Assigning user to group:', { userId, groupId });
+
+      const userGroup = await storage.assignUserToGroup({ userId, groupId });
+      console.log('✅ User assigned to group successfully');
+      
+      res.json(userGroup);
+    } catch (error) {
+      console.error("Error assigning user to group:", error);
+      res.status(500).json({ message: "Failed to assign user to group" });
+    }
+  });
+
+  app.delete('/api/users/:userId/groups/:groupId', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const userId = req.params.userId;
+      const groupId = parseInt(req.params.groupId);
+      
+      console.log('🗑️ Removing user from group:', { userId, groupId });
+
+      await storage.removeUserFromGroup(userId, groupId);
+      console.log('✅ User removed from group successfully');
+      
+      res.json({ message: "User removed from group successfully" });
+    } catch (error) {
+      console.error("Error removing user from group:", error);
+      res.status(500).json({ message: "Failed to remove user from group" });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }
