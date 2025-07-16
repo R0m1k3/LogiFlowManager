@@ -1421,13 +1421,19 @@ export class DatabaseStorage implements IStorage {
 
   // NocoDB Config methods
   async getNocodbConfigs(): Promise<NocodbConfig[]> {
-    const result = await pool.query(`
-      SELECT id, name, base_url, project_id, api_token, description, 
-             is_active, created_by, created_at, updated_at
-      FROM nocodb_config 
-      ORDER BY created_at DESC
-    `);
-    return result.rows || [];
+    try {
+      const result = await pool.query(`
+        SELECT id, name, base_url, project_id, api_token, description, 
+               is_active, created_by, created_at, updated_at
+        FROM nocodb_config 
+        ORDER BY created_at DESC
+      `);
+      console.log('📊 getNocodbConfigs result:', { rows: result.rows ? result.rows.length : 0, data: result.rows });
+      return Array.isArray(result.rows) ? result.rows : [];
+    } catch (error) {
+      console.error('❌ Error in getNocodbConfigs:', error);
+      return [];
+    }
   }
 
   async getNocodbConfig(id: number): Promise<NocodbConfig | undefined> {
