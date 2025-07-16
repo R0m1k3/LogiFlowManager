@@ -235,18 +235,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsersWithRolesAndGroups(): Promise<(UserWithRoles & { userGroups: any[] })[]> {
+    console.log('🔍 getUsersWithRolesAndGroups called');
     const baseUsers = await this.getUsers();
+    console.log('📊 Base users found:', baseUsers.length);
+    
     const usersWithRolesAndGroups = await Promise.all(
       baseUsers.map(async (user) => {
+        console.log(`🔍 Processing user: ${user.username}`);
         const userWithRoles = await this.getUserWithRoles(user.id);
         const userWithGroups = await this.getUserWithGroups(user.id);
+        
+        console.log(`📊 User ${user.username} groups:`, userWithGroups?.userGroups?.length || 0);
+        
         return {
           ...user,
           userRoles: userWithRoles?.userRoles || [],
-          userGroups: userWithGroups?.userGroups || []
+          userGroups: userWithGroups?.userGroups || [],
+          roles: userWithRoles?.userRoles?.map(ur => ur.role) || []
         };
       })
     );
+    
+    console.log('🔍 Final users with roles and groups:', usersWithRolesAndGroups.length);
     return usersWithRolesAndGroups;
   }
 
