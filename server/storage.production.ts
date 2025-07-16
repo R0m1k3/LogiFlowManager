@@ -825,13 +825,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async assignUserToGroup(userGroup: InsertUserGroup): Promise<UserGroup> {
-    const result = await pool.query(`
-      INSERT INTO user_groups (user_id, group_id) 
-      VALUES ($1, $2) 
-      ON CONFLICT (user_id, group_id) DO NOTHING
-      RETURNING *
-    `, [userGroup.userId, userGroup.groupId]);
-    return result.rows[0];
+    console.log('🔄 assignUserToGroup appelé avec:', userGroup);
+    
+    try {
+      // Vérifier que l'utilisateur existe
+      const userCheck = await pool.query('SELECT id, username FROM users WHERE id = $1', [userGroup.userId]);
+      if (userCheck.rows.length === 0) {
+        throw new Error(`Utilisateur non trouvé: ${userGroup.userId}`);
+      }
+      console.log('✅ Utilisateur vérifié:', userCheck.rows[0]);
+      
+      // Vérifier que le groupe existe
+      const groupCheck = await pool.query('SELECT id, name FROM groups WHERE id = $1', [userGroup.groupId]);
+      if (groupCheck.rows.length === 0) {
+        throw new Error(`Groupe non trouvé: ${userGroup.groupId}`);
+      }
+      console.log('✅ Groupe vérifié:', groupCheck.rows[0]);
+      
+      // Vérifier si l'assignation existe déjà
+      const existingCheck = await pool.query(
+        'SELECT * FROM user_groups WHERE user_id = $1 AND group_id = $2', 
+        [userGroup.userId, userGroup.groupId]
+      );
+      
+      if (existingCheck.rows.length > 0) {
+        console.log('ℹ️ Assignation déjà existante, retour de l\'existante');
+        return existingCheck.rows[0];
+      }
+      
+      // Effectuer l'insertion
+      const result = await pool.query(`
+        INSERT INTO user_groups (user_id, group_id) 
+        VALUES ($1, $2) 
+        RETURNING *
+      `, [userGroup.userId, userGroup.groupId]);
+      
+      console.log('✅ Assignation créée avec succès:', result.rows[0]);
+      return result.rows[0];
+      
+    } catch (error) {
+      console.error('❌ Erreur dans assignUserToGroup:', error);
+      throw error;
+    }
   }
 
   async removeUserFromGroup(userId: string, groupId: number): Promise<void> {

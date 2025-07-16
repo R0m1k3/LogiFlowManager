@@ -732,6 +732,10 @@ Changelog:
 - July 16, 2025. **CORRECTION SPÉCIFIQUE RUDOLPH MATTON** - Force rôle Manager avec synchronisation complète
 - July 16, 2025. **RECONSTRUCTION APPLICATION** - Rebuild Docker complet avec base données optimisée
 - July 16, 2025. **DOCUMENTATION FINALE** - SOLUTION-FINALE-COMPLETE.md avec procédures validation et tests
+- July 16, 2025. **DIAGNOSTIC COMPLET ATTRIBUTION GROUPES** - Logs détaillés à chaque étape de la route POST /api/users/:userId/groups
+- July 16, 2025. **VALIDATION RENFORCÉE ASSIGNATION** - Vérification existence utilisateur, groupe et permissions avant insertion
+- July 16, 2025. **MESSAGES D'ERREUR INFORMATIFS** - Erreurs spécifiques pour diagnostic rapide des problèmes attribution groupes
+- July 16, 2025. **SCRIPT DIAGNOSTIC FINAL** - fix-production-final.sh avec tests API complets et correction automatique
 
 ## User Preferences
 

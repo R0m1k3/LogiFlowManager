@@ -1041,37 +1041,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User-Group management routes (admin only) - ROUTE UNIQUE CORRIGÉE
+  // User-Group management routes (admin only) - ROUTE CORRIGÉE AVEC DIAGNOSTIC COMPLET
   app.post('/api/users/:userId/groups', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ message: "Insufficient permissions" });
+      console.log('🔍 DIAGNOSTIC: Route /api/users/:userId/groups appelée');
+      console.log('🔍 DIAGNOSTIC: req.user =', req.user);
+      console.log('🔍 DIAGNOSTIC: req.params =', req.params);
+      console.log('🔍 DIAGNOSTIC: req.body =', req.body);
+      
+      const currentUserId = req.user.claims ? req.user.claims.sub : req.user.id;
+      console.log('🔍 DIAGNOSTIC: currentUserId =', currentUserId);
+      
+      const currentUser = await storage.getUser(currentUserId);
+      console.log('🔍 DIAGNOSTIC: currentUser =', currentUser);
+      
+      if (!currentUser) {
+        console.log('❌ ERREUR: Utilisateur courant non trouvé');
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      if (currentUser.role !== 'admin') {
+        console.log('❌ ERREUR: Permissions insuffisantes, rôle:', currentUser.role);
+        return res.status(403).json({ message: "Admin access required" });
       }
 
       const userId = req.params.userId;
       const { groupId } = req.body;
       
-      console.log('📝 Assigning user to group:', { userId, groupId, body: req.body });
+      console.log('🔍 DIAGNOSTIC: userId =', userId, 'groupId =', groupId);
 
-      // Vérifier que l'utilisateur et le groupe existent
-      const userExists = await storage.getUser(userId);
-      if (!userExists) {
-        return res.status(404).json({ message: "User not found" });
+      // Vérifier que l'utilisateur cible existe
+      const targetUser = await storage.getUser(userId);
+      if (!targetUser) {
+        console.log('❌ ERREUR: Utilisateur cible non trouvé:', userId);
+        return res.status(404).json({ message: `User not found: ${userId}` });
       }
+      console.log('✅ DIAGNOSTIC: Utilisateur cible trouvé:', targetUser.username);
 
+      // Vérifier que le groupe existe
+      const group = await storage.getGroup(groupId);
+      if (!group) {
+        console.log('❌ ERREUR: Groupe non trouvé:', groupId);
+        return res.status(404).json({ message: `Group not found: ${groupId}` });
+      }
+      console.log('✅ DIAGNOSTIC: Groupe trouvé:', group.name);
+
+      // Effectuer l'assignation
+      console.log('🔄 DIAGNOSTIC: Assignation en cours...');
       const userGroup = await storage.assignUserToGroup({ userId, groupId });
-      console.log('✅ User assigned to group successfully');
+      console.log('✅ SUCCÈS: Assignation réussie:', userGroup);
       
-      res.json(userGroup);
+      res.json({ 
+        success: true,
+        message: `Utilisateur ${targetUser.username} assigné au groupe ${group.name}`,
+        userGroup 
+      });
     } catch (error) {
-      console.error("❌ Error assigning user to group:", error);
+      console.error("❌ ERREUR CRITIQUE dans assignation groupe:", error);
+      console.error("❌ Stack trace:", error.stack);
       
-      // Message d'erreur plus détaillé
-      const errorMessage = error.message || "Failed to assign user to group";
       res.status(500).json({ 
-        message: errorMessage,
-        details: error.toString()
+        message: "Impossible d'assigner l'utilisateur au groupe",
+        error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });
