@@ -36,8 +36,8 @@ export function useAuthUnified() {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes de cache pour l'auth
+    gcTime: 15 * 60 * 1000, // 15 minutes
     enabled: isDevelopment, // Seulement en développement
   });
 

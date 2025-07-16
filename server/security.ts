@@ -64,16 +64,23 @@ export function setupRateLimiting(app: Express) {
     trustProxy: 1, // Configuration sécurisée pour Docker (1 proxy de confiance)
   });
 
-  // Limiteur pour l'API
+  // Limiteur pour l'API - adapté pour une utilisation normale
   const apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    max: 100, // 100 requêtes par minute
+    max: process.env.NODE_ENV === 'development' ? 500 : 300, // 500 en dev, 300 en prod
     message: {
       error: 'Limite API atteinte, veuillez ralentir vos requêtes.',
     },
     standardHeaders: true,
     legacyHeaders: false,
     trustProxy: 1, // Configuration sécurisée pour Docker (1 proxy de confiance)
+    onLimitReached: (req, res, options) => {
+      console.warn(`🚨 Rate limit reached for IP: ${req.ip} on path: ${req.path} at ${new Date().toISOString()}`);
+    },
+    // Exclure certaines routes critiques du rate limiting strict
+    skip: (req) => {
+      return req.path === '/api/health' || req.path === '/api/user';
+    }
   });
 
   app.use(generalLimiter);

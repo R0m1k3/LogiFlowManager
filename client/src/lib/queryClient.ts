@@ -61,9 +61,9 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      refetchOnMount: true, // Cohérent avec useAuth
+      refetchOnMount: true,
       refetchOnReconnect: false,
-      staleTime: 0, // Pas de cache pour forcer refetch
+      staleTime: 2 * 60 * 1000, // 2 minutes de cache pour réduire les appels API
       gcTime: 10 * 60 * 1000, // 10 minutes  
       retry: (failureCount, error: any) => {
         // Ne pas retry les erreurs d'authentification
