@@ -58,6 +58,9 @@ export default function NocoDBConfig() {
     enabled: user?.role === 'admin',
   });
 
+  // Protection supplémentaire pour éviter les erreurs TypeError
+  const safeConfigs = Array.isArray(configs) ? configs : [];
+
   // Mutations
   const createConfigMutation = useMutation({
     mutationFn: (data: NocodbConfigForm) => 
@@ -236,7 +239,7 @@ export default function NocoDBConfig() {
 
       {/* Configurations List */}
       <div className="grid gap-6">
-        {configs.length === 0 ? (
+        {safeConfigs.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
               <Database className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -251,7 +254,7 @@ export default function NocoDBConfig() {
             </CardContent>
           </Card>
         ) : (
-          configs.map((config: NocodbConfig) => (
+          safeConfigs.map((config: NocodbConfig) => (
             <Card key={config.id} className="border shadow-sm">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
