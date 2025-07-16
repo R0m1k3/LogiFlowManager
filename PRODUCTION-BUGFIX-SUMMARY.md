@@ -1,57 +1,67 @@
-# RÉSUMÉ - CORRECTION URGENTE RÔLES PRODUCTION
+# Corrections Production - Utilisateurs & NocoDB
 
-## 🚨 PROBLÈME CRITIQUE IDENTIFIÉ
+## 🚨 Problèmes identifiés et corrigés
 
-**Erreur:** "Le rôle sélectionné n'est pas valide" en production
+### 1. Erreur modification utilisateurs en production
+**Problème :** "Impossible de mettre à jour l'utilisateur" - erreur 500
+**Cause :** Le frontend envoie des chaînes vides, la validation backend les rejette
+**Solution :** 
+- ✅ Nettoyage automatique des données côté serveur
+- ✅ Validation améliorée pour ignorer les champs vides
+- ✅ Logs détaillés pour diagnostic
 
-**Cause racine:** Incohérence entre les IDs de rôles en base et ceux attendus par le frontend
+### 2. Erreur NocoDB configuration
+**Problème :** `null value in column "table_id" violates not-null constraint`
+**Cause :** Table production contient encore anciennes colonnes avec contraintes
+**Solution :** 
+- ✅ Script SQL `fix-nocodb-urgent.sql` créé
+- ✅ Suppression colonnes obsolètes : `table_id`, `table_name`, `invoice_column_name`
+- ✅ Architecture hybride préservée
 
+## 📋 Actions à effectuer en production
+
+### Correction NocoDB (Urgent)
+```sql
+-- Exécuter dans PostgreSQL production
+ALTER TABLE nocodb_config DROP COLUMN IF EXISTS table_id;
+ALTER TABLE nocodb_config DROP COLUMN IF EXISTS table_name;
+ALTER TABLE nocodb_config DROP COLUMN IF EXISTS invoice_column_name;
 ```
-PRODUCTION (actuel)    | FRONTEND (attendu)
---------------------- | ------------------
-ID 2: admin           | ID 1: admin
-ID 3: manager          | ID 2: manager  
-ID 4: employee         | ID 3: employee
-ID 6: directeur        | ID 4: directeur ← PROBLÈME
-```
 
-## 🔧 SOLUTION IMMÉDIATE
-
-**Script de correction rapide créé:** `quick-production-fix.sh`
-
-### Que fait le script :
-1. **Sauvegarde** les assignations actuelles
-2. **Mappe** les IDs incorrects vers les IDs corrects :
-   - 2 → 1 (admin)
-   - 3 → 2 (manager)
-   - 4 → 3 (employee)
-   - 6 → 4 (directeur)
-3. **Corrige** les couleurs en même temps
-4. **Restaure** les assignations utilisateurs
-5. **Redémarre** l'application
-
-## 🚀 EXÉCUTION
-
+**Ou via Docker :**
 ```bash
-./quick-production-fix.sh
+docker exec logiflow-postgres psql -U logiflow_admin -d logiflow_db -f fix-nocodb-urgent.sql
 ```
 
-## ✅ RÉSULTAT ATTENDU
+### Test modification utilisateurs
+```bash
+./fix-production-users-update.sh
+```
 
-- ✅ Plus d'erreur "Le rôle sélectionné n'est pas valide"
-- ✅ Changement de rôles immédiatement fonctionnel
-- ✅ Couleurs correctes (rouge, bleu, vert, violet)
-- ✅ IDs cohérents avec le frontend (1, 2, 3, 4)
-- ✅ Aucune perte de données utilisateur
+## ✅ Résultats attendus après correction
 
-## 📝 VALIDATION POST-CORRECTION
+1. **Configuration NocoDB fonctionnelle**
+   - Création configuration globale possible
+   - Plus d'erreur contrainte NOT NULL
 
-1. Aller dans **Administration > Gestion des Rôles**
-2. Onglet "Utilisateurs"
-3. Sélectionner un utilisateur 
-4. Changer son rôle
-5. ✅ **Succès:** Pas d'erreur, changement effectué
+2. **Modification utilisateurs opérationnelle**
+   - Formulaire édition fonctionne
+   - Champs vides ignorés automatiquement
+   - Messages d'erreur clairs
 
----
+## 🏗️ Architecture finale
 
-**Ce script résout définitivement le problème de façon propre et sécurisée.**
+### NocoDB Hybride
+- **Configuration globale** : `nocodb_config` (URL, projet, token)
+- **Configuration magasin** : `groups` (table_id, table_name, invoice_column)
+
+### Gestion utilisateurs
+- **Validation intelligente** : ignore champs vides, accepte valeurs valides
+- **Nettoyage automatique** : supprime espaces et valeurs vides
+- **Logs détaillés** : diagnostic complet des erreurs
+
+## 🔧 Scripts disponibles
+- `fix-nocodb-urgent.sql` - Correction urgente NocoDB
+- `apply-nocodb-fix-production.sh` - Application automatique
+- `fix-production-users-update.sh` - Test modification utilisateurs
+- `PRODUCTION-NOCODB-FIX.md` - Documentation détaillée

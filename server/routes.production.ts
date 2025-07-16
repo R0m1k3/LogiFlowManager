@@ -441,30 +441,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = req.body;
       console.log('📝 PUT /api/users/:id - Request body:', userData);
       
-      // Validation des champs obligatoires si ils sont fournis
-      if (userData.firstName !== undefined && (!userData.firstName || !userData.firstName.trim())) {
+      // Nettoyer les données - supprimer les champs vides ou undefined
+      const cleanedUserData = {};
+      for (const [key, value] of Object.entries(userData)) {
+        if (value !== undefined && value !== null && 
+            (typeof value !== 'string' || value.trim() !== '')) {
+          cleanedUserData[key] = typeof value === 'string' ? value.trim() : value;
+        }
+      }
+      
+      console.log('📝 Cleaned user data:', cleanedUserData);
+      
+      // Validation des champs obligatoires seulement si ils sont fournis et non vides
+      if (cleanedUserData.firstName && !cleanedUserData.firstName.trim()) {
         return res.status(400).json({ message: "Le prénom ne peut pas être vide" });
       }
       
-      if (userData.lastName !== undefined && (!userData.lastName || !userData.lastName.trim())) {
+      if (cleanedUserData.lastName && !cleanedUserData.lastName.trim()) {
         return res.status(400).json({ message: "Le nom ne peut pas être vide" });
       }
       
-      if (userData.email !== undefined) {
-        if (!userData.email || !userData.email.trim()) {
-          return res.status(400).json({ message: "L'email ne peut pas être vide" });
-        }
-        if (!userData.email.includes('@')) {
+      if (cleanedUserData.email) {
+        if (!cleanedUserData.email.includes('@')) {
           return res.status(400).json({ message: "L'email doit être valide" });
         }
       }
       
-      if (userData.password !== undefined && userData.password && userData.password.length < 6) {
+      if (cleanedUserData.password && cleanedUserData.password.length < 6) {
         return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
       }
       
-      const updatedUser = await storage.updateUser(id, userData);
-      console.log('✅ User updated successfully:', { id, updatedFields: Object.keys(userData) });
+      const updatedUser = await storage.updateUser(id, cleanedUserData);
+      console.log('✅ User updated successfully:', { id, updatedFields: Object.keys(cleanedUserData) });
       res.json(updatedUser);
     } catch (error) {
       console.error("❌ Error updating user:", error);

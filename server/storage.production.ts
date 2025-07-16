@@ -236,7 +236,12 @@ export class DatabaseStorage implements IStorage {
     let paramIndex = 1;
 
     for (const [key, value] of Object.entries(userData)) {
-      if (value !== undefined && value !== null && value !== '') {
+      // Ignorer les chaînes vides pour les champs texte, mais accepter false/true pour les booléens
+      const shouldSkip = value === undefined || value === null || 
+                        (typeof value === 'string' && value.trim() === '') ||
+                        (key === 'password' && (!value || value.trim() === ''));
+      
+      if (!shouldSkip) {
         if (key === 'password') {
           // Hash password before storing et marquer comme changé
           const hashedPassword = await hashPassword(value as string);

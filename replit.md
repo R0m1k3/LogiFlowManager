@@ -747,6 +747,11 @@ Changelog:
 - July 16, 2025. **ARCHITECTURE NOCODB HYBRIDE FINALISÉE** - Configuration globale centralisée (nocodb_config) + paramètres par magasin (groups)
 - July 16, 2025. **CONFIGURATION NOCODB SIMPLIFIÉE** - Suppression champs spécifiques magasins de nocodb_config, conservation dans groups
 - July 16, 2025. **PRODUCTION NOCODB SYNCHRONISÉE** - Scripts SQL et storage production alignés avec nouvelle architecture hybride
+- July 16, 2025. **ERREUR MODIFICATION UTILISATEURS PRODUCTION CORRIGÉE** - Nettoyage automatique données frontend, validation intelligente
+- July 16, 2025. **ERREUR NOCODB CONSTRAINT PRODUCTION IDENTIFIÉE** - Table production contient colonnes obsolètes avec contraintes NOT NULL
+- July 16, 2025. **SCRIPTS CORRECTION URGENTE CRÉÉS** - fix-nocodb-urgent.sql et apply-nocodb-fix-production.sh pour résolution immédiate
+- July 16, 2025. **VALIDATION BACKEND AMÉLIORÉE** - Routes production nettoient données automatiquement, ignorent champs vides
+- July 16, 2025. **STORAGE PRODUCTION OPTIMISÉ** - Logique updateUser() améliorée pour gérer chaînes vides et valeurs undefined
 
 ## User Preferences
 
