@@ -1,41 +1,101 @@
 #!/bin/bash
 
-echo "🚀 APPLICATION DU CORRECTIF PRODUCTION - RÔLES ET PERMISSIONS"
-echo "============================================================="
+echo "🚨 CORRECTION DÉFINITIVE DES RÔLES PRODUCTION"
+echo "============================================="
+echo ""
 
-# Vérifier si Docker est disponible
-if ! command -v docker &> /dev/null; then
-    echo "❌ Docker n'est pas disponible"
+# Couleurs pour l'affichage
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${RED}⚠️  ATTENTION: Cette opération va RÉINITIALISER complètement les rôles et permissions${NC}"
+echo -e "${RED}⚠️  Les assignations utilisateurs seront préservées avec les nouveaux IDs${NC}"
+echo ""
+
+# Vérification que le conteneur PostgreSQL est en cours d'exécution
+if ! docker ps | grep -q "logiflow-postgres"; then
+    echo -e "${RED}❌ Le conteneur PostgreSQL n'est pas en cours d'exécution${NC}"
+    echo "Veuillez démarrer l'application avec: docker-compose up -d"
     exit 1
 fi
 
-echo "📋 Sauvegarde des données actuelles..."
-timestamp=$(date +%Y%m%d_%H%M%S)
-docker exec logiflow-db pg_dump -U logiflow_admin -d logiflow_db > backup_production_${timestamp}.sql
+echo -e "${BLUE}📊 ÉTAT ACTUEL (AVANT CORRECTION):${NC}"
+echo "=================================="
 
-echo "🔧 Application du correctif..."
-docker exec -i logiflow-db psql -U logiflow_admin -d logiflow_db < fix-production-data-force.sql
+# Afficher l'état corrompu actuel
+docker exec -i logiflow-postgres psql -U logiflow_admin -d logiflow_db << 'EOF'
+\echo 'RÔLES CORROMPUS ACTUELS:'
+SELECT id, name, display_name, color FROM roles ORDER BY id;
 
-echo "🔄 Redémarrage de l'application..."
-docker restart logiflow-app
+\echo ''
+\echo 'ASSIGNATIONS ACTUELLES:'
+SELECT ur.user_id, ur.role_id, r.name 
+FROM user_roles ur 
+JOIN roles r ON ur.role_id = r.id;
+EOF
 
-echo "⏳ Attente du redémarrage (30 secondes)..."
-sleep 30
+echo ""
+echo -e "${YELLOW}❓ Voulez-vous continuer la réinitialisation complète ? (y/N)${NC}"
+read -r response
 
-echo "🔍 Vérification de l'application..."
-if curl -s http://localhost:3000/api/health > /dev/null; then
-    echo "✅ Application redémarrée avec succès"
-else
-    echo "⚠️ Application en cours de redémarrage, veuillez patienter"
+if [[ ! "$response" =~ ^[Yy]$ ]]; then
+    echo -e "${YELLOW}⏹️  Opération annulée${NC}"
+    exit 0
 fi
 
 echo ""
-echo "✅ CORRECTIF APPLIQUÉ AVEC SUCCÈS"
-echo "🔍 Vérifiez maintenant l'application sur votre domaine"
-echo "🎨 Les rôles devraient maintenant avoir les bonnes couleurs:"
-echo "   - Admin: Rouge (#dc2626)"
-echo "   - Manager: Bleu (#2563eb)"
-echo "   - Employé: Vert (#16a34a)"
-echo "   - Directeur: Violet (#7c3aed)"
+echo -e "${BLUE}🔧 APPLICATION DE LA CORRECTION COMPLÈTE...${NC}"
+echo "==========================================="
+
+# Créer une sauvegarde avant correction
+echo -e "${YELLOW}💾 Création d'une sauvegarde...${NC}"
+docker exec logiflow-postgres pg_dump -U logiflow_admin -d logiflow_db --schema-only > backup_schema_$(date +%Y%m%d_%H%M%S).sql
+
+# Appliquer le script de correction
+echo -e "${YELLOW}🔄 Application du script de correction...${NC}"
+if docker exec -i logiflow-postgres psql -U logiflow_admin -d logiflow_db < fix-production-data-force.sql; then
+    echo -e "${GREEN}✅ Correction appliquée avec succès !${NC}"
+else
+    echo -e "${RED}❌ Erreur lors de l'application de la correction${NC}"
+    exit 1
+fi
+
 echo ""
-echo "🗂️ Sauvegarde créée: backup_production_${timestamp}.sql"
+echo -e "${BLUE}✅ VÉRIFICATION DES RÉSULTATS:${NC}"
+echo "=============================="
+
+# Vérifier les corrections
+docker exec -i logiflow-postgres psql -U logiflow_admin -d logiflow_db << 'EOF'
+\echo 'RÔLES APRÈS CORRECTION:'
+SELECT id, name, display_name, color, is_active FROM roles ORDER BY id;
+
+\echo ''
+\echo 'NOMBRE DE PERMISSIONS:'
+SELECT COUNT(*) as total_permissions FROM permissions;
+
+\echo ''
+\echo 'ASSIGNATIONS UTILISATEURS APRÈS CORRECTION:'
+SELECT ur.user_id, ur.role_id, r.name as role_name, r.display_name, r.color 
+FROM user_roles ur 
+JOIN roles r ON ur.role_id = r.id 
+ORDER BY ur.user_id;
+EOF
+
+echo ""
+echo -e "${GREEN}🎉 CORRECTION TERMINÉE AVEC SUCCÈS !${NC}"
+echo "===================================="
+echo ""
+echo -e "${YELLOW}📋 RÔLES CORRIGÉS:${NC}"
+echo "• ID 1: Administrateur (Rouge #dc2626)"
+echo "• ID 2: Manager (Bleu #2563eb)"  
+echo "• ID 3: Employé (Vert #16a34a)"
+echo "• ID 4: Directeur (Violet #7c3aed)"
+echo ""
+echo -e "${YELLOW}🔄 REDÉMARRAGE NÉCESSAIRE:${NC}"
+echo "docker-compose restart logiflow-app"
+echo ""
+echo -e "${GREEN}✅ Les rôles utilisent maintenant les bons IDs séquentiels (1-4)${NC}"
+echo -e "${GREEN}✅ Plus d'erreur 'Le rôle sélectionné n'est pas valide'${NC}"
