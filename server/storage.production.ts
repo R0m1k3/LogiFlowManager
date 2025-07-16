@@ -87,16 +87,20 @@ export class DatabaseStorage implements IStorage {
           updatedAt: row.updated_at
         }
       })),
-      roles: rolesResult.rows.map(row => ({
-        id: row.id,
-        name: row.name,
-        displayName: row.display_name,
-        description: row.description,
-        color: row.color,
-        isSystem: row.is_system,
-        isActive: row.is_active,
+      userRoles: rolesResult.rows.map(row => ({
+        userId: user.id,
+        roleId: row.id,
         assignedBy: row.assigned_by,
-        assignedAt: row.assigned_at
+        assignedAt: row.assigned_at,
+        role: {
+          id: row.id,
+          name: row.name,
+          displayName: row.display_name,
+          description: row.description,
+          color: row.color,
+          isSystem: row.is_system,
+          isActive: row.is_active
+        }
       }))
     };
   }
@@ -138,10 +142,16 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`✅ getUsers returned ${result.rows.length} users with roles`);
       
-      // Mapper les résultats pour inclure les rôles dans le bon format
+      // Mapper les résultats pour inclure les rôles dans le bon format attendu par le frontend
       return result.rows.map(row => ({
         ...row,
-        roles: row.roles || []  // S'assurer qu'il y a un array même si pas de rôles
+        userRoles: (row.roles || []).map(role => ({
+          userId: row.id,
+          roleId: role.id,
+          assignedBy: 'admin_local',
+          assignedAt: new Date(),
+          role: role
+        }))
       }));
     } catch (error) {
       console.error('❌ Error in getUsers with roles, falling back to simple query:', error);
@@ -150,7 +160,7 @@ export class DatabaseStorage implements IStorage {
       const simpleResult = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
       return simpleResult.rows.map(row => ({
         ...row,
-        roles: []
+        userRoles: []
       }));
     }
   }

@@ -208,9 +208,11 @@ export default function RoleManagement() {
     onSuccess: (data, variables) => {
       console.log("✅ User role updated successfully");
       
-      // Invalidate cache and refresh data
+      // Force refresh all related data
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      queryClient.refetchQueries({ queryKey: ['/api/users'] });
+      queryClient.refetchQueries({ queryKey: ['/api/roles'] });
       
       // Close modal and reset
       setEditUserRolesOpen(false);
@@ -540,6 +542,16 @@ export default function RoleManagement() {
                           backgroundColor: user.userRoles?.[0]?.role?.color || '#666666',
                           color: 'white',
                           borderColor: user.userRoles?.[0]?.role?.color || '#666666'
+                        }}
+                        onClick={() => {
+                          console.log("🎨 Badge Color Debug:", {
+                            userId: user.id,
+                            userName: user.name,
+                            userRoles: user.userRoles,
+                            roleColor: user.userRoles?.[0]?.role?.color,
+                            roleDisplayName: user.userRoles?.[0]?.role?.displayName,
+                            roleId: user.userRoles?.[0]?.roleId
+                          });
                         }}
                       >
                         {user.userRoles?.[0]?.role?.displayName || user.role}
