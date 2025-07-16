@@ -743,6 +743,10 @@ Changelog:
 - July 16, 2025. **ERREUR RATE LIMITING PRODUCTION RÉSOLUE** - Optimisation React Query et ajustement limites API
 - July 16, 2025. **CACHE INTELLIGENT IMPLÉMENTÉ** - staleTime 2min pour API, 10min pour auth, réduction 80% des appels
 - July 16, 2025. **LIMITES PRODUCTION AJUSTÉES** - 300 req/min au lieu de 100, exclusion /api/user du rate limiting strict
+- July 16, 2025. **PROBLÈME RÔLES PRODUCTION DIAGNOSTIQUÉ** - Erreurs 401 empêchant chargement couleurs, détection environnement incorrecte
+- July 16, 2025. **SCRIPT CORRECTION RÔLES CRÉÉ** - PRODUCTION-ROLES-FIX.sql pour synchronisation complète des rôles et couleurs
+- July 16, 2025. **AUTHENTIFICATION PRODUCTION SIMPLIFIÉE** - Hook useAuthProduction.ts dédié pour éviter conflits React Query
+- July 16, 2025. **DÉPLOIEMENT AUTOMATISÉ** - Script apply-production-roles-fix.sh avec tests et vérifications
 - July 16, 2025. **COULEURS DOUCES APPLIQUÉES** - Rouge clair (#f87171), Bleu clair (#60a5fa), Vert clair (#4ade80), Violet clair (#a78bfa)
 - July 16, 2025. **BADGES STYLE AMÉLIORÉ** - Arrière-plans clairs (bg-50) et bordures subtiles pour un rendu plus doux
 - July 16, 2025. **ERREUR CRÉATION CALENDRIER RÉSOLUE** - Structure API corrigée : apiRequest(url, method, data) au lieu d'objets

@@ -74,12 +74,15 @@ export function setupRateLimiting(app: Express) {
     standardHeaders: true,
     legacyHeaders: false,
     trustProxy: 1, // Configuration sécurisée pour Docker (1 proxy de confiance)
-    onLimitReached: (req, res, options) => {
-      console.warn(`🚨 Rate limit reached for IP: ${req.ip} on path: ${req.path} at ${new Date().toISOString()}`);
-    },
     // Exclure certaines routes critiques du rate limiting strict
     skip: (req) => {
       return req.path === '/api/health' || req.path === '/api/user';
+    },
+    handler: (req, res) => {
+      console.warn(`🚨 Rate limit reached for IP: ${req.ip} on path: ${req.path} at ${new Date().toISOString()}`);
+      res.status(429).json({
+        error: 'Limite API atteinte, veuillez ralentir vos requêtes.',
+      });
     }
   });
 

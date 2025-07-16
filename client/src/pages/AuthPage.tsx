@@ -16,14 +16,6 @@ export default function AuthPage() {
   const { user, isLoading, refreshAuth, isAuthenticated } = useAuthSimple();
   const { toast } = useToast();
   const [showDefaultCredentials, setShowDefaultCredentials] = useState(true);
-
-  // Debug logging for authentication state
-  console.log('🔍 AuthPage Debug:', {
-    isAuthenticated,
-    isLoading,
-    userId: user?.id,
-    username: user?.username
-  });
   
   const [loginData, setLoginData] = useState({
     username: "",
@@ -43,19 +35,6 @@ export default function AuthPage() {
       }
     },
   });
-
-  useEffect(() => {
-    if (defaultCredentialsCheck) {
-      setShowDefaultCredentials(defaultCredentialsCheck.showDefault);
-    }
-  }, [defaultCredentialsCheck]);
-
-  // Redirect if already authenticated
-  if (!isLoading && isAuthenticated) {
-    console.log('🔄 User authenticated, redirecting to dashboard...');
-    setLocation("/");
-    return null;
-  }
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof loginData) => {
@@ -85,14 +64,32 @@ export default function AuthPage() {
     },
   });
 
+  // Debug logging for authentication state
+  console.log('🔍 AuthPage Debug:', {
+    isAuthenticated,
+    isLoading,
+    userId: user?.id,
+    username: user?.username
+  });
 
+  useEffect(() => {
+    if (defaultCredentialsCheck) {
+      setShowDefaultCredentials(defaultCredentialsCheck.showDefault);
+    }
+  }, [defaultCredentialsCheck]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      console.log('🔄 User authenticated, redirecting to dashboard...');
+      setLocation("/");
+    }
+  }, [isLoading, isAuthenticated, setLocation]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     loginMutation.mutate(loginData);
   };
-
-
 
   if (isLoading) {
     return (
