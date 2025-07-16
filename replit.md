@@ -744,6 +744,9 @@ Changelog:
 - July 16, 2025. **BADGES STYLE AMÉLIORÉ** - Arrière-plans clairs (bg-50) et bordures subtiles pour un rendu plus doux
 - July 16, 2025. **ERREUR CRÉATION CALENDRIER RÉSOLUE** - Structure API corrigée : apiRequest(url, method, data) au lieu d'objets
 - July 16, 2025. **CRÉATION FONCTIONNELLE DEV+PROD** - Tous modaux CreateOrder/Delivery/Validate corrigés, création opérationnelle
+- July 16, 2025. **ARCHITECTURE NOCODB HYBRIDE FINALISÉE** - Configuration globale centralisée (nocodb_config) + paramètres par magasin (groups)
+- July 16, 2025. **CONFIGURATION NOCODB SIMPLIFIÉE** - Suppression champs spécifiques magasins de nocodb_config, conservation dans groups
+- July 16, 2025. **PRODUCTION NOCODB SYNCHRONISÉE** - Scripts SQL et storage production alignés avec nouvelle architecture hybride
 
 ## User Preferences
 

@@ -810,11 +810,33 @@ export class DatabaseStorage implements IStorage {
 
   // NocoDB Configuration operations
   async getNocodbConfigs(): Promise<NocodbConfig[]> {
-    return await db.select().from(nocodbConfig).orderBy(desc(nocodbConfig.createdAt));
+    return await db.select({
+      id: nocodbConfig.id,
+      name: nocodbConfig.name,
+      baseUrl: nocodbConfig.baseUrl,
+      projectId: nocodbConfig.projectId,
+      apiToken: nocodbConfig.apiToken,
+      description: nocodbConfig.description,
+      isActive: nocodbConfig.isActive,
+      createdBy: nocodbConfig.createdBy,
+      createdAt: nocodbConfig.createdAt,
+      updatedAt: nocodbConfig.updatedAt,
+    }).from(nocodbConfig).orderBy(desc(nocodbConfig.createdAt));
   }
 
   async getNocodbConfig(id: number): Promise<NocodbConfig | undefined> {
-    const configs = await db.select().from(nocodbConfig).where(eq(nocodbConfig.id, id));
+    const configs = await db.select({
+      id: nocodbConfig.id,
+      name: nocodbConfig.name,
+      baseUrl: nocodbConfig.baseUrl,
+      projectId: nocodbConfig.projectId,
+      apiToken: nocodbConfig.apiToken,
+      description: nocodbConfig.description,
+      isActive: nocodbConfig.isActive,
+      createdBy: nocodbConfig.createdBy,
+      createdAt: nocodbConfig.createdAt,
+      updatedAt: nocodbConfig.updatedAt,
+    }).from(nocodbConfig).where(eq(nocodbConfig.id, id));
     return configs[0];
   }
 
