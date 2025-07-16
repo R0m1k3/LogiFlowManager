@@ -121,9 +121,21 @@ export default function UsersPage() {
 
   const updateUserMutation = useMutation({
     mutationFn: async (data: { id: string; updates: any }) => {
+      console.log('🔄 Frontend updateUser mutation:', data);
+      
+      // Nettoyer les données côté frontend avant envoi
+      const cleanedUpdates = {};
+      for (const [key, value] of Object.entries(data.updates)) {
+        if (value !== undefined && value !== null && value !== '') {
+          cleanedUpdates[key] = value;
+        }
+      }
+      
+      console.log('📤 Sending cleaned data:', cleanedUpdates);
+      
       const response = await apiRequest(`/api/users/${data.id}`, {
         method: "PUT",
-        body: data.updates,
+        body: cleanedUpdates,
       });
       return response;
     },

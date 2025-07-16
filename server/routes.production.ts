@@ -440,6 +440,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validation des champs requis
       const userData = req.body;
       console.log('📝 PUT /api/users/:id - Request body:', userData);
+      console.log('📝 User ID from params:', id);
+      
+      // Vérifier que l'utilisateur existe avant modification
+      const existingUser = await storage.getUser(id);
+      if (!existingUser) {
+        console.log('❌ User not found with ID:', id);
+        return res.status(404).json({ message: `Utilisateur avec l'ID ${id} non trouvé` });
+      }
+      
+      console.log('✅ Found user to update:', existingUser.username);
       
       // Nettoyer les données - supprimer les champs vides ou undefined
       const cleanedUserData = {};
@@ -451,6 +461,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('📝 Cleaned user data:', cleanedUserData);
+      
+      if (Object.keys(cleanedUserData).length === 0) {
+        console.log('⚠️ No valid data to update');
+        return res.status(400).json({ message: "Aucune donnée valide à mettre à jour" });
+      }
       
       // Validation des champs obligatoires seulement si ils sont fournis et non vides
       if (cleanedUserData.firstName && !cleanedUserData.firstName.trim()) {

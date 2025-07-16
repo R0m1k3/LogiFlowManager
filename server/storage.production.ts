@@ -217,19 +217,27 @@ export class DatabaseStorage implements IStorage {
   async updateUser(id: string, userData: Partial<UpsertUser>): Promise<User> {
     console.log('🔄 updateUser called:', { id, userData });
     
-    // Validation des champs obligatoires
-    if (userData.firstName && !userData.firstName.trim()) {
-      throw new Error('Le prénom ne peut pas être vide');
-    }
-    if (userData.lastName && !userData.lastName.trim()) {
-      throw new Error('Le nom ne peut pas être vide');
-    }
-    if (userData.email && !userData.email.trim()) {
-      throw new Error('L\'email ne peut pas être vide');
-    }
-    if (userData.email && !userData.email.includes('@')) {
-      throw new Error('L\'email doit être valide');
-    }
+    try {
+      // Vérifier que l'utilisateur existe
+      const existingUser = await this.getUser(id);
+      if (!existingUser) {
+        throw new Error(`Utilisateur avec l'ID ${id} non trouvé`);
+      }
+      console.log('✅ User found:', existingUser.username);
+      
+      // Validation des champs obligatoires seulement si fournis
+      if (userData.firstName !== undefined && (!userData.firstName || !userData.firstName.trim())) {
+        throw new Error('Le prénom ne peut pas être vide');
+      }
+      if (userData.lastName !== undefined && (!userData.lastName || !userData.lastName.trim())) {
+        throw new Error('Le nom ne peut pas être vide');
+      }
+      if (userData.email !== undefined && (!userData.email || !userData.email.trim())) {
+        throw new Error('L\'email ne peut pas être vide');
+      }
+      if (userData.email && !userData.email.includes('@')) {
+        throw new Error('L\'email doit être valide');
+      }
     
     const fields = [];
     const values = [];
@@ -264,23 +272,32 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    if (fields.length === 0) {
-      throw new Error('Aucun champ à mettre à jour');
-    }
+      if (fields.length === 0) {
+        console.log('⚠️ No fields to update, returning existing user');
+        return existingUser;
+      }
 
-    values.push(id);
-    const result = await pool.query(`
-      UPDATE users SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $${paramIndex}
-      RETURNING *
-    `, values);
-    
-    if (!result.rows[0]) {
-      throw new Error('Utilisateur non trouvé');
+      values.push(id);
+      console.log('📝 SQL Query:', `UPDATE users SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${paramIndex}`);
+      console.log('📝 SQL Values:', values);
+      
+      const result = await pool.query(`
+        UPDATE users SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `, values);
+      
+      if (!result.rows[0]) {
+        throw new Error('Aucun utilisateur mis à jour - vérifiez l\'ID');
+      }
+      
+      console.log('✅ updateUser success:', { id, fieldsUpdated: fields.length, updatedUser: result.rows[0] });
+      return result.rows[0];
+      
+    } catch (error) {
+      console.error('❌ updateUser error:', error);
+      throw error;
     }
-    
-    console.log('✅ updateUser success:', { id, fieldsUpdated: fields.length });
-    return result.rows[0];
   }
 
   async deleteUser(id: string): Promise<void> {
