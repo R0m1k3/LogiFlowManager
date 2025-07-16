@@ -747,6 +747,9 @@ Changelog:
 - July 16, 2025. **SCRIPT CORRECTION RÔLES CRÉÉ** - PRODUCTION-ROLES-FIX.sql pour synchronisation complète des rôles et couleurs
 - July 16, 2025. **AUTHENTIFICATION PRODUCTION SIMPLIFIÉE** - Hook useAuthProduction.ts dédié pour éviter conflits React Query
 - July 16, 2025. **DÉPLOIEMENT AUTOMATISÉ** - Script apply-production-roles-fix.sh avec tests et vérifications
+- July 16, 2025. **INCOHÉRENCE RÔLES PRODUCTION DIAGNOSTIQUÉE** - Page utilisateurs et page rôles désynchronisées en production
+- July 16, 2025. **SCRIPTS CORRECTION CRÉATION** - diagnostic-roles-production.sh, fix-production-roles-urgent.sh, PRODUCTION-ROLES-FIX.sql
+- July 16, 2025. **SOLUTION SYNCHRONISATION RÔLES** - Correction automatique incohérence users.role vs user_roles table
 - July 16, 2025. **COULEURS DOUCES APPLIQUÉES** - Rouge clair (#f87171), Bleu clair (#60a5fa), Vert clair (#4ade80), Violet clair (#a78bfa)
 - July 16, 2025. **BADGES STYLE AMÉLIORÉ** - Arrière-plans clairs (bg-50) et bordures subtiles pour un rendu plus doux
 - July 16, 2025. **ERREUR CRÉATION CALENDRIER RÉSOLUE** - Structure API corrigée : apiRequest(url, method, data) au lieu d'objets
