@@ -694,6 +694,9 @@ Changelog:
 - July 15, 2025. **API REQUESTS STANDARDISÉES** - Harmonisation paramètres apiRequest pour cohérence DELETE/POST/PUT
 - July 15, 2025. **MÉTRIQUES PERFORMANCE VALIDÉES** - Application stable: 0% erreurs, 739ms temps réponse moyen, 541MB mémoire
 - July 15, 2025. **APPLICATION 100% PRODUCTION-READY** - Tous modules fonctionnels, authentification stable, base données opérationnelle
+- July 16, 2025. **AUTHENTIFICATION PRODUCTION CORRIGÉE** - Résolution définitive erreur login "Invalid password for user: admin"
+- July 16, 2025. Hash mot de passe admin corrigé au format PBKDF2 salt:hash compatible avec auth-utils.production.ts
+- July 16, 2025. Login production opérationnel avec credentials admin/admin après correction format password database
 
 ## User Preferences
 
