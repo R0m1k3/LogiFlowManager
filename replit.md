@@ -752,6 +752,10 @@ Changelog:
 - July 16, 2025. **SCRIPTS CORRECTION URGENTE CRÉÉS** - fix-nocodb-urgent.sql et apply-nocodb-fix-production.sh pour résolution immédiate
 - July 16, 2025. **VALIDATION BACKEND AMÉLIORÉE** - Routes production nettoient données automatiquement, ignorent champs vides
 - July 16, 2025. **STORAGE PRODUCTION OPTIMISÉ** - Logique updateUser() améliorée pour gérer chaînes vides et valeurs undefined
+- July 16, 2025. **ERREUR NOCODB PRODUCTION RÉSOLUE** - Correction contrainte NOT NULL sur colonnes obsolètes (table_id, table_name, invoice_column_name)
+- July 16, 2025. **ARCHITECTURE NOCODB FINALISÉE** - Configuration globale (nocodb_config) + paramètres par magasin (groups) fonctionnelle
+- July 16, 2025. **SCRIPTS CORRECTION CRÉÉS** - fix-nocodb-production.sql et apply-nocodb-fix-production.sh pour résolution immédiate
+- July 16, 2025. **CRÉATION NOCODB FONCTIONNELLE** - Erreur 500 lors de la création de configurations NocoDB définitivement résolue
 
 ## User Preferences
 

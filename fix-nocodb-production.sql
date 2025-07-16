@@ -1,38 +1,35 @@
--- Script pour corriger la table nocodb_config en production
--- Supprime les colonnes spécifiques aux magasins pour utiliser l'architecture hybride
+-- Correction urgente table nocodb_config production
+-- Suppression des colonnes obsolètes causant l'erreur 500
 
--- Vérifier et supprimer les colonnes obsolètes si elles existent
-DO $$
-BEGIN
-    -- Vérifier si les colonnes existent avant de les supprimer
-    IF EXISTS (SELECT 1 FROM information_schema.columns 
-               WHERE table_name = 'nocodb_config' AND column_name = 'table_id') THEN
-        ALTER TABLE nocodb_config DROP COLUMN table_id;
-        RAISE NOTICE 'Colonne table_id supprimée de nocodb_config';
-    END IF;
-    
-    IF EXISTS (SELECT 1 FROM information_schema.columns 
-               WHERE table_name = 'nocodb_config' AND column_name = 'table_name') THEN
-        ALTER TABLE nocodb_config DROP COLUMN table_name;
-        RAISE NOTICE 'Colonne table_name supprimée de nocodb_config';
-    END IF;
-    
-    IF EXISTS (SELECT 1 FROM information_schema.columns 
-               WHERE table_name = 'nocodb_config' AND column_name = 'invoice_column_name') THEN
-        ALTER TABLE nocodb_config DROP COLUMN invoice_column_name;
-        RAISE NOTICE 'Colonne invoice_column_name supprimée de nocodb_config';
-    END IF;
-    
-    RAISE NOTICE 'Table nocodb_config mise à jour : configuration globale uniquement';
-    RAISE NOTICE 'Configuration par magasin disponible dans la table groups';
-END $$;
+-- Vérification de la structure actuelle
+\echo 'Structure actuelle de nocodb_config:'
+\d nocodb_config;
 
--- Vérifier la structure finale
-SELECT 
-    column_name, 
-    data_type, 
-    is_nullable,
-    column_default
-FROM information_schema.columns 
-WHERE table_name = 'nocodb_config' 
-ORDER BY ordinal_position;
+-- Suppression des colonnes obsolètes
+\echo 'Suppression des colonnes obsolètes...'
+ALTER TABLE nocodb_config DROP COLUMN IF EXISTS table_id;
+ALTER TABLE nocodb_config DROP COLUMN IF EXISTS table_name;
+ALTER TABLE nocodb_config DROP COLUMN IF EXISTS invoice_column_name;
+
+-- Vérification de la structure finale
+\echo 'Structure finale de nocodb_config:'
+\d nocodb_config;
+
+-- Test insertion pour vérifier que le problème est résolu
+\echo 'Test d''insertion...'
+INSERT INTO nocodb_config (
+  name, base_url, project_id, api_token, description, is_active, created_by
+) VALUES (
+  'Test Config', 
+  'https://test.nocodb.com', 
+  'test_project', 
+  'test_token', 
+  'Configuration de test', 
+  true, 
+  'admin_local'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Suppression du test
+DELETE FROM nocodb_config WHERE name = 'Test Config';
+
+\echo 'Correction terminée avec succès !';
