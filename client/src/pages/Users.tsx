@@ -222,10 +222,11 @@ export default function UsersPage() {
   const assignGroupMutation = useMutation({
     mutationFn: async (data: { userId: string; groupId: number }) => {
       console.log('📤 Assigning group:', data);
-      const response = await apiRequest(`/api/users/${data.userId}/groups`, {
-        method: "POST",
-        body: { groupId: data.groupId },
-      });
+      const response = await apiRequest(
+        `/api/users/${data.userId}/groups`, 
+        "POST",
+        { groupId: data.groupId }
+      );
       console.log('✅ Group assignment response:', response);
       return response;
     },
@@ -267,9 +268,10 @@ export default function UsersPage() {
   const removeGroupMutation = useMutation({
     mutationFn: async (data: { userId: string; groupId: number }) => {
       console.log('🗑️ Removing group:', data);
-      const response = await apiRequest(`/api/users/${data.userId}/groups/${data.groupId}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest(
+        `/api/users/${data.userId}/groups/${data.groupId}`, 
+        "DELETE"
+      );
       console.log('✅ Group removal response:', response);
       return response;
     },
