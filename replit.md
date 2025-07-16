@@ -709,6 +709,9 @@ Changelog:
 - July 16, 2025. **CORRECTION COULEURS PRODUCTION** - Script fix-production-roles-complete.sh pour couleurs correctes
 - July 16, 2025. **RÔLES PRODUCTION CORRIGÉS** - Admin (rouge), Manager (bleu), Employé (vert), Directeur (violet)
 - July 16, 2025. **ARCHITECTURE SIMPLIFIÉE RÔLES** - Plus de redondance, interface moderne et fonctionnelle
+- July 16, 2025. **PROBLÈME RÔLES PRODUCTION DIAGNOSTIQUÉ** - IDs incorrects (2,3,4,6) au lieu de (1,2,3,4) causent erreur validation
+- July 16, 2025. **SOLUTION URGENTE CRÉÉE** - Script quick-production-fix.sh pour mapper les IDs et corriger immédiatement
+- July 16, 2025. **CORRECTION AUTOMATIQUE** - Sauvegarde assignations, mappe IDs, corrige couleurs, redémarre application
 
 ## User Preferences
 
