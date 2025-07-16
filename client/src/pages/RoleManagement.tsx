@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { getRoleColor, getRoleDisplayName, ROLE_COLORS } from "@/lib/roleUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -411,7 +412,7 @@ export default function RoleManagement() {
                 ) : (
                   <div className="space-y-2">
                     {roles.map((role) => {
-                      const roleColor = role.color || '#666666';
+                      const roleColor = getRoleColor(role.name);
                       return (
                         <div
                           key={role.id}
@@ -545,9 +546,9 @@ export default function RoleManagement() {
                       <Badge 
                         variant="outline"
                         style={{
-                          backgroundColor: user.userRoles?.[0]?.role?.color || '#666666',
+                          backgroundColor: user.userRoles?.[0]?.role ? getRoleColor(user.userRoles[0].role.name) : '#666666',
                           color: 'white',
-                          borderColor: user.userRoles?.[0]?.role?.color || '#666666'
+                          borderColor: user.userRoles?.[0]?.role ? getRoleColor(user.userRoles[0].role.name) : '#666666'
                         }}
                         onClick={() => {
                           console.log("🎨 Badge Color Debug:", {
@@ -717,7 +718,7 @@ export default function RoleManagement() {
                       >
                         <div
                           className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: role.color || '#666666' }}
+                          style={{ backgroundColor: getRoleColor(role.name) }}
                         />
                         {role.displayName}
                         {isCurrentRole && <span className="text-xs text-green-600">(actuel)</span>}

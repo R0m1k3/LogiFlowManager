@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getRoleTailwindClasses, getRoleDisplayName } from "@/lib/roleUtils";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { 
   Search, 
@@ -354,33 +355,26 @@ export default function UsersPage() {
   }) : [];
 
   const getRoleIcon = (role: string) => {
+    const { iconClass } = getRoleTailwindClasses(role);
+    
     switch (role) {
       case 'admin':
-        return <Crown className="w-4 h-4 text-red-500" />;
+        return <Crown className={`w-4 h-4 ${iconClass}`} />;
       case 'manager':
-        return <Shield className="w-4 h-4 text-blue-500" />;
-      case 'employee':
-        return <User className="w-4 h-4 text-green-500" />;
       case 'directeur':
-        return <Shield className="w-4 h-4 text-purple-500" />;
+        return <Shield className={`w-4 h-4 ${iconClass}`} />;
+      case 'employee':
+        return <User className={`w-4 h-4 ${iconClass}`} />;
       default:
-        return <User className="w-4 h-4 text-gray-500" />;
+        return <User className={`w-4 h-4 ${iconClass}`} />;
     }
   };
 
   const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return <Badge className="bg-red-100 text-red-800">Administrateur</Badge>;
-      case 'manager':
-        return <Badge className="bg-blue-100 text-blue-800">Manager</Badge>;
-      case 'employee':
-        return <Badge className="bg-green-100 text-green-800">Employé</Badge>;
-      case 'directeur':
-        return <Badge className="bg-purple-100 text-purple-800">Directeur</Badge>;
-      default:
-        return <Badge variant="outline">{role}</Badge>;
-    }
+    const { badgeClass } = getRoleTailwindClasses(role);
+    const displayName = getRoleDisplayName(role);
+    
+    return <Badge className={badgeClass}>{displayName}</Badge>;
   };
 
   const handleCreateUser = () => {
