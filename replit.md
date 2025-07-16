@@ -742,6 +742,8 @@ Changelog:
 - July 16, 2025. **COULEURS RÔLES HARMONISÉES** - Système unifié roleUtils.ts pour couleurs cohérentes entre pages
 - July 16, 2025. **COULEURS DOUCES APPLIQUÉES** - Rouge clair (#f87171), Bleu clair (#60a5fa), Vert clair (#4ade80), Violet clair (#a78bfa)
 - July 16, 2025. **BADGES STYLE AMÉLIORÉ** - Arrière-plans clairs (bg-50) et bordures subtiles pour un rendu plus doux
+- July 16, 2025. **ERREUR CRÉATION CALENDRIER RÉSOLUE** - Structure API corrigée : apiRequest(url, method, data) au lieu d'objets
+- July 16, 2025. **CRÉATION FONCTIONNELLE DEV+PROD** - Tous modaux CreateOrder/Delivery/Validate corrigés, création opérationnelle
 
 ## User Preferences
 
