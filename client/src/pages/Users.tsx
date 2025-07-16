@@ -707,28 +707,30 @@ export default function UsersPage() {
                           <div className="flex items-center justify-end space-x-2">
                             {/* Note: Gestion des rôles via la page "Administration" > "Gestion des Rôles" */}
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
                               onClick={() => handleEditUser(userData)}
                               title="Modifier l'utilisateur"
+                              className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300 hover:bg-blue-50"
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
                               onClick={() => handleGroupManager(userData)}
                               title="Gérer les magasins/groupes"
-                              className="text-green-600 hover:text-green-700"
+                              className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300 hover:bg-green-50"
                             >
-                              <UserCog className="w-4 h-4" />
+                              <UserCog className="w-4 h-4 mr-1" />
+                              <span className="text-xs">Groupes</span>
                             </Button>
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
                               onClick={() => handleDeleteUser(userData)}
                               disabled={userData.id === user?.id || deleteUserMutation.isPending}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300 hover:bg-red-50"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
