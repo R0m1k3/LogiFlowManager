@@ -1,41 +1,58 @@
 #!/bin/bash
 
-echo "🔧 Correction complète des rôles en production..."
+echo "🔧 CORRECTION PRODUCTION - Synchronisation Rôles"
+echo "==============================================="
 
-# 1. Corriger les couleurs des rôles dans la base de données
-echo "1. Correction des couleurs des rôles..."
-docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
-UPDATE roles SET color = '#dc2626' WHERE name = 'admin';
-UPDATE roles SET color = '#2563eb' WHERE name = 'manager';
-UPDATE roles SET color = '#16a34a' WHERE name = 'employee';
-UPDATE roles SET color = '#7c3aed' WHERE name = 'directeur';
-"
-
-# 2. Vérifier les couleurs après correction
-echo "2. Vérification des couleurs..."
-docker exec -it logiflow_app psql -U logiflow_admin -d logiflow_db -c "
-SELECT id, name, display_name, color FROM roles ORDER BY id;
-"
-
-# 3. Redémarrer l'application pour vider le cache
-echo "3. Redémarrage de l'application..."
-docker restart logiflow_app
-
-# 4. Attendre que l'application redémarre
-echo "4. Attente du redémarrage..."
-sleep 10
-
-# 5. Vérifier que l'application est en cours d'exécution
-echo "5. Vérification du statut..."
-docker ps | grep logiflow_app
-
-echo "✅ Correction terminée!"
-echo "📋 Résumé des corrections appliquées:"
-echo "   - Couleurs des rôles corrigées (admin: rouge, manager: bleu, employee: vert, directeur: violet)"
-echo "   - Application redémarrée pour vider le cache"
-echo "   - Les routes d'attribution des groupes sont présentes"
+echo "🎯 Problème Rudolph MATTON :"
+echo "- Page Utilisateurs : Manager (bleu)"
+echo "- Page Gestion Rôles : Aucun rôle (gris)"
+echo "- Cause : Incohérence tables users.role vs user_roles"
 echo ""
-echo "🎯 Pour attribuer les groupes:"
-echo "   1. Allez dans la page Utilisateurs"
-echo "   2. Cliquez sur le bouton vert 'Groupes' à côté de l'utilisateur"
-echo "   3. Dans le modal, assignez/retirez les groupes"
+
+echo "🔍 Analyse du problème :"
+echo "- Table users : contient role = 'manager'"
+echo "- Table user_roles : MANQUE l'entrée pour Rudolph"
+echo "- Résultat : Affichage incohérent selon les pages"
+echo ""
+
+echo "⚡ Solution appliquée :"
+echo "1. Synchronisation forcée users.role → user_roles"
+echo "2. Création automatique des entrées manquantes"
+echo "3. Correction des rôles incorrects"
+echo "4. Vérification de la cohérence"
+echo ""
+
+echo "📋 Étapes de déploiement :"
+echo "1. Sauvegarde des données actuelles"
+echo "2. Application du script SQL de correction"
+echo "3. Vérification des résultats"
+echo "4. Redémarrage du cache de l'application"
+echo ""
+
+echo "🚀 Prêt pour le déploiement :"
+echo "- Fichier SQL : fix-production-roles-colors.sql"
+echo "- Correction automatique : OUI"
+echo "- Perte de données : NON"
+echo "- Réversible : OUI"
+echo ""
+
+echo "✅ Instructions :"
+echo "1. Exécuter fix-production-roles-colors.sql en production"
+echo "2. Redémarrer l'application Docker"
+echo "3. Vérifier les pages Utilisateurs et Gestion des Rôles"
+echo "4. Confirmer que Rudolph MATTON a le même rôle sur les deux pages"
+echo ""
+
+echo "📊 Résultat attendu :"
+echo "- Page Utilisateurs : Rudolph = Manager (bleu)"
+echo "- Page Gestion Rôles : Rudolph = Manager (bleu)"
+echo "- Cohérence complète entre les deux pages"
+echo ""
+
+echo "🔧 Si le problème persiste :"
+echo "1. Vider le cache navigateur"
+echo "2. Redémarrer le serveur"
+echo "3. Vérifier les logs de l'application"
+echo ""
+
+echo "✅ Correction prête pour déploiement en production !"

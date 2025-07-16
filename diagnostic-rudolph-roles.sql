@@ -1,18 +1,3 @@
-#!/bin/bash
-
-echo "🔍 DIAGNOSTIC - Incohérence Rôles Rudolph MATTON"
-echo "==============================================="
-
-echo "🎯 Problème identifié :"
-echo "- Page Utilisateurs : Rudolph = Manager (bleu)"
-echo "- Page Gestion Rôles : Rudolph = Aucun rôle (gris)"
-echo "- Incohérence entre tables users.role et user_roles"
-echo ""
-
-echo "📋 Diagnostic des données..."
-
-# Créer le script SQL de diagnostic
-cat > diagnostic-rudolph-roles.sql << 'EOF'
 -- DIAGNOSTIC COMPLET - Incohérence Rôles Rudolph MATTON
 
 -- 1. Vérifier les données utilisateur Rudolph
@@ -97,20 +82,3 @@ FROM users u
 LEFT JOIN user_roles ur ON u.id = ur.user_id
 LEFT JOIN roles r ON ur.role_id = r.id
 WHERE u.role IS NOT NULL;
-EOF
-
-echo "📊 Exécution du diagnostic SQL..."
-
-# Exécuter le diagnostic via l'outil SQL
-echo "⚠️  Prêt à exécuter le diagnostic en production"
-echo "📋 Fichier SQL créé : diagnostic-rudolph-roles.sql"
-echo ""
-
-echo "🔧 Correction à appliquer après diagnostic :"
-echo "1. Identifier l'ID utilisateur de Rudolph MATTON"
-echo "2. Vérifier le rôle dans la table users"
-echo "3. Synchroniser avec la table user_roles"
-echo "4. Forcer la couleur correcte du rôle"
-echo ""
-
-echo "✅ Diagnostic prêt. Exécutez le fichier SQL pour voir les incohérences."

@@ -761,6 +761,9 @@ Changelog:
 - July 16, 2025. **SOLUTION DÉFINITIVE CRÉÉE** - Scripts automatiques de rebuild et déploiement pour corriger le cache production
 - July 16, 2025. **PROBLEM NOCODB RÉSOLU** - Logs montrent isArray: true, safeConfigs opérationnel, plus d'erreur TypeError
 - July 16, 2025. **CORRECTION URGENTE APPLIQUÉE** - Scripts de patch d'urgence créés, application fonctionnelle, page Configuration NocoDB opérationnelle
+- July 16, 2025. **PROBLÈME RÔLES PRODUCTION DIAGNOSTIQUÉ** - Rudolph MATTON a rôle différent selon les pages (Manager vs Aucun rôle)
+- July 16, 2025. **SOLUTION SYNCHRONISATION RÔLES CRÉÉE** - Script SQL pour corriger incohérence tables users.role vs user_roles
+- July 16, 2025. **CORRECTION AUTOMATIQUE PRÊTE** - fix-production-roles-colors.sql synchronise tous les rôles utilisateurs en production
 
 ## User Preferences
 
