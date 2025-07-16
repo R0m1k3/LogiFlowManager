@@ -704,6 +704,11 @@ Changelog:
 - July 16, 2025. **PROBLÈME REDIRECTION PRODUCTION RÉSOLU** - Système authentification unifié remplace la logique complexe dual-environnement
 - July 16, 2025. **ARCHITECTURE SIMPLIFIÉE** - AuthPage.tsx, Layout.tsx, Sidebar.tsx utilisent maintenant useAuthSimple pour cohérence totale
 - July 16, 2025. **AUTHENTIFICATION ROBUSTE** - Detection automatique d'environnement, gestion d'état fiable, redirection automatique après login
+- July 16, 2025. **GESTION DES RÔLES CENTRALISÉE** - Suppression interface redondante dans Users.tsx
+- July 16, 2025. **INTERFACES RÔLES UNIFIÉES** - Gestion unique via Administration > Gestion des Rôles
+- July 16, 2025. **CORRECTION COULEURS PRODUCTION** - Script fix-production-roles-complete.sh pour couleurs correctes
+- July 16, 2025. **RÔLES PRODUCTION CORRIGÉS** - Admin (rouge), Manager (bleu), Employé (vert), Directeur (violet)
+- July 16, 2025. **ARCHITECTURE SIMPLIFIÉE RÔLES** - Plus de redondance, interface moderne et fonctionnelle
 
 ## User Preferences
 

@@ -474,10 +474,7 @@ export default function UsersPage() {
     }
   }
 
-  const handleRoleManagement = (user: UserWithGroups) => {
-    setSelectedUserForRole(user);
-    setShowRoleModal(true);
-  };;
+  // Gestion des rôles centralisée dans Administration > Gestion des Rôles
 
   const handleToggleGroup = (userId: string, groupId: number, isAssigned: boolean) => {
     if (isAssigned) {
@@ -708,30 +705,7 @@ export default function UsersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
-                            {/* Bouton de gestion des rôles avec couleur dynamique */}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleRoleManagement(userData)}
-                              title="Gérer les rôles"
-                              className="flex items-center space-x-2"
-                              disabled={userData.id === user?.id}
-                            >
-                              <div 
-                                className="w-3 h-3 rounded-full"
-                                style={{ 
-                                  backgroundColor: (Array.isArray(userData.roles) && userData.roles.length > 0) 
-                                    ? userData.roles[0].color || '#6b7280'
-                                    : '#6b7280'
-                                }}
-                              />
-                              <span className="text-xs">
-                                {(Array.isArray(userData.roles) && userData.roles.length > 0) 
-                                  ? userData.roles[0].displayName || userData.roles[0].name || 'Rôle'
-                                  : userData.role || 'Aucun rôle'}
-                              </span>
-                              <Edit className="w-3 h-3" />
-                            </Button>
+                            {/* Note: Gestion des rôles via la page "Administration" > "Gestion des Rôles" */}
                             <Button
                               variant="ghost"
                               size="sm"
