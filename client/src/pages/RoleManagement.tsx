@@ -42,36 +42,9 @@ export default function RoleManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch roles with aggressive cache busting
+  // Fetch roles 
   const { data: rolesData = [], isLoading: rolesLoading, error: rolesError, refetch: refetchRoles } = useQuery<Role[]>({
-    queryKey: ['/api/roles', Date.now()], // Force unique key
-    queryFn: async () => {
-      console.log("🔄 FORCE REFRESH - Fetching roles with cache busting");
-      const response = await fetch(`/api/roles?_t=${Date.now()}`, {
-        credentials: 'include',
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("🚨 ROLES FETCH ERROR:", { status: response.status, text: errorText });
-        throw new Error(`${response.status}: ${errorText}`);
-      }
-      
-      const data = await response.json();
-      console.log("✅ ROLES FETCH SUCCESS:", data);
-      data.forEach((role: any) => {
-        console.log(`🎨 Role ${role.displayName}: color=${role.color}`);
-      });
-      return Array.isArray(data) ? data : [];
-    },
+    queryKey: ['/api/roles'],
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: true,
@@ -87,49 +60,12 @@ export default function RoleManagement() {
     refetchOnMount: true,
   });
 
-  // Fetch users with aggressive cache busting and real-time updates
-  const { data: usersData = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery<User[]>({
-    queryKey: ['/api/users', Date.now()], // Force unique key
-    queryFn: async () => {
-      console.log("🔄 FORCE REFRESH - Fetching users with cache busting");
-      const response = await fetch(`/api/users?_t=${Date.now()}`, {
-        credentials: 'include',
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("🚨 USERS FETCH ERROR:", { status: response.status, text: errorText });
-        throw new Error(`${response.status}: ${errorText}`);
-      }
-      
-      const data = await response.json();
-      console.log("✅ USERS FETCH SUCCESS:", data);
-      
-      // 🧹 NETTOYAGE DES DONNÉES CORROMPUES - Filtrer les rôles invalides
-      const cleanedUsers = Array.isArray(data) ? data.map(user => {
-        if (user.userRoles && Array.isArray(user.userRoles)) {
-          user.userRoles = user.userRoles.filter(ur => ur.roleId >= 1 && ur.roleId <= 4);
-          console.log(`🧹 User ${user.username} has role:`, user.userRoles[0]?.role?.displayName, 'Color:', user.userRoles[0]?.role?.color);
-        }
-        return user;
-      }) : [];
-      
-      console.log("🧹 Users after cleaning:", cleanedUsers);
-      return cleanedUsers;
-    },
+  // Fetch users 
+  const { data: usersData = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery<UserWithRoles[]>({
+    queryKey: ['/api/users'],
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    retry: false
   });
 
   // Protection Array.isArray et logs debug RENFORCÉS
@@ -137,43 +73,12 @@ export default function RoleManagement() {
   const permissions = Array.isArray(permissionsData) ? permissionsData : [];
   const users = Array.isArray(usersData) ? usersData : [];
 
-  // Force refetch on component mount + Clear ALL cache
-  useEffect(() => {
-    console.log("🔄 RoleManagement mounting - CLEARING ALL CACHE");
-    
-    // 🧹 NETTOYAGE CACHE COMPLET pour résoudre problème rôle ID 6
-    queryClient.clear();
-    queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    
-    // Puis forcer le refetch
-    setTimeout(() => {
-      refetchRoles();
-      refetchPermissions();
-    }, 100);
-  }, [refetchRoles, refetchPermissions, queryClient]);
 
-  // Solution de contournement: forcer re-rendu si les données sont vides mais le loading est false
-  useEffect(() => {
-    if (!rolesLoading && !rolesError && roles.length === 0) {
-      console.log("🔧 Empty roles detected - forcing refetch");
-      setTimeout(() => {
-        refetchRoles();
-      }, 500);
-    }
-  }, [rolesLoading, rolesError, roles.length, refetchRoles]);
 
-  console.log("🔍 RoleManagement Debug:", {
-    rolesData,
-    roles,
-    rolesLength: roles.length,
-    rolesLoading,
-    rolesError: rolesError?.message,
-    rolesDataType: typeof rolesData,
-    rolesDataIsArray: Array.isArray(rolesData),
-    rolesType: typeof roles,
-    rolesIsArray: Array.isArray(roles)
+  console.log("📊 RoleManagement Data:", {
+    roles: roles.length,
+    users: users.length,
+    permissions: permissions.length
   });
 
   // Debug des couleurs spécifiquement
@@ -301,29 +206,13 @@ export default function RoleManagement() {
       }
     },
     onSuccess: (data, variables) => {
-      console.log("🚀 Mutation success - force refreshing cache", { data, variables });
+      console.log("✅ User role updated successfully");
       
-      // 🔄 FORCE REFRESH - Invalider TOUT le cache pour mise à jour immédiate
-      queryClient.clear();
-      
-      // Puis invalider spécifiquement les queries importantes
+      // Invalidate cache and refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
       
-      // Forcer le refetch immédiat des données utilisateurs
-      setTimeout(() => {
-        console.log("🔄 Force refreshing ALL data after role assignment");
-        refetchRoles();
-        refetchUsers();
-        // Force refresh avec nouvelle timestamp
-        queryClient.invalidateQueries({ 
-          predicate: (query) => 
-            query.queryKey[0] === '/api/users' || 
-            query.queryKey[0] === '/api/roles'
-        });
-      }, 100);
-      
-      // Fermer le modal et réinitialiser
+      // Close modal and reset
       setEditUserRolesOpen(false);
       setSelectedUser(null);
       setSelectedRoleForUser(null);
@@ -390,79 +279,24 @@ export default function RoleManagement() {
   const handleUserRolesUpdate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
-    console.log("🔧 handleUserRolesUpdate TRIGGERED", {
-      selectedUser: selectedUser?.username,
-      selectedUserId: selectedUser?.id,
-      selectedRoleForUser,
-      isPending: updateUserRolesMutation.isPending,
-      formTarget: event.currentTarget.tagName
-    });
-    
-    if (!selectedUser) {
-      console.error("❌ NO SELECTED USER");
+    if (!selectedUser || selectedRoleForUser === null) {
       toast({
         title: "Erreur",
-        description: "Aucun utilisateur sélectionné",
+        description: "Veuillez sélectionner un utilisateur et un rôle",
         variant: "destructive",
       });
       return;
     }
     
-    if (selectedRoleForUser === null || selectedRoleForUser === undefined) {
-      console.error("❌ NO ROLE SELECTED", { selectedRoleForUser });
-      toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner un rôle",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // 🛡️ VALIDATION CRITIQUE - Bloquer rôles invalides
+    // Validation: vérifier que le rôle est valide
     if (selectedRoleForUser < 1 || selectedRoleForUser > 4) {
-      console.error("❌ RÔLE INVALIDE DÉTECTÉ:", selectedRoleForUser);
       toast({
         title: "Rôle invalide",
-        description: `Le rôle ID ${selectedRoleForUser} n'est pas valide. Les rôles valides sont 1-4.`,
-        variant: "destructive",
-      });
-      
-      // Force reset du selectedRoleForUser pour éviter les erreurs récurrentes
-      setSelectedRoleForUser(3); // Par défaut: employee
-      return;
-    }
-
-    // Validation: vérifier que l'utilisateur existe dans la liste actuelle
-    const userExists = users.some(u => u.id === selectedUser.id);
-    if (!userExists) {
-      console.error("❌ User not found in current users list:", selectedUser.id);
-      toast({
-        title: "Erreur",
-        description: "L'utilisateur sélectionné n'existe plus. Veuillez actualiser la page.",
+        description: "Le rôle sélectionné n'est pas valide",
         variant: "destructive",
       });
       return;
     }
-
-    // Empêcher les soumissions multiples
-    if (updateUserRolesMutation.isPending) {
-      console.warn("⚠️ Mutation already pending, ignoring");
-      toast({
-        title: "Traitement en cours",
-        description: "Veuillez patienter...",
-        variant: "default",
-      });
-      return;
-    }
-
-    console.log("🚀 MUTATION READY - About to mutate:", {
-      userId: selectedUser.id,
-      roleIds: [selectedRoleForUser],
-      currentRole: selectedUser.userRoles?.[0]?.roleId,
-      roleIdParsed: selectedRoleForUser,
-      userExists,
-      validationPassed: true
-    });
 
     updateUserRolesMutation.mutate({
       userId: selectedUser.id,
@@ -712,23 +546,11 @@ export default function RoleManagement() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          console.log("🔍 Selected user for role edit:", user);
                           setSelectedUser(user as UserWithRoles);
                           
-                          // 🛡️ PROTECTION RENFORCÉE CONTRE RÔLES INVALIDES
-                          const roleId = user.userRoles?.[0]?.roleId;
-                          let validRoleId = null;
-                          
-                          // Validation stricte : seuls les rôles 1-4 sont autorisés
-                          if (roleId && typeof roleId === 'number' && roleId >= 1 && roleId <= 4) {
-                            validRoleId = roleId;
-                          } else {
-                            // Par défaut, assigner le rôle "employee" si pas de rôle valide
-                            validRoleId = 3; // employee
-                            console.warn("⚠️ Rôle invalide détecté, assignation par défaut à employee:", { userId: user.id, invalidRoleId: roleId });
-                          }
-                          
-                          console.log("🔧 Role validation:", { original: roleId, validated: validRoleId });
+                          // Pré-sélectionner le rôle actuel de l'utilisateur
+                          const currentRoleId = user.userRoles?.[0]?.roleId;
+                          const validRoleId = (currentRoleId >= 1 && currentRoleId <= 4) ? currentRoleId : 3;
                           setSelectedRoleForUser(validRoleId);
                           
                           setEditUserRolesOpen(true);
@@ -854,7 +676,6 @@ export default function RoleManagement() {
                 </p>
                 {Array.isArray(roles) && roles.map((role) => {
                   const isCurrentRole = selectedUser.userRoles?.[0]?.roleId === role.id;
-                  console.log(`🔍 Role ${role.displayName} (ID: ${role.id}) - Current: ${isCurrentRole}`);
                   return (
                     <div key={role.id} className="flex items-center space-x-2">
                       <input
@@ -863,14 +684,7 @@ export default function RoleManagement() {
                         name="selectedRole"
                         value={role.id}
                         checked={selectedRoleForUser === role.id}
-                        onChange={(e) => {
-                          console.log("🔧 Role selection changed:", { 
-                            roleId: role.id, 
-                            roleName: role.displayName,
-                            value: e.target.value,
-                            checked: e.target.checked,
-                            previousSelection: selectedRoleForUser
-                          });
+                        onChange={() => {
                           setSelectedRoleForUser(role.id);
                         }}
                         className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
