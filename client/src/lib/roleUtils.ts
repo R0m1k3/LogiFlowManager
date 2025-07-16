@@ -1,9 +1,9 @@
 // Utilitaire pour harmoniser les couleurs des rôles dans toute l'application
 
 export const ROLE_COLORS = {
-  admin: '#dc2626',        // Rouge
-  manager: '#2563eb',      // Bleu
-  employee: '#16a34a',     // Vert
+  admin: '#dc2626',        // Rouge (Administrateur)
+  manager: '#2563eb',      // Bleu (Manager)
+  employee: '#16a34a',     // Vert (Employé)
   directeur: '#9333ea',    // Violet
 } as const;
 
