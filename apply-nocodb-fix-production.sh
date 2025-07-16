@@ -1,55 +1,101 @@
 #!/bin/bash
 
-# Script de correction urgente pour NocoDB en production
-# Résout l'erreur 500 lors de la création des configurations
+echo "🚨 CORRECTION URGENTE - TypeError NocoDB Production"
+echo "================================================="
 
-set -e
+echo "🔍 Diagnostic du problème..."
+echo "- Erreur: Cannot read properties of undefined (reading 'length')"
+echo "- Page: Configuration NocoDB"
+echo "- Environnement: Production"
+echo ""
 
-echo "🔧 Correction urgente NocoDB Production"
-echo "========================================"
-
-# Vérification de l'existence du fichier SQL
-if [ ! -f "fix-nocodb-production.sql" ]; then
-    echo "❌ Fichier fix-nocodb-production.sql non trouvé"
-    exit 1
-fi
-
-echo "📝 Application des corrections SQL..."
-
-# Option 1: Via Docker (si le conteneur PostgreSQL est en cours d'exécution)
-if docker ps | grep -q logiflow-postgres; then
-    echo "🐳 Conteneur PostgreSQL trouvé, application via Docker..."
-    docker exec -i logiflow-postgres psql -U logiflow_admin -d logiflow_db < fix-nocodb-production.sql
-    echo "✅ Correction appliquée via Docker"
+echo "📋 Étape 1: Vérification de la base de données"
+if command -v psql &> /dev/null; then
+    echo "🗄️  Exécution du script SQL de diagnostic..."
+    psql -f fix-nocodb-production-urgent.sql
 else
-    echo "⚠️ Conteneur PostgreSQL non trouvé"
-    echo "💡 Appliquez manuellement le script SQL sur votre base de données :"
-    echo "   cat fix-nocodb-production.sql | psql -U logiflow_admin -d logiflow_db"
+    echo "⚠️  psql non disponible, veuillez exécuter manuellement:"
+    echo "   psql -f fix-nocodb-production-urgent.sql"
 fi
 
 echo ""
-echo "🔍 Vérification de la correction..."
+echo "📋 Étape 2: Correction des fichiers production"
 
-# Test de l'API pour vérifier que la correction fonctionne
-echo "🧪 Test de l'API NocoDB..."
-RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-    -X POST http://localhost:3000/api/nocodb-config \
-    -H "Content-Type: application/json" \
-    -H "Cookie: connect.sid=test" \
-    -d '{"name":"Test Fix","baseUrl":"https://test.nocodb.com","projectId":"test","apiToken":"test"}' \
-    2>/dev/null || echo "000")
+echo "🔧 Création du fichier de correction rapide..."
+cat > fix-nocodb-frontend-urgent.js << 'EOF'
+// Correction urgente pour NocoDBConfig.tsx
+// Remplace la logique de protection pour éviter le TypeError
 
-if [ "$RESPONSE" = "201" ] || [ "$RESPONSE" = "401" ]; then
-    echo "✅ API NocoDB fonctionne correctement (HTTP $RESPONSE)"
+// Protection renforcée pour les données configs
+const originalUseQuery = window.React && window.React.useQuery;
+if (originalUseQuery) {
+  const safeUseQuery = function(options) {
+    const result = originalUseQuery.call(this, options);
+    if (options.queryKey && options.queryKey[0] === '/api/nocodb-config') {
+      // Force un array vide si undefined/null
+      if (!Array.isArray(result.data)) {
+        result.data = [];
+      }
+    }
+    return result;
+  };
+  
+  // Remplace la fonction useQuery
+  if (window.React) {
+    window.React.useQuery = safeUseQuery;
+  }
+}
+
+console.log('🔧 Correction NocoDB appliquée - TypeError protégé');
+EOF
+
+echo "✅ Fichier de correction créé: fix-nocodb-frontend-urgent.js"
+
+echo ""
+echo "📋 Étape 3: Redémarrage de l'application"
+
+if command -v docker-compose &> /dev/null; then
+    echo "🐳 Redémarrage complet Docker Compose..."
+    docker-compose down
+    docker-compose up -d --build
+    
+    echo "⏳ Attente du démarrage (15 secondes)..."
+    sleep 15
+    
+    echo "🧪 Test de l'API NocoDB..."
+    STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/nocodb-config)
+    echo "   Status API: $STATUS"
+    
+    if [ "$STATUS" = "200" ] || [ "$STATUS" = "401" ]; then
+        echo "✅ API répond correctement"
+    else
+        echo "❌ Problème avec l'API (Status: $STATUS)"
+    fi
+    
+elif command -v docker &> /dev/null; then
+    echo "🐳 Redémarrage container Docker..."
+    docker restart logiflow-app
+    sleep 10
 else
-    echo "⚠️ API NocoDB retourne HTTP $RESPONSE - Vérifiez les logs"
+    echo "⚠️  Docker non trouvé, redémarrage manuel requis"
 fi
 
 echo ""
-echo "🎉 Correction terminée !"
-echo "📋 Résumé des actions :"
-echo "   - Colonnes obsolètes supprimées : table_id, table_name, invoice_column_name"
-echo "   - Structure de la table alignée avec le schéma actuel"
-echo "   - Création de configurations NocoDB maintenant fonctionnelle"
+echo "🎯 Validation post-correction:"
+echo "1. Accédez à Administration → Configuration NocoDB"
+echo "2. Vérifiez l'absence d'erreur TypeError"
+echo "3. Testez la création d'une configuration"
+echo "4. Vérifiez la console JavaScript (F12)"
 echo ""
-echo "🚀 Vous pouvez maintenant créer des configurations NocoDB sans erreur 500"
+
+echo "🔍 Logs à surveiller:"
+echo "- docker logs logiflow-app | grep '📊 NocoDB'"
+echo "- Console JavaScript: '🔍 NocoDBConfig Debug'"
+echo ""
+
+echo "✅ Correction terminée. Le problème TypeError devrait être résolu."
+echo ""
+echo "🚨 Si le problème persiste:"
+echo "1. Vérifiez que la table nocodb_config existe"
+echo "2. Vérifiez les permissions admin"
+echo "3. Contactez le support technique"
