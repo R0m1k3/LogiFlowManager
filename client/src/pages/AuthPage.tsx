@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useAuthUnified } from "@/hooks/useAuthUnified";
+import { useAuthSimple } from "@/hooks/useAuthSimple";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,9 +13,17 @@ import { useLocation } from "wouter";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { user, isLoading, refreshAuth } = useAuthUnified();
+  const { user, isLoading, refreshAuth, isAuthenticated } = useAuthSimple();
   const { toast } = useToast();
   const [showDefaultCredentials, setShowDefaultCredentials] = useState(true);
+
+  // Debug logging for authentication state
+  console.log('🔍 AuthPage Debug:', {
+    isAuthenticated,
+    isLoading,
+    userId: user?.id,
+    username: user?.username
+  });
   
   const [loginData, setLoginData] = useState({
     username: "",
@@ -43,7 +51,8 @@ export default function AuthPage() {
   }, [defaultCredentialsCheck]);
 
   // Redirect if already authenticated
-  if (!isLoading && user) {
+  if (!isLoading && isAuthenticated) {
+    console.log('🔄 User authenticated, redirecting to dashboard...');
     setLocation("/");
     return null;
   }
@@ -54,8 +63,7 @@ export default function AuthPage() {
       return response;
     },
     onSuccess: (userData) => {
-      // Update the user data in the cache
-      queryClient.setQueryData(["/api/user"], userData);
+      console.log('✅ Login successful, refreshing auth state...');
       
       // Refresh authentication state
       refreshAuth();
@@ -65,10 +73,8 @@ export default function AuthPage() {
         description: "Bienvenue dans LogiFlow",
       });
       
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        setLocation("/");
-      }, 150);
+      // The redirect will happen automatically when isAuthenticated becomes true
+      console.log('🔄 Login complete, waiting for auth state refresh...');
     },
     onError: (error: any) => {
       toast({

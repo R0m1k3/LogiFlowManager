@@ -10,6 +10,13 @@ export function useAuthUnified() {
      window.location.hostname.includes('replit.dev') ||
      import.meta.env.DEV === true);
 
+  // Debug logging pour comprendre l'environnement
+  console.log('🔍 Auth Environment Debug:', {
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'N/A',
+    isDev: import.meta.env.DEV,
+    environment: isDevelopment ? 'development' : 'production'
+  });
+
   // État pour la version production (fetch direct)
   const [productionUser, setProductionUser] = useState<any>(null);
   const [productionLoading, setProductionLoading] = useState(true);
@@ -36,8 +43,12 @@ export function useAuthUnified() {
 
   // Fonction pour rafraîchir l'authentification en production
   const refreshAuth = () => {
+    console.log('🔄 RefreshAuth called, isDevelopment:', isDevelopment);
     if (!isDevelopment) {
+      console.log('🔄 Triggering production auth refresh');
       setRefreshTrigger(prev => prev + 1);
+    } else {
+      console.log('🔄 Development mode - using React Query refresh');
     }
   };
 
@@ -49,6 +60,7 @@ export function useAuthUnified() {
     
     const checkAuth = async () => {
       try {
+        console.log('🔄 Production auth check starting, refreshTrigger:', refreshTrigger);
         setProductionLoading(true);
         
         const response = await fetch('/api/user', {
@@ -60,15 +72,19 @@ export function useAuthUnified() {
           }
         });
         
+        console.log('🔄 Production auth response:', response.status);
+        
         if (!isMounted) return;
         
         if (response.ok) {
           const userData = await response.json();
+          console.log('✅ Production auth success:', { username: userData?.username, id: userData?.id });
           if (isMounted) {
             setProductionUser(userData);
             setProductionError(null);
           }
         } else if (response.status === 401) {
+          console.log('❌ Production auth 401 - user not authenticated');
           if (isMounted) {
             setProductionUser(null);
             setProductionError(null);
@@ -84,6 +100,7 @@ export function useAuthUnified() {
         }
       } finally {
         if (isMounted) {
+          console.log('🔄 Production auth check complete, loading set to false');
           setProductionLoading(false);
         }
       }
