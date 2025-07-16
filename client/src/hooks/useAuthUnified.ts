@@ -14,6 +14,7 @@ export function useAuthUnified() {
   const [productionUser, setProductionUser] = useState<any>(null);
   const [productionLoading, setProductionLoading] = useState(true);
   const [productionError, setProductionError] = useState<any>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Hook React Query pour le développement
   const developmentQuery = useQuery({
@@ -32,6 +33,13 @@ export function useAuthUnified() {
     gcTime: 10 * 60 * 1000,
     enabled: isDevelopment, // Seulement en développement
   });
+
+  // Fonction pour rafraîchir l'authentification en production
+  const refreshAuth = () => {
+    if (!isDevelopment) {
+      setRefreshTrigger(prev => prev + 1);
+    }
+  };
 
   // Authentification production (fetch direct)
   useEffect(() => {
@@ -86,7 +94,7 @@ export function useAuthUnified() {
     return () => {
       isMounted = false;
     };
-  }, [isDevelopment]);
+  }, [isDevelopment, refreshTrigger]); // Ajout du refreshTrigger
 
   // Retourner les bonnes données selon l'environnement
   if (isDevelopment) {
@@ -95,6 +103,7 @@ export function useAuthUnified() {
       isLoading: developmentQuery.isLoading,
       isAuthenticated: !!developmentQuery.data,
       error: developmentQuery.error,
+      refreshAuth: () => developmentQuery.refetch(),
       environment: 'development'
     };
   } else {
@@ -103,6 +112,7 @@ export function useAuthUnified() {
       isLoading: productionLoading,
       isAuthenticated: !!productionUser,
       error: productionError,
+      refreshAuth: refreshAuth,
       environment: 'production'
     };
   }

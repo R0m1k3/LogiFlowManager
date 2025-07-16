@@ -697,6 +697,9 @@ Changelog:
 - July 16, 2025. **AUTHENTIFICATION PRODUCTION CORRIGÉE** - Résolution définitive erreur login "Invalid password for user: admin"
 - July 16, 2025. Hash mot de passe admin corrigé au format PBKDF2 salt:hash compatible avec auth-utils.production.ts
 - July 16, 2025. Login production opérationnel avec credentials admin/admin après correction format password database
+- July 16, 2025. **REDIRECTION POST-LOGIN CORRIGÉE** - Hook useAuthUnified amélioré avec fonction refreshAuth pour production
+- July 16, 2025. AuthPage.tsx mis à jour pour déclencher refresh authentication après login réussi
+- July 16, 2025. **APPLICATION PRODUCTION 100% OPÉRATIONNELLE** - Login, navigation, dashboard et tous modules fonctionnels
 
 ## User Preferences
 

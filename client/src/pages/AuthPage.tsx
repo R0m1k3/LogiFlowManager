@@ -13,7 +13,7 @@ import { useLocation } from "wouter";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { user, isLoading } = useAuthUnified();
+  const { user, isLoading, refreshAuth } = useAuthUnified();
   const { toast } = useToast();
   const [showDefaultCredentials, setShowDefaultCredentials] = useState(true);
   
@@ -57,6 +57,9 @@ export default function AuthPage() {
       // Update the user data in the cache
       queryClient.setQueryData(["/api/user"], userData);
       
+      // Refresh authentication state
+      refreshAuth();
+      
       toast({
         title: "Connexion réussie",
         description: "Bienvenue dans LogiFlow",
@@ -65,7 +68,7 @@ export default function AuthPage() {
       // Small delay to ensure state is updated
       setTimeout(() => {
         setLocation("/");
-      }, 100);
+      }, 150);
     },
     onError: (error: any) => {
       toast({
