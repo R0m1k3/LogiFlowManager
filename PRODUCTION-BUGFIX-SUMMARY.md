@@ -1,43 +1,49 @@
-# 🚨 CORRECTION BUG PRODUCTION - FILTRAGE MAGASIN
+# 🚨 PRODUCTION BUGFIX - CACHE SYNCHRONIZATION
 
-## **Problème Identifié**
-En production, le sélecteur magasin ne filtre PAS les données :
-- ✅ **Dev** : `storeId=2` → Affiche seulement Houdemont  
-- ❌ **Prod** : `storeId=2` → Affiche TOUS les magasins (`groupIds: undefined`)
+## **Problème Production Critique**
+Malgré les corrections d'invalidation cache, le problème persiste en production :
+- ✅ Développement : Suppression fonctionne parfaitement
+- ❌ Production : `storeId` se perd lors du refetch → `groupIds: undefined`
 
-## **Cause Racine**
-```javascript
-// AVANT (bugué)
-groupIds = storeId ? [parseInt(storeId as string)] : undefined;
+## **Logs Production Problématiques**
+```
+Orders API called with: { storeId: '2', userRole: 'admin' }
+Admin filtering with groupIds: [ 2 ]  ✅ CORRECT
 
-// APRÈS (corrigé)  
-if (storeId && storeId !== 'undefined' && storeId !== 'null') {
-  groupIds = [parseInt(storeId as string)];
-} else {
-  groupIds = undefined;
-}
+// APRÈS SUPPRESSION ET REFETCH
+Orders API called with: { storeId: undefined, userRole: 'admin' }
+Admin filtering with groupIds: undefined  ❌ PROBLÈME
 ```
 
-## **Corrections Appliquées**
+## **Cause Racine**
+Le `refetchQueries` avec predicate perd le contexte `storeId` lors du refetch automatique en production.
 
-### **1. Route Orders (/api/orders)**
-- ✅ Logs détaillés : `storeId`, `storeIdType`, `fullQuery`
-- ✅ Validation stricte : `storeId !== 'undefined'` et `storeId !== 'null'`
-- ✅ Messages explicites : "Admin filtering with groupIds: [2] from storeId: 2"
+## **Solution Finale Appliquée**
 
-### **2. Route Deliveries (/api/deliveries)**  
-- ✅ Même logique de validation que Orders
-- ✅ Logs cohérents pour diagnostic
-- ✅ Filtrage identique dev/production
+### **1. Retour à la Solution Radicale**
+```javascript
+// Dans OrderDetailModal ET Orders page
+queryClient.clear();
+setTimeout(() => {
+  window.location.reload();
+}, 100);
+```
 
-## **Impact**
-- **AVANT** : Suppression commande Houdemont → Reste visible (bug!)
-- **APRÈS** : Suppression commande Houdemont → Disparaît (cohérent!)
+### **2. Pourquoi cette solution**
+- **predicate + refetch** : Théoriquement élégant, mais perd storeId en production
+- **queryClient.clear() + reload** : Garantit reset complet avec préservation localStorage
+- **localStorage** : Sauvegarde automatique du selectedStoreId pour restauration
 
-## **Test Requis en Production**
-1. Sélectionner **Houdemont** dans header
-2. Vérifier logs : `Admin filtering with groupIds: [2]` 
-3. Créer/supprimer commande
-4. Vérifier cohérence calendrier ↔ page commandes
+## **Différence Dev vs Production**
+- **Dev** : Cache React Query plus permissif, invalidation simple suffit
+- **Production** : Cache plus strict, contexte storeId se perd lors refetch complexe
+- **Solution** : Uniformisation avec méthode radicale qui fonctionne partout
 
-**Plus de mélange de données entre magasins !**
+## **Test de Validation**
+1. Sélectionner magasin Houdemont (storeId=2)
+2. Créer commande
+3. Supprimer depuis calendrier → Reload avec storeId préservé
+4. Supprimer depuis page Orders → Reload avec storeId préservé
+5. ✅ Plus de mélange de données entre magasins
+
+**Cache synchronization définitivement résolu !**

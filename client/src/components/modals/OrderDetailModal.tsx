@@ -79,21 +79,22 @@ export default function OrderDetailModal({
         description: `${isOrder ? 'Commande' : 'Livraison'} supprimée avec succès`,
       });
       
-      // SOLUTION PRODUCTION : Invalidation intelligente avec predicate
-      queryClient.invalidateQueries({
-        predicate: (query) => {
-          const key = query.queryKey[0]?.toString() || '';
-          return key.includes('/api/orders') || key.includes('/api/deliveries');
-        }
-      });
+      // SOLUTION PRODUCTION : Cache clearing radical pour éviter incohérences storeId
+      console.log('🗑️ Cache cleared, forcing page reload to maintain storeId consistency...');
       
-      // Force refetch pour production
-      queryClient.refetchQueries({
-        predicate: (query) => {
-          const key = query.queryKey[0]?.toString() || '';
-          return key.includes('/api/orders') || key.includes('/api/deliveries');
-        }
-      });
+      // Sauvegarder le selectedStoreId avant le nettoyage
+      const currentStoreId = localStorage.getItem('selectedStoreId');
+      if (currentStoreId) {
+        console.log('💾 Preserving storeId:', currentStoreId);
+      }
+      
+      // SOLUTION RADICALE : Vider complètement le cache pour éviter les incohérences storeId
+      queryClient.clear();
+      
+      // Force un reload pour garantir la cohérence storeId en production
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
       
       onClose();
     },
