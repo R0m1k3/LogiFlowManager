@@ -99,7 +99,7 @@ export default function Sidebar() {
     },
     { 
       path: "/dlc", 
-      label: "Module DLC", 
+      label: "Gestion DLC", 
       icon: Clock, 
       roles: ["admin", "manager", "employee"] 
     },

@@ -400,7 +400,7 @@ export default function DlcPage() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Module DLC</h1>
+          <h1 className="text-3xl font-bold">Gestion DLC</h1>
           <p className="text-muted-foreground">Gestion des dates limites de consommation</p>
         </div>
         <div className="flex gap-2">
