@@ -167,15 +167,18 @@ export default function Publicities() {
 
     return weeks.map((weekStart, index) => {
       const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-      const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
+      // Utiliser l'index + 1 pour une numérotation séquentielle cohérente
+      // plutôt que getWeek() qui peut créer des doublons en fin d'année
+      const weekNumber = index + 1;
       const month = getMonth(weekStart);
       const participation = getWeekParticipation(weekStart, weekEnd);
       
-      // Debug première semaine pour vérifier
-      if (index < 3) {
-        console.log(`📅 Semaine ${weekNumber}:`, {
+      // Debug première et dernières semaines pour vérifier
+      if (index < 3 || index >= weeks.length - 3) {
+        console.log(`📅 Semaine ${weekNumber} (index ${index}):`, {
           debut: format(weekStart, 'yyyy-MM-dd EEEE', { locale: fr }),
           fin: format(weekEnd, 'yyyy-MM-dd EEEE', { locale: fr }),
+          mois: month + 1, // +1 car getMonth retourne 0-11
           participations: participation.publicities.length
         });
       }
