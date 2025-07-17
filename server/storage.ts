@@ -1456,19 +1456,23 @@ export class DatabaseStorage implements IStorage {
         roleId: rolePermissions.roleId,
         permissionId: rolePermissions.permissionId,
         createdAt: rolePermissions.createdAt,
-        permission: permissions
+        permission: {
+          id: permissions.id,
+          name: permissions.name,
+          displayName: permissions.displayName,
+          description: permissions.description,
+          category: permissions.category,
+          action: permissions.action,
+          resource: permissions.resource,
+          isSystem: permissions.isSystem,
+          createdAt: permissions.createdAt
+        }
       })
       .from(rolePermissions)
       .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
       .where(eq(rolePermissions.roleId, roleId));
     
-    // Format results to match frontend expectations
-    return results.map(r => ({
-      roleId: r.roleId,
-      permissionId: r.permissionId,
-      createdAt: r.createdAt,
-      permission: r.permission
-    }));
+    return results;
   }
 
   async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
