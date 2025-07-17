@@ -9,7 +9,15 @@ if docker-compose ps | grep -q logiflow; then
     
     # Exécuter le script SQL de correction
     echo "🔧 Application du correctif schéma..."
-    docker-compose exec -T postgres psql -U logiflow_admin -d logiflow_db < fix-customer-orders-schema.sql
+    
+    # Méthode 1 : Via fichier SQL
+    if [ -f "fix-customer-orders-schema.sql" ]; then
+        docker-compose exec -T postgres psql -U logiflow_admin -d logiflow_db < fix-customer-orders-schema.sql
+    else
+        # Méthode 2 : Commande directe si fichier non trouvé
+        echo "📄 Fichier SQL non trouvé, exécution commande directe..."
+        docker-compose exec -T postgres psql -U logiflow_admin -d logiflow_db -c "ALTER TABLE customer_orders ADD COLUMN IF NOT EXISTS customer_email VARCHAR(255);"
+    fi
     
     if [ $? -eq 0 ]; then
         echo "✅ Correctif schéma appliqué avec succès"
@@ -20,6 +28,16 @@ if docker-compose ps | grep -q logiflow; then
         
         echo "⏳ Attente redémarrage..."
         sleep 20
+        
+        # Vérifier que la colonne existe maintenant
+        echo "🔍 Vérification colonne customer_email..."
+        COLUMN_EXISTS=$(docker-compose exec -T postgres psql -U logiflow_admin -d logiflow_db -c "SELECT column_name FROM information_schema.columns WHERE table_name = 'customer_orders' AND column_name = 'customer_email';" | grep customer_email | wc -l)
+        
+        if [ "$COLUMN_EXISTS" -gt 0 ]; then
+            echo "✅ Colonne customer_email existe maintenant"
+        else
+            echo "❌ Colonne customer_email toujours manquante"
+        fi
         
         # Test de l'API
         echo "🧪 Test API customer-orders..."
