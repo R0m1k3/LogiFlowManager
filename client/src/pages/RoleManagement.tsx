@@ -166,15 +166,14 @@ export default function RoleManagement() {
     return acc;
   }, {} as Record<string, Permission[]>) : {};
 
-  // Debug logs après déclaration de permissionsByCategory
+  // Debug logs pour diagnostiquer le problème DLC
   console.log("🔍 Permissions by Category Debug:", Object.keys(permissionsByCategory));
   console.log("🔍 Has gestion_dlc:", permissionsByCategory['gestion_dlc'] ? permissionsByCategory['gestion_dlc'].length : 'NOT FOUND');
   console.log("🔍 Full permissions sample:", permissions.slice(0, 3));
-
-  // Debug logs après déclaration de permissionsByCategory
-  console.log("🔍 Permissions by Category Debug:", Object.keys(permissionsByCategory));
-  console.log("🔍 Has gestion_dlc:", permissionsByCategory['gestion_dlc'] ? permissionsByCategory['gestion_dlc'].length : 'NOT FOUND');
-  console.log("🔍 Full permissions sample:", permissions.slice(0, 3));
+  console.log("🔍 Total permissions received:", permissions.length);
+  console.log("🔍 DLC permissions details:", permissions.filter(p => p.category === 'gestion_dlc'));
+  console.log("🔍 All categories found:", Object.keys(permissionsByCategory));
+  console.log("🔍 Raw permissions data:", permissions.map(p => ({ name: p.name, category: p.category, displayName: p.displayName })));
 
   // Create role mutation
   const createRoleMutation = useMutation({
