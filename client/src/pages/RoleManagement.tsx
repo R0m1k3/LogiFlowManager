@@ -109,6 +109,36 @@ export default function RoleManagement() {
     permissionsLength: permissions.length
   });
 
+  // Traduction des catégories en français
+  const categoryTranslations: Record<string, string> = {
+    'administration': 'Administration',
+    'calendrier': 'Calendrier',
+    'commandes': 'Commandes',
+    'commandes_clients': 'Commandes Clients',
+    'fournisseurs': 'Fournisseurs',
+    'gestion_dlc': 'Gestion DLC',
+    'gestion_roles': 'Gestion des Rôles',
+    'livraisons': 'Livraisons',
+    'magasins': 'Magasins',
+    'publicites': 'Publicités',
+    'rapprochement': 'Rapprochement',
+    'tableau_de_bord': 'Tableau de Bord',
+    'utilisateurs': 'Utilisateurs',
+    // Fallbacks pour les anciennes catégories en anglais
+    'Calendar': 'Calendrier',
+    'Dashboard': 'Tableau de Bord',
+    'Deliveries': 'Livraisons',
+    'Magasins': 'Magasins',
+    'Orders': 'Commandes',
+    'Publicities': 'Publicités',
+    'Reconciliation': 'Rapprochement',
+    'Suppliers': 'Fournisseurs',
+    'Customer Orders': 'Commandes Clients',
+    'Users': 'Utilisateurs',
+    'Roles': 'Gestion des Rôles',
+    'Administration': 'Administration'
+  };
+
   // Group permissions by category
   const permissionsByCategory = Array.isArray(permissions) ? permissions.reduce((acc, permission) => {
     if (!acc[permission.category]) {
@@ -400,7 +430,7 @@ export default function RoleManagement() {
                   <div className="space-y-4">
                     {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
                       <div key={category} className="space-y-2">
-                        <h4 className="font-medium text-sm capitalize">{category}</h4>
+                        <h4 className="font-medium text-sm">{categoryTranslations[category] || category}</h4>
                         <div className="space-y-1">
                           {Array.isArray(categoryPermissions) && categoryPermissions.map((permission) => {
                             const hasPermission = rolePermissions?.some(
@@ -456,7 +486,7 @@ export default function RoleManagement() {
               <div className="space-y-4">
                 {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
                   <div key={category} className="space-y-2">
-                    <h3 className="font-medium capitalize">{category}</h3>
+                    <h3 className="font-medium">{categoryTranslations[category] || category}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {Array.isArray(categoryPermissions) && categoryPermissions.map((permission) => (
                         <div key={permission.id} className="flex items-center justify-between p-2 border rounded">
