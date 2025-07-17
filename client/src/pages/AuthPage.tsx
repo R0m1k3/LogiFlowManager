@@ -13,7 +13,7 @@ import { useLocation } from "wouter";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { user, isLoading, refreshAuth, isAuthenticated } = useAuthUnified();
+  const { user, isLoading, refreshAuth, forceAuthRefresh, isAuthenticated } = useAuthUnified();
   const { toast } = useToast();
   const [showDefaultCredentials, setShowDefaultCredentials] = useState(true);
   
@@ -41,7 +41,7 @@ export default function AuthPage() {
       const response = await apiRequest("/api/login", "POST", data);
       return response;
     },
-    onSuccess: (userData) => {
+    onSuccess: async (userData) => {
       console.log('✅ Login successful, refreshing auth state...');
       
       toast({
@@ -53,8 +53,14 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/default-credentials-check'] });
       
-      // Refresh authentication state
-      refreshAuth();
+      // Force immediate authentication state refresh
+      await forceAuthRefresh();
+      
+      // Double refresh for production sync
+      setTimeout(async () => {
+        await forceAuthRefresh();
+        console.log('🔄 Second force auth refresh completed for production sync');
+      }, 300);
       
       console.log('🔄 Login complete, auth state refreshed');
     },

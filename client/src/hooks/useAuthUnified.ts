@@ -57,6 +57,39 @@ export function useAuthUnified() {
     }
   };
 
+  // Fonction pour rafraîchir de manière synchrone (pour après login)
+  const forceAuthRefresh = async () => {
+    console.log('🔄 ForceAuthRefresh called, isDevelopment:', isDevelopment);
+    
+    if (!isDevelopment) {
+      // En production, faire un fetch immédiat
+      try {
+        console.log('🔄 Production force refresh - fetching user data');
+        const response = await fetch('/api/user', {
+          credentials: 'include',
+          cache: 'no-cache',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('✅ Production force refresh success:', { username: userData?.username, id: userData?.id });
+          setProductionUser(userData);
+          setProductionError(null);
+          setProductionLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Production force refresh error:', error);
+      }
+    } else {
+      console.log('🔄 Development mode - using React Query refetch');
+      await developmentQuery.refetch();
+    }
+  };
+
   // Authentification production (fetch direct)
   useEffect(() => {
     if (isDevelopment) return; // Ne pas exécuter en développement
@@ -126,6 +159,7 @@ export function useAuthUnified() {
       isAuthenticated: !!developmentQuery.data,
       error: developmentQuery.error,
       refreshAuth: refreshAuth,
+      forceAuthRefresh: forceAuthRefresh,
       environment: 'development'
     };
   } else {
@@ -135,6 +169,7 @@ export function useAuthUnified() {
       isAuthenticated: !!productionUser,
       error: productionError,
       refreshAuth: refreshAuth,
+      forceAuthRefresh: forceAuthRefresh,
       environment: 'production'
     };
   }
