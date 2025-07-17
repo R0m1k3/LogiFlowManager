@@ -148,5 +148,6 @@ The application uses a sophisticated dual authentication approach:
 - **TRANSLATIONS** ✅ Interface complètement en français avec catégories localisées
 - **ROLE MANAGEMENT** ✅ Interface de gestion des rôles et permissions fonctionnelle
 - **PRODUCTION BUGS FIXED** ✅ Création produits DLC corrigée : table et initialisation complètes
+- **DOCKER BUILD FIXED** ✅ Erreur esbuild résolue : imports @shared corrigés et template literals ES6 compatibles
 
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.

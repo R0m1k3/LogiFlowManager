@@ -27,7 +27,7 @@ import type {
   InsertNocodbConfig,
   CustomerOrder,
   InsertCustomerOrder
-} from "@shared/schema";
+} from "../shared/schema";
 
 // Production storage implementation using raw PostgreSQL queries
 export class DatabaseStorage implements IStorage {

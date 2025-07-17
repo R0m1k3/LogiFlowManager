@@ -696,7 +696,7 @@ async function initRolesAndPermissionsProduction() {
         RETURNING id, name
       `, [role.name, role.displayName, role.description, role.color]);
       createdRoles[role.name] = result.rows[0].id;
-      console.log(\`✅ Created role: \${role.displayName}\`);
+      console.log(`✅ Created role: ${role.displayName}`);
     }
 
     // Create 49 permissions with French categories
@@ -781,14 +781,14 @@ async function initRolesAndPermissionsProduction() {
 
     const createdPermissions = {};
     for (const perm of permissions) {
-      const result = await pool.query(\`
+      const result = await pool.query(`
         INSERT INTO permissions (name, display_name, description, category, action, resource, is_system)
         VALUES ($1, $2, $3, $4, $5, $6, true)
         RETURNING id, name
-      \`, [perm.name, perm.displayName, perm.description, perm.category, perm.action, perm.resource]);
+      `, [perm.name, perm.displayName, perm.description, perm.category, perm.action, perm.resource]);
       createdPermissions[perm.name] = result.rows[0].id;
     }
-    console.log(\`✅ Created \${permissions.length} permissions\`);
+    console.log(`✅ Created ${permissions.length} permissions`);
 
     // Assign permissions to roles
     const rolePermissions = {
@@ -824,14 +824,14 @@ async function initRolesAndPermissionsProduction() {
       for (const permName of permissionNames) {
         const permId = createdPermissions[permName];
         if (permId) {
-          await pool.query(\`
+          await pool.query(`
             INSERT INTO role_permissions (role_id, permission_id)
             VALUES ($1, $2)
             ON CONFLICT (role_id, permission_id) DO NOTHING
-          \`, [roleId, permId]);
+          `, [roleId, permId]);
         }
       }
-      console.log(\`✅ Assigned \${permissionNames.length} permissions to \${roleName}\`);
+      console.log(`✅ Assigned ${permissionNames.length} permissions to ${roleName}`);
     }
 
     console.log('✅ Production roles and permissions initialization complete!');
