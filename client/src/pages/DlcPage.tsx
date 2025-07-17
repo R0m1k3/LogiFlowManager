@@ -682,7 +682,10 @@ export default function DlcPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
+                    <TableRow 
+                      key={product.id} 
+                      className={product.status === "valides" ? "opacity-50 bg-gray-50" : ""}
+                    >
                       <TableCell className="font-medium">{product.productName}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {product.gencode || '-'}
