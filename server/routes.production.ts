@@ -1091,6 +1091,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🚨 ENDPOINT TEMPORAIRE DE DIAGNOSTIC PRODUCTION
+  app.get('/api/debug/permissions-raw', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log('🔍 RAW PERMISSIONS DEBUG - Direct database query');
+      
+      // Faire une requête SQL directe pour voir ce qui est vraiment dans la base
+      const { pool } = require('./initDatabase.production');
+      const result = await pool.query(`
+        SELECT id, name, display_name, category, action, resource, description 
+        FROM permissions 
+        ORDER BY category, name 
+        LIMIT 10
+      `);
+      
+      console.log('📊 Raw database results:', result.rows.length);
+      result.rows.forEach(row => {
+        console.log(`DB ROW: ID=${row.id}, name="${row.name}", display_name="${row.display_name}", category="${row.category}"`);
+      });
+      
+      res.json({
+        message: 'Debug endpoint - check server logs',
+        totalFound: result.rows.length,
+        sample: result.rows
+      });
+    } catch (error) {
+      console.error('❌ Debug permissions error:', error);
+      res.status(500).json({ message: "Debug failed", error: error.message });
+    }
+  });
+
+  // 🚨 ENDPOINT TEMPORAIRE POUR APPLIQUER LES CORRECTIONS SQL
+  app.post('/api/debug/fix-translations', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Seul l'admin peut appliquer les corrections" });
+      }
+
+      console.log('🔧 APPLYING SQL FIXES TO PRODUCTION DATABASE');
+      const { pool } = require('./initDatabase.production');
+      
+      // Corriger les rôles
+      console.log('📝 Fixing roles...');
+      await pool.query("UPDATE roles SET display_name = 'Administrateur' WHERE name = 'admin'");
+      await pool.query("UPDATE roles SET display_name = 'Manager' WHERE name = 'manager'");
+      await pool.query("UPDATE roles SET display_name = 'Employé' WHERE name = 'employee' OR name = 'employé'");
+      await pool.query("UPDATE roles SET display_name = 'Directeur' WHERE name = 'directeur'");
+      
+      // Corriger les permissions principales
+      console.log('📝 Fixing main permissions...');
+      const permissionUpdates = [
+        ["UPDATE permissions SET display_name = 'Voir calendrier' WHERE name = 'calendar_read'"],
+        ["UPDATE permissions SET display_name = 'Créer événements' WHERE name = 'calendar_create'"],
+        ["UPDATE permissions SET display_name = 'Modifier calendrier' WHERE name = 'calendar_update'"],
+        ["UPDATE permissions SET display_name = 'Supprimer événements' WHERE name = 'calendar_delete'"],
+        ["UPDATE permissions SET display_name = 'Voir tableau de bord' WHERE name = 'dashboard_read'"],
+        ["UPDATE permissions SET display_name = 'Voir livraisons' WHERE name = 'deliveries_read'"],
+        ["UPDATE permissions SET display_name = 'Créer livraisons' WHERE name = 'deliveries_create'"],
+        ["UPDATE permissions SET display_name = 'Modifier livraisons' WHERE name = 'deliveries_update'"],
+        ["UPDATE permissions SET display_name = 'Supprimer livraisons' WHERE name = 'deliveries_delete'"],
+        ["UPDATE permissions SET display_name = 'Valider livraisons' WHERE name = 'deliveries_validate'"],
+        ["UPDATE permissions SET display_name = 'Voir magasins' WHERE name = 'groups_read'"],
+        ["UPDATE permissions SET display_name = 'Créer magasins' WHERE name = 'groups_create'"],
+        ["UPDATE permissions SET display_name = 'Modifier magasins' WHERE name = 'groups_update'"],
+        ["UPDATE permissions SET display_name = 'Supprimer magasins' WHERE name = 'groups_delete'"],
+        ["UPDATE permissions SET display_name = 'Voir commandes' WHERE name = 'orders_read'"],
+        ["UPDATE permissions SET display_name = 'Créer commandes' WHERE name = 'orders_create'"],
+        ["UPDATE permissions SET display_name = 'Modifier commandes' WHERE name = 'orders_update'"],
+        ["UPDATE permissions SET display_name = 'Supprimer commandes' WHERE name = 'orders_delete'"],
+        ["UPDATE permissions SET display_name = 'Voir publicités' WHERE name = 'publicities_read'"],
+        ["UPDATE permissions SET display_name = 'Créer publicités' WHERE name = 'publicities_create'"],
+        ["UPDATE permissions SET display_name = 'Modifier publicités' WHERE name = 'publicities_update'"],
+        ["UPDATE permissions SET display_name = 'Supprimer publicités' WHERE name = 'publicities_delete'"],
+        ["UPDATE permissions SET display_name = 'Voir fournisseurs' WHERE name = 'suppliers_read'"],
+        ["UPDATE permissions SET display_name = 'Créer fournisseurs' WHERE name = 'suppliers_create'"],
+        ["UPDATE permissions SET display_name = 'Modifier fournisseurs' WHERE name = 'suppliers_update'"],
+        ["UPDATE permissions SET display_name = 'Supprimer fournisseurs' WHERE name = 'suppliers_delete'"],
+      ];
+      
+      for (const [query] of permissionUpdates) {
+        await pool.query(query);
+      }
+      
+      // Vérifier les résultats
+      const rolesResult = await pool.query("SELECT name, display_name FROM roles ORDER BY name");
+      const permissionsResult = await pool.query("SELECT name, display_name FROM permissions WHERE name IN ('calendar_read', 'dashboard_read', 'deliveries_read', 'groups_read') ORDER BY name");
+      
+      console.log('✅ SQL FIXES APPLIED SUCCESSFULLY');
+      console.log('📊 Updated roles:', rolesResult.rows);
+      console.log('📊 Sample updated permissions:', permissionsResult.rows);
+      
+      res.json({
+        message: 'Corrections appliquées avec succès',
+        rolesUpdated: rolesResult.rows,
+        permissionsSample: permissionsResult.rows
+      });
+      
+    } catch (error) {
+      console.error('❌ Error applying SQL fixes:', error);
+      res.status(500).json({ message: "Erreur lors de l'application des corrections", error: error.message });
+    }
+  });
+
   app.post('/api/permissions', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);

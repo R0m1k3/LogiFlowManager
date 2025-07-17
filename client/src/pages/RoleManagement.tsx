@@ -526,13 +526,40 @@ export default function RoleManagement() {
                   <CardTitle>Liste des Permissions</CardTitle>
                   <CardDescription>Toutes les permissions disponibles dans le système</CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={forceRefreshPermissions}
-                >
-                  🔄 Actualiser Permissions
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={forceRefreshPermissions}
+                  >
+                    🔄 Actualiser Permissions
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        console.log('🔧 Applying French translations fix...');
+                        const response = await fetch('/api/debug/fix-translations', {
+                          method: 'POST',
+                          credentials: 'include',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          }
+                        });
+                        const result = await response.json();
+                        console.log('✅ Fix result:', result);
+                        alert('Corrections appliquées ! Actualisez la page.');
+                        window.location.reload();
+                      } catch (error) {
+                        console.error('❌ Fix error:', error);
+                        alert('Erreur lors de l\'application des corrections');
+                      }
+                    }}
+                  >
+                    🔧 Corriger Français
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
