@@ -30,7 +30,11 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { user } = useAuthUnified();
   const queryClient = useQueryClient();
-  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
+  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(() => {
+    // Restaurer le selectedStoreId depuis localStorage si disponible
+    const saved = localStorage.getItem('selectedStoreId');
+    return saved ? parseInt(saved) : null;
+  });
 
   const { data: stores = [] } = useQuery<Group[]>({
     queryKey: ['/api/groups'],
@@ -68,6 +72,12 @@ export default function Layout({ children }: LayoutProps) {
                     queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
                     queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
                     
+                    // Sauvegarder dans localStorage et mettre à jour l'état
+                    if (newStoreId) {
+                      localStorage.setItem('selectedStoreId', newStoreId.toString());
+                    } else {
+                      localStorage.removeItem('selectedStoreId');
+                    }
                     setSelectedStoreId(newStoreId);
                   }}
                 >

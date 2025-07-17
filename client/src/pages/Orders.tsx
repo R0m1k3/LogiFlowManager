@@ -116,6 +116,11 @@ export default function Orders() {
         selectedStoreId
       });
       
+      // Sauvegarder le selectedStoreId avant le nettoyage
+      if (selectedStoreId) {
+        localStorage.setItem('selectedStoreId', selectedStoreId.toString());
+      }
+      
       // SOLUTION RADICALE : Vider complètement le cache pour éviter les incohérences
       queryClient.clear();
       

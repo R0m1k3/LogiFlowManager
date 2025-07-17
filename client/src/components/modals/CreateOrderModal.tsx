@@ -117,7 +117,12 @@ export default function CreateOrderModal({
       });
       // Force un nettoyage complet du cache pour éviter incohérences
       console.log('🆕 Order created, clearing cache for consistency');
-      queryClient.clear();
+      
+      // Invalider de manière plus ciblée pour éviter de perdre le contexte
+      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
+      
       onClose();
     },
     onError: (error) => {

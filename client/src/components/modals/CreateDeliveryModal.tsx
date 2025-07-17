@@ -134,9 +134,13 @@ export default function CreateDeliveryModal({
         title: "Succès",
         description: "Livraison créée avec succès",
       });
-      // Force un nettoyage complet du cache pour éviter incohérences
+      
+      // Invalider de manière plus ciblée pour éviter de perdre le contexte
       console.log('🚚 Delivery created, clearing cache for consistency');
-      queryClient.clear();
+      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
+      
       onClose();
     },
     onError: (error) => {

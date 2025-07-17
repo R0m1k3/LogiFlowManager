@@ -143,6 +143,7 @@ Changelog:
 - July 17, 2025. **SOLUTION RADICALE CACHE APPLIQUÉE** - queryClient.clear() pour éliminer définitivement incohérences production
 - July 17, 2025. **SOLUTION HYBRIDE CACHE** - Invalidation douce changement magasin, nettoyage radical suppression/création
 - July 17, 2025. **SÉLECTEUR MAGASIN CORRIGÉ** - Import useQueryClient ajouté, invalidation sélective pour éviter blocage UI
+- July 17, 2025. **PERSISTANCE SELECTEDSTOREID** - localStorage sauvegarde/restaure contexte magasin après reload
 - July 17, 2025. **PROBLÈME SUPPRESSION LIVRAISONS CORRIGÉ** - deleteDelivery gère maintenant les commandes liées
 - July 17, 2025. Correction logique métier : suppression dernière livraison remet commande à "pending" 
 - July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Logs détaillés création/récupération commandes pour debug production
