@@ -49,6 +49,7 @@ export function useAuthUnified() {
       setRefreshTrigger(prev => prev + 1);
     } else {
       console.log('🔄 Development mode - using React Query refresh');
+      developmentQuery.refetch();
     }
   };
 
@@ -120,7 +121,7 @@ export function useAuthUnified() {
       isLoading: developmentQuery.isLoading,
       isAuthenticated: !!developmentQuery.data,
       error: developmentQuery.error,
-      refreshAuth: () => developmentQuery.refetch(),
+      refreshAuth: refreshAuth,
       environment: 'development'
     };
   } else {

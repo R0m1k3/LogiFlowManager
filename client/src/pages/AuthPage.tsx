@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useAuthSimple } from "@/hooks/useAuthSimple";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { useLocation } from "wouter";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { user, isLoading, refreshAuth, isAuthenticated } = useAuthSimple();
+  const { user, isLoading, refreshAuth, isAuthenticated } = useAuthUnified();
   const { toast } = useToast();
   const [showDefaultCredentials, setShowDefaultCredentials] = useState(true);
   
@@ -44,19 +44,14 @@ export default function AuthPage() {
     onSuccess: (userData) => {
       console.log('✅ Login successful, refreshing auth state...');
       
-      // Refresh authentication state
-      refreshAuth();
-      
       toast({
         title: "Connexion réussie",
         description: "Bienvenue dans LogiFlow",
       });
       
-      // Force redirect after a brief delay to ensure auth state is updated
-      setTimeout(() => {
-        console.log('🔄 Forcing redirect to dashboard after login...');
-        setLocation('/');
-      }, 500);
+      // Refresh authentication state and redirect will happen automatically
+      // via the useEffect that watches for isAuthenticated changes
+      refreshAuth();
       
       console.log('🔄 Login complete, waiting for auth state refresh...');
     },
