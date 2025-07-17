@@ -98,23 +98,57 @@ export default function Suppliers() {
       console.log('🔧 Frontend: Supplier update result:', result);
       return result;
     },
+    onMutate: async (newData) => {
+      // Mise à jour optimiste - mettre à jour l'interface immédiatement
+      console.log('🚀 Frontend: Optimistic update starting...');
+      await queryClient.cancelQueries({ queryKey: ['/api/suppliers'] });
+      
+      const previousSuppliers = queryClient.getQueryData(['/api/suppliers']);
+      
+      if (previousSuppliers && selectedSupplier) {
+        const updatedSuppliers = (previousSuppliers as any[]).map(supplier => 
+          supplier.id === selectedSupplier.id 
+            ? { ...supplier, ...newData, updatedAt: new Date().toISOString() }
+            : supplier
+        );
+        queryClient.setQueryData(['/api/suppliers'], updatedSuppliers);
+        console.log('✅ Frontend: Optimistic update applied');
+      }
+      
+      return { previousSuppliers };
+    },
     onSuccess: async (result) => {
       console.log('✅ Frontend: Update mutation successful, result:', result);
-      toast({
-        title: "Succès",
-        description: "Fournisseur modifié avec succès",
-      });
-      // Forcer une actualisation complète du cache avec staleTime à 0
+      console.log('🔄 Frontend: Starting cache invalidation...');
+      
+      // Forcer une actualisation complète du cache
       await queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
       await queryClient.refetchQueries({ 
         queryKey: ['/api/suppliers'],
         type: 'active'
       });
+      
+      // Attendre un petit délai pour s'assurer que les données sont fraîches
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('✅ Frontend: Cache invalidation complete');
+      
+      toast({
+        title: "Succès",
+        description: "Fournisseur modifié avec succès",
+      });
+      
       setShowEditModal(false);
       setSelectedSupplier(null);
       setFormData({ name: "", contact: "", phone: "", hasDlc: false });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback optimiste en cas d'erreur
+      if (context?.previousSuppliers) {
+        console.log('❌ Frontend: Error occurred, rolling back optimistic update');
+        queryClient.setQueryData(['/api/suppliers'], context.previousSuppliers);
+      }
+      
       if (isUnauthorizedError(error)) {
         toast({
           title: "Non autorisé",
