@@ -818,10 +818,27 @@ export class DatabaseStorage implements IStorage {
       delivery.notes,
       delivery.createdBy
     ]);
-    return result.rows[0];
+    
+    const newDelivery = result.rows[0];
+    
+    // Si la livraison est liée à une commande, mettre à jour le statut de la commande vers "planned"
+    if (newDelivery.order_id) {
+      await pool.query(`
+        UPDATE orders SET status = 'planned', updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+      `, [newDelivery.order_id]);
+      
+      console.log('✅ Order status updated to planned after delivery creation:', newDelivery.order_id);
+    }
+    
+    return newDelivery;
   }
 
   async updateDelivery(id: number, delivery: Partial<InsertDelivery>): Promise<Delivery> {
+    // Récupérer l'ancienne livraison pour connaître l'ordre précédemment lié
+    const oldDeliveryResult = await pool.query('SELECT * FROM deliveries WHERE id = $1', [id]);
+    const oldDelivery = oldDeliveryResult.rows[0];
+    
     const fields = [];
     const values = [];
     let paramIndex = 1;
@@ -858,8 +875,45 @@ export class DatabaseStorage implements IStorage {
       RETURNING *
     `, values);
     
+    const updatedDelivery = result.rows[0];
+    
+    // Gérer les changements d'association de commandes
+    if (delivery.orderId !== undefined) {
+      const newOrderId = delivery.orderId;
+      const oldOrderId = oldDelivery?.order_id;
+      
+      // Si l'ordre a changé
+      if (newOrderId !== oldOrderId) {
+        // Remettre l'ancien ordre en "pending" s'il n'a plus de livraisons liées
+        if (oldOrderId) {
+          const remainingResult = await pool.query(
+            'SELECT COUNT(*) as count FROM deliveries WHERE order_id = $1 AND id != $2',
+            [oldOrderId, id]
+          );
+          const remainingCount = parseInt(remainingResult.rows[0].count);
+          
+          if (remainingCount === 0) {
+            await pool.query(`
+              UPDATE orders SET status = 'pending', updated_at = CURRENT_TIMESTAMP
+              WHERE id = $1
+            `, [oldOrderId]);
+            console.log('✅ Old order status reset to pending:', oldOrderId);
+          }
+        }
+        
+        // Mettre le nouveau ordre en "planned"
+        if (newOrderId) {
+          await pool.query(`
+            UPDATE orders SET status = 'planned', updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+          `, [newOrderId]);
+          console.log('✅ New order status updated to planned:', newOrderId);
+        }
+      }
+    }
+    
     console.log('🔄 updateDelivery production:', { id, fieldsUpdated: fields.length, delivery });
-    return result.rows[0];
+    return updatedDelivery;
   }
 
   async deleteDelivery(id: number): Promise<void> {

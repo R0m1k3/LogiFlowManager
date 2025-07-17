@@ -129,5 +129,6 @@ The application uses a sophisticated dual authentication approach:
 - **ESPACE DISQUE LIBÉRÉ** - Suppression attached_assets/ et tous fichiers temporaires de développement
 - **SIZE OPTIMIZED** - Réduction de 123M pour structure propre et déployable
 - **MODAL RÔLES PROFESSIONNEL** - Interface confirmation moderne avec icône Shield remplace window.confirm
+- **PRODUCTION BUG FIX** - Correction synchronisation statut commandes : `createDelivery` et `updateDelivery` en production mettent maintenant à jour statut commande vers "planned" (synchronisation dev/prod)
 
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.
