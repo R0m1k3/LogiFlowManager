@@ -17,7 +17,8 @@ import {
   insertCustomerOrderSchema,
   insertRoleSchema,
   insertPermissionSchema,
-  insertUserRoleSchema
+  insertUserRoleSchema,
+  insertDlcProductSchema
 } from "../shared/schema";
 import { z } from "zod";
 
@@ -1435,6 +1436,242 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error removing user from group:", error);
       res.status(500).json({ message: "Failed to remove user from group" });
+    }
+  });
+
+  // ===== DLC PRODUCTS ROUTES =====
+
+  // DLC Products routes
+  app.get('/api/dlc-products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { status, supplierId } = req.query;
+      
+      // Determine which groups to filter by
+      let groupIds: number[] = [];
+      if (user.role === 'admin') {
+        // Admin can specify a store or see all
+        if (req.query.storeId) {
+          groupIds = [parseInt(req.query.storeId)];
+        }
+        // If no storeId specified, admin sees all (don't filter by groupIds)
+      } else {
+        // Non-admin users see only their assigned groups
+        groupIds = user.userGroups.map((ug: any) => ug.group.id);
+      }
+
+      const filters: { status?: string; supplierId?: number; } = {};
+      if (status) filters.status = status;
+      if (supplierId) filters.supplierId = parseInt(supplierId as string);
+
+      console.log('DLC Products API called with:', {
+        userId,
+        userRole: user.role,
+        groupIds: user.role === 'admin' && !req.query.storeId ? 'all' : groupIds,
+        filters
+      });
+
+      const dlcProducts = await storage.getDlcProducts(
+        user.role === 'admin' && !req.query.storeId ? undefined : groupIds,
+        filters
+      );
+      
+      console.log('DLC Products returned:', dlcProducts.length, 'items');
+      res.json(dlcProducts);
+    } catch (error) {
+      console.error("Error fetching DLC products:", error);
+      res.status(500).json({ message: "Failed to fetch DLC products" });
+    }
+  });
+
+  app.get('/api/dlc-products/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Determine which groups to filter by
+      let groupIds: number[] = [];
+      if (user.role === 'admin') {
+        if (req.query.storeId) {
+          groupIds = [parseInt(req.query.storeId)];
+        }
+      } else {
+        groupIds = user.userGroups.map((ug: any) => ug.group.id);
+      }
+
+      console.log('DLC Stats API called with:', {
+        userId,
+        userRole: user.role,
+        groupIds: user.role === 'admin' && !req.query.storeId ? 'all' : groupIds,
+        storeId: req.query.storeId
+      });
+
+      const stats = await storage.getDlcStats(
+        user.role === 'admin' && !req.query.storeId ? undefined : groupIds
+      );
+      
+      console.log('DLC Stats returned:', stats);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching DLC stats:", error);
+      res.status(500).json({ message: "Failed to fetch DLC stats" });
+    }
+  });
+
+  app.get('/api/dlc-products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const dlcProduct = await storage.getDlcProduct(id);
+      
+      if (!dlcProduct) {
+        return res.status(404).json({ message: "DLC Product not found" });
+      }
+
+      // Check if user has access to this product's group
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      
+      if (user?.role !== 'admin') {
+        const userGroupIds = user?.userGroups.map((ug: any) => ug.group.id) || [];
+        if (!userGroupIds.includes(dlcProduct.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      res.json(dlcProduct);
+    } catch (error) {
+      console.error("Error fetching DLC product:", error);
+      res.status(500).json({ message: "Failed to fetch DLC product" });
+    }
+  });
+
+  app.post('/api/dlc-products', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log('📨 POST /api/dlc-products - Request body:', JSON.stringify(req.body, null, 2));
+      
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Validate access to the specified group
+      if (user.role !== 'admin') {
+        const userGroupIds = user.userGroups.map((ug: any) => ug.group.id);
+        if (!userGroupIds.includes(req.body.groupId)) {
+          return res.status(403).json({ message: "Access denied to this store" });
+        }
+      }
+
+      const validatedData = insertDlcProductSchema.parse({
+        ...req.body,
+        createdBy: userId,
+      });
+
+      const dlcProduct = await storage.createDlcProduct(validatedData);
+      console.log('✅ DLC Product created successfully:', dlcProduct.id);
+      
+      res.status(201).json(dlcProduct);
+    } catch (error) {
+      console.error("❌ Error creating DLC product:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to create DLC product" });
+    }
+  });
+
+  app.put('/api/dlc-products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      
+      // First check if the product exists and user has access
+      const existingProduct = await storage.getDlcProduct(id);
+      if (!existingProduct) {
+        return res.status(404).json({ message: "DLC Product not found" });
+      }
+
+      const user = await storage.getUserWithGroups(userId);
+      if (user?.role !== 'admin') {
+        const userGroupIds = user?.userGroups.map((ug: any) => ug.group.id) || [];
+        if (!userGroupIds.includes(existingProduct.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const validatedData = insertDlcProductSchema.partial().parse(req.body);
+      const dlcProduct = await storage.updateDlcProduct(id, validatedData);
+      
+      res.json(dlcProduct);
+    } catch (error) {
+      console.error("Error updating DLC product:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to update DLC product" });
+    }
+  });
+
+  app.delete('/api/dlc-products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      
+      // First check if the product exists and user has access
+      const existingProduct = await storage.getDlcProduct(id);
+      if (!existingProduct) {
+        return res.status(404).json({ message: "DLC Product not found" });
+      }
+
+      const user = await storage.getUserWithGroups(userId);
+      if (user?.role !== 'admin') {
+        const userGroupIds = user?.userGroups.map((ug: any) => ug.group.id) || [];
+        if (!userGroupIds.includes(existingProduct.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      await storage.deleteDlcProduct(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting DLC product:", error);
+      res.status(500).json({ message: "Failed to delete DLC product" });
+    }
+  });
+
+  // DLC validation route
+  app.post('/api/dlc-products/:id/validate', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      
+      // Check if user has permission to validate
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        return res.status(403).json({ message: "Insufficient permissions to validate products" });
+      }
+
+      const dlcProduct = await storage.validateDlcProduct(id, userId);
+      res.json(dlcProduct);
+    } catch (error) {
+      console.error("Error validating DLC product:", error);
+      res.status(500).json({ message: "Failed to validate DLC product" });
     }
   });
 

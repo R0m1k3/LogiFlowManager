@@ -140,7 +140,8 @@ The application uses a sophisticated dual authentication approach:
 - **PERMISSIONS DLC PRODUCTION RÉSOLU** - Corrigé affichage permissions DLC en production : ajout permissions manquantes au rôle directeur, amélioration traductions catégories frontend
 - **SCRIPT SQL PRODUCTION CRÉÉ** - Script fix-production-permissions.sql pour corriger displayName des permissions en production (problème spécifique production vs développement)
 - **AUTHENTIFICATION PRODUCTION CORRIGÉE** - Résolu erreurs 401 en production : suppression double import et appel await incorrect dans localAuth.production.ts
-- **DIAGNOSTIC PRODUCTION ACTIVÉ** - Logs détaillés ajoutés pour identifier différences entre base développement et production
+- **DIAGNOSTIC PRODUCTION ACTIVÉ** - Logs détaillés ajoutés pour traquer les problèmes d'authentification et permissions
+- **ROUTES DLC PRODUCTION CORRIGÉES** - Ajout complet des routes DLC manquantes dans routes.production.ts (GET /api/dlc-products, GET /api/dlc-products/stats, POST, PUT, DELETE) - résout les erreurs 404 en productionour identifier différences entre base développement et production
 
 ### Production Readiness Status - July 17, 2025
 - **DATABASE MIGRATIONS** ✅ Toutes les migrations automatiques intégrées dans initDatabase.production.ts
