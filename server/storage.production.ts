@@ -2259,21 +2259,31 @@ export class DatabaseStorage implements IStorage {
       const result = await pool.query(query, params);
       return result.rows.map(row => ({
         id: row.id,
-        name: row.name || row.product_name,
-        productCode: row.product_code || row.gencode,
-        dlcDate: this.formatDate(row.dlc_date || row.expiry_date),
+        productName: row.product_name,
+        gencode: row.gencode,
+        dlcDate: this.formatDate(row.dlc_date),
+        dateType: row.date_type,
         quantity: row.quantity,
+        unit: row.unit,
+        location: row.location,
         status: row.status,
+        notes: row.notes,
+        alertThreshold: row.alert_threshold,
         groupId: row.group_id,
         supplierId: row.supplier_id,
-        description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
         validatedAt: this.formatDate(row.validated_at),
         createdAt: this.formatDate(row.created_at),
         updatedAt: this.formatDate(row.updated_at),
-        groupName: row.group_name,
-        supplierName: row.supplier_name
+        supplier: row.supplier_name ? {
+          id: row.supplier_id,
+          name: row.supplier_name
+        } : null,
+        group: row.group_name ? {
+          id: row.group_id,
+          name: row.group_name
+        } : null
       }));
     } catch (error) {
       console.error("Error fetching DLC products:", error);
@@ -2296,21 +2306,31 @@ export class DatabaseStorage implements IStorage {
       const row = result.rows[0];
       return {
         id: row.id,
-        name: row.name || row.product_name,
-        productCode: row.product_code || row.gencode,
-        dlcDate: this.formatDate(row.dlc_date || row.expiry_date),
+        productName: row.product_name,
+        gencode: row.gencode,
+        dlcDate: this.formatDate(row.dlc_date),
+        dateType: row.date_type,
         quantity: row.quantity,
+        unit: row.unit,
+        location: row.location,
         status: row.status,
+        notes: row.notes,
+        alertThreshold: row.alert_threshold,
         groupId: row.group_id,
         supplierId: row.supplier_id,
-        description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
         validatedAt: this.formatDate(row.validated_at),
         createdAt: this.formatDate(row.created_at),
         updatedAt: this.formatDate(row.updated_at),
-        groupName: row.group_name,
-        supplierName: row.supplier_name
+        supplier: row.supplier_name ? {
+          id: row.supplier_id,
+          name: row.supplier_name
+        } : null,
+        group: row.group_name ? {
+          id: row.group_id,
+          name: row.group_name
+        } : null
       };
     } catch (error) {
       console.error("Error fetching DLC product:", error);
