@@ -1,0 +1,120 @@
+Présentation complète du Module DLC 📅
+Vue d'ensemble
+Le module DLC (Date Limite de Consommation) est un système de gestion des produits périssables qui permet de suivre les dates d'expiration et d'alerter sur les produits arrivant à échéance.
+
+Fonctionnalités principales
+🎯 Objectif
+Gérer les dates limites de consommation des produits
+Prévenir le gaspillage alimentaire
+Assurer la sécurité sanitaire
+Optimiser la rotation des stocks
+📊 Vue d'ensemble des données
+Le module affiche des statistiques en temps réel :
+
+Produits actifs : Nombre total de produits non validés
+Expire bientôt : Produits expirant dans les 3 prochains jours
+Produits expirés : Produits dépassant leur DLC
+Structure des données - Interface DLCProduct
+
+interface DLCProduct {
+  id: string
+  product_name: string        // Nom du produit
+  product_code: string       // Code produit (optionnel)
+  gencode: string           // Code-barres/gencode (optionnel)
+  supplier_id: string       // ID du fournisseur
+  supplier: Supplier        // Données du fournisseur
+  group_id: string          // ID du magasin/groupe
+  group: Group             // Données du groupe
+  expiry_date: Date        // Date limite de consommation
+  quantity: number         // Quantité
+  location: string         // Emplacement (optionnel)
+  status: string           // Statut du produit
+  notes: string            // Notes (optionnel)
+  created_by: string       // Créateur
+  validated_by: string     // Validé par (optionnel)
+  validated_at: Date       // Date de validation (optionnel)
+  created_at: Date         // Date de création
+  updated_at: Date         // Date de mise à jour
+}
+Formulaire d'ajout/édition - DLCForm
+📝 Champs disponibles
+Nom du produit (obligatoire)
+
+Type : Texte
+Validation : Requis, minimum 2 caractères
+Gencode (optionnel)
+
+Type : Texte
+Usage : Code-barres ou référence produit
+Fournisseur (obligatoire)
+
+Type : Sélecteur dropdown
+Source : Liste des fournisseurs actifs
+Affichage : Code + Nom du fournisseur
+Type de date (obligatoire)
+
+Type : Sélecteur dropdown
+Options :
+dlc : Date Limite de Consommation
+ddm : Date de Durabilité Minimale
+dluo : Date Limite d'Utilisation Optimale
+Date limite (obligatoire)
+
+Type : Calendrier (DatePicker)
+Validation : Date future recommandée
+🎨 Interface utilisateur
+Formulaire responsive avec validation Zod
+Messages d'erreur en temps réel
+Boutons "Annuler" et "Ajouter/Modifier"
+Support de l'édition de produits existants
+Liste et gestion - DLCList
+🔍 Filtres disponibles
+Filtre par statut :
+
+expires : Produits expirés (rouge)
+expires_soon : Expire dans 3 jours (orange)
+en_cours : Produits actifs (vert)
+valides : Produits validés (gris)
+tous : Tous les produits
+Filtre par fournisseur :
+
+Dropdown avec tous les fournisseurs
+Option "Tous les fournisseurs"
+📋 Colonnes du tableau
+| Colonne | Description | Fonctionnalité | |---------|-------------|----------------| | Produit | Nom + Code produit | Affichage principal | | Gencode | Code-barres | Identification | | Fournisseur | Nom du fournisseur | Référence | | Type | Badge coloré (DLC/DDM/DLUO) | Classification | | Date limite | Date formatée | Indicateur critique | | Statut | Badge de statut | État visuel | | Actions | Boutons d'action | Gestion |
+
+🎨 Codage couleur
+🔴 Rouge : Produits expirés
+🟠 Orange : Expire dans 3 jours
+🟢 Vert : Produits actifs
+⚪ Gris : Produits validés
+⚡ Actions disponibles
+✏️ Modifier : Édition du produit (si non validé)
+✅ Valider : Marquer comme traité (si non validé)
+🗑️ Supprimer : Suppression définitive
+Fonctionnalités avancées
+📄 Impression
+Liste des expirés : Génère un PDF des produits expirés
+Liste expire bientôt : PDF des produits à échéance proche
+Formatage professionnel avec en-têtes et statistiques
+🔄 Pagination
+Navigation par pages
+Affichage du nombre total d'éléments
+Contrôles précédent/suivant
+📊 Tri automatique
+Par date de création (plus récent d'abord)
+Produits expirés remontés en priorité
+Gestion des autorisations
+👥 Contrôle d'accès
+Authentification requise
+Gestion par groupes/magasins
+Seuls les produits du groupe utilisateur sont visibles
+🔒 Validation
+Les produits validés ne peuvent plus être modifiés
+Traçabilité complète des actions
+Horodatage de toutes les opérations
+États du produit
+🟢 Actif (active) : Produit en cours de suivi
+✅ Validé (validated) : Produit traité/vendu
+🔴 Expiré : Calculé automatiquement selon la date
+Le module DLC offre une solution complète pour la gestion proactive des dates d'expiration, essentielle pour la sécurité alimentaire et l'optimisation des stocks.

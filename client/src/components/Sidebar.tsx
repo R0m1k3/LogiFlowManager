@@ -15,7 +15,8 @@ import {
   Megaphone,
   Shield,
   Database,
-  ShoppingCart
+  ShoppingCart,
+  Clock
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -94,6 +95,12 @@ export default function Sidebar() {
       path: "/customer-orders", 
       label: "Commandes Client", 
       icon: ShoppingCart, 
+      roles: ["admin", "manager", "employee"] 
+    },
+    { 
+      path: "/dlc", 
+      label: "Module DLC", 
+      icon: Clock, 
       roles: ["admin", "manager", "employee"] 
     },
   ];

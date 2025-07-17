@@ -12,6 +12,7 @@ import {
   rolePermissions,
   userRoles,
   customerOrders,
+  dlcProducts,
   type User,
   type UpsertUser,
   type Group,
@@ -48,6 +49,9 @@ import {
   type CustomerOrder,
   type InsertCustomerOrder,
   type CustomerOrderWithRelations,
+  type DlcProduct,
+  type InsertDlcProduct,
+  type DlcProductWithRelations,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, desc, sql, gte, lte } from "drizzle-orm";
@@ -137,6 +141,15 @@ export interface IStorage {
   createCustomerOrder(customerOrder: InsertCustomerOrder): Promise<CustomerOrder>;
   updateCustomerOrder(id: number, customerOrder: Partial<InsertCustomerOrder>): Promise<CustomerOrder>;
   deleteCustomerOrder(id: number): Promise<void>;
+
+  // DLC Product operations
+  getDlcProducts(groupIds?: number[], filters?: { status?: string; supplierId?: number; }): Promise<DlcProductWithRelations[]>;
+  getDlcProduct(id: number): Promise<DlcProductWithRelations | undefined>;
+  createDlcProduct(dlcProduct: InsertDlcProduct): Promise<DlcProduct>;
+  updateDlcProduct(id: number, dlcProduct: Partial<InsertDlcProduct>): Promise<DlcProduct>;
+  deleteDlcProduct(id: number): Promise<void>;
+  validateDlcProduct(id: number, validatedBy: string): Promise<DlcProduct>;
+  getDlcStats(groupIds?: number[]): Promise<{ active: number; expiringSoon: number; expired: number; }>;
 
   // Role management operations
   getRoles(): Promise<Role[]>;
@@ -1049,6 +1062,259 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCustomerOrder(id: number): Promise<void> {
     await db.delete(customerOrders).where(eq(customerOrders.id, id));
+  }
+
+  // ===== DLC PRODUCTS OPERATIONS =====
+
+  async getDlcProducts(groupIds?: number[], filters?: { status?: string; supplierId?: number; }): Promise<DlcProductWithRelations[]> {
+    try {
+      let whereClause = "";
+      const conditions: string[] = [];
+      
+      if (groupIds && groupIds.length > 0) {
+        conditions.push(`dlc.group_id IN (${groupIds.join(',')})`);
+      }
+      
+      if (filters?.status) {
+        conditions.push(`dlc.status = '${filters.status}'`);
+      }
+      
+      if (filters?.supplierId) {
+        conditions.push(`dlc.supplier_id = ${filters.supplierId}`);
+      }
+      
+      if (conditions.length > 0) {
+        whereClause = `WHERE ${conditions.join(' AND ')}`;
+      }
+      
+      const result = await db.execute(sql`
+        SELECT 
+          dlc.*,
+          g.id as group_id_ref, g.name as group_name, g.color as group_color,
+          u.id as creator_id_ref, u.username as creator_username, u.email as creator_email, 
+          u.first_name, u.last_name, u.role as creator_role,
+          v.id as validator_id_ref, v.username as validator_username, v.email as validator_email,
+          v.first_name as validator_first_name, v.last_name as validator_last_name,
+          s.id as supplier_id_ref, s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone
+        FROM dlc_products dlc
+        LEFT JOIN groups g ON dlc.group_id = g.id
+        LEFT JOIN users u ON dlc.created_by = u.id
+        LEFT JOIN users v ON dlc.validated_by = v.id
+        LEFT JOIN suppliers s ON dlc.supplier_id = s.id
+        ${whereClause ? sql.raw(whereClause) : sql.raw('')}
+        ORDER BY dlc.expiry_date ASC, dlc.created_at DESC
+      `);
+
+      return result.rows.map((row: any) => ({
+        id: row.id as number,
+        productName: row.product_name as string,
+        expiryDate: row.expiry_date as Date,
+        dateType: row.date_type as string,
+        quantity: row.quantity as number,
+        unit: row.unit as string,
+        supplierId: row.supplier_id as number,
+        location: row.location as string,
+        status: row.status as string,
+        notes: row.notes as string | null,
+        alertThreshold: row.alert_threshold as number,
+        validatedAt: row.validated_at as Date | null,
+        validatedBy: row.validated_by as string | null,
+        groupId: row.group_id as number,
+        createdBy: row.created_by as string,
+        createdAt: row.created_at as Date,
+        updatedAt: row.updated_at as Date,
+        group: {
+          id: row.group_id_ref as number,
+          name: row.group_name as string,
+          color: row.group_color as string,
+          createdAt: null,
+          updatedAt: null,
+          nocodbConfigId: null,
+          nocodbTableId: null,
+          nocodbTableName: null,
+          invoiceColumnName: null,
+        },
+        creator: {
+          id: row.creator_id_ref as string,
+          username: row.creator_username as string | null,
+          email: row.creator_email as string | null,
+          firstName: row.first_name as string | null,
+          lastName: row.last_name as string | null,
+          role: row.creator_role as string,
+        },
+        validator: row.validator_id_ref ? {
+          id: row.validator_id_ref as string,
+          username: row.validator_username as string | null,
+          email: row.validator_email as string | null,
+          firstName: row.validator_first_name as string | null,
+          lastName: row.validator_last_name as string | null,
+          role: null,
+        } : null,
+        supplier: {
+          id: row.supplier_id_ref as number,
+          name: row.supplier_name as string,
+          contact: row.supplier_contact as string,
+          phone: row.supplier_phone as string,
+        },
+      })) as unknown as DlcProductWithRelations[];
+    } catch (error) {
+      console.error("Error in getDlcProducts:", error);
+      return [];
+    }
+  }
+
+  async getDlcProduct(id: number): Promise<DlcProductWithRelations | undefined> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          dlc.*,
+          g.id as group_id_ref, g.name as group_name, g.color as group_color,
+          u.id as creator_id_ref, u.username as creator_username, u.email as creator_email, 
+          u.first_name, u.last_name, u.role as creator_role,
+          v.id as validator_id_ref, v.username as validator_username, v.email as validator_email,
+          v.first_name as validator_first_name, v.last_name as validator_last_name,
+          s.id as supplier_id_ref, s.name as supplier_name, s.contact as supplier_contact, s.phone as supplier_phone
+        FROM dlc_products dlc
+        LEFT JOIN groups g ON dlc.group_id = g.id
+        LEFT JOIN users u ON dlc.created_by = u.id
+        LEFT JOIN users v ON dlc.validated_by = v.id
+        LEFT JOIN suppliers s ON dlc.supplier_id = s.id
+        WHERE dlc.id = ${id}
+      `);
+
+      if (result.rows.length === 0) return undefined;
+
+      const row = result.rows[0];
+      return {
+        id: row.id as number,
+        productName: row.product_name as string,
+        expiryDate: row.expiry_date as Date,
+        dateType: row.date_type as string,
+        quantity: row.quantity as number,
+        unit: row.unit as string,
+        supplierId: row.supplier_id as number,
+        location: row.location as string,
+        status: row.status as string,
+        notes: row.notes as string | null,
+        alertThreshold: row.alert_threshold as number,
+        validatedAt: row.validated_at as Date | null,
+        validatedBy: row.validated_by as string | null,
+        groupId: row.group_id as number,
+        createdBy: row.created_by as string,
+        createdAt: row.created_at as Date,
+        updatedAt: row.updated_at as Date,
+        group: {
+          id: row.group_id_ref as number,
+          name: row.group_name as string,
+          color: row.group_color as string,
+          createdAt: null,
+          updatedAt: null,
+          nocodbConfigId: null,
+          nocodbTableId: null,
+          nocodbTableName: null,
+          invoiceColumnName: null,
+        },
+        creator: {
+          id: row.creator_id_ref as string,
+          username: row.creator_username as string | null,
+          email: row.creator_email as string | null,
+          firstName: row.first_name as string | null,
+          lastName: row.last_name as string | null,
+          role: row.creator_role as string,
+        },
+        validator: row.validator_id_ref ? {
+          id: row.validator_id_ref as string,
+          username: row.validator_username as string | null,
+          email: row.validator_email as string | null,
+          firstName: row.validator_first_name as string | null,
+          lastName: row.validator_last_name as string | null,
+          role: null,
+        } : null,
+        supplier: {
+          id: row.supplier_id_ref as number,
+          name: row.supplier_name as string,
+          contact: row.supplier_contact as string,
+          phone: row.supplier_phone as string,
+        },
+      } as unknown as DlcProductWithRelations;
+    } catch (error) {
+      console.error("Error in getDlcProduct:", error);
+      return undefined;
+    }
+  }
+
+  async createDlcProduct(dlcProductData: InsertDlcProduct): Promise<DlcProduct> {
+    const [dlcProduct] = await db
+      .insert(dlcProducts)
+      .values({
+        ...dlcProductData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return dlcProduct;
+  }
+
+  async updateDlcProduct(id: number, dlcProductData: Partial<InsertDlcProduct>): Promise<DlcProduct> {
+    const [dlcProduct] = await db
+      .update(dlcProducts)
+      .set({
+        ...dlcProductData,
+        updatedAt: new Date(),
+      })
+      .where(eq(dlcProducts.id, id))
+      .returning();
+    return dlcProduct;
+  }
+
+  async deleteDlcProduct(id: number): Promise<void> {
+    await db.delete(dlcProducts).where(eq(dlcProducts.id, id));
+  }
+
+  async validateDlcProduct(id: number, validatedBy: string): Promise<DlcProduct> {
+    const [dlcProduct] = await db
+      .update(dlcProducts)
+      .set({
+        status: 'valides',
+        validatedAt: new Date(),
+        validatedBy,
+        updatedAt: new Date(),
+      })
+      .where(eq(dlcProducts.id, id))
+      .returning();
+    return dlcProduct;
+  }
+
+  async getDlcStats(groupIds?: number[]): Promise<{ active: number; expiringSoon: number; expired: number; }> {
+    try {
+      let whereClause = "";
+      if (groupIds && groupIds.length > 0) {
+        whereClause = `WHERE group_id IN (${groupIds.join(',')})`;
+      }
+      
+      const today = new Date();
+      const threeDaysFromNow = new Date();
+      threeDaysFromNow.setDate(today.getDate() + 3);
+      
+      const result = await db.execute(sql`
+        SELECT 
+          COUNT(CASE WHEN status = 'en_cours' AND expiry_date > NOW() + INTERVAL '3 days' THEN 1 END) as active,
+          COUNT(CASE WHEN status = 'en_cours' AND expiry_date <= NOW() + INTERVAL '3 days' AND expiry_date > NOW() THEN 1 END) as expiring_soon,
+          COUNT(CASE WHEN status = 'expires' OR expiry_date <= NOW() THEN 1 END) as expired
+        FROM dlc_products
+        ${whereClause ? sql.raw(whereClause) : sql.raw('')}
+      `);
+
+      const row = result.rows[0] as any;
+      return {
+        active: parseInt(row.active) || 0,
+        expiringSoon: parseInt(row.expiring_soon) || 0,
+        expired: parseInt(row.expired) || 0,
+      };
+    } catch (error) {
+      console.error("Error in getDlcStats:", error);
+      return { active: 0, expiringSoon: 0, expired: 0 };
+    }
   }
 
   // ===== ROLE MANAGEMENT OPERATIONS =====

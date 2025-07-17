@@ -230,6 +230,27 @@ export const userRoles = pgTable("user_roles", {
   pk: primaryKey({ columns: [table.userId, table.roleId] })
 }));
 
+// DLC Products (Date Limite de Consommation)
+export const dlcProducts = pgTable("dlc_products", {
+  id: serial("id").primaryKey(),
+  productName: varchar("product_name").notNull(), // Nom du produit
+  productCode: varchar("product_code"), // Code produit (optionnel)
+  gencode: varchar("gencode"), // Code-barres/gencode (optionnel)
+  supplierId: integer("supplier_id").notNull(), // ID du fournisseur
+  groupId: integer("group_id").notNull(), // ID du magasin/groupe
+  expiryDate: date("expiry_date").notNull(), // Date limite de consommation
+  dateType: varchar("date_type").notNull().default("dlc"), // Type: dlc, ddm, dluo
+  quantity: integer("quantity").notNull().default(1), // Quantité
+  location: varchar("location"), // Emplacement (optionnel)
+  status: varchar("status").notNull().default("en_cours"), // Statut: en_cours, expires_soon, expires, valides
+  notes: text("notes"), // Notes (optionnel)
+  createdBy: varchar("created_by").notNull(), // Créateur
+  validatedBy: varchar("validated_by"), // Validé par (optionnel)
+  validatedAt: timestamp("validated_at"), // Date de validation (optionnel)
+  createdAt: timestamp("created_at").defaultNow(), // Date de création
+  updatedAt: timestamp("updated_at").defaultNow(), // Date de mise à jour
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userGroups: many(userGroups),
@@ -238,6 +259,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   createdDeliveries: many(deliveries),
   createdPublicities: many(publicities),
   createdCustomerOrders: many(customerOrders),
+  createdDlcProducts: many(dlcProducts),
 }));
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
@@ -246,6 +268,7 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   deliveries: many(deliveries),
   publicityParticipations: many(publicityParticipations),
   customerOrders: many(customerOrders),
+  dlcProducts: many(dlcProducts),
   nocodbConfig: one(nocodbConfig, {
     fields: [groups.nocodbConfigId],
     references: [nocodbConfig.id],
@@ -266,6 +289,7 @@ export const userGroupsRelations = relations(userGroups, ({ one }) => ({
 export const suppliersRelations = relations(suppliers, ({ many }) => ({
   orders: many(orders),
   deliveries: many(deliveries),
+  dlcProducts: many(dlcProducts),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -368,6 +392,25 @@ export const customerOrdersRelations = relations(customerOrders, ({ one }) => ({
   }),
 }));
 
+export const dlcProductsRelations = relations(dlcProducts, ({ one }) => ({
+  supplier: one(suppliers, {
+    fields: [dlcProducts.supplierId],
+    references: [suppliers.id],
+  }),
+  group: one(groups, {
+    fields: [dlcProducts.groupId],
+    references: [groups.id],
+  }),
+  creator: one(users, {
+    fields: [dlcProducts.createdBy],
+    references: [users.id],
+  }),
+  validator: one(users, {
+    fields: [dlcProducts.validatedBy],
+    references: [users.id],
+  }),
+}));
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   id: true,
@@ -444,6 +487,12 @@ export const insertNocodbConfigSchema = createInsertSchema(nocodbConfig).omit({
 });
 
 export const insertCustomerOrderSchema = createInsertSchema(customerOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDlcProductSchema = createInsertSchema(dlcProducts).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -538,4 +587,14 @@ export type CustomerOrderWithRelations = CustomerOrder & {
 export type UserWithRole = User & {
   dynamicRole?: Role | null;
   userGroups: (UserGroup & { group: Group })[];
+};
+
+export type DlcProduct = typeof dlcProducts.$inferSelect;
+export type InsertDlcProduct = z.infer<typeof insertDlcProductSchema>;
+
+export type DlcProductWithRelations = DlcProduct & {
+  supplier: Supplier;
+  group: Group;
+  creator: User;
+  validator?: User | null;
 };
