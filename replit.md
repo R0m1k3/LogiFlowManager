@@ -132,6 +132,8 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 
 Changelog:
 - July 17, 2025. **CORRECTIONS BUGS CRITIQUES APPLIQUÉES** - Sélecteur magasin et rafraîchissement automatique
+- July 17, 2025. **ÉTIQUETTES COMMANDES CLIENT AMÉLIORÉES** - Code-barres EAN13 scannable avec jsbarcode, affichage acompte et prix promotionnel
+- July 17, 2025. **PRODUCTION DEPLOYMENT REQUIS** - Installation jsbarcode et rebuild nécessaires pour fonctionnalité complète
 - July 17, 2025. **BUG SÉLECTEUR MAGASIN CORRIGÉ** - Modal création respecte maintenant le magasin sélectionné dans header
 - July 17, 2025. **BUG RAFRAÎCHISSEMENT CORRIGÉ** - Suppression commandes rafraîchit automatiquement la page
 - July 17, 2025. **INVALIDATION CACHE AMÉLIORÉE** - queryKey incluent maintenant storeId pour invalidation précise

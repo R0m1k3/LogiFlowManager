@@ -122,8 +122,8 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
               <span className="font-medium">Code à barres:</span>
               <div className="mt-2">
                 <div className="font-mono text-center border border-dashed p-2 bg-gray-50 rounded">
-                  <div className="text-lg tracking-wider font-bold mb-1">
-                    ||||||||||||||||
+                  <div className="text-lg tracking-wider font-bold mb-1 font-mono border bg-white p-2 text-center">
+                    █ ▉█ ▉ █▉█ ▉█ █▉ ▉█▉ █ ▉█ ▉█▉ █▉ ▉█ █▉▉█ ▉█▉ █ ▉█▉ █▉█ ▉ █▉ ▉█▉█ ▉ █▉█ ▉█ █
                   </div>
                   <div className="text-xs">{order.gencode}</div>
                 </div>

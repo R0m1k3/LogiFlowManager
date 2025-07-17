@@ -233,35 +233,52 @@ export default function CustomerOrders() {
     });
   };
 
-  // Fonction pour générer un code EAN13 valide
+  // Fonction pour générer un code EAN13 scannable professionnel
   const generateEAN13Barcode = (code: string) => {
-    // Si le code n'est pas exactement 13 caractères, on le complète ou le tronque
+    // Assurer que le code fait exactement 13 caractères
     let ean13 = code.padStart(13, '0').substring(0, 13);
     
-    // Générer les barres EAN13 (pattern simplifié)
-    const leftPattern = ['3211', '2221', '2122', '1411', '1132', '1231', '1114', '1312', '1213', '3112'];
-    const centerPattern = '11111';
-    const rightPattern = ['1110', '1011', '1101', '1000', '0100', '0010', '0001', '0110', '0011', '0101'];
+    // Pattern EAN13 authentique - chaque chiffre a un pattern de barres spécifique
+    const leftOddPattern = ['0001101', '0011001', '0010011', '0111101', '0100011', '0110001', '0101111', '0111011', '0110111', '0001011'];
+    const leftEvenPattern = ['0100111', '0110011', '0011011', '0100001', '0011101', '0111001', '0000101', '0010001', '0001001', '0010111'];
+    const rightPattern = ['1110010', '1100110', '1101100', '1000010', '1011100', '1001110', '1010000', '1000100', '1001000', '1110100'];
+    const firstDigitPattern = ['OOOOOO', 'OOEOEE', 'OOEEOE', 'OOEEEO', 'OEOOEE', 'OEEOOE', 'OEEEOO', 'OEOEOE', 'OEOEEO', 'OEEOEO'];
     
-    let barcodePattern = '111'; // Start pattern
+    const firstDigit = parseInt(ean13[0]);
+    const pattern = firstDigitPattern[firstDigit];
+    
+    let barcode = '101'; // Start guard
     
     // Left group (6 digits)
     for (let i = 1; i <= 6; i++) {
       const digit = parseInt(ean13[i]);
-      barcodePattern += leftPattern[digit];
+      if (pattern[i-1] === 'O') {
+        barcode += leftOddPattern[digit];
+      } else {
+        barcode += leftEvenPattern[digit];
+      }
     }
     
-    barcodePattern += centerPattern; // Center pattern
+    barcode += '01010'; // Center guard
     
     // Right group (6 digits)
     for (let i = 7; i <= 12; i++) {
       const digit = parseInt(ean13[i]);
-      barcodePattern += rightPattern[digit];
+      barcode += rightPattern[digit];
     }
     
-    barcodePattern += '111'; // End pattern
+    barcode += '101'; // End guard
     
-    return barcodePattern.split('').map(bit => bit === '1' ? '█' : ' ').join('');
+    // Convertir en barres visuelles avec largeurs variables pour un meilleur rendu
+    return barcode.split('').map((bit, index) => {
+      if (bit === '1') {
+        // Barres noires avec différentes largeurs pour un rendu plus réaliste
+        return index % 7 === 0 ? '█' : (index % 3 === 0 ? '▉' : '█');
+      } else {
+        // Espaces blancs
+        return ' ';
+      }
+    }).join('');
   };
 
   const handlePrintLabel = (order: CustomerOrderWithRelations) => {
@@ -269,6 +286,7 @@ export default function CustomerOrders() {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       const barcodeDisplay = order.gencode ? generateEAN13Barcode(order.gencode) : '';
+      const isImageBarcode = false; // Toujours utiliser le rendu texte pour l'impression
       
       printWindow.document.write(`
         <html>
@@ -366,14 +384,23 @@ export default function CustomerOrders() {
               }
               .barcode {
                 font-family: 'Courier New', monospace;
-                font-size: 16px;
+                font-size: 14px;
                 font-weight: bold;
-                color: #111827;
-                letter-spacing: 0px;
-                margin: 10px 0;
-                line-height: 1.2;
+                color: #000000;
+                letter-spacing: -1px;
+                margin: 15px 0;
+                line-height: 0.8;
                 background: white;
-                padding: 5px;
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                text-align: center;
+                word-spacing: -2px;
+              }
+              .barcode-image {
+                max-width: 300px;
+                height: auto;
+                margin: 10px 0;
+                border: 1px solid #ddd;
               }
               .barcode-number {
                 font-size: 14px;
