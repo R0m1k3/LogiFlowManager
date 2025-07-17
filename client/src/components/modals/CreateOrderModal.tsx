@@ -118,10 +118,13 @@ export default function CreateOrderModal({
       // Force un nettoyage complet du cache pour éviter incohérences
       console.log('🆕 Order created, clearing cache for consistency');
       
-      // Invalider de manière plus ciblée pour éviter de perdre le contexte
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
+      // Invalider toutes les variantes de queryKey pour assurer cohérence
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey;
+        return key[0]?.toString().includes('/api/orders') || 
+               key[0]?.toString().includes('/api/deliveries') || 
+               key[0]?.toString().includes('/api/stats/monthly');
+      }});
       
       onClose();
     },

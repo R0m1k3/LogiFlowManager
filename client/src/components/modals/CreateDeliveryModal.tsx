@@ -135,11 +135,14 @@ export default function CreateDeliveryModal({
         description: "Livraison créée avec succès",
       });
       
-      // Invalider de manière plus ciblée pour éviter de perdre le contexte
+      // Invalider toutes les variantes de queryKey pour assurer cohérence
       console.log('🚚 Delivery created, clearing cache for consistency');
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey;
+        return key[0]?.toString().includes('/api/orders') || 
+               key[0]?.toString().includes('/api/deliveries') || 
+               key[0]?.toString().includes('/api/stats/monthly');
+      }});
       
       onClose();
     },

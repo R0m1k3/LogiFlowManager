@@ -66,11 +66,14 @@ export default function Layout({ children }: LayoutProps) {
                     console.log('🏪 Store selector changed:', { value, parsed: value === "all" ? null : parseInt(value) });
                     const newStoreId = value === "all" ? null : parseInt(value);
                     
-                    // Invalider seulement les caches de données critiques
+                    // Invalider toutes les variantes de queryKey pour changement magasin
                     console.log('🧹 Invalidating data caches for store change');
-                    queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-                    queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
-                    queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
+                    queryClient.invalidateQueries({ predicate: (query) => {
+                      const key = query.queryKey;
+                      return key[0]?.toString().includes('/api/orders') || 
+                             key[0]?.toString().includes('/api/deliveries') || 
+                             key[0]?.toString().includes('/api/stats/monthly');
+                    }});
                     
                     // Sauvegarder dans localStorage et mettre à jour l'état
                     if (newStoreId) {
