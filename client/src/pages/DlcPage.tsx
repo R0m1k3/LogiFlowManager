@@ -403,10 +403,7 @@ export default function DlcPage() {
           <h1 className="text-3xl font-bold">Gestion DLC</h1>
           <p className="text-muted-foreground">Gestion des dates limites de consommation</p>
         </div>
-
-      </div>
-      
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -542,6 +539,7 @@ export default function DlcPage() {
             </Form>
           </DialogContent>
         </Dialog>
+      </div>
 
       {/* Filters */}
       <Card>
