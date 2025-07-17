@@ -200,8 +200,10 @@ export default function DlcPage() {
   };
 
   const handleEdit = (product: DlcProductWithRelations) => {
+    console.log("🔍 Product being edited:", product);
+    console.log("🔍 Product gencode:", product.gencode);
     setEditingProduct(product);
-    form.reset({
+    const formData = {
       productName: product.productName,
       gencode: product.gencode || "",
       expiryDate: format(new Date(product.expiryDate), "yyyy-MM-dd"),
@@ -209,7 +211,9 @@ export default function DlcPage() {
       supplierId: product.supplierId,
       status: product.status as "en_cours" | "expires_soon" | "expires" | "valides",
       notes: product.notes || "",
-    });
+    };
+    console.log("🔍 Form data being set:", formData);
+    form.reset(formData);
     setIsDialogOpen(true);
   };
 
@@ -468,7 +472,11 @@ export default function DlcPage() {
                     <FormItem>
                       <FormLabel>Code EAN13 (optionnel)</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="1234567890123" />
+                        <Input 
+                          {...field} 
+                          value={field.value || ""} 
+                          placeholder="1234567890123" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
