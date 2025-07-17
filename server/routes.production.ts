@@ -1045,6 +1045,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ✅ CORRECTION: Permettre à tous les utilisateurs authentifiés de lire les permissions (nécessaire pour l'interface de gestion des rôles)
       const permissions = await storage.getPermissions();
       
+      // 🔍 DEBUG PRODUCTION: Diagnostic des permissions pour identifier le problème d'affichage
+      console.log('🔍 PRODUCTION DEBUG - Permissions API called');
+      console.log('📊 Total permissions found:', permissions.length);
+      
+      // Vérifier spécifiquement les permissions DLC
+      const dlcPermissions = permissions.filter(p => p.category === 'gestion_dlc');
+      console.log('🔧 DLC permissions found:', dlcPermissions.length);
+      
+      if (dlcPermissions.length > 0) {
+        console.log('🔧 DLC permissions details:');
+        dlcPermissions.forEach(p => {
+          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+        });
+      }
+      
+      // Vérifier les permissions fournisseurs qui semblent problématiques selon l'utilisateur
+      const supplierPermissions = permissions.filter(p => p.category === 'fournisseurs');
+      console.log('🏭 Supplier permissions found:', supplierPermissions.length);
+      
+      if (supplierPermissions.length > 0) {
+        console.log('🏭 Supplier permissions details:');
+        supplierPermissions.forEach(p => {
+          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+        });
+      }
+      
+      // Vérifier toutes les catégories
+      const categories = [...new Set(permissions.map(p => p.category))];
+      console.log('🏷️ All categories:', categories);
+      
+      // Vérifier s'il y a des permissions sans displayName ou avec displayName vide
+      const permissionsWithoutDisplayName = permissions.filter(p => !p.displayName || p.displayName === p.name);
+      if (permissionsWithoutDisplayName.length > 0) {
+        console.log('⚠️ PROBLÈME: Permissions sans displayName français trouvées:', permissionsWithoutDisplayName.length);
+        permissionsWithoutDisplayName.forEach(p => {
+          console.log(`  - PROBLÉMATIQUE: ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}"`);
+        });
+      }
+      
       res.json(Array.isArray(permissions) ? permissions : []);
     } catch (error) {
       console.error("Error fetching permissions:", error);
