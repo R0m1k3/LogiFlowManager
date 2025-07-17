@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
+import { useStore } from "@/components/Layout";
 import { apiRequest } from "@/lib/queryClient";
 import type { DlcProductWithRelations, InsertDlcProduct } from "@shared/schema";
 
@@ -38,7 +39,7 @@ export default function DlcPage() {
   const { user, isLoading: authLoading } = useAuthUnified();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedStore, setSelectedStore] = useState<string>("");
+  const { selectedStoreId } = useStore();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [supplierFilter, setSupplierFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,12 +54,7 @@ export default function DlcPage() {
     enabled: !authLoading,
   });
 
-  // Set default store for non-admin users
-  useEffect(() => {
-    if (user && user.role !== 'admin' && stores.length > 0 && !selectedStore) {
-      setSelectedStore(stores[0]?.id?.toString() || "");
-    }
-  }, [user, stores, selectedStore]);
+
 
   // Fetch suppliers
   const { data: suppliers = [] } = useQuery({
@@ -68,27 +64,27 @@ export default function DlcPage() {
 
   // Fetch DLC products
   const { data: dlcProducts = [], isLoading: productsLoading } = useQuery({
-    queryKey: ["/api/dlc-products", selectedStore, statusFilter, supplierFilter],
+    queryKey: ["/api/dlc-products", selectedStoreId, statusFilter, supplierFilter],
     queryFn: () => {
       const params = new URLSearchParams();
-      if (selectedStore && selectedStore !== "all") params.append("storeId", selectedStore);
+      if (selectedStoreId && user?.role === 'admin') params.append("storeId", selectedStoreId.toString());
       if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
       if (supplierFilter && supplierFilter !== "all") params.append("supplierId", supplierFilter);
       
       return apiRequest(`/api/dlc-products?${params.toString()}`);
     },
-    enabled: !authLoading && (user?.role === 'admin' || selectedStore),
+    enabled: !authLoading,
   });
 
   // Fetch DLC stats
   const { data: stats = { active: 0, expiringSoon: 0, expired: 0 } } = useQuery({
-    queryKey: ["/api/dlc-products/stats", selectedStore],
+    queryKey: ["/api/dlc-products/stats", selectedStoreId],
     queryFn: () => {
       const params = new URLSearchParams();
-      if (selectedStore && selectedStore !== "all") params.append("storeId", selectedStore);
+      if (selectedStoreId && user?.role === 'admin') params.append("storeId", selectedStoreId.toString());
       return apiRequest(`/api/dlc-products/stats?${params.toString()}`);
     },
-    enabled: !authLoading && (user?.role === 'admin' || selectedStore),
+    enabled: !authLoading,
   });
 
   // Form setup
@@ -189,7 +185,7 @@ export default function DlcPage() {
       unit: "unité", // Valeur par défaut
       location: "Magasin", // Valeur par défaut
       alertThreshold: 15, // Toujours 15 jours
-      groupId: parseInt(selectedStore) || stores[0]?.id || 2, // Utilise le magasin sélectionné ou le premier disponible
+      groupId: selectedStoreId || stores[0]?.id || 2, // Utilise le magasin sélectionné ou le premier disponible
     };
 
     if (editingProduct) {
