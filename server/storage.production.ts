@@ -2426,12 +2426,12 @@ export class DatabaseStorage implements IStorage {
 
       Object.entries(dlcProductData).forEach(([key, value]) => {
         if (value !== undefined) {
-          if (key === 'name') {
+          if (key === 'name' || key === 'productName') {
             fields.push(`name = $${paramIndex}`);
             fields.push(`product_name = $${paramIndex}`);
             params.push(value);
             paramIndex++;
-          } else if (key === 'productCode') {
+          } else if (key === 'productCode' || key === 'gencode') {
             fields.push(`product_code = $${paramIndex}`);
             fields.push(`gencode = $${paramIndex}`);
             params.push(value);
