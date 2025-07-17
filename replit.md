@@ -138,6 +138,8 @@ Changelog:
 - July 17, 2025. **FILTRAGE GROUPES MODAUX** - CreateOrderModal et CreateDeliveryModal filtrent selon selectedStoreId
 - July 17, 2025. **RESET AUTOMATIQUE FORMULAIRES** - Formulaires se réinitialisent quand admin change de magasin
 - July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Routes production avec logs détaillés pour identifier problème filtrage magasin
+- July 17, 2025. **PRODUCTION DEBUGGING COMPLET** - Correction invalidation cache pour résoudre incohérence calendrier/page après suppression
+- July 17, 2025. **CACHE INVALIDATION PRODUCTION** - Multiple queryKey avec selectedStoreId pour différencier données par magasin
 - July 17, 2025. **PROBLÈME SUPPRESSION LIVRAISONS CORRIGÉ** - deleteDelivery gère maintenant les commandes liées
 - July 17, 2025. Correction logique métier : suppression dernière livraison remet commande à "pending" 
 - July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Logs détaillés création/récupération commandes pour debug production

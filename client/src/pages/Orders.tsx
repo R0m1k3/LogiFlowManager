@@ -110,12 +110,27 @@ export default function Orders() {
         title: "Succès",
         description: "Commande supprimée avec succès",
       });
-      // Invalider le cache avec la même clé que la requête principale
+      
+      console.log('🗑️ Order deleted, invalidating caches with:', { 
+        ordersUrl, 
+        selectedStoreId,
+        cacheKeys: [
+          [ordersUrl, selectedStoreId],
+          ['/api/orders'],
+          ['/api/orders', selectedStoreId],
+          ['/api/stats/monthly']
+        ]
+      });
+      
+      // Invalider tous les caches liés aux commandes
       queryClient.invalidateQueries({ queryKey: [ordersUrl, selectedStoreId] });
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedStoreId] });
       queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
-      // Force un refresh immédiat
+      
+      // Forcer le refetch immédiat
       queryClient.refetchQueries({ queryKey: [ordersUrl, selectedStoreId] });
+      queryClient.refetchQueries({ queryKey: ['/api/orders', selectedStoreId] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

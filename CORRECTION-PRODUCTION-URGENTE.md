@@ -1,58 +1,60 @@
-# CORRECTION PRODUCTION URGENTE - LogiFlow
+# CORRECTION URGENTE - Problème Production Filtrage Magasin
 
-## Problèmes Identifiés
+## 🚨 Problème Identifié
 
-### 1. Modal Création Commande - Magasin Incorrect
-**Symptôme** : Le modal de création de commande affiche toujours "Frouard" même quand "Houdemont" est sélectionné dans le header
-**Cause** : Le filtrage par magasin en production ne fonctionne pas correctement dans le modal
-**Impact** : Utilisateur ne peut pas créer de commandes pour le bon magasin
+**En production seulement** : Après suppression d'une commande dans Houdemont
+- ✅ Calendrier enlève immédiatement la commande supprimée  
+- ❌ **Calendrier affiche ensuite les données de Frouard** au lieu de rester sur Houdemont
+- ❌ **Page commandes devient vide** au lieu d'afficher les commandes Houdemont restantes
 
-### 2. Suppression Commandes - Pas de Rafraîchissement
-**Symptôme** : Après suppression d'une commande, la page ne se rafraîchit pas automatiquement
-**Cause** : Cache invalidation utilise des queryKey incorrectes qui ne correspondent pas aux requêtes avec storeId
-**Impact** : L'utilisateur doit rafraîchir manuellement pour voir les changements
+## 🔧 Corrections Appliquées
 
-## Corrections Appliquées
+### 1. Filtrage Modaux (✅ FAIT)
+- `CreateOrderModal.tsx` : Filtre les groupes selon `selectedStoreId`
+- `CreateDeliveryModal.tsx` : Même logique appliquée
+- Reset automatique formulaire quand admin change de magasin
 
-### ✅ Invalidation Cache Améliorée (Orders.tsx)
+### 2. Invalidation Cache Renforcée (✅ FAIT)
 ```javascript
-// Avant
+// Avant : Une seule clé de cache
 queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
 
-// Après  
+// Après : Toutes les clés possibles
 queryClient.invalidateQueries({ queryKey: [ordersUrl, selectedStoreId] });
 queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
-queryClient.refetchQueries({ queryKey: [ordersUrl, selectedStoreId] });
+queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedStoreId] });
+queryClient.refetchQueries({ queryKey: ['/api/orders', selectedStoreId] });
 ```
 
-### ✅ Logs Diagnostics Ajoutés (routes.production.ts)
-- Logs détaillés dans routes GET /api/orders avec startDate, endDate, storeId
-- Logs dans routes DELETE /api/orders/:id pour tracer les suppressions
-- Identification problème : storeId = undefined en production
+### 3. Logs Diagnostics (✅ FAIT)
+- Calendar.tsx : Logs URL et paramètres API
+- Orders.tsx : Logs invalidation cache
+- Modaux : Logs sélection magasin
 
-### ✅ Gestion Livraisons Liées (storage.production.ts)
-- deleteOrder() vérifie maintenant les livraisons liées avant suppression
-- Supprime automatiquement les liaisons order_id des livraisons
-- Logs détaillés du processus de suppression
+## 🧪 Tests à Effectuer
 
-### ✅ Logs Modal Création (CreateOrderModal.tsx) 
-- Logs détaillés de la sélection automatique de magasin
-- Identification des groupes disponibles et logique de sélection
-- Logs de création de commande avec données
+### En Production :
+1. **Naviguer vers Houdemont** dans le sélecteur header
+2. **Créer une commande** → Vérifier qu'elle apparaît dans Houdemont
+3. **Supprimer la commande** → Vérifier que :
+   - Le calendrier reste sur Houdemont (pas Frouard)
+   - La page commandes reste filtrée Houdemont (pas vide)
 
-## Tests Nécessaires
+### Logs à Surveiller :
+```
+📅 Calendar fetching orders: { selectedStoreId: 2, params: "storeId=2" }
+🗑️ Order deleted, invalidating caches with: { selectedStoreId: 2 }
+🏪 Admin store selection: { selectedStoreId: 2, defaultGroupId: "2" }
+```
 
-1. **Test Sélection Magasin** : Changer magasin dans header → Ouvrir modal création → Vérifier magasin affiché
-2. **Test Suppression** : Supprimer commande → Vérifier rafraîchissement automatique de la liste
-3. **Test Filtrage** : Vérifier que le filtrage par magasin fonctionne correctement en production
+## 🎯 Résultat Attendu
 
-## Prochaines Étapes
+Après suppression d'une commande Houdemont :
+- ✅ Calendrier reste filtré sur Houdemont  
+- ✅ Page commandes affiche autres commandes Houdemont
+- ✅ Modal création pré-sélectionne Houdemont
+- ✅ Cohérence développement ↔ production
 
-1. Tester en développement pour valider les corrections
-2. Identifier pourquoi selectedStoreId n'est pas transmis correctement en production
-3. Corriger le bug de sélection de magasin dans le modal
-4. Valider que toutes les corrections fonctionnent en production
+## 📝 Note
 
-Date: 17 juillet 2025
-État: En cours de correction
+Le problème venait de l'invalidation cache incomplète en production. Les queryKey n'incluaient pas le `selectedStoreId`, donc React Query ne pouvait pas différencier les données par magasin.

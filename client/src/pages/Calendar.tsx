@@ -44,7 +44,15 @@ export default function Calendar() {
         params.append('storeId', selectedStoreId.toString());
       }
       
-      const response = await fetch(`/api/orders?${params.toString()}`, {
+      const url = `/api/orders?${params.toString()}`;
+      console.log('📅 Calendar fetching orders:', {
+        url,
+        selectedStoreId,
+        userRole: user?.role,
+        params: params.toString()
+      });
+      
+      const response = await fetch(url, {
         credentials: 'include'
       });
       
@@ -52,7 +60,9 @@ export default function Calendar() {
         throw new Error('Failed to fetch orders');
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('📅 Calendar orders received:', Array.isArray(data) ? data.length : 'NOT_ARRAY', 'items');
+      return data;
     },
   });
 
@@ -70,7 +80,15 @@ export default function Calendar() {
         params.append('storeId', selectedStoreId.toString());
       }
       
-      const response = await fetch(`/api/deliveries?${params.toString()}`, {
+      const url = `/api/deliveries?${params.toString()}`;
+      console.log('📅 Calendar fetching deliveries:', {
+        url,
+        selectedStoreId,
+        userRole: user?.role,
+        params: params.toString()
+      });
+      
+      const response = await fetch(url, {
         credentials: 'include'
       });
       
@@ -78,7 +96,9 @@ export default function Calendar() {
         throw new Error('Failed to fetch deliveries');
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('📅 Calendar deliveries received:', Array.isArray(data) ? data.length : 'NOT_ARRAY', 'items');
+      return data;
     },
   });
 
