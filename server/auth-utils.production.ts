@@ -20,10 +20,17 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function comparePasswords(password: string, hashedPassword: string): Promise<boolean> {
   try {
-    // Séparer le salt du hash
+    // Vérifier si c'est un hash de développement (format scrypt avec point)
+    if (hashedPassword.includes('.')) {
+      console.log('🔧 Detected development hash format - attempting migration');
+      return compareScryptPassword(password, hashedPassword);
+    }
+    
+    // Séparer le salt du hash (format production PBKDF2)
     const [salt, originalHash] = hashedPassword.split(':');
     
     if (!salt || !originalHash) {
+      console.log('❌ Invalid PBKDF2 hash format');
       return false;
     }
     
@@ -34,6 +41,23 @@ export async function comparePasswords(password: string, hashedPassword: string)
     return crypto.timingSafeEqual(Buffer.from(originalHash, 'hex'), Buffer.from(hash, 'hex'));
   } catch (error) {
     console.error('Error comparing passwords:', error);
+    return false;
+  }
+}
+
+// Fonction pour comparer les mots de passe de développement (format scrypt)
+function compareScryptPassword(password: string, hashedPassword: string): boolean {
+  try {
+    const [hashed, salt] = hashedPassword.split('.');
+    if (!hashed || !salt) {
+      return false;
+    }
+    
+    const hashedBuf = Buffer.from(hashed, 'hex');
+    const suppliedBuf = crypto.scryptSync(password, salt, 64) as Buffer;
+    return crypto.timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error('Error comparing scrypt password:', error);
     return false;
   }
 }

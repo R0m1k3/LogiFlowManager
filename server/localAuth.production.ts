@@ -29,7 +29,7 @@ declare global {
 }
 
 // Import des fonctions de hachage
-import { hashPassword, comparePasswords } from './auth-utils.production.js';
+import { hashPassword, comparePasswords } from './auth-utils.production';
 
 export function setupLocalAuth(app: Express) {
   // Configure session with PostgreSQL store
@@ -75,6 +75,22 @@ export function setupLocalAuth(app: Express) {
       if (!isMatch) {
         console.log('❌ Login failed: Invalid password for user:', username);
         return done(null, false, { message: 'Invalid username or password.' });
+      }
+
+      // Migrer le mot de passe vers le nouveau format si nécessaire
+      if (user.password.includes('.')) {
+        console.log('🔧 Migrating password to production format for user:', username);
+        try {
+          const newHashedPassword = await hashPassword(password);
+          await pool.query(
+            'UPDATE users SET password = $1 WHERE id = $2',
+            [newHashedPassword, user.id]
+          );
+          console.log('✅ Password migrated to production format');
+        } catch (error) {
+          console.error('❌ Failed to migrate password:', error);
+          // Continue with login even if migration fails
+        }
       }
 
       console.log('✅ Login successful for user:', username);
@@ -185,6 +201,22 @@ export function setupLocalAuth(app: Express) {
         res.json({ message: 'Logged out successfully' });
       });
     });
+  });
+
+  // Check if default credentials should be shown
+  app.get("/api/default-credentials-check", async (req, res) => {
+    try {
+      const result = await pool.query(
+        'SELECT password_changed FROM users WHERE username = $1',
+        ['admin']
+      );
+      const adminUser = result.rows[0];
+      const showDefault = adminUser && !adminUser.password_changed;
+      res.json({ showDefault: !!showDefault });
+    } catch (error) {
+      console.error('Error checking default credentials:', error);
+      res.json({ showDefault: true }); // Default to showing credentials if error
+    }
   });
 
   console.log('✅ Local authentication configured');

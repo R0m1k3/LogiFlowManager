@@ -595,13 +595,13 @@ async function createDefaultAdmin() {
   try {
     // Check if admin user exists
     const existingAdmin = await pool.query(
-      'SELECT id FROM users WHERE username = $1',
+      'SELECT id, password_changed FROM users WHERE username = $1',
       ['admin']
     );
 
     if (existingAdmin.rows.length === 0) {
       // Import hash function without bcrypt
-      const { hashPassword } = await import('./auth-utils.production.js');
+      const { hashPassword } = await import('./auth-utils.production');
       const hashedPassword = await hashPassword('admin');
       
       await pool.query(`
@@ -621,16 +621,21 @@ async function createDefaultAdmin() {
 
       console.log('✅ Default admin user created: admin/admin');
     } else {
-      // Admin exists but update password with new hash format if needed
-      const { hashPassword } = await import('./auth-utils.production.js');
-      const newHashedPassword = await hashPassword('admin');
-      
-      await pool.query(
-        'UPDATE users SET password = $1, password_changed = false WHERE username = $2',
-        [newHashedPassword, 'admin']
-      );
-      
-      console.log('✅ Admin user password updated with new hash format');
+      // Only reset password if it hasn't been changed by the user
+      const admin = existingAdmin.rows[0];
+      if (!admin.password_changed) {
+        const { hashPassword } = await import('./auth-utils.production');
+        const newHashedPassword = await hashPassword('admin');
+        
+        await pool.query(
+          'UPDATE users SET password = $1 WHERE username = $2',
+          [newHashedPassword, 'admin']
+        );
+        
+        console.log('✅ Admin user password updated with default password (admin/admin)');
+      } else {
+        console.log('✅ Admin user exists with custom password - not resetting');
+      }
     }
   } catch (error) {
     console.error('❌ Failed to create admin user:', error);
