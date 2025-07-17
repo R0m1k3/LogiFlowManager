@@ -102,10 +102,7 @@ export default function DlcPage() {
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: (data: InsertDlcProduct) => apiRequest("/api/dlc-products", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: InsertDlcProduct) => apiRequest("/api/dlc-products", "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dlc-products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dlc-products/stats"] });
@@ -126,10 +123,7 @@ export default function DlcPage() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<InsertDlcProduct> }) =>
-      apiRequest(`/api/dlc-products/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      }),
+      apiRequest(`/api/dlc-products/${id}`, "PUT", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dlc-products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dlc-products/stats"] });
@@ -149,9 +143,7 @@ export default function DlcPage() {
 
   // Validate mutation
   const validateMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/dlc-products/${id}/validate`, {
-      method: "PUT",
-    }),
+    mutationFn: (id: number) => apiRequest(`/api/dlc-products/${id}/validate`, "PUT"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dlc-products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dlc-products/stats"] });
@@ -168,9 +160,7 @@ export default function DlcPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/dlc-products/${id}`, {
-      method: "DELETE",
-    }),
+    mutationFn: (id: number) => apiRequest(`/api/dlc-products/${id}`, "DELETE"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dlc-products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dlc-products/stats"] });
