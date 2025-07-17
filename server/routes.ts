@@ -1338,15 +1338,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all permissions
   app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      console.log("🔍 Permissions API - User ID:", userId);
+      
+      const user = await storage.getUserWithGroups(userId);
+      console.log("👤 Permissions API - User found:", user ? user.role : 'NOT FOUND');
+      
       if (!user || user.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied" });
+        console.log("❌ Permissions API - Access denied, user role:", user?.role);
+        return res.status(403).json({ message: "Accès refusé" });
       }
 
+      console.log("🔍 Fetching all permissions...");
       const permissions = await storage.getPermissions();
+      console.log("📝 Permissions fetched:", permissions.length, "items");
+      console.log("🏷️ Categories found:", [...new Set(permissions.map(p => p.category))]);
+      console.log("🔧 DLC permissions:", permissions.filter(p => p.category === 'gestion_dlc').map(p => p.name));
+      
       res.json(Array.isArray(permissions) ? permissions : []);
     } catch (error) {
-      console.error("Error fetching permissions:", error);
+      console.error("❌ Error fetching permissions:", error);
       res.status(500).json([]);
     }
   });
@@ -1690,21 +1701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Permissions routes
-  app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ message: "Insufficient permissions" });
-      }
 
-      const permissions = await storage.getPermissions();
-      res.json(permissions);
-    } catch (error) {
-      console.error("Error fetching permissions:", error);
-      res.status(500).json({ message: "Failed to fetch permissions" });
-    }
-  });
 
   app.get('/api/permissions/category/:category', isAuthenticated, async (req: any, res) => {
     try {
