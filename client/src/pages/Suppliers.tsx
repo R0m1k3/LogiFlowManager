@@ -98,15 +98,18 @@ export default function Suppliers() {
       console.log('🔧 Frontend: Supplier update result:', result);
       return result;
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       console.log('✅ Frontend: Update mutation successful, result:', result);
       toast({
         title: "Succès",
         description: "Fournisseur modifié avec succès",
       });
-      // Invalider et rafraîchir immédiatement les données
-      queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
-      queryClient.refetchQueries({ queryKey: ['/api/suppliers'] });
+      // Forcer une actualisation complète du cache avec staleTime à 0
+      await queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+      await queryClient.refetchQueries({ 
+        queryKey: ['/api/suppliers'],
+        type: 'active'
+      });
       setShowEditModal(false);
       setSelectedSupplier(null);
       setFormData({ name: "", contact: "", phone: "", hasDlc: false });
