@@ -260,13 +260,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startDate,
         endDate,
         storeId,
-        userRole: user.role
+        storeIdType: typeof storeId,
+        userRole: user.role,
+        fullQuery: req.query
       });
 
       let groupIds: number[] | undefined;
       if (user.role === 'admin') {
-        groupIds = storeId ? [parseInt(storeId as string)] : undefined;
-        console.log('📦 Admin filtering with groupIds:', groupIds);
+        if (storeId && storeId !== 'undefined' && storeId !== 'null') {
+          groupIds = [parseInt(storeId as string)];
+          console.log('📦 Admin filtering with groupIds:', groupIds, 'from storeId:', storeId);
+        } else {
+          groupIds = undefined;
+          console.log('📦 Admin filtering with groupIds: undefined (all stores)');
+        }
       } else {
         groupIds = user.userGroups.map((ug: any) => ug.groupId);
         console.log('📦 Non-admin filtering with groupIds:', groupIds);
@@ -348,22 +355,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { startDate, endDate, storeId } = req.query;
+      const { startDate, endDate, storeId, withBL } = req.query;
+      
+      console.log('🚚 Deliveries API called with:', {
+        startDate,
+        endDate,
+        storeId,
+        withBL,
+        userRole: user.role
+      });
 
       let groupIds: number[] | undefined;
       if (user.role === 'admin') {
-        groupIds = storeId ? [parseInt(storeId as string)] : undefined;
+        if (storeId && storeId !== 'undefined' && storeId !== 'null') {
+          groupIds = [parseInt(storeId as string)];
+          console.log('🚚 Admin filtering deliveries with groupIds:', groupIds);
+        } else {
+          groupIds = undefined;
+          console.log('🚚 Admin filtering deliveries with groupIds: undefined (all stores)');
+        }
       } else {
         groupIds = user.userGroups.map((ug: any) => ug.groupId);
+        console.log('🚚 Non-admin filtering deliveries with groupIds:', groupIds);
       }
 
       let deliveries;
       if (startDate && endDate) {
+        console.log('🚚 Fetching deliveries by date range:', startDate, 'to', endDate);
         deliveries = await storage.getDeliveriesByDateRange(startDate as string, endDate as string, groupIds);
       } else {
+        console.log('🚚 Fetching all deliveries with groupIds:', groupIds);
         deliveries = await storage.getDeliveries(groupIds);
       }
 
+      console.log('🚚 Deliveries returned:', deliveries.length, 'items');
       res.json(deliveries);
     } catch (error) {
       console.error("Error fetching deliveries:", error);

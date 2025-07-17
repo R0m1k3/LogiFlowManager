@@ -1,67 +1,43 @@
-# Corrections Production - Utilisateurs & NocoDB
+# 🚨 CORRECTION BUG PRODUCTION - FILTRAGE MAGASIN
 
-## 🚨 Problèmes identifiés et corrigés
+## **Problème Identifié**
+En production, le sélecteur magasin ne filtre PAS les données :
+- ✅ **Dev** : `storeId=2` → Affiche seulement Houdemont  
+- ❌ **Prod** : `storeId=2` → Affiche TOUS les magasins (`groupIds: undefined`)
 
-### 1. Erreur modification utilisateurs en production
-**Problème :** "Impossible de mettre à jour l'utilisateur" - erreur 500
-**Cause :** Le frontend envoie des chaînes vides, la validation backend les rejette
-**Solution :** 
-- ✅ Nettoyage automatique des données côté serveur
-- ✅ Validation améliorée pour ignorer les champs vides
-- ✅ Logs détaillés pour diagnostic
+## **Cause Racine**
+```javascript
+// AVANT (bugué)
+groupIds = storeId ? [parseInt(storeId as string)] : undefined;
 
-### 2. Erreur NocoDB configuration
-**Problème :** `null value in column "table_id" violates not-null constraint`
-**Cause :** Table production contient encore anciennes colonnes avec contraintes
-**Solution :** 
-- ✅ Script SQL `fix-nocodb-urgent.sql` créé
-- ✅ Suppression colonnes obsolètes : `table_id`, `table_name`, `invoice_column_name`
-- ✅ Architecture hybride préservée
-
-## 📋 Actions à effectuer en production
-
-### Correction NocoDB (Urgent)
-```sql
--- Exécuter dans PostgreSQL production
-ALTER TABLE nocodb_config DROP COLUMN IF EXISTS table_id;
-ALTER TABLE nocodb_config DROP COLUMN IF EXISTS table_name;
-ALTER TABLE nocodb_config DROP COLUMN IF EXISTS invoice_column_name;
+// APRÈS (corrigé)  
+if (storeId && storeId !== 'undefined' && storeId !== 'null') {
+  groupIds = [parseInt(storeId as string)];
+} else {
+  groupIds = undefined;
+}
 ```
 
-**Ou via Docker :**
-```bash
-docker exec logiflow-postgres psql -U logiflow_admin -d logiflow_db -f fix-nocodb-urgent.sql
-```
+## **Corrections Appliquées**
 
-### Test modification utilisateurs
-```bash
-./fix-production-users-update.sh
-```
+### **1. Route Orders (/api/orders)**
+- ✅ Logs détaillés : `storeId`, `storeIdType`, `fullQuery`
+- ✅ Validation stricte : `storeId !== 'undefined'` et `storeId !== 'null'`
+- ✅ Messages explicites : "Admin filtering with groupIds: [2] from storeId: 2"
 
-## ✅ Résultats attendus après correction
+### **2. Route Deliveries (/api/deliveries)**  
+- ✅ Même logique de validation que Orders
+- ✅ Logs cohérents pour diagnostic
+- ✅ Filtrage identique dev/production
 
-1. **Configuration NocoDB fonctionnelle**
-   - Création configuration globale possible
-   - Plus d'erreur contrainte NOT NULL
+## **Impact**
+- **AVANT** : Suppression commande Houdemont → Reste visible (bug!)
+- **APRÈS** : Suppression commande Houdemont → Disparaît (cohérent!)
 
-2. **Modification utilisateurs opérationnelle**
-   - Formulaire édition fonctionne
-   - Champs vides ignorés automatiquement
-   - Messages d'erreur clairs
+## **Test Requis en Production**
+1. Sélectionner **Houdemont** dans header
+2. Vérifier logs : `Admin filtering with groupIds: [2]` 
+3. Créer/supprimer commande
+4. Vérifier cohérence calendrier ↔ page commandes
 
-## 🏗️ Architecture finale
-
-### NocoDB Hybride
-- **Configuration globale** : `nocodb_config` (URL, projet, token)
-- **Configuration magasin** : `groups` (table_id, table_name, invoice_column)
-
-### Gestion utilisateurs
-- **Validation intelligente** : ignore champs vides, accepte valeurs valides
-- **Nettoyage automatique** : supprime espaces et valeurs vides
-- **Logs détaillés** : diagnostic complet des erreurs
-
-## 🔧 Scripts disponibles
-- `fix-nocodb-urgent.sql` - Correction urgente NocoDB
-- `apply-nocodb-fix-production.sh` - Application automatique
-- `fix-production-users-update.sh` - Test modification utilisateurs
-- `PRODUCTION-NOCODB-FIX.md` - Documentation détaillée
+**Plus de mélange de données entre magasins !**

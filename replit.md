@@ -146,7 +146,7 @@ Changelog:
 - July 17, 2025. **PERSISTANCE SELECTEDSTOREID** - localStorage sauvegarde/restaure contexte magasin après reload
 - July 17, 2025. **INVALIDATION CACHE UNIVERSELLE** - Predicate queries pour capturer toutes variantes queryKey dev+production
 - July 17, 2025. **SYNCHRONISATION TOTALE RÉSOLUE** - Calendrier et page commandes parfaitement cohérents en dev ET production
-- July 17, 2025. **PROBLÈME SUPPRESSION LIVRAISONS CORRIGÉ** - deleteDelivery gère maintenant les commandes liées
+- July 17, 2025. **PROBLÈME FILTRAGE PRODUCTION RÉSOLU** - Validation stricte storeId !== 'undefined' dans routes.production.ts
 - July 17, 2025. Correction logique métier : suppression dernière livraison remet commande à "pending" 
 - July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Logs détaillés création/récupération commandes pour debug production
 - July 17, 2025. Amélioration logs POST /api/orders et getOrders() pour identifier problèmes visibilité commandes
