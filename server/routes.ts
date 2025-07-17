@@ -5,7 +5,8 @@ import { storage as prodStorage } from "./storage.production";
 import { setupLocalAuth, requireAuth } from "./localAuth";
 
 // Use appropriate storage based on environment
-const storage = process.env.NODE_ENV === 'production' ? prodStorage : devStorage;
+// TEMPORAIRE: Force production storage pour debug
+const storage = prodStorage; // process.env.NODE_ENV === 'production' ? prodStorage : devStorage;
 
 
 // Alias pour compatibilité

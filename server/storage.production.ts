@@ -2278,10 +2278,17 @@ export class DatabaseStorage implements IStorage {
 
   async createDlcProduct(dlcProductData: InsertDlcProduct): Promise<DlcProduct> {
     try {
-      console.log('📨 Creating DLC product with data:', dlcProductData);
+      console.log('📨 Creating DLC product with data:', JSON.stringify(dlcProductData, null, 2));
       console.log('📨 DLC data.name:', dlcProductData.name);
       console.log('📨 DLC data.productCode:', dlcProductData.productCode);
       console.log('📨 DLC data.dlcDate:', dlcProductData.dlcDate);
+      
+      // Vérifier que dlcDate n'est pas null/undefined
+      if (!dlcProductData.dlcDate) {
+        console.error('❌ dlcDate is missing or null! Received:', dlcProductData.dlcDate);
+        console.error('❌ Full data received:', dlcProductData);
+        throw new Error('dlcDate is required but was null or undefined');
+      }
       
       // Ensure name is not null
       const productName = dlcProductData.name || 'Produit DLC';
