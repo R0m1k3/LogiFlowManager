@@ -20,6 +20,17 @@ import Layout from "@/components/Layout";
 function RouterProduction() {
   const { isAuthenticated, isLoading, user, environment, error } = useAuthUnified();
   
+  // Debug complet pour la production
+  console.log('🔍 RouterProduction Debug:', {
+    environment,
+    isAuthenticated,
+    isLoading,
+    hasUser: !!user,
+    userId: user?.id,
+    username: user?.username,
+    error: error?.message
+  });
+  
   // Debug minimal basé sur l'environnement
   if (environment === 'production' && error) {
     console.error('🚨 Production Auth Error:', error);

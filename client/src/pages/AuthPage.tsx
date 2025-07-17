@@ -60,14 +60,14 @@ export default function AuthPage() {
       // Si on a des données utilisateur, forcer la redirection immédiatement
       if (refreshedUserData && refreshedUserData.id) {
         console.log('🔄 User data confirmed, forcing redirect...');
-        setLocation("/calendar");
+        setLocation("/");
       } else {
         // Sinon, essayer encore après un délai
         setTimeout(() => {
           forceAuthRefresh().then((retryUserData) => {
             console.log('🔄 Retry force auth refresh result:', retryUserData);
             if (retryUserData && retryUserData.id) {
-              setLocation("/calendar");
+              setLocation("/");
             }
           });
         }, 500);
@@ -102,8 +102,8 @@ export default function AuthPage() {
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
       console.log('🔄 User authenticated, redirecting to dashboard...', { user: user.username, authenticated: isAuthenticated });
-      // Force immediate redirect to calendar page
-      setLocation("/calendar");
+      // Force immediate redirect to home page
+      setLocation("/");
     }
   }, [isLoading, isAuthenticated, user, setLocation]);
 
