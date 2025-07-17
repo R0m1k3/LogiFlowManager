@@ -72,6 +72,11 @@ export default function UsersPage() {
     enabled: user?.role === 'admin',
   });
 
+  const { data: roles = [] } = useQuery({
+    queryKey: ['/api/roles'],
+    enabled: user?.role === 'admin',
+  });
+
   // Protection React Error #310 - Vérification Array pour users et groups
   console.log('👥 Users page data:', { 
     usersLoading, 
@@ -95,13 +100,14 @@ export default function UsersPage() {
     })));
   }
   
-  // Protection: s'assurer que users et groups sont des arrays
+  // Protection: s'assurer que users, groups et roles sont des arrays
   const safeUsers = Array.isArray(users) ? users : [];
   const safeGroups = Array.isArray(groups) ? groups : [];
+  const safeRoles = Array.isArray(roles) ? roles : [];
 
   const updateUserRoleMutation = useMutation({
-    mutationFn: async (data: { userId: string; role: string }) => {
-      await apiRequest(`/api/users/${data.userId}`, "PUT", { role: data.role });
+    mutationFn: async (data: { userId: string; roleId: number }) => {
+      await apiRequest(`/api/users/${data.userId}/roles`, "POST", { roleIds: [data.roleId] });
     },
     onSuccess: () => {
       toast({
@@ -109,6 +115,7 @@ export default function UsersPage() {
         description: "Rôle utilisateur mis à jour avec succès",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -496,7 +503,7 @@ export default function UsersPage() {
     });
   };
 
-  const handleRoleChange = (userId: string, newRole: string) => {
+  const handleRoleChange = (userId: string, newRoleName: string) => {
     if (userId === user?.id) {
       toast({
         title: "Erreur",
@@ -506,8 +513,19 @@ export default function UsersPage() {
       return;
     }
 
+    // Trouver l'ID du rôle basé sur le nom
+    const role = safeRoles.find(r => r.name === newRoleName);
+    if (!role) {
+      toast({
+        title: "Erreur",
+        description: "Rôle non trouvé",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (window.confirm("Êtes-vous sûr de vouloir modifier le rôle de cet utilisateur ?")) {
-      updateUserRoleMutation.mutate({ userId, role: newRole });
+      updateUserRoleMutation.mutate({ userId, roleId: role.id });
     }
   }
 
