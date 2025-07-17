@@ -1,7 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage as devStorage } from "./storage";
+import { storage as prodStorage } from "./storage.production";
 import { setupLocalAuth, requireAuth } from "./localAuth";
+
+// Use appropriate storage based on environment
+const storage = process.env.NODE_ENV === 'production' ? prodStorage : devStorage;
 
 
 // Alias pour compatibilité
