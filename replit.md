@@ -166,5 +166,6 @@ The application uses a sophisticated dual authentication approach:
 - **TYPES TYPESCRIPT ÉTENDUS** - Ajout DlcProductFrontend et InsertDlcProductFrontend pour compatibilité schéma Drizzle et interface utilisateur
 - **CRÉATION DLC FONCTIONNELLE** - Tests confirmés : création, modification et affichage de produits DLC opérationnels en développement et production
 - **ROUTAGE PRODUCTION STABILISÉ** - Correction configuration routage par défaut vers Dashboard au lieu de Calendar
+- **ROUTES PRODUCTION CORRIGÉES** - Mise à jour routes.production.ts avec insertDlcProductFrontendSchema pour résoudre erreurs validation production
 
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.

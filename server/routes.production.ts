@@ -18,7 +18,8 @@ import {
   insertRoleSchema,
   insertPermissionSchema,
   insertUserRoleSchema,
-  insertDlcProductSchema
+  insertDlcProductSchema,
+  insertDlcProductFrontendSchema
 } from "../shared/schema";
 import { z } from "zod";
 
@@ -1572,7 +1573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const validatedData = insertDlcProductSchema.parse({
+      const validatedData = insertDlcProductFrontendSchema.parse({
         ...req.body,
         createdBy: userId,
       });
@@ -1612,7 +1613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const validatedData = insertDlcProductSchema.partial().parse(req.body);
+      const validatedData = insertDlcProductFrontendSchema.partial().parse(req.body);
       const dlcProduct = await storage.updateDlcProduct(id, validatedData);
       
       res.json(dlcProduct);
