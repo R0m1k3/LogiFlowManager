@@ -210,6 +210,9 @@ export const customerOrders = pgTable("customer_orders", {
   // Communication client
   customerNotified: boolean("customer_notified").default(false), // Client appelé
   
+  // Notes additionnelles
+  notes: text("notes"), // Notes sur la commande
+  
   // Métadonnées
   groupId: integer("group_id").notNull(), // Magasin
   createdBy: varchar("created_by").notNull(), // Créateur

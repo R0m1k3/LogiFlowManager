@@ -224,6 +224,7 @@ async function createTablesIfNotExist() {
       deposit DECIMAL(10,2) DEFAULT 0.00,
       is_promotional_price BOOLEAN DEFAULT false,
       customer_notified BOOLEAN DEFAULT false,
+      notes TEXT,
       group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
       created_by VARCHAR(255) REFERENCES users(id),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -344,6 +345,17 @@ async function addMissingColumns() {
     if (customerEmailExists.rows.length === 0) {
       await pool.query('ALTER TABLE customer_orders ADD COLUMN customer_email VARCHAR(255)');
       console.log('✅ Added customer_email column to customer_orders');
+    }
+
+    // Check and add notes column to customer_orders
+    const notesExists = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'customer_orders' AND column_name = 'notes'
+    `);
+    
+    if (notesExists.rows.length === 0) {
+      await pool.query('ALTER TABLE customer_orders ADD COLUMN notes TEXT');
+      console.log('✅ Added notes column to customer_orders');
     }
 
     // Check and add quantity column to customer_orders

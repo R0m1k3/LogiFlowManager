@@ -1869,20 +1869,40 @@ export class DatabaseStorage implements IStorage {
   async updateCustomerOrder(id: number, customerOrder: Partial<InsertCustomerOrder>): Promise<CustomerOrder> {
     const result = await pool.query(`
       UPDATE customer_orders SET 
-        customer_name = $1, customer_phone = $2, customer_email = $3,
-        supplier_id = $4, group_id = $5, quantity = $6, status = $7, notes = $8,
+        order_taker = COALESCE($1, order_taker),
+        customer_name = COALESCE($2, customer_name),
+        customer_phone = COALESCE($3, customer_phone),
+        customer_email = COALESCE($4, customer_email),
+        product_designation = COALESCE($5, product_designation),
+        product_reference = COALESCE($6, product_reference),
+        gencode = COALESCE($7, gencode),
+        quantity = COALESCE($8, quantity),
+        supplier_id = COALESCE($9, supplier_id),
+        status = COALESCE($10, status),
+        deposit = COALESCE($11, deposit),
+        is_promotional_price = COALESCE($12, is_promotional_price),
+        customer_notified = COALESCE($13, customer_notified),
+        notes = COALESCE($14, notes),
+        group_id = COALESCE($15, group_id),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+      WHERE id = $16
       RETURNING *
     `, [
+      customerOrder.orderTaker,
       customerOrder.customerName,
       customerOrder.customerPhone,
       customerOrder.customerEmail,
-      customerOrder.supplierId,
-      customerOrder.groupId,
+      customerOrder.productDesignation,
+      customerOrder.productReference,
+      customerOrder.gencode,
       customerOrder.quantity,
+      customerOrder.supplierId,
       customerOrder.status,
+      customerOrder.deposit,
+      customerOrder.isPromotionalPrice,
+      customerOrder.customerNotified,
       customerOrder.notes,
+      customerOrder.groupId,
       id
     ]);
     return result.rows[0];
