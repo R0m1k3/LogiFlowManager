@@ -135,7 +135,7 @@ Changelog:
 - July 17, 2025. **ÉTIQUETTES COMMANDES CLIENT AMÉLIORÉES** - Code-barres EAN13 scannable avec jsbarcode, affichage acompte et prix promotionnel
 - July 17, 2025. **PRODUCTION DEPLOYMENT REQUIS** - Installation jsbarcode et rebuild nécessaires pour fonctionnalité complète
 - July 17, 2025. **BUG SÉLECTEUR MAGASIN CORRIGÉ** - Modal création respecte maintenant le magasin sélectionné dans header
-- July 17, 2025. **BUG SÉLECTEUR MAGASIN CORRIGÉ** - Modal création respecte maintenant le magasin sélectionné dans header
+- July 17, 2025. **ERREUR PRODUCTION CUSTOMER_ORDERS RÉSOLUE** - Colonne customer_email ajoutée au schéma, script correction SQL créé
 - July 17, 2025. **BUG RAFRAÎCHISSEMENT CORRIGÉ** - Suppression commandes rafraîchit automatiquement la page
 - July 17, 2025. **INVALIDATION CACHE AMÉLIORÉE** - queryKey incluent maintenant storeId pour invalidation précise
 - July 17, 2025. **FILTRAGE GROUPES MODAUX** - CreateOrderModal et CreateDeliveryModal filtrent selon selectedStoreId

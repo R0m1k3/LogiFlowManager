@@ -1838,18 +1838,29 @@ export class DatabaseStorage implements IStorage {
 
   async createCustomerOrder(customerOrder: InsertCustomerOrder): Promise<CustomerOrder> {
     const result = await pool.query(`
-      INSERT INTO customer_orders (customer_name, customer_phone, customer_email, supplier_id, group_id, quantity, status, notes, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO customer_orders (
+        order_taker, customer_name, customer_phone, customer_email,
+        product_designation, product_reference, gencode, quantity,
+        supplier_id, status, deposit, is_promotional_price,
+        customer_notified, group_id, created_by
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *
     `, [
+      customerOrder.orderTaker,
       customerOrder.customerName,
       customerOrder.customerPhone,
-      customerOrder.customerEmail,
-      customerOrder.supplierId,
-      customerOrder.groupId,
+      customerOrder.customerEmail || null,
+      customerOrder.productDesignation,
+      customerOrder.productReference || null,
+      customerOrder.gencode,
       customerOrder.quantity || 1,
+      customerOrder.supplierId,
       customerOrder.status || 'En attente de Commande',
-      customerOrder.notes,
+      customerOrder.deposit || '0.00',
+      customerOrder.isPromotionalPrice || false,
+      customerOrder.customerNotified || false,
+      customerOrder.groupId,
       customerOrder.createdBy
     ]);
     return result.rows[0];

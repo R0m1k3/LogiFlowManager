@@ -22,24 +22,34 @@
 
 ## **COMMANDES DÉPLOIEMENT PRODUCTION**
 
-### **Option 1 : Script Automatique (Recommandé)**
+### **🚨 CORRECTION URGENTE SCHÉMA (À faire d'abord)**
 ```bash
-# Exécuter le script de déploiement
+# OBLIGATOIRE - Corriger schéma customer_orders
+chmod +x apply-customer-orders-fix.sh
+./apply-customer-orders-fix.sh
+```
+
+### **Option 1 : Script Automatique Complet (Recommandé)**
+```bash
+# Après correction schéma, déployer les améliorations
 chmod +x deploy-labels-enhancement.sh
 NODE_ENV=production ./deploy-labels-enhancement.sh
 ```
 
 ### **Option 2 : Commandes Manuelles**
 ```bash
-# 1. Installer jsbarcode
+# 1. Corriger schéma customer_orders
+docker-compose exec -T postgres psql -U logiflow_admin -d logiflow_db < fix-customer-orders-schema.sql
+
+# 2. Installer jsbarcode
 npm install jsbarcode
 
-# 2. Rebuild Docker complet
+# 3. Rebuild Docker complet
 docker-compose down
 docker-compose build --no-cache
 docker-compose up -d
 
-# 3. Vérifier démarrage
+# 4. Vérifier démarrage
 docker-compose logs -f logiflow
 ```
 
@@ -48,9 +58,25 @@ docker-compose logs -f logiflow
 # Test API commandes client
 curl http://localhost:3000/api/customer-orders
 
+# Test création commande client (sans erreur 500)
+# → Aller dans interface → Commandes Client → Nouvelle Commande
+
 # Test impression étiquette
 # → Aller dans interface → Commandes Client → Imprimer étiquette #4
 ```
+
+## **PROBLÈME CRITIQUE RÉSOLU**
+
+### **Erreur Production :**
+```
+Error creating customer order: error: column "customer_email" of relation "customer_orders" does not exist
+```
+
+### **Solution :**
+- ✅ **Colonne customer_email ajoutée** au schéma shared/schema.ts  
+- ✅ **Script SQL de correction** : fix-customer-orders-schema.sql
+- ✅ **Insertion complète** : Tous les champs du formulaire maintenant supportés
+- ✅ **Compatibilité production** : storage.production.ts mis à jour
 
 ## **GARANTIE FONCTIONNEMENT PRODUCTION**
 

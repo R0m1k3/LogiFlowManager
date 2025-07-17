@@ -191,6 +191,7 @@ export const customerOrders = pgTable("customer_orders", {
   orderTaker: varchar("order_taker").notNull(), // Qui a pris la commande
   customerName: varchar("customer_name").notNull(), // Nom du client
   customerPhone: varchar("customer_phone").notNull(), // N° de téléphone
+  customerEmail: varchar("customer_email"), // Email du client (optionnel)
   
   // Information produit
   productDesignation: text("product_designation").notNull(), // Désignation du produit
