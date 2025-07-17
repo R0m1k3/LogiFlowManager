@@ -36,9 +36,39 @@ export class DatabaseStorage implements IStorage {
   // Helper method to safely format dates to ISO strings
   private formatDate(date: any): string | null {
     if (!date) return null;
-    if (typeof date === 'string') return date; // Already a string
-    try {
+    
+    // If already a string, validate it's a proper date string
+    if (typeof date === 'string') {
+      try {
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate.getTime())) {
+          console.warn('Invalid date string:', date);
+          return null;
+        }
+        return parsedDate.toISOString();
+      } catch (error) {
+        console.warn('Failed to parse date string:', date, error);
+        return null;
+      }
+    }
+    
+    // If it's a Date object
+    if (date instanceof Date) {
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid Date object:', date);
+        return null;
+      }
       return date.toISOString();
+    }
+    
+    // Try to create a Date from the value
+    try {
+      const newDate = new Date(date);
+      if (isNaN(newDate.getTime())) {
+        console.warn('Cannot convert to valid date:', date, typeof date);
+        return null;
+      }
+      return newDate.toISOString();
     } catch (error) {
       console.warn('Failed to format date:', date, error);
       return null;
