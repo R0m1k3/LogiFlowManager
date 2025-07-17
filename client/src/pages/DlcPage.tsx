@@ -186,7 +186,7 @@ export default function DlcPage() {
       unit: "unité", // Valeur par défaut
       location: "Magasin", // Valeur par défaut
       alertThreshold: 15, // Toujours 15 jours
-      groupId: parseInt(selectedStore) || (user?.role !== 'admin' ? stores[0]?.id : 1),
+      groupId: parseInt(selectedStore) || stores[0]?.id || 2, // Utilise le magasin sélectionné ou le premier disponible
     };
 
     if (editingProduct) {
