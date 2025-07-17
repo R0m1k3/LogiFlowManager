@@ -170,7 +170,23 @@ export default function Publicities() {
       // Utiliser l'index + 1 pour une numérotation séquentielle cohérente
       // plutôt que getWeek() qui peut créer des doublons en fin d'année
       const weekNumber = index + 1;
-      const month = getMonth(weekStart);
+      
+      // Déterminer le mois basé sur la majorité des jours de la semaine
+      // Si la semaine chevauche deux mois, prendre le mois qui contient le plus de jours
+      const weekMidpoint = new Date(weekStart.getTime() + (3.5 * 24 * 60 * 60 * 1000)); // Milieu de la semaine
+      let month = getMonth(weekMidpoint);
+      
+      // Si c'est une semaine qui chevauche décembre de l'année précédente et janvier de l'année sélectionnée,
+      // la placer en janvier (mois 0) si elle contient plus de jours de janvier
+      if (weekStart.getFullYear() < selectedYear && weekEnd.getFullYear() === selectedYear) {
+        month = 0; // Janvier
+      }
+      // Si c'est une semaine qui chevauche décembre et janvier de l'année suivante,
+      // la placer en décembre (mois 11) si elle contient plus de jours de décembre
+      else if (weekStart.getFullYear() === selectedYear && weekEnd.getFullYear() > selectedYear) {
+        month = 11; // Décembre
+      }
+      
       const participation = getWeekParticipation(weekStart, weekEnd);
       
       // Debug première et dernières semaines pour vérifier
@@ -178,6 +194,9 @@ export default function Publicities() {
         console.log(`📅 Semaine ${weekNumber} (index ${index}):`, {
           debut: format(weekStart, 'yyyy-MM-dd EEEE', { locale: fr }),
           fin: format(weekEnd, 'yyyy-MM-dd EEEE', { locale: fr }),
+          weekStartYear: weekStart.getFullYear(),
+          weekEndYear: weekEnd.getFullYear(),
+          selectedYear,
           mois: month + 1, // +1 car getMonth retourne 0-11
           participations: participation.publicities.length
         });
