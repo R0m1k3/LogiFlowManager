@@ -233,10 +233,43 @@ export default function CustomerOrders() {
     });
   };
 
+  // Fonction pour générer un code EAN13 valide
+  const generateEAN13Barcode = (code: string) => {
+    // Si le code n'est pas exactement 13 caractères, on le complète ou le tronque
+    let ean13 = code.padStart(13, '0').substring(0, 13);
+    
+    // Générer les barres EAN13 (pattern simplifié)
+    const leftPattern = ['3211', '2221', '2122', '1411', '1132', '1231', '1114', '1312', '1213', '3112'];
+    const centerPattern = '11111';
+    const rightPattern = ['1110', '1011', '1101', '1000', '0100', '0010', '0001', '0110', '0011', '0101'];
+    
+    let barcodePattern = '111'; // Start pattern
+    
+    // Left group (6 digits)
+    for (let i = 1; i <= 6; i++) {
+      const digit = parseInt(ean13[i]);
+      barcodePattern += leftPattern[digit];
+    }
+    
+    barcodePattern += centerPattern; // Center pattern
+    
+    // Right group (6 digits)
+    for (let i = 7; i <= 12; i++) {
+      const digit = parseInt(ean13[i]);
+      barcodePattern += rightPattern[digit];
+    }
+    
+    barcodePattern += '111'; // End pattern
+    
+    return barcodePattern.split('').map(bit => bit === '1' ? '█' : ' ').join('');
+  };
+
   const handlePrintLabel = (order: CustomerOrderWithRelations) => {
     // Ouvrir une nouvelle fenêtre pour imprimer l'étiquette
     const printWindow = window.open('', '_blank');
     if (printWindow) {
+      const barcodeDisplay = order.gencode ? generateEAN13Barcode(order.gencode) : '';
+      
       printWindow.document.write(`
         <html>
           <head>
@@ -333,11 +366,14 @@ export default function CustomerOrders() {
               }
               .barcode {
                 font-family: 'Courier New', monospace;
-                font-size: 24px;
+                font-size: 16px;
                 font-weight: bold;
                 color: #111827;
-                letter-spacing: 2px;
+                letter-spacing: 0px;
                 margin: 10px 0;
+                line-height: 1.2;
+                background: white;
+                padding: 5px;
               }
               .barcode-number {
                 font-size: 14px;
@@ -356,6 +392,25 @@ export default function CustomerOrders() {
               .creation-date {
                 color: #6b7280;
                 font-size: 13px;
+              }
+              .deposit-info {
+                background-color: #fef3c7;
+                color: #92400e;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-weight: 600;
+                margin: 10px 0;
+                border: 1px solid #fbbf24;
+              }
+              .promo-badge {
+                background-color: #fef2f2;
+                color: #dc2626;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 600;
+                display: inline-block;
+                border: 1px solid #fecaca;
               }
             </style>
           </head>
@@ -416,12 +471,23 @@ export default function CustomerOrders() {
                       <span class="quantity-badge">${order.quantity || 1}</span>
                     </span>
                   </div>
+                  ${order.deposit && parseFloat(order.deposit) > 0 ? `
+                  <div class="deposit-info">
+                    💰 Acompte versé: ${parseFloat(order.deposit).toFixed(2)}€
+                  </div>` : ''}
+                  ${order.isPromotionalPrice ? `
+                  <div class="field-row">
+                    <span class="field-label">Prix:</span>
+                    <span class="field-value">
+                      <span class="promo-badge">🏷️ PRIX PUBLICITÉ</span>
+                    </span>
+                  </div>` : ''}
                   ${order.gencode ? `
                   <div class="field-row">
-                    <span class="field-label">Code à barres:</span>
+                    <span class="field-label">Code à barres EAN13:</span>
                   </div>
                   <div class="barcode-section">
-                    <div class="barcode">|||||||||||||||</div>
+                    <div class="barcode">${barcodeDisplay}</div>
                     <div class="barcode-number">${order.gencode}</div>
                   </div>` : ''}
                 </div>

@@ -154,6 +154,15 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
             <span>{order.orderTaker}</span>
           </div>
           
+          {order.deposit && parseFloat(order.deposit) > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">💰 Acompte:</span>
+              <Badge variant="outline" className="text-orange-600 border-orange-300 font-mono">
+                {parseFloat(order.deposit).toFixed(2)}€
+              </Badge>
+            </div>
+          )}
+          
           <div className="flex items-center gap-2">
             <Store className="h-4 w-4" />
             <span className="font-medium">Magasin:</span>
@@ -179,13 +188,7 @@ export function CustomerOrderDetails({ order }: CustomerOrderDetailsProps) {
             <span>{safeFormat(order.createdAt, 'dd/MM/yyyy à HH:mm')}</span>
           </div>
 
-          {order.deposit && parseFloat(order.deposit) > 0 && (
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              <span className="font-medium">Acompte:</span>
-              <span className="font-mono">{parseFloat(order.deposit).toFixed(2)} €</span>
-            </div>
-          )}
+
         </CardContent>
       </Card>
 
