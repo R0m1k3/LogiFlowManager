@@ -42,9 +42,16 @@ export default function CreateOrderModal({
     enabled: user?.role === 'admin' || user?.role === 'manager',
   });
 
-  const { data: groups = [] } = useQuery<Group[]>({
+  const { data: groupsData = [] } = useQuery<Group[]>({
     queryKey: ['/api/groups'],
   });
+  
+  // Filtrer les groupes selon le magasin sélectionné pour les admins
+  const groups = Array.isArray(groupsData) ? (
+    user?.role === 'admin' && selectedStoreId 
+      ? groupsData.filter(g => g.id === selectedStoreId)
+      : groupsData
+  ) : [];
 
   // Auto-sélectionner le magasin selon les règles
   useEffect(() => {
@@ -53,25 +60,44 @@ export default function CreateOrderModal({
       currentFormGroupId: formData.groupId,
       selectedStoreId,
       userRole: user?.role,
-      allGroups: groups.map(g => ({ id: g.id, name: g.name }))
+      allGroups: groups.map(g => ({ id: g.id, name: g.name })),
+      filteredGroups: groups.length
     });
+    
+    // Reset le formulaire si le magasin sélectionné change
+    if (user?.role === 'admin' && selectedStoreId && formData.groupId && formData.groupId !== selectedStoreId.toString()) {
+      console.log('🔄 Resetting form because store changed:', { 
+        currentGroupId: formData.groupId, 
+        newStoreId: selectedStoreId.toString() 
+      });
+      setFormData(prev => ({ ...prev, groupId: "" }));
+      return;
+    }
     
     if (groups.length > 0 && !formData.groupId) {
       let defaultGroupId = "";
       
       if (user?.role === 'admin') {
-        // Pour l'admin : utiliser le magasin sélectionné dans le header, sinon le premier de la liste
-        defaultGroupId = selectedStoreId ? selectedStoreId.toString() : groups[0].id.toString();
-        console.log('🏪 Admin store selection:', { selectedStoreId, defaultGroupId, firstGroupId: groups[0].id });
+        // Pour l'admin : utiliser le magasin sélectionné dans le header (filtré), sinon le premier de la liste
+        if (selectedStoreId && groups.find(g => g.id === selectedStoreId)) {
+          defaultGroupId = selectedStoreId.toString();
+        } else {
+          defaultGroupId = groups[0].id.toString();
+        }
+        console.log('🏪 Admin store selection:', { 
+          selectedStoreId, 
+          defaultGroupId, 
+          firstGroupId: groups[0].id,
+          groupsAvailable: groups.map(g => g.name)
+        });
       } else {
         // Pour les autres rôles : prendre le premier magasin attribué
-        // (La logique existante filtre déjà les groupes selon les permissions)
         defaultGroupId = groups[0].id.toString();
         console.log('🏪 Non-admin store selection:', { defaultGroupId, firstGroupId: groups[0].id });
       }
       
       if (defaultGroupId) {
-        console.log('🏪 Setting default group ID:', defaultGroupId);
+        console.log('🏪 Setting default group ID:', defaultGroupId, 'for group:', groups.find(g => g.id.toString() === defaultGroupId)?.name);
         setFormData(prev => ({ ...prev, groupId: defaultGroupId }));
       }
     }

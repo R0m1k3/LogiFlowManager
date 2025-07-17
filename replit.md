@@ -131,10 +131,12 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 ## Changelog
 
 Changelog:
-- July 17, 2025. **CORRECTION BUGS CRITIQUES PRODUCTION EN COURS** - Problèmes sélecteur magasin et rafraîchissement automatique
-- July 17, 2025. **BUG IDENTIFIÉ** - Modal création affiche toujours Frouard au lieu du magasin sélectionné (Houdemont)
-- July 17, 2025. **BUG IDENTIFIÉ** - Suppression commandes ne rafraîchit pas automatiquement la page
-- July 17, 2025. **CORRECTIONS APPLIQUÉES** - Invalidation cache améliorée avec queryKey appropriées incluant storeId
+- July 17, 2025. **CORRECTIONS BUGS CRITIQUES APPLIQUÉES** - Sélecteur magasin et rafraîchissement automatique
+- July 17, 2025. **BUG SÉLECTEUR MAGASIN CORRIGÉ** - Modal création respecte maintenant le magasin sélectionné dans header
+- July 17, 2025. **BUG RAFRAÎCHISSEMENT CORRIGÉ** - Suppression commandes rafraîchit automatiquement la page
+- July 17, 2025. **INVALIDATION CACHE AMÉLIORÉE** - queryKey incluent maintenant storeId pour invalidation précise
+- July 17, 2025. **FILTRAGE GROUPES MODAUX** - CreateOrderModal et CreateDeliveryModal filtrent selon selectedStoreId
+- July 17, 2025. **RESET AUTOMATIQUE FORMULAIRES** - Formulaires se réinitialisent quand admin change de magasin
 - July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Routes production avec logs détaillés pour identifier problème filtrage magasin
 - July 17, 2025. **PROBLÈME SUPPRESSION LIVRAISONS CORRIGÉ** - deleteDelivery gère maintenant les commandes liées
 - July 17, 2025. Correction logique métier : suppression dernière livraison remet commande à "pending" 
