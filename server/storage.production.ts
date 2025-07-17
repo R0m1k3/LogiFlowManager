@@ -26,7 +26,9 @@ import type {
   NocodbConfig,
   InsertNocodbConfig,
   CustomerOrder,
-  InsertCustomerOrder
+  InsertCustomerOrder,
+  DlcProduct,
+  InsertDlcProduct
 } from "../shared/schema";
 
 // Production storage implementation using raw PostgreSQL queries
@@ -2167,6 +2169,300 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error in getUsersWithRolesAndGroups:", error);
       return [];
+    }
+  }
+
+  // ===== DLC PRODUCTS METHODS =====
+
+  async getDlcProducts(groupIds?: number[], filters?: { status?: string; supplierId?: number }): Promise<DlcProduct[]> {
+    try {
+      let query = `
+        SELECT dlc.*, g.name as group_name, s.name as supplier_name
+        FROM dlc_products dlc
+        LEFT JOIN groups g ON dlc.group_id = g.id
+        LEFT JOIN suppliers s ON dlc.supplier_id = s.id
+      `;
+      
+      const conditions: string[] = [];
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      if (groupIds && groupIds.length > 0) {
+        conditions.push(`dlc.group_id = ANY($${paramIndex})`);
+        params.push(groupIds);
+        paramIndex++;
+      }
+
+      if (filters?.status) {
+        conditions.push(`dlc.status = $${paramIndex}`);
+        params.push(filters.status);
+        paramIndex++;
+      }
+
+      if (filters?.supplierId) {
+        conditions.push(`dlc.supplier_id = $${paramIndex}`);
+        params.push(filters.supplierId);
+        paramIndex++;
+      }
+
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
+      }
+
+      query += ` ORDER BY dlc.created_at DESC`;
+
+      console.log('🔍 getDlcProducts query:', query);
+      console.log('🔍 getDlcProducts params:', params);
+
+      const result = await pool.query(query, params);
+      return result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        productCode: row.product_code,
+        dlcDate: row.dlc_date,
+        quantity: row.quantity,
+        status: row.status,
+        groupId: row.group_id,
+        supplierId: row.supplier_id,
+        description: row.description,
+        createdBy: row.created_by,
+        validatedBy: row.validated_by,
+        validatedAt: row.validated_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        groupName: row.group_name,
+        supplierName: row.supplier_name
+      }));
+    } catch (error) {
+      console.error("Error fetching DLC products:", error);
+      throw error;
+    }
+  }
+
+  async getDlcProduct(id: number): Promise<DlcProduct | undefined> {
+    try {
+      const result = await pool.query(`
+        SELECT dlc.*, g.name as group_name, s.name as supplier_name
+        FROM dlc_products dlc
+        LEFT JOIN groups g ON dlc.group_id = g.id
+        LEFT JOIN suppliers s ON dlc.supplier_id = s.id
+        WHERE dlc.id = $1
+      `, [id]);
+
+      if (result.rows.length === 0) return undefined;
+
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        name: row.name,
+        productCode: row.product_code,
+        dlcDate: row.dlc_date,
+        quantity: row.quantity,
+        status: row.status,
+        groupId: row.group_id,
+        supplierId: row.supplier_id,
+        description: row.description,
+        createdBy: row.created_by,
+        validatedBy: row.validated_by,
+        validatedAt: row.validated_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        groupName: row.group_name,
+        supplierName: row.supplier_name
+      };
+    } catch (error) {
+      console.error("Error fetching DLC product:", error);
+      throw error;
+    }
+  }
+
+  async createDlcProduct(dlcProductData: InsertDlcProduct): Promise<DlcProduct> {
+    try {
+      console.log('📨 Creating DLC product with data:', dlcProductData);
+      
+      const result = await pool.query(`
+        INSERT INTO dlc_products (
+          name, product_code, dlc_date, quantity, status, 
+          group_id, supplier_id, description, created_by,
+          created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        RETURNING *
+      `, [
+        dlcProductData.name,
+        dlcProductData.productCode,
+        dlcProductData.dlcDate,
+        dlcProductData.quantity,
+        dlcProductData.status || 'en_attente',
+        dlcProductData.groupId,
+        dlcProductData.supplierId,
+        dlcProductData.description,
+        dlcProductData.createdBy
+      ]);
+
+      const row = result.rows[0];
+      console.log('✅ DLC product created:', row.id);
+
+      return {
+        id: row.id,
+        name: row.name,
+        productCode: row.product_code,
+        dlcDate: row.dlc_date,
+        quantity: row.quantity,
+        status: row.status,
+        groupId: row.group_id,
+        supplierId: row.supplier_id,
+        description: row.description,
+        createdBy: row.created_by,
+        validatedBy: row.validated_by,
+        validatedAt: row.validated_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("❌ Error creating DLC product:", error);
+      throw error;
+    }
+  }
+
+  async updateDlcProduct(id: number, dlcProductData: Partial<InsertDlcProduct>): Promise<DlcProduct> {
+    try {
+      const fields: string[] = [];
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      Object.entries(dlcProductData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          if (key === 'productCode') {
+            fields.push(`product_code = $${paramIndex}`);
+          } else if (key === 'dlcDate') {
+            fields.push(`dlc_date = $${paramIndex}`);
+          } else if (key === 'groupId') {
+            fields.push(`group_id = $${paramIndex}`);
+          } else if (key === 'supplierId') {
+            fields.push(`supplier_id = $${paramIndex}`);
+          } else if (key === 'createdBy') {
+            fields.push(`created_by = $${paramIndex}`);
+          } else {
+            fields.push(`${key} = $${paramIndex}`);
+          }
+          params.push(value);
+          paramIndex++;
+        }
+      });
+
+      fields.push(`updated_at = NOW()`);
+      params.push(id);
+
+      const result = await pool.query(`
+        UPDATE dlc_products 
+        SET ${fields.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `, params);
+
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        name: row.name,
+        productCode: row.product_code,
+        dlcDate: row.dlc_date,
+        quantity: row.quantity,
+        status: row.status,
+        groupId: row.group_id,
+        supplierId: row.supplier_id,
+        description: row.description,
+        createdBy: row.created_by,
+        validatedBy: row.validated_by,
+        validatedAt: row.validated_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error updating DLC product:", error);
+      throw error;
+    }
+  }
+
+  async deleteDlcProduct(id: number): Promise<void> {
+    try {
+      await pool.query('DELETE FROM dlc_products WHERE id = $1', [id]);
+    } catch (error) {
+      console.error("Error deleting DLC product:", error);
+      throw error;
+    }
+  }
+
+  async validateDlcProduct(id: number, validatedBy: string): Promise<DlcProduct> {
+    try {
+      const result = await pool.query(`
+        UPDATE dlc_products 
+        SET status = 'valides', validated_by = $1, validated_at = NOW(), updated_at = NOW()
+        WHERE id = $2
+        RETURNING *
+      `, [validatedBy, id]);
+
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        name: row.name,
+        productCode: row.product_code,
+        dlcDate: row.dlc_date,
+        quantity: row.quantity,
+        status: row.status,
+        groupId: row.group_id,
+        supplierId: row.supplier_id,
+        description: row.description,
+        createdBy: row.created_by,
+        validatedBy: row.validated_by,
+        validatedAt: row.validated_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error validating DLC product:", error);
+      throw error;
+    }
+  }
+
+  async getDlcStats(groupIds?: number[]): Promise<any> {
+    try {
+      let query = `
+        SELECT 
+          status,
+          COUNT(*) as count,
+          SUM(quantity) as total_quantity
+        FROM dlc_products
+      `;
+      
+      const params: any[] = [];
+      if (groupIds && groupIds.length > 0) {
+        query += ` WHERE group_id = ANY($1)`;
+        params.push(groupIds);
+      }
+      
+      query += ` GROUP BY status`;
+
+      const result = await pool.query(query, params);
+      
+      const stats = {
+        en_attente: 0,
+        valides: 0,
+        expires: 0,
+        total: 0,
+        totalQuantity: 0
+      };
+
+      result.rows.forEach(row => {
+        stats[row.status] = parseInt(row.count);
+        stats.total += parseInt(row.count);
+        stats.totalQuantity += parseInt(row.total_quantity || 0);
+      });
+
+      return stats;
+    } catch (error) {
+      console.error("Error fetching DLC stats:", error);
+      throw error;
     }
   }
 }
