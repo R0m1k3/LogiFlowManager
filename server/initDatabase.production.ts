@@ -482,6 +482,43 @@ async function addMissingColumns() {
       console.log('✅ Added description column to nocodb_config');
     }
 
+    // Add missing columns to dlc_products table for compatibility
+    const dlcColumnsToAdd = [
+      { name: 'name', type: 'VARCHAR(255)', default: null },
+      { name: 'dlc_date', type: 'DATE', default: null },
+      { name: 'product_code', type: 'VARCHAR(255)', default: null },
+      { name: 'description', type: 'TEXT', default: null }
+    ];
+
+    for (const column of dlcColumnsToAdd) {
+      const columnExists = await pool.query(`
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'dlc_products' AND column_name = $1
+      `, [column.name]);
+      
+      if (columnExists.rows.length === 0) {
+        const defaultClause = column.default ? ` DEFAULT ${column.default}` : '';
+        await pool.query(`ALTER TABLE dlc_products ADD COLUMN ${column.name} ${column.type}${defaultClause}`);
+        console.log(`✅ Added ${column.name} column to dlc_products table`);
+      }
+    }
+
+    // Migrate existing data if needed
+    const needsMigration = await pool.query(`
+      SELECT COUNT(*) as count FROM dlc_products 
+      WHERE name IS NULL AND product_name IS NOT NULL
+    `);
+    
+    if (parseInt(needsMigration.rows[0].count) > 0) {
+      await pool.query(`
+        UPDATE dlc_products SET 
+          name = product_name,
+          dlc_date = expiry_date
+        WHERE name IS NULL OR dlc_date IS NULL
+      `);
+      console.log('✅ Migrated DLC product data to new columns');
+    }
+
   } catch (error) {
     console.error('❌ Error adding missing columns:', error);
   }
