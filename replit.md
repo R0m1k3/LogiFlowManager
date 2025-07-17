@@ -140,6 +140,8 @@ Changelog:
 - July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Routes production avec logs détaillés pour identifier problème filtrage magasin
 - July 17, 2025. **PRODUCTION DEBUGGING COMPLET** - Correction invalidation cache pour résoudre incohérence calendrier/page après suppression
 - July 17, 2025. **CACHE INVALIDATION PRODUCTION** - Multiple queryKey avec selectedStoreId pour différencier données par magasin
+- July 17, 2025. **SOLUTION RADICALE CACHE APPLIQUÉE** - queryClient.clear() pour éliminer définitivement incohérences production
+- July 17, 2025. **NETTOYAGE COMPLET CACHE** - Changement magasin, création/suppression utilisent queryClient.clear() pour cohérence totale
 - July 17, 2025. **PROBLÈME SUPPRESSION LIVRAISONS CORRIGÉ** - deleteDelivery gère maintenant les commandes liées
 - July 17, 2025. Correction logique métier : suppression dernière livraison remet commande à "pending" 
 - July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Logs détaillés création/récupération commandes pour debug production

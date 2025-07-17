@@ -120,7 +120,9 @@ export default function Calendar() {
   const handleItemClick = (item: any, type: 'order' | 'delivery') => {
     // Rafraîchir les données avant d'ouvrir le modal pour s'assurer d'avoir les liaisons à jour
     queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedStoreId] });
     queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/deliveries', selectedStoreId] });
     
     setSelectedItem({ ...item, type });
     setShowOrderDetail(true);

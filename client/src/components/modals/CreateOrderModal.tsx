@@ -115,12 +115,9 @@ export default function CreateOrderModal({
         title: "Succès",
         description: "Commande créée avec succès",
       });
-      console.log('🔄 Invalidating order caches...');
-      // Invalider tous les caches liés aux commandes
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
-      // Invalider le cache spécifique du calendrier et des pages
-      queryClient.refetchQueries({ queryKey: ['/api/orders'] });
+      // Force un nettoyage complet du cache pour éviter incohérences
+      console.log('🆕 Order created, clearing cache for consistency');
+      queryClient.clear();
       onClose();
     },
     onError: (error) => {

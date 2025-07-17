@@ -111,26 +111,18 @@ export default function Orders() {
         description: "Commande supprimée avec succès",
       });
       
-      console.log('🗑️ Order deleted, invalidating caches with:', { 
+      console.log('🗑️ Order deleted, clearing ALL cache to avoid inconsistencies:', { 
         ordersUrl, 
-        selectedStoreId,
-        cacheKeys: [
-          [ordersUrl, selectedStoreId],
-          ['/api/orders'],
-          ['/api/orders', selectedStoreId],
-          ['/api/stats/monthly']
-        ]
+        selectedStoreId
       });
       
-      // Invalider tous les caches liés aux commandes
-      queryClient.invalidateQueries({ queryKey: [ordersUrl, selectedStoreId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedStoreId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
+      // SOLUTION RADICALE : Vider complètement le cache pour éviter les incohérences
+      queryClient.clear();
       
-      // Forcer le refetch immédiat
-      queryClient.refetchQueries({ queryKey: [ordersUrl, selectedStoreId] });
-      queryClient.refetchQueries({ queryKey: ['/api/orders', selectedStoreId] });
+      // Force un reload immédiat des données
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

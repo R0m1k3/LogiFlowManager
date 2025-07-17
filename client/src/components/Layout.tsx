@@ -59,7 +59,13 @@ export default function Layout({ children }: LayoutProps) {
                   value={selectedStoreId?.toString() || "all"}
                   onValueChange={(value) => {
                     console.log('🏪 Store selector changed:', { value, parsed: value === "all" ? null : parseInt(value) });
-                    setSelectedStoreId(value === "all" ? null : parseInt(value));
+                    const newStoreId = value === "all" ? null : parseInt(value);
+                    
+                    // Force un nettoyage complet du cache quand on change de magasin
+                    console.log('🧹 Clearing all cache for store change');
+                    queryClient.clear();
+                    
+                    setSelectedStoreId(newStoreId);
                   }}
                 >
                   <SelectTrigger className="w-64 border border-gray-300">
