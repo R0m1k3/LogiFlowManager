@@ -93,14 +93,20 @@ export default function Suppliers() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest(`/api/suppliers/${selectedSupplier?.id}`, "PUT", data);
+      console.log('🔧 Frontend: Updating supplier with data:', data);
+      const result = await apiRequest(`/api/suppliers/${selectedSupplier?.id}`, "PUT", data);
+      console.log('🔧 Frontend: Supplier update result:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log('✅ Frontend: Update mutation successful, result:', result);
       toast({
         title: "Succès",
         description: "Fournisseur modifié avec succès",
       });
+      // Invalider et rafraîchir immédiatement les données
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+      queryClient.refetchQueries({ queryKey: ['/api/suppliers'] });
       setShowEditModal(false);
       setSelectedSupplier(null);
       setFormData({ name: "", contact: "", phone: "", hasDlc: false });
