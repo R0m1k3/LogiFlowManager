@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Phone, PhoneCall, Printer, Eye } from "lucide-react";
+import JsBarcode from 'jsbarcode';
 import { safeFormat, safeDate } from "@/lib/dateUtils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -233,52 +234,96 @@ export default function CustomerOrders() {
     });
   };
 
-  // Fonction pour générer un code EAN13 scannable professionnel
-  const generateEAN13Barcode = (code: string) => {
-    // Assurer que le code fait exactement 13 caractères
-    let ean13 = code.padStart(13, '0').substring(0, 13);
-    
-    // Pattern EAN13 authentique - chaque chiffre a un pattern de barres spécifique
-    const leftOddPattern = ['0001101', '0011001', '0010011', '0111101', '0100011', '0110001', '0101111', '0111011', '0110111', '0001011'];
-    const leftEvenPattern = ['0100111', '0110011', '0011011', '0100001', '0011101', '0111001', '0000101', '0010001', '0001001', '0010111'];
-    const rightPattern = ['1110010', '1100110', '1101100', '1000010', '1011100', '1001110', '1010000', '1000100', '1001000', '1110100'];
-    const firstDigitPattern = ['OOOOOO', 'OOEOEE', 'OOEEOE', 'OOEEEO', 'OEOOEE', 'OEEOOE', 'OEEEOO', 'OEOEOE', 'OEOEEO', 'OEEOEO'];
-    
-    const firstDigit = parseInt(ean13[0]);
-    const pattern = firstDigitPattern[firstDigit];
-    
-    let barcode = '101'; // Start guard
-    
-    // Left group (6 digits)
-    for (let i = 1; i <= 6; i++) {
-      const digit = parseInt(ean13[i]);
-      if (pattern[i-1] === 'O') {
-        barcode += leftOddPattern[digit];
-      } else {
-        barcode += leftEvenPattern[digit];
-      }
+  // Fonction pour calculer le checksum EAN13
+  const calculateEAN13Checksum = (code: string): string => {
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      const digit = parseInt(code[i]);
+      sum += i % 2 === 0 ? digit : digit * 3;
     }
-    
-    barcode += '01010'; // Center guard
-    
-    // Right group (6 digits)
-    for (let i = 7; i <= 12; i++) {
-      const digit = parseInt(ean13[i]);
-      barcode += rightPattern[digit];
-    }
-    
-    barcode += '101'; // End guard
-    
-    // Convertir en barres visuelles avec largeurs variables pour un meilleur rendu
-    return barcode.split('').map((bit, index) => {
-      if (bit === '1') {
-        // Barres noires avec différentes largeurs pour un rendu plus réaliste
-        return index % 7 === 0 ? '█' : (index % 3 === 0 ? '▉' : '█');
-      } else {
-        // Espaces blancs
-        return ' ';
+    const checksum = (10 - (sum % 10)) % 10;
+    return checksum.toString();
+  };
+
+  // Fonction pour générer un code-barres scannable
+  const generateEAN13Barcode = (code: string): string => {
+    try {
+      // Créer un canvas temporaire
+      const canvas = document.createElement('canvas');
+      
+      let processedCode = code.replace(/[^0-9]/g, ''); // Garder que les chiffres
+      
+      // Gérer différentes longueurs de codes
+      if (processedCode.length < 12) {
+        processedCode = processedCode.padStart(12, '0');
+      } else if (processedCode.length > 13) {
+        processedCode = processedCode.substring(0, 12);
+      } else if (processedCode.length === 13) {
+        processedCode = processedCode.substring(0, 12);
       }
-    }).join('');
+      
+      // Ajouter le checksum pour avoir un EAN13 valide
+      const checksum = calculateEAN13Checksum(processedCode);
+      const ean13 = processedCode + checksum;
+      
+      console.log('Code original:', code, 'EAN13 généré:', ean13);
+      
+      // Générer le code-barres avec jsbarcode
+      JsBarcode(canvas, ean13, {
+        format: "EAN13",
+        width: 2,
+        height: 60,
+        displayValue: false,
+        background: "#ffffff",
+        lineColor: "#000000",
+        margin: 5
+      });
+      
+      // Retourner l'image en base64
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error('Erreur génération code-barres:', error);
+      // Fallback SVG professionnel
+      return 'data:image/svg+xml;base64,' + btoa(`
+        <svg width="250" height="60" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="250" height="60" fill="white" stroke="#ddd"/>
+          <g stroke="black" stroke-width="2">
+            <line x1="15" y1="10" x2="15" y2="45"/>
+            <line x1="20" y1="10" x2="20" y2="45"/>
+            <line x1="25" y1="10" x2="25" y2="45"/>
+            <line x1="35" y1="10" x2="35" y2="45"/>
+            <line x1="40" y1="10" x2="40" y2="45"/>
+            <line x1="50" y1="10" x2="50" y2="45"/>
+            <line x1="55" y1="10" x2="55" y2="45"/>
+            <line x1="65" y1="10" x2="65" y2="45"/>
+            <line x1="70" y1="10" x2="70" y2="45"/>
+            <line x1="80" y1="10" x2="80" y2="45"/>
+            <line x1="85" y1="10" x2="85" y2="45"/>
+            <line x1="95" y1="10" x2="95" y2="45"/>
+            <line x1="100" y1="10" x2="100" y2="45"/>
+            <line x1="110" y1="10" x2="110" y2="45"/>
+            <line x1="115" y1="10" x2="115" y2="45"/>
+            <line x1="125" y1="10" x2="125" y2="45"/>
+            <line x1="130" y1="10" x2="130" y2="45"/>
+            <line x1="140" y1="10" x2="140" y2="45"/>
+            <line x1="145" y1="10" x2="145" y2="45"/>
+            <line x1="155" y1="10" x2="155" y2="45"/>
+            <line x1="160" y1="10" x2="160" y2="45"/>
+            <line x1="170" y1="10" x2="170" y2="45"/>
+            <line x1="175" y1="10" x2="175" y2="45"/>
+            <line x1="185" y1="10" x2="185" y2="45"/>
+            <line x1="190" y1="10" x2="190" y2="45"/>
+            <line x1="200" y1="10" x2="200" y2="45"/>
+            <line x1="205" y1="10" x2="205" y2="45"/>
+            <line x1="215" y1="10" x2="215" y2="45"/>
+            <line x1="220" y1="10" x2="220" y2="45"/>
+            <line x1="230" y1="10" x2="230" y2="45"/>
+            <line x1="235" y1="10" x2="235" y2="45"/>
+          </g>
+          <text x="125" y="55" text-anchor="middle" font-family="monospace" font-size="10" fill="black">${code}</text>
+        </svg>
+      `);
+    }
   };
 
   const handlePrintLabel = (order: CustomerOrderWithRelations) => {
@@ -286,7 +331,7 @@ export default function CustomerOrders() {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       const barcodeDisplay = order.gencode ? generateEAN13Barcode(order.gencode) : '';
-      const isImageBarcode = false; // Toujours utiliser le rendu texte pour l'impression
+      const isImageBarcode = barcodeDisplay.startsWith('data:');
       
       printWindow.document.write(`
         <html>
@@ -514,7 +559,10 @@ export default function CustomerOrders() {
                     <span class="field-label">Code à barres EAN13:</span>
                   </div>
                   <div class="barcode-section">
-                    <div class="barcode">${barcodeDisplay}</div>
+                    ${isImageBarcode ? 
+                      `<img src="${barcodeDisplay}" alt="Code-barres EAN13" class="barcode-image" style="max-width: 250px; height: auto; margin: 10px auto; display: block;" />` :
+                      `<div class="barcode">${barcodeDisplay}</div>`
+                    }
                     <div class="barcode-number">${order.gencode}</div>
                   </div>` : ''}
                 </div>
