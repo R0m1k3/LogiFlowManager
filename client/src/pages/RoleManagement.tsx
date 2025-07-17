@@ -69,8 +69,28 @@ export default function RoleManagement() {
   // Debug function to force refresh permissions
   const forceRefreshPermissions = () => {
     console.log("🔄 Force refreshing permissions...");
+    queryClient.removeQueries({ queryKey: ['/api/permissions'] });
     queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
     refetchPermissions();
+  };
+
+  // Test API call for debugging
+  const testApiCall = async () => {
+    console.log("🧪 Testing direct API call...");
+    try {
+      const response = await fetch('/api/permissions', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      console.log("🧪 Direct API response:", data);
+      console.log("🧪 Direct API DLC count:", data.filter((p: any) => p.category === 'gestion_dlc').length);
+    } catch (error) {
+      console.error("🧪 Direct API error:", error);
+    }
   };
 
 
@@ -511,13 +531,22 @@ export default function RoleManagement() {
                   <CardTitle>Liste des Permissions</CardTitle>
                   <CardDescription>Toutes les permissions disponibles dans le système</CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={forceRefreshPermissions}
-                >
-                  🔄 Actualiser Permissions
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={forceRefreshPermissions}
+                  >
+                    🔄 Actualiser Permissions
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={testApiCall}
+                  >
+                    🧪 Test API
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
