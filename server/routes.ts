@@ -1365,16 +1365,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get permissions for a specific role
   app.get('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      console.log("🔍 Role Permissions API - User ID:", userId);
+      
+      const user = await storage.getUserWithGroups(userId);
+      console.log("👤 Role Permissions API - User found:", user ? user.role : 'NOT FOUND');
+      
       if (!user || user.role !== 'admin') {
+        console.log("❌ Role Permissions API - Access denied, user role:", user?.role);
         return res.status(403).json({ message: "Access denied" });
       }
 
       const roleId = parseInt(req.params.id);
+      console.log("🔍 Fetching permissions for role ID:", roleId);
+      
       const rolePermissions = await storage.getRolePermissions(roleId);
+      console.log("📝 Role permissions fetched:", rolePermissions.length, "items");
+      console.log("🏷️ Role permissions sample:", rolePermissions.slice(0, 2));
+      console.log("🔧 DLC permissions in role:", rolePermissions.filter(rp => rp.permission && rp.permission.category === 'gestion_dlc').map(rp => rp.permission.name));
+      
       res.json(Array.isArray(rolePermissions) ? rolePermissions : []);
     } catch (error) {
-      console.error("Error fetching role permissions:", error);
+      console.error("❌ Error fetching role permissions:", error);
       res.status(500).json([]);
     }
   });

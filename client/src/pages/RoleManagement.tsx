@@ -121,8 +121,10 @@ export default function RoleManagement() {
   // Debug permissions
   console.log("🔍 Permissions Debug:", {
     selectedRole: selectedRole?.name,
+    selectedRoleId: selectedRole?.id,
     rolePermissionsLength: rolePermissions?.length,
-    permissionsLength: permissions.length
+    permissionsLength: permissions.length,
+    rolePermissionsSample: rolePermissions?.slice(0, 2)
   });
 
   // Traduction des catégories en français
