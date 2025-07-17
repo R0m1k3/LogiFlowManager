@@ -401,8 +401,18 @@ export class DatabaseStorage implements IStorage {
     await pool.query('DELETE FROM groups WHERE id = $1', [id]);
   }
 
-  async getSuppliers(): Promise<Supplier[]> {
-    const result = await pool.query('SELECT * FROM suppliers ORDER BY name');
+  async getSuppliers(dlcOnly: boolean = false): Promise<Supplier[]> {
+    let query = 'SELECT * FROM suppliers';
+    let params = [];
+    
+    if (dlcOnly) {
+      query += ' WHERE has_dlc = $1';
+      params = [true];
+    }
+    
+    query += ' ORDER BY name';
+    
+    const result = await pool.query(query, params);
     return result.rows;
   }
 
@@ -411,15 +421,16 @@ export class DatabaseStorage implements IStorage {
       name: supplier.name, 
       contact: supplier.contact,
       phone: supplier.phone,
+      hasDlc: supplier.hasDlc,
       fullData: supplier 
     });
     
     try {
       const result = await pool.query(`
-        INSERT INTO suppliers (name, contact, phone) 
-        VALUES ($1, $2, $3) 
+        INSERT INTO suppliers (name, contact, phone, has_dlc) 
+        VALUES ($1, $2, $3, $4) 
         RETURNING *
-      `, [supplier.name, supplier.contact || '', supplier.phone || '']);
+      `, [supplier.name, supplier.contact || '', supplier.phone || '', supplier.hasDlc || false]);
       
       console.log('✅ Supplier created successfully:', result.rows[0]);
       return result.rows[0];
@@ -437,10 +448,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateSupplier(id: number, supplier: Partial<InsertSupplier>): Promise<Supplier> {
     const result = await pool.query(`
-      UPDATE suppliers SET name = $1, contact = $2, phone = $3, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4
+      UPDATE suppliers SET name = $1, contact = $2, phone = $3, has_dlc = $4, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $5
       RETURNING *
-    `, [supplier.name, supplier.contact, supplier.phone, id]);
+    `, [supplier.name, supplier.contact, supplier.phone, supplier.hasDlc, id]);
     return result.rows[0];
   }
 

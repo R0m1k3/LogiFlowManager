@@ -168,4 +168,10 @@ The application uses a sophisticated dual authentication approach:
 - **ROUTAGE PRODUCTION STABILISÉ** - Correction configuration routage par défaut vers Dashboard au lieu de Calendar
 - **ROUTES PRODUCTION CORRIGÉES** - Mise à jour routes.production.ts avec insertDlcProductFrontendSchema pour résoudre erreurs validation production
 
+### July 17, 2025 - DLC Supplier Configuration Production Ready
+- **FOURNISSEURS DLC PRODUCTION** - Mis à jour routes.production.ts avec paramètre ?dlc=true pour filtrer fournisseurs DLC
+- **STORAGE PRODUCTION DLC** - Modifié getSuppliers() en production pour supporter filtre dlcOnly via champ has_dlc
+- **CRUD FOURNISSEURS DLC** - Mis à jour createSupplier() et updateSupplier() production pour gérer champ has_dlc
+- **SCHÉMA DATABASE VÉRIFIÉ** - Confirmé colonne has_dlc présente en base production pour fonctionnalité complète
+
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.

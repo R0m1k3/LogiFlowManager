@@ -152,7 +152,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Suppliers routes
   app.get('/api/suppliers', isAuthenticated, async (req: any, res) => {
     try {
-      const suppliers = await storage.getSuppliers();
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      // Check if DLC filter is requested
+      const dlcOnly = req.query.dlc === 'true';
+      const suppliers = await storage.getSuppliers(dlcOnly);
       res.json(suppliers);
     } catch (error) {
       console.error("Error fetching suppliers:", error);
