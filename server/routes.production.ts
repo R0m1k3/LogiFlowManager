@@ -62,7 +62,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/groups', isAuthenticated, async (req: any, res) => {
     try {
-      console.log('🏪 POST /api/groups - Request body:', req.body);
+      console.log('🏪 POST /api/groups - Raw request received');
+      console.log('📨 Request headers:', {
+        'content-type': req.headers['content-type'],
+        'content-length': req.headers['content-length'],
+        'user-agent': req.headers['user-agent']?.substring(0, 50)
+      });
+      console.log('📋 Request body type:', typeof req.body);
+      console.log('📋 Request body content:', JSON.stringify(req.body, null, 2));
+      console.log('📋 Request body keys:', Object.keys(req.body || {}));
+      
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
       console.log('🔐 User requesting group creation:', userId);
       
@@ -151,7 +160,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/suppliers', isAuthenticated, async (req: any, res) => {
     try {
-      console.log('🚚 POST /api/suppliers - Request body:', req.body);
+      console.log('🚚 POST /api/suppliers - Raw request received');
+      console.log('📨 Request headers:', {
+        'content-type': req.headers['content-type'],
+        'content-length': req.headers['content-length'],
+        'user-agent': req.headers['user-agent']?.substring(0, 50)
+      });
+      console.log('📋 Request body type:', typeof req.body);
+      console.log('📋 Request body content:', JSON.stringify(req.body, null, 2));
+      console.log('📋 Request body keys:', Object.keys(req.body || {}));
+      
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
       console.log('🔐 User requesting supplier creation:', userId);
       
