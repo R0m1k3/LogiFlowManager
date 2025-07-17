@@ -130,5 +130,8 @@ The application uses a sophisticated dual authentication approach:
 - **SIZE OPTIMIZED** - Réduction de 123M pour structure propre et déployable
 - **MODAL RÔLES PROFESSIONNEL** - Interface confirmation moderne avec icône Shield remplace window.confirm
 - **PRODUCTION BUG FIX** - Correction synchronisation statut commandes : `createDelivery` et `updateDelivery` en production mettent maintenant à jour statut commande vers "planned" (synchronisation dev/prod)
+- **COULEURS RÔLES CORRIGÉ** - Page Rôles utilise maintenant `role.color` (base de données) au lieu de couleurs statiques pour cohérence avec page Utilisateurs
+- **NUMÉROTATION SEMAINES PUBLICITÉ CORRIGÉ** - Remplacement `getWeek()` par numérotation séquentielle (1-53) et logique mois améliorée pour éliminer doublons semaine 1 en décembre
+- **BUILD PRODUCTION ACTUALISÉ** - Toutes corrections intégrées dans dist/ pour déploiement production
 
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.
