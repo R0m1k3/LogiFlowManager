@@ -447,12 +447,65 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSupplier(id: number, supplier: Partial<InsertSupplier>): Promise<Supplier> {
-    const result = await pool.query(`
-      UPDATE suppliers SET name = $1, contact = $2, phone = $3, has_dlc = $4, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $5
-      RETURNING *
-    `, [supplier.name, supplier.contact, supplier.phone, supplier.hasDlc, id]);
-    return result.rows[0];
+    console.log('🔧 Updating supplier with data:', { 
+      id, 
+      supplier,
+      fieldsToUpdate: Object.keys(supplier) 
+    });
+    
+    try {
+      // Build dynamic update query based on provided fields
+      const fields = [];
+      const values = [];
+      let paramIndex = 1;
+      
+      if (supplier.name !== undefined) {
+        fields.push(`name = $${paramIndex++}`);
+        values.push(supplier.name);
+      }
+      
+      if (supplier.contact !== undefined) {
+        fields.push(`contact = $${paramIndex++}`);
+        values.push(supplier.contact || '');
+      }
+      
+      if (supplier.phone !== undefined) {
+        fields.push(`phone = $${paramIndex++}`);
+        values.push(supplier.phone || '');
+      }
+      
+      if (supplier.hasDlc !== undefined) {
+        fields.push(`has_dlc = $${paramIndex++}`);
+        values.push(supplier.hasDlc);
+      }
+      
+      // Always update the updated_at field
+      fields.push(`updated_at = CURRENT_TIMESTAMP`);
+      values.push(id);
+      
+      const query = `
+        UPDATE suppliers SET ${fields.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `;
+      
+      console.log('🔧 SQL Query:', { query, values });
+      
+      const result = await pool.query(query, values);
+      console.log('✅ Supplier updated successfully:', result.rows[0]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Failed to update supplier:', error);
+      console.error('📊 Error details:', {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+        constraint: error.constraint,
+        supplierData: supplier,
+        supplierId: id
+      });
+      throw error;
+    }
   }
 
   async deleteSupplier(id: number): Promise<void> {
