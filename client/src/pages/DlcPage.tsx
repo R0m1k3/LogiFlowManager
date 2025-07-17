@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertTriangle, Plus, Eye, Edit, Trash2, CheckCircle, Package, Clock, AlertCircle, Filter, Download } from "lucide-react";
+import { AlertTriangle, Plus, Eye, Edit, Trash2, CheckCircle, Package, Clock, AlertCircle, Filter, Download, FileText } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,6 +23,7 @@ import type { DlcProductWithRelations, InsertDlcProduct } from "@shared/schema";
 
 const dlcFormSchema = z.object({
   productName: z.string().min(1, "Le nom du produit est obligatoire"),
+  gencode: z.string().optional(),
   expiryDate: z.string().min(1, "La date d'expiration est obligatoire"),
   dateType: z.enum(["dlc", "ddm", "dluo"], { required_error: "Le type de date est obligatoire" }),
   supplierId: z.number().min(1, "Le fournisseur est obligatoire"),
@@ -92,6 +93,7 @@ export default function DlcPage() {
     resolver: zodResolver(dlcFormSchema),
     defaultValues: {
       productName: "",
+      gencode: "",
       dateType: "dlc",
       status: "en_cours",
       notes: "",
@@ -208,6 +210,7 @@ export default function DlcPage() {
     setEditingProduct(product);
     form.reset({
       productName: product.productName,
+      gencode: product.gencode || "",
       expiryDate: format(new Date(product.expiryDate), "yyyy-MM-dd"),
       dateType: product.dateType as "dlc" | "ddm" | "dluo",
       supplierId: product.supplierId,
@@ -230,12 +233,140 @@ export default function DlcPage() {
 
     if (status === "expires" || daysUntilExpiry < 0) {
       return <Badge variant="destructive">Expiré</Badge>;
-    } else if (status === "expires_soon" || daysUntilExpiry <= 3) {
+    } else if (status === "expires_soon" || daysUntilExpiry <= 15) { // 15 jours au lieu de 3
       return <Badge variant="secondary" className="bg-orange-100 text-orange-800">Expire bientôt</Badge>;
     } else if (status === "valides") {
       return <Badge variant="outline" className="bg-gray-100 text-gray-800">Validé</Badge>;
     } else {
       return <Badge variant="default" className="bg-green-100 text-green-800">Actif</Badge>;
+    }
+  };
+
+  const printExpiringSoon = () => {
+    const expiringSoon = filteredProducts.filter(product => {
+      const today = new Date();
+      const expiry = new Date(product.expiryDate);
+      const diffTime = expiry.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays > 0 && diffDays <= 15;
+    });
+
+    const printContent = `
+      <html>
+        <head>
+          <title>Produits expirant bientôt</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            h1 { color: #ff6b35; }
+          </style>
+        </head>
+        <body>
+          <h1>Produits expirant dans les 15 prochains jours</h1>
+          <p>Date d'impression: ${format(new Date(), "dd/MM/yyyy HH:mm")}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Code EAN13</th>
+                <th>Date d'expiration</th>
+                <th>Type</th>
+                <th>Fournisseur</th>
+                <th>Jours restants</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${expiringSoon.map(product => {
+                const today = new Date();
+                const expiry = new Date(product.expiryDate);
+                const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                return `
+                  <tr>
+                    <td>${product.productName}</td>
+                    <td>${product.gencode || '-'}</td>
+                    <td>${format(new Date(product.expiryDate), "dd/MM/yyyy")}</td>
+                    <td>${product.dateType.toUpperCase()}</td>
+                    <td>${product.supplier.name}</td>
+                    <td>${diffDays}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const printExpired = () => {
+    const expired = filteredProducts.filter(product => {
+      const today = new Date();
+      const expiry = new Date(product.expiryDate);
+      return expiry < today;
+    });
+
+    const printContent = `
+      <html>
+        <head>
+          <title>Produits expirés</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            h1 { color: #dc2626; }
+          </style>
+        </head>
+        <body>
+          <h1>Produits expirés</h1>
+          <p>Date d'impression: ${format(new Date(), "dd/MM/yyyy HH:mm")}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Code EAN13</th>
+                <th>Date d'expiration</th>
+                <th>Type</th>
+                <th>Fournisseur</th>
+                <th>Jours dépassés</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${expired.map(product => {
+                const today = new Date();
+                const expiry = new Date(product.expiryDate);
+                const diffDays = Math.ceil((today.getTime() - expiry.getTime()) / (1000 * 60 * 60 * 24));
+                return `
+                  <tr>
+                    <td>${product.productName}</td>
+                    <td>${product.gencode || '-'}</td>
+                    <td>${format(new Date(product.expiryDate), "dd/MM/yyyy")}</td>
+                    <td>${product.dateType.toUpperCase()}</td>
+                    <td>${product.supplier.name}</td>
+                    <td>${diffDays}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
     }
   };
 
@@ -258,7 +389,19 @@ export default function DlcPage() {
           <h1 className="text-3xl font-bold">Module DLC</h1>
           <p className="text-muted-foreground">Gestion des dates limites de consommation</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={printExpiringSoon}>
+            <FileText className="w-4 h-4 mr-2" />
+            Imprimer expire bientôt
+          </Button>
+          <Button variant="outline" onClick={printExpired}>
+            <FileText className="w-4 h-4 mr-2" />
+            Imprimer expirés
+          </Button>
+        </div>
+      </div>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -315,6 +458,20 @@ export default function DlcPage() {
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="gencode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Code EAN13 (optionnel)</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="1234567890123" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
@@ -380,7 +537,6 @@ export default function DlcPage() {
             </Form>
           </DialogContent>
         </Dialog>
-      </div>
 
       {/* Filters */}
       <Card>
@@ -454,7 +610,7 @@ export default function DlcPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.expiringSoon}</div>
-            <p className="text-xs text-muted-foreground">Dans les 3 prochains jours</p>
+            <p className="text-xs text-muted-foreground">Dans les 15 prochains jours</p>
           </CardContent>
         </Card>
         <Card>
@@ -493,6 +649,7 @@ export default function DlcPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Produit</TableHead>
+                    <TableHead>Code EAN13</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Date d'expiration</TableHead>
                     <TableHead>Fournisseur</TableHead>
@@ -504,6 +661,9 @@ export default function DlcPage() {
                   {filteredProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.productName}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {product.gencode || '-'}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="uppercase">
                           {product.dateType}
