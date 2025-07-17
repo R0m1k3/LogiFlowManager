@@ -1076,7 +1076,15 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (filters?.status) {
-        conditions.push(`dlc.status = '${filters.status}'`);
+        if (filters.status === 'expires_soon') {
+          conditions.push(`dlc.status != 'valides' AND dlc.expiry_date <= NOW() + INTERVAL '15 days' AND dlc.expiry_date > NOW()`);
+        } else if (filters.status === 'expires') {
+          conditions.push(`dlc.status != 'valides' AND dlc.expiry_date <= NOW()`);
+        } else if (filters.status === 'en_cours') {
+          conditions.push(`dlc.status != 'valides' AND dlc.expiry_date > NOW() + INTERVAL '15 days'`);
+        } else {
+          conditions.push(`dlc.status = '${filters.status}'`);
+        }
       }
       
       if (filters?.supplierId) {
@@ -1294,15 +1302,11 @@ export class DatabaseStorage implements IStorage {
         whereClause = `WHERE group_id IN (${groupIds.join(',')})`;
       }
       
-      const today = new Date();
-      const threeDaysFromNow = new Date();
-      threeDaysFromNow.setDate(today.getDate() + 3);
-      
       const result = await db.execute(sql`
         SELECT 
-          COUNT(CASE WHEN status = 'en_cours' AND expiry_date > NOW() + INTERVAL '3 days' THEN 1 END) as active,
-          COUNT(CASE WHEN status = 'en_cours' AND expiry_date <= NOW() + INTERVAL '3 days' AND expiry_date > NOW() THEN 1 END) as expiring_soon,
-          COUNT(CASE WHEN status = 'expires' OR expiry_date <= NOW() THEN 1 END) as expired
+          COUNT(CASE WHEN status != 'valides' AND expiry_date > NOW() + INTERVAL '15 days' THEN 1 END) as active,
+          COUNT(CASE WHEN status != 'valides' AND expiry_date <= NOW() + INTERVAL '15 days' AND expiry_date > NOW() THEN 1 END) as expiring_soon,
+          COUNT(CASE WHEN status != 'valides' AND expiry_date <= NOW() THEN 1 END) as expired
         FROM dlc_products
         ${whereClause ? sql.raw(whereClause) : sql.raw('')}
       `);
