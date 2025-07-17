@@ -77,6 +77,7 @@ async function createTablesIfNotExist() {
       name VARCHAR(255) NOT NULL,
       contact VARCHAR(255),
       phone VARCHAR(255),
+      has_dlc BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -480,6 +481,17 @@ async function addMissingColumns() {
     if (descriptionExists.rows.length === 0) {
       await pool.query('ALTER TABLE nocodb_config ADD COLUMN description TEXT');
       console.log('✅ Added description column to nocodb_config');
+    }
+
+    // Add has_dlc column to suppliers table
+    const supplierHasDlcExists = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'suppliers' AND column_name = 'has_dlc'
+    `);
+    
+    if (supplierHasDlcExists.rows.length === 0) {
+      await pool.query('ALTER TABLE suppliers ADD COLUMN has_dlc BOOLEAN DEFAULT FALSE');
+      console.log('✅ Added has_dlc column to suppliers table');
     }
 
     // Add missing columns to dlc_products table for compatibility
