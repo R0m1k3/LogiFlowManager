@@ -70,10 +70,7 @@ export default function CustomerOrders() {
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/customer-orders', {
-      method: 'POST',
-      body: data,
-    }),
+    mutationFn: (data: any) => apiRequest('/api/customer-orders', 'POST', data),
     onSuccess: () => {
       // Force refresh of the query
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
@@ -96,10 +93,7 @@ export default function CustomerOrders() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) =>
-      apiRequest(`/api/customer-orders/${id}`, {
-        method: 'PUT',
-        body: data,
-      }),
+      apiRequest(`/api/customer-orders/${id}`, 'PUT', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
       setShowEditModal(false);
@@ -120,9 +114,7 @@ export default function CustomerOrders() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/customer-orders/${id}`, {
-      method: 'DELETE',
-    }),
+    mutationFn: (id: number) => apiRequest(`/api/customer-orders/${id}`, 'DELETE'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
       setShowDeleteModal(false);

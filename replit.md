@@ -743,6 +743,10 @@ Changelog:
 - July 17, 2025. **PROBLÈME CRÉATION GROUPES/FOURNISSEURS PRODUCTION DIAGNOSTIQUÉ** - Ajout logs détaillés dans storage.production.ts
 - July 17, 2025. **AFFICHAGE COULEURS RÔLES CORRIGÉ** - Page utilisateur utilise maintenant userData.userRoles avec vraies couleurs DB
 - July 17, 2025. **GESTION ERREURS AMÉLIORÉE** - Routes création groupes/fournisseurs avec logs détaillés et messages informatifs
+- July 17, 2025. **ERREUR APIREQUEST DÉFINITIVEMENT CORRIGÉE** - Correction format paramètres apiRequest dans tous les composants
+- July 17, 2025. **CRÉATION GROUPES/FOURNISSEURS FONCTIONNELLE** - apiRequest(url, "POST", data) au lieu d'objets method
+- July 17, 2025. **MUTATIONS CRUD TOUTES CORRIGÉES** - Users, Groups, Suppliers, CustomerOrders utilisent format correct
+- July 17, 2025. **DÉVELOPPEMENT ET PRODUCTION SYNCHRONISÉS** - Toutes les opérations CRUD maintenant opérationnelles
 - July 16, 2025. **ERREUR RATE LIMITING PRODUCTION RÉSOLUE** - Optimisation React Query et ajustement limites API
 - July 16, 2025. **CACHE INTELLIGENT IMPLÉMENTÉ** - staleTime 2min pour API, 10min pour auth, réduction 80% des appels
 - July 16, 2025. **LIMITES PRODUCTION AJUSTÉES** - 300 req/min au lieu de 100, exclusion /api/user du rate limiting strict

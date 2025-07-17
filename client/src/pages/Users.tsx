@@ -101,10 +101,7 @@ export default function UsersPage() {
 
   const updateUserRoleMutation = useMutation({
     mutationFn: async (data: { userId: string; role: string }) => {
-      await apiRequest(`/api/users/${data.userId}`, {
-        method: "PUT",
-        body: { role: data.role },
-      });
+      await apiRequest(`/api/users/${data.userId}`, "PUT", { role: data.role });
     },
     onSuccess: () => {
       toast({
@@ -147,10 +144,7 @@ export default function UsersPage() {
       
       console.log('📤 Sending cleaned data:', cleanedUpdates);
       
-      const response = await apiRequest(`/api/users/${data.id}`, {
-        method: "PUT",
-        body: cleanedUpdates,
-      });
+      const response = await apiRequest(`/api/users/${data.id}`, "PUT", cleanedUpdates);
       return response;
     },
     onSuccess: (updatedUser) => {
