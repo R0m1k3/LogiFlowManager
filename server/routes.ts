@@ -1382,6 +1382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rolePermissions = await storage.getRolePermissions(roleId);
       console.log("📝 Role permissions fetched:", rolePermissions.length, "items");
       console.log("🏷️ Role permissions sample:", rolePermissions.slice(0, 2));
+      console.log("🔍 Full rolePermissions structure:", JSON.stringify(rolePermissions.slice(0, 1), null, 2));
       console.log("🔧 DLC permissions in role:", rolePermissions.filter(rp => rp.permission && rp.permission.category === 'gestion_dlc').map(rp => rp.permission.name));
       
       res.json(Array.isArray(rolePermissions) ? rolePermissions : []);
