@@ -23,6 +23,7 @@ import {
   insertPublicitySchema,
   insertCustomerOrderSchema,
   insertDlcProductSchema,
+  insertDlcProductFrontendSchema,
   insertRoleSchema,
   insertPermissionSchema,
   insertUserRoleSchema
@@ -2079,7 +2080,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const validatedData = insertDlcProductSchema.parse({
+      const validatedData = insertDlcProductFrontendSchema.parse({
         ...req.body,
         createdBy: userId,
       });
@@ -2119,7 +2120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const validatedData = insertDlcProductSchema.partial().parse(req.body);
+      const validatedData = insertDlcProductFrontendSchema.partial().parse(req.body);
       const dlcProduct = await storage.updateDlcProduct(id, validatedData);
       
       res.json(dlcProduct);

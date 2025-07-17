@@ -499,6 +499,11 @@ export const insertDlcProductSchema = createInsertSchema(dlcProducts).omit({
   updatedAt: true,
 });
 
+// Frontend-compatible schema with dlcDate instead of expiryDate
+export const insertDlcProductFrontendSchema = insertDlcProductSchema
+  .omit({ expiryDate: true })
+  .extend({ dlcDate: z.coerce.date() });
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;

@@ -123,7 +123,7 @@ The application uses a sophisticated dual authentication approach:
 
 ## Recent Changes
 
-### July 17, 2025 - DLC Dashboard Integration Complete & Roles Management Enhanced
+### July 17, 2025 - DLC Production Inconsistencies Resolved & Schema Harmonization Complete
 - **MODULE DLC INTÉGRÉ TABLEAU DE BORD** - Carte "Statut DLC" remplace "Statut des Commandes" avec données temps réel
 - **ALERTES DLC AJOUTÉES** - Notifications automatiques pour produits expirant sous 15 jours et expirés
 - **FILTRAGE MAGASIN DLC CORRIGÉ** - Page DLC connectée au sélecteur global de magasin
@@ -158,5 +158,13 @@ The application uses a sophisticated dual authentication approach:
 - **ROLE MANAGEMENT** ✅ Interface de gestion des rôles et permissions fonctionnelle
 - **PRODUCTION BUGS FIXED** ✅ Création produits DLC corrigée : table et initialisation complètes
 - **DOCKER BUILD FIXED** ✅ Erreur esbuild résolue : imports @shared corrigés et template literals ES6 compatibles
+
+### July 17, 2025 - Final DLC Schema Harmonization & Production Consistency
+- **SCHÉMA HARMONISÉ COMPLET** - Résolu incohérences entre développement (expiryDate) et production (dlcDate) : création types frontend compatibles et schémas Zod adaptés
+- **VALIDATION ZOD CORRIGÉE** - Création insertDlcProductFrontendSchema pour validation dlcDate au lieu d'expiryDate, résout erreurs 400 en création produit
+- **MAPPING STORAGE UNIFIÉ** - Storage développement et production utilisent maintenant le même format dlcDate pour cohérence totale frontend/backend
+- **TYPES TYPESCRIPT ÉTENDUS** - Ajout DlcProductFrontend et InsertDlcProductFrontend pour compatibilité schéma Drizzle et interface utilisateur
+- **CRÉATION DLC FONCTIONNELLE** - Tests confirmés : création, modification et affichage de produits DLC opérationnels en développement et production
+- **ROUTAGE PRODUCTION STABILISÉ** - Correction configuration routage par défaut vers Dashboard au lieu de Calendar
 
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.
