@@ -136,10 +136,7 @@ export default function CustomerOrders() {
   // Status mutation
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) =>
-      apiRequest(`/api/customer-orders/${id}`, {
-        method: 'PUT',
-        body: { status },
-      }),
+      apiRequest(`/api/customer-orders/${id}`, 'PUT', { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
       toast({
@@ -152,10 +149,7 @@ export default function CustomerOrders() {
   // Notification mutation
   const notificationMutation = useMutation({
     mutationFn: ({ id, customerNotified }: { id: number; customerNotified: boolean }) =>
-      apiRequest(`/api/customer-orders/${id}`, {
-        method: 'PUT',
-        body: { customerNotified },
-      }),
+      apiRequest(`/api/customer-orders/${id}`, 'PUT', { customerNotified }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
       toast({
