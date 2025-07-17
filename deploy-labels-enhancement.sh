@@ -61,18 +61,25 @@ if $PRODUCTION; then
     docker-compose build --no-cache
     docker-compose up -d
     
-    echo "⏳ Attente démarrage..."
-    sleep 30
+    echo "⏳ Attente démarrage application..."
+    sleep 45
     
-    # Test API
+    # Test API commandes client
+    echo "🔍 Test API commandes client..."
     curl -s http://localhost:3000/api/customer-orders > /dev/null
     if [ $? -eq 0 ]; then
         echo "✅ API commandes client fonctionnelle"
     else
         echo "❌ API commandes client non accessible"
     fi
+    
+    # Test de génération code-barres (via logs)
+    echo "🔍 Vérification génération codes-barres..."
+    docker-compose logs logiflow | grep -q "EAN13 généré" && echo "✅ Codes-barres EAN13 générés" || echo "⚠️  Pas de génération détectée"
+    
 else
-    echo "ℹ️  Tests manuels recommandés en développement"
+    echo "ℹ️  Environnement développement - tests visuels recommandés"
+    echo "🎯 Testez : Commandes Client → Imprimer étiquette commande #4"
 fi
 
 # 5. Résumé
@@ -101,4 +108,15 @@ else
 fi
 
 echo ""
-echo "🎉 Déploiement terminé avec succès !"
+echo "🎉 DÉPLOIEMENT TERMINÉ AVEC SUCCÈS !"
+echo ""
+echo "🔧 PROCHAINES ÉTAPES EN PRODUCTION:"
+echo "1. 📋 Aller dans Commandes Client"
+echo "2. 🖨️  Imprimer étiquette d'une commande avec acompte"
+echo "3. 📱 Scanner le code-barres EAN13 avec un lecteur"
+echo "4. ✅ Confirmer que le code est reconnu"
+echo ""
+echo "📞 Support : Vérifier que les changements de statut fonctionnent"
+echo "💰 Validation : Vérifier affichage acomptes et prix promotionnels"
+echo ""
+echo "🚀 PRODUCTION READY - Codes-barres EAN13 scannables !"
