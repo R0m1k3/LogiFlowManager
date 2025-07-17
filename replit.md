@@ -138,6 +138,7 @@ The application uses a sophisticated dual authentication approach:
 - **COULEURS RÔLES CORRIGÉ** - Page Rôles utilise maintenant `role.color` (base de données) au lieu de couleurs statiques pour cohérence avec page Utilisateurs
 - **NUMÉROTATION SEMAINES PUBLICITÉ CORRIGÉ** - Remplacement `getWeek()` par numérotation séquentielle (1-53) et logique mois améliorée pour éliminer doublons semaine 1 en décembre
 - **PERMISSIONS DLC PRODUCTION RÉSOLU** - Corrigé affichage permissions DLC en production : ajout permissions manquantes au rôle directeur, amélioration traductions catégories frontend
+- **SCRIPT SQL PRODUCTION CRÉÉ** - Script fix-production-permissions.sql pour corriger displayName des permissions en production (problème spécifique production vs développement)
 
 ### Production Readiness Status - July 17, 2025
 - **DATABASE MIGRATIONS** ✅ Toutes les migrations automatiques intégrées dans initDatabase.production.ts
