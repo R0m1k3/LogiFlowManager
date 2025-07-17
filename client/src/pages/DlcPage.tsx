@@ -26,7 +26,7 @@ import type { DlcProductWithRelations, InsertDlcProduct } from "@shared/schema";
 const dlcFormSchema = z.object({
   productName: z.string().min(1, "Le nom du produit est obligatoire"),
   gencode: z.string().optional(),
-  expiryDate: z.string().min(1, "La date d'expiration est obligatoire"),
+  dlcDate: z.string().min(1, "La date d'expiration est obligatoire"),
   dateType: z.enum(["dlc", "ddm", "dluo"], { required_error: "Le type de date est obligatoire" }),
   supplierId: z.number().min(1, "Le fournisseur est obligatoire"),
   status: z.enum(["en_cours", "expires_soon", "expires", "valides"]).default("en_cours"),
@@ -176,11 +176,11 @@ export default function DlcPage() {
 
   const onSubmit = (data: DlcFormData) => {
     // Calculer la date d'expiration et le seuil d'alerte (15 jours avant)
-    const expiryDate = new Date(data.expiryDate);
+    const dlcDate = new Date(data.dlcDate);
     
     const dlcData: InsertDlcProduct = {
       ...data,
-      expiryDate,
+      dlcDate,
       quantity: 1, // Valeur par défaut
       unit: "unité", // Valeur par défaut
       location: "Magasin", // Valeur par défaut
@@ -200,7 +200,7 @@ export default function DlcPage() {
     form.reset({
       productName: product.productName,
       gencode: product.gencode || "",
-      expiryDate: format(new Date(product.expiryDate), "yyyy-MM-dd"),
+      dlcDate: product.dlcDate ? format(new Date(product.dlcDate), "yyyy-MM-dd") : "",
       dateType: product.dateType as "dlc" | "ddm" | "dluo",
       supplierId: product.supplierId,
       status: product.status as "en_cours" | "expires_soon" | "expires" | "valides",
@@ -229,16 +229,17 @@ export default function DlcPage() {
   // Fonction pour déterminer si un produit doit afficher le bouton de validation
   const shouldShowValidateButton = (product: DlcProductWithRelations) => {
     const today = new Date();
-    const expiry = new Date(product.expiryDate);
+    const expiry = new Date(product.dlcDate || new Date());
     const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
     // Afficher le bouton si le produit expire dans 15 jours ou moins, ou est déjà expiré
     return (daysUntilExpiry <= 15 && product.status !== "valides");
   };
 
-  const getStatusBadge = (status: string, expiryDate: Date) => {
+  const getStatusBadge = (status: string, dlcDate: string | null) => {
     const today = new Date();
-    const expiry = new Date(expiryDate);
+    if (!dlcDate) return <Badge variant="outline">Non défini</Badge>;
+    const expiry = new Date(dlcDate);
     const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
     if (status === "expires" || daysUntilExpiry < 0) {
@@ -255,7 +256,7 @@ export default function DlcPage() {
   const printExpiringSoon = () => {
     const expiringSoon = filteredProducts.filter(product => {
       const today = new Date();
-      const expiry = new Date(product.expiryDate);
+      const expiry = new Date(product.dlcDate || new Date());
       const diffTime = expiry.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return diffDays > 0 && diffDays <= 15;
@@ -290,15 +291,15 @@ export default function DlcPage() {
             <tbody>
               ${expiringSoon.map(product => {
                 const today = new Date();
-                const expiry = new Date(product.expiryDate);
+                const expiry = new Date(product.dlcDate || new Date());
                 const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                 return `
                   <tr>
                     <td>${product.productName}</td>
                     <td>${product.gencode || '-'}</td>
-                    <td>${format(new Date(product.expiryDate), "dd/MM/yyyy")}</td>
+                    <td>${product.dlcDate ? format(new Date(product.dlcDate), "dd/MM/yyyy") : 'N/A'}</td>
                     <td>${product.dateType.toUpperCase()}</td>
-                    <td>${product.supplier.name}</td>
+                    <td>${product.supplier?.name || 'N/A'}</td>
                     <td>${diffDays}</td>
                   </tr>
                 `;
@@ -320,7 +321,7 @@ export default function DlcPage() {
   const printExpired = () => {
     const expired = filteredProducts.filter(product => {
       const today = new Date();
-      const expiry = new Date(product.expiryDate);
+      const expiry = new Date(product.dlcDate || new Date());
       return expiry < today;
     });
 
@@ -353,15 +354,15 @@ export default function DlcPage() {
             <tbody>
               ${expired.map(product => {
                 const today = new Date();
-                const expiry = new Date(product.expiryDate);
+                const expiry = new Date(product.dlcDate || new Date());
                 const diffDays = Math.ceil((today.getTime() - expiry.getTime()) / (1000 * 60 * 60 * 24));
                 return `
                   <tr>
                     <td>${product.productName}</td>
                     <td>${product.gencode || '-'}</td>
-                    <td>${format(new Date(product.expiryDate), "dd/MM/yyyy")}</td>
+                    <td>${product.dlcDate ? format(new Date(product.dlcDate), "dd/MM/yyyy") : 'N/A'}</td>
                     <td>${product.dateType.toUpperCase()}</td>
-                    <td>${product.supplier.name}</td>
+                    <td>${product.supplier?.name || 'N/A'}</td>
                     <td>${diffDays}</td>
                   </tr>
                 `;
@@ -383,7 +384,7 @@ export default function DlcPage() {
   const filteredProducts = dlcProducts.filter(product => {
     if (searchTerm) {
       return product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             product.supplier.name.toLowerCase().includes(searchTerm.toLowerCase());
+             (product.supplier?.name && product.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }
     return true;
   });
@@ -478,7 +479,7 @@ export default function DlcPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="expiryDate"
+                    name="dlcDate"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Date d'expiration</FormLabel>
@@ -696,10 +697,10 @@ export default function DlcPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {format(new Date(product.expiryDate), "dd/MM/yyyy", { locale: fr })}
+                        {product.dlcDate ? format(new Date(product.dlcDate), "dd/MM/yyyy", { locale: fr }) : 'Date non définie'}
                       </TableCell>
-                      <TableCell>{product.supplier.name}</TableCell>
-                      <TableCell>{getStatusBadge(product.status, product.expiryDate)}</TableCell>
+                      <TableCell>{product.supplier?.name || 'Non défini'}</TableCell>
+                      <TableCell>{getStatusBadge(product.status, product.dlcDate)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button
