@@ -1022,19 +1022,78 @@ export class DatabaseStorage implements IStorage {
       params.push(groupIds);
     }
 
-    const [ordersResult, deliveriesResult] = await Promise.all([
+    console.log('📊 Monthly stats query params:', { year, month, startDate, endDate, groupIds, whereClause });
+
+    const [ordersResult, deliveriesResult, orderStatsResult, deliveryStatsResult] = await Promise.all([
+      // Basic counts
       pool.query(`SELECT COUNT(*) FROM orders WHERE planned_date BETWEEN $1 AND $2${whereClause}`, params),
-      pool.query(`SELECT COUNT(*) FROM deliveries WHERE scheduled_date BETWEEN $1 AND $2${whereClause}`, params)
+      pool.query(`SELECT COUNT(*) FROM deliveries WHERE scheduled_date BETWEEN $1 AND $2${whereClause}`, params),
+      
+      // Order statistics with pending count and totals
+      pool.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE status = 'pending') as pending_count,
+          COALESCE(SUM(CASE WHEN unit = 'palettes' THEN quantity ELSE 0 END), 0) as total_palettes,
+          COALESCE(SUM(CASE WHEN unit = 'colis' THEN quantity ELSE 0 END), 0) as total_packages
+        FROM orders 
+        WHERE planned_date BETWEEN $1 AND $2${whereClause}
+      `, params),
+      
+      // Delivery statistics
+      pool.query(`
+        SELECT 
+          COALESCE(SUM(CASE WHEN unit = 'palettes' THEN quantity ELSE 0 END), 0) as total_palettes,
+          COALESCE(SUM(CASE WHEN unit = 'colis' THEN quantity ELSE 0 END), 0) as total_packages
+        FROM deliveries 
+        WHERE scheduled_date BETWEEN $1 AND $2${whereClause}
+      `, params)
     ]);
 
-    return {
-      ordersCount: parseInt(ordersResult.rows[0].count),
-      deliveriesCount: parseInt(deliveriesResult.rows[0].count),
-      pendingOrdersCount: 0,
-      averageDeliveryTime: 0,
-      totalPalettes: 5,
-      totalPackages: 3
+    console.log('📊 Query results:', {
+      ordersCount: ordersResult.rows[0].count,
+      deliveriesCount: deliveriesResult.rows[0].count,
+      orderStats: orderStatsResult.rows[0],
+      deliveryStats: deliveryStatsResult.rows[0]
+    });
+
+    // Calculate average delivery time
+    const deliveryTimeQuery = `
+      SELECT 
+        o.planned_date,
+        d.delivered_date
+      FROM orders o
+      INNER JOIN deliveries d ON o.id = d.order_id
+      WHERE o.planned_date BETWEEN $1 AND $2 
+        AND d.status = 'delivered' 
+        AND d.delivered_date IS NOT NULL
+        ${whereClause.replace('group_id', 'o.group_id')}
+    `;
+    
+    const deliveryTimeResult = await pool.query(deliveryTimeQuery, params);
+    
+    let averageDeliveryTime = 0;
+    if (deliveryTimeResult.rows.length > 0) {
+      const totalDelayDays = deliveryTimeResult.rows.reduce((sum, row) => {
+        const planned = new Date(row.planned_date);
+        const delivered = new Date(row.delivered_date);
+        const diffTime = delivered.getTime() - planned.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return sum + diffDays;
+      }, 0);
+      averageDeliveryTime = Math.round((totalDelayDays / deliveryTimeResult.rows.length) * 10) / 10;
+    }
+
+    const stats = {
+      ordersCount: parseInt(ordersResult.rows[0].count) || 0,
+      deliveriesCount: parseInt(deliveriesResult.rows[0].count) || 0,
+      pendingOrdersCount: parseInt(orderStatsResult.rows[0].pending_count) || 0,
+      averageDeliveryTime: averageDeliveryTime,
+      totalPalettes: (parseInt(orderStatsResult.rows[0].total_palettes) || 0) + (parseInt(deliveryStatsResult.rows[0].total_palettes) || 0),
+      totalPackages: (parseInt(orderStatsResult.rows[0].total_packages) || 0) + (parseInt(deliveryStatsResult.rows[0].total_packages) || 0)
     };
+
+    console.log('📊 Final stats:', stats);
+    return stats;
   }
 
   // Publicities methods
