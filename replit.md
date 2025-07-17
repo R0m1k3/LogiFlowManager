@@ -123,15 +123,15 @@ The application uses a sophisticated dual authentication approach:
 
 ## Recent Changes
 
-### July 17, 2025 - Production Cleanup Complete
-- **NETTOYAGE COMPLET PROJET FINALISÉ** - Suppression de 75+ fichiers obsolètes (scripts, docs, assets debug)
-- **PROJET OPTIMISÉ PRODUCTION** - Structure épurée avec seulement les fichiers essentiels
-- **ESPACE DISQUE LIBÉRÉ** - Suppression attached_assets/ et tous fichiers temporaires de développement
-- **SIZE OPTIMIZED** - Réduction de 123M pour structure propre et déployable
-- **MODAL RÔLES PROFESSIONNEL** - Interface confirmation moderne avec icône Shield remplace window.confirm
+### July 17, 2025 - DLC Dashboard Integration Complete
+- **MODULE DLC INTÉGRÉ TABLEAU DE BORD** - Carte "Statut DLC" remplace "Statut des Commandes" avec données temps réel
+- **ALERTES DLC AJOUTÉES** - Notifications automatiques pour produits expirant sous 15 jours et expirés
+- **FILTRAGE MAGASIN DLC CORRIGÉ** - Page DLC connectée au sélecteur global de magasin
+- **GENCODE EAN13 OPÉRATIONNEL** - Champ gencode mappé correctement côté serveur pour création/modification
+- **LOGIQUE EXPIRATION HARMONISÉE** - Calcul dynamique 15 jours cohérent entre stats et filtres
+- **CARTES DASHBOARD OPTIMISÉES** - Cartes du haut conservées (livraisons, commandes en attente, délai moyen, total palettes)
 - **PRODUCTION BUG FIX** - Correction synchronisation statut commandes : `createDelivery` et `updateDelivery` en production mettent maintenant à jour statut commande vers "planned" (synchronisation dev/prod)
 - **COULEURS RÔLES CORRIGÉ** - Page Rôles utilise maintenant `role.color` (base de données) au lieu de couleurs statiques pour cohérence avec page Utilisateurs
 - **NUMÉROTATION SEMAINES PUBLICITÉ CORRIGÉ** - Remplacement `getWeek()` par numérotation séquentielle (1-53) et logique mois améliorée pour éliminer doublons semaine 1 en décembre
-- **BUILD PRODUCTION ACTUALISÉ** - Toutes corrections intégrées dans dist/ pour déploiement production
 
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.

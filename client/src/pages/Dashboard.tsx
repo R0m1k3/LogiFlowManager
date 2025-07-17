@@ -231,11 +231,11 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">DLC expire bientôt</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">{dlcStats.expiringSoon}</p>
+                <p className="text-sm font-medium text-gray-600">Commandes en attente</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">{pendingOrdersCount}</p>
               </div>
-              <div className="h-12 w-12 bg-yellow-100 flex items-center justify-center">
-                <Clock className="h-6 w-6 text-yellow-600" />
+              <div className="h-12 w-12 bg-orange-100 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-orange-600" />
               </div>
             </div>
           </CardContent>
@@ -259,11 +259,11 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">DLC expirés</p>
-                <p className="text-3xl font-bold text-red-600 mt-2">{dlcStats.expired}</p>
+                <p className="text-sm font-medium text-gray-600">Total palettes</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">{totalPalettes}</p>
               </div>
-              <div className="h-12 w-12 bg-red-100 flex items-center justify-center">
-                <XCircle className="h-6 w-6 text-red-600" />
+              <div className="h-12 w-12 bg-purple-100 flex items-center justify-center">
+                <Package className="h-6 w-6 text-purple-600" />
               </div>
             </div>
           </CardContent>
@@ -463,42 +463,42 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Statut des commandes */}
+        {/* Statut DLC */}
         <Card className="bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
           <CardHeader className="pb-4 border-b border-gray-100">
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
-              <ShoppingCart className="h-5 w-5 mr-3 text-green-600" />
-              Statut des Commandes
+              <Shield className="h-5 w-5 mr-3 text-green-600" />
+              Statut DLC
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 p-6">
             <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
               <div className="flex items-center space-x-3">
-                <div className="h-3 w-3 bg-red-500"></div>
-                <span className="text-sm font-medium text-gray-700">En attente</span>
-              </div>
-              <span className="font-semibold text-red-600 text-lg">{ordersByStatus.pending}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center space-x-3">
-                <div className="h-3 w-3 bg-orange-500"></div>
-                <span className="text-sm font-medium text-gray-700">Planifiées</span>
-              </div>
-              <span className="font-semibold text-orange-600 text-lg">{ordersByStatus.planned}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center space-x-3">
                 <div className="h-3 w-3 bg-green-500"></div>
-                <span className="text-sm font-medium text-gray-700">Terminées</span>
+                <span className="text-sm font-medium text-gray-700">Actifs</span>
               </div>
-              <span className="font-semibold text-green-600 text-lg">{ordersByStatus.delivered}</span>
+              <span className="font-semibold text-green-600 text-lg">{dlcStats.active}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="h-3 w-3 bg-yellow-500"></div>
+                <span className="text-sm font-medium text-gray-700">Expire bientôt</span>
+              </div>
+              <span className="font-semibold text-yellow-600 text-lg">{dlcStats.expiringSoon}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="h-3 w-3 bg-red-500"></div>
+                <span className="text-sm font-medium text-gray-700">Expirés</span>
+              </div>
+              <span className="font-semibold text-red-600 text-lg">{dlcStats.expired}</span>
             </div>
             <div className="flex items-center justify-between border-t border-gray-200 pt-3 mt-3 p-3">
               <div className="flex items-center space-x-3">
                 <div className="h-3 w-3 bg-gray-500"></div>
-                <span className="text-sm font-semibold text-gray-800">Total commandes</span>
+                <span className="text-sm font-semibold text-gray-800">Total produits</span>
               </div>
-              <span className="font-bold text-xl text-gray-800">{ordersByStatus.total}</span>
+              <span className="font-bold text-xl text-gray-800">{dlcStats.active + dlcStats.expiringSoon + dlcStats.expired}</span>
             </div>
           </CardContent>
         </Card>

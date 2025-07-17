@@ -48,34 +48,36 @@ function RouterProduction() {
     );
   }
 
-  return (
-    <Switch>
-      {!isAuthenticated ? (
-        <>
-          <Route path="/auth" component={AuthPage} />
-          <Route path="/" component={AuthPage} />
-        </>
-      ) : (
-        <Layout>
-          <Route path="/" component={Calendar} />
-          <Route path="/calendar" component={Calendar} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/orders" component={Orders} />
-          <Route path="/deliveries" component={Deliveries} />
-          <Route path="/suppliers" component={Suppliers} />
-          <Route path="/groups" component={Groups} />
-          <Route path="/users" component={Users} />
-          <Route path="/roles" component={RoleManagement} />
-          <Route path="/bl-reconciliation" component={BLReconciliation} />
-          <Route path="/publicities" component={Publicities} />
-          <Route path="/customer-orders" component={CustomerOrders} />
-          <Route path="/dlc" component={DlcPage} />
+  if (!isAuthenticated) {
+    return (
+      <Switch>
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/" component={AuthPage} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
 
-          <Route path="/nocodb-config" component={NocoDBConfig} />
-        </Layout>
-      )}
-      <Route component={NotFound} />
-    </Switch>
+  return (
+    <Layout>
+      <Switch>
+        <Route path="/" component={Calendar} />
+        <Route path="/calendar" component={Calendar} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/orders" component={Orders} />
+        <Route path="/deliveries" component={Deliveries} />
+        <Route path="/suppliers" component={Suppliers} />
+        <Route path="/groups" component={Groups} />
+        <Route path="/users" component={Users} />
+        <Route path="/roles" component={RoleManagement} />
+        <Route path="/bl-reconciliation" component={BLReconciliation} />
+        <Route path="/publicities" component={Publicities} />
+        <Route path="/customer-orders" component={CustomerOrders} />
+        <Route path="/dlc" component={DlcPage} />
+        <Route path="/nocodb-config" component={NocoDBConfig} />
+        <Route component={NotFound} />
+      </Switch>
+    </Layout>
   );
 }
 
