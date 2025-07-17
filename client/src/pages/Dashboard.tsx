@@ -4,7 +4,7 @@ import { useStore } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Package, ShoppingCart, TrendingUp, Clock, MapPin, User, AlertTriangle, CheckCircle, Truck, FileText, BarChart3, Megaphone } from "lucide-react";
+import { Calendar, Package, ShoppingCart, TrendingUp, Clock, MapPin, User, AlertTriangle, CheckCircle, Truck, FileText, BarChart3, Megaphone, Shield, XCircle } from "lucide-react";
 import { safeFormat, safeDate } from "@/lib/dateUtils";
 import type { PublicityWithRelations } from "@shared/schema";
 
@@ -85,6 +85,18 @@ export default function Dashboard() {
         .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
       
       return futurePublicities;
+    },
+  });
+
+  // Fetch DLC stats
+  const { data: dlcStats = { active: 0, expiringSoon: 0, expired: 0 } } = useQuery({
+    queryKey: ["/api/dlc-products/stats", selectedStoreId],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (selectedStoreId && user?.role === 'admin') params.append("storeId", selectedStoreId.toString());
+      return fetch(`/api/dlc-products/stats?${params.toString()}`, {
+        credentials: 'include'
+      }).then(res => res.json());
     },
   });
 
@@ -169,15 +181,35 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Alert */}
-      {pendingOrdersCount > 0 && (
-        <div className="bg-orange-50 border-l-4 border-orange-400 p-4 flex items-center space-x-3 shadow-sm">
-          <AlertTriangle className="h-5 w-5 text-orange-600" />
-          <span className="text-sm font-medium text-orange-800">
-            <strong>{pendingOrdersCount} commande(s) en attente</strong> nécessitent une planification
-          </span>
-        </div>
-      )}
+      {/* Alerts */}
+      <div className="space-y-3">
+        {pendingOrdersCount > 0 && (
+          <div className="bg-orange-50 border-l-4 border-orange-400 p-4 flex items-center space-x-3 shadow-sm">
+            <AlertTriangle className="h-5 w-5 text-orange-600" />
+            <span className="text-sm font-medium text-orange-800">
+              <strong>{pendingOrdersCount} commande(s) en attente</strong> nécessitent une planification
+            </span>
+          </div>
+        )}
+        
+        {dlcStats.expiringSoon > 0 && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 flex items-center space-x-3 shadow-sm">
+            <Clock className="h-5 w-5 text-yellow-600" />
+            <span className="text-sm font-medium text-yellow-800">
+              <strong>{dlcStats.expiringSoon} produit(s) DLC</strong> expirent dans les 15 prochains jours
+            </span>
+          </div>
+        )}
+        
+        {dlcStats.expired > 0 && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 flex items-center space-x-3 shadow-sm">
+            <XCircle className="h-5 w-5 text-red-600" />
+            <span className="text-sm font-medium text-red-800">
+              <strong>{dlcStats.expired} produit(s) DLC</strong> sont expirés et nécessitent une action immédiate
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -199,11 +231,11 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Commandes en attente</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{pendingOrdersCount}</p>
+                <p className="text-sm font-medium text-gray-600">DLC expire bientôt</p>
+                <p className="text-3xl font-bold text-yellow-600 mt-2">{dlcStats.expiringSoon}</p>
               </div>
-              <div className="h-12 w-12 bg-orange-100 flex items-center justify-center">
-                <Clock className="h-6 w-6 text-orange-600" />
+              <div className="h-12 w-12 bg-yellow-100 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-yellow-600" />
               </div>
             </div>
           </CardContent>
@@ -227,11 +259,11 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total palettes</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{totalPalettes}</p>
+                <p className="text-sm font-medium text-gray-600">DLC expirés</p>
+                <p className="text-3xl font-bold text-red-600 mt-2">{dlcStats.expired}</p>
               </div>
-              <div className="h-12 w-12 bg-purple-100 flex items-center justify-center">
-                <Package className="h-6 w-6 text-purple-600" />
+              <div className="h-12 w-12 bg-red-100 flex items-center justify-center">
+                <XCircle className="h-6 w-6 text-red-600" />
               </div>
             </div>
           </CardContent>
