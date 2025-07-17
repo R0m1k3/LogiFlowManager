@@ -200,10 +200,8 @@ export default function DlcPage() {
   };
 
   const handleEdit = (product: DlcProductWithRelations) => {
-    console.log("🔍 Product being edited:", product);
-    console.log("🔍 Product gencode:", product.gencode);
     setEditingProduct(product);
-    const formData = {
+    form.reset({
       productName: product.productName,
       gencode: product.gencode || "",
       expiryDate: format(new Date(product.expiryDate), "yyyy-MM-dd"),
@@ -211,9 +209,7 @@ export default function DlcPage() {
       supplierId: product.supplierId,
       status: product.status as "en_cours" | "expires_soon" | "expires" | "valides",
       notes: product.notes || "",
-    };
-    console.log("🔍 Form data being set:", formData);
-    form.reset(formData);
+    });
     setIsDialogOpen(true);
   };
 

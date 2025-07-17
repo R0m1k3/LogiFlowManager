@@ -1108,6 +1108,7 @@ export class DatabaseStorage implements IStorage {
       return result.rows.map((row: any) => ({
         id: row.id as number,
         productName: row.product_name as string,
+        gencode: row.gencode as string | null,
         expiryDate: row.expiry_date as Date,
         dateType: row.date_type as string,
         quantity: row.quantity as number,
@@ -1188,6 +1189,7 @@ export class DatabaseStorage implements IStorage {
       return {
         id: row.id as number,
         productName: row.product_name as string,
+        gencode: row.gencode as string | null,
         expiryDate: row.expiry_date as Date,
         dateType: row.date_type as string,
         quantity: row.quantity as number,
