@@ -500,7 +500,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDelivery(id: number): Promise<void> {
+    // Récupérer la livraison avant suppression pour connaître la commande liée
+    const delivery = await this.getDelivery(id);
+    
+    // Supprimer la livraison
     await db.delete(deliveries).where(eq(deliveries.id, id));
+    
+    // Si la livraison était liée à une commande, gérer le statut de la commande
+    if (delivery?.orderId) {
+      // Vérifier s'il reste d'autres livraisons liées à cette commande
+      const remainingDeliveries = await db
+        .select()
+        .from(deliveries)
+        .where(eq(deliveries.orderId, delivery.orderId));
+      
+      if (remainingDeliveries.length === 0) {
+        // Plus aucune livraison liée : remettre la commande en "pending"
+        await db
+          .update(orders)
+          .set({ 
+            status: 'pending',
+            updatedAt: new Date()
+          })
+          .where(eq(orders.id, delivery.orderId));
+      }
+    }
   }
 
   async validateDelivery(id: number, blData?: { blNumber: string; blAmount: number }): Promise<void> {
