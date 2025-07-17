@@ -440,7 +440,7 @@ export default function DlcPage() {
                         <FormLabel>Fournisseur</FormLabel>
                         <Select 
                           onValueChange={(value) => field.onChange(parseInt(value))} 
-                          defaultValue={field.value?.toString()}
+                          value={field.value?.toString()}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -495,7 +495,7 @@ export default function DlcPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Type de date</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Sélectionner le type" />
