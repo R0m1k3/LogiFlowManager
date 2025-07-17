@@ -413,7 +413,17 @@ export class DatabaseStorage implements IStorage {
     query += ' ORDER BY name';
     
     const result = await pool.query(query, params);
-    return result.rows;
+    
+    // Map snake_case to camelCase for frontend compatibility
+    return result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      contact: row.contact,
+      phone: row.phone,
+      hasDlc: row.has_dlc, // Convert snake_case to camelCase
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   }
 
   async createSupplier(supplier: InsertSupplier): Promise<Supplier> {
@@ -432,8 +442,21 @@ export class DatabaseStorage implements IStorage {
         RETURNING *
       `, [supplier.name, supplier.contact || '', supplier.phone || '', supplier.hasDlc || false]);
       
-      console.log('✅ Supplier created successfully:', result.rows[0]);
-      return result.rows[0];
+      const createdSupplier = result.rows[0];
+      
+      // Map snake_case to camelCase for frontend compatibility
+      const mappedSupplier = {
+        id: createdSupplier.id,
+        name: createdSupplier.name,
+        contact: createdSupplier.contact,
+        phone: createdSupplier.phone,
+        hasDlc: createdSupplier.has_dlc, // Convert snake_case to camelCase
+        createdAt: createdSupplier.created_at,
+        updatedAt: createdSupplier.updated_at
+      };
+      
+      console.log('✅ Supplier created successfully:', mappedSupplier);
+      return mappedSupplier;
     } catch (error) {
       console.error('❌ Failed to create supplier:', error);
       console.error('📊 Error details:', {
@@ -492,8 +515,21 @@ export class DatabaseStorage implements IStorage {
       console.log('🔧 SQL Query:', { query, values });
       
       const result = await pool.query(query, values);
-      console.log('✅ Supplier updated successfully:', result.rows[0]);
-      return result.rows[0];
+      const updatedSupplier = result.rows[0];
+      
+      // Map snake_case to camelCase for frontend compatibility
+      const mappedSupplier = {
+        id: updatedSupplier.id,
+        name: updatedSupplier.name,
+        contact: updatedSupplier.contact,
+        phone: updatedSupplier.phone,
+        hasDlc: updatedSupplier.has_dlc, // Convert snake_case to camelCase
+        createdAt: updatedSupplier.created_at,
+        updatedAt: updatedSupplier.updated_at
+      };
+      
+      console.log('✅ Supplier updated successfully:', mappedSupplier);
+      return mappedSupplier;
     } catch (error) {
       console.error('❌ Failed to update supplier:', error);
       console.error('📊 Error details:', {

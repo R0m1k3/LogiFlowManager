@@ -63,7 +63,7 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: false,
-      staleTime: 0, // Pas de cache pour les tests de mise à jour
+      staleTime: 30 * 1000, // 30 secondes de cache pour de meilleures performances
       gcTime: 10 * 60 * 1000, // 10 minutes  
       retry: (failureCount, error: any) => {
         // Ne pas retry les erreurs d'authentification
