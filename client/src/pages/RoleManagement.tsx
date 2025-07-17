@@ -162,11 +162,14 @@ export default function RoleManagement() {
     'rapprochement': 'Rapprochement',
     'tableau_de_bord': 'Tableau de Bord',
     'utilisateurs': 'Utilisateurs',
+    // Fallbacks pour les anciennes catégories techniques
+    'customer_orders': 'Commandes Clients',
+    'groups': 'Magasins',
+    'roles': 'Gestion des Rôles',
     // Fallbacks pour les anciennes catégories en anglais
     'Calendar': 'Calendrier',
     'Dashboard': 'Tableau de Bord',
     'Deliveries': 'Livraisons',
-    'Magasins': 'Magasins',
     'Orders': 'Commandes',
     'Publicities': 'Publicités',
     'Reconciliation': 'Rapprochement',
