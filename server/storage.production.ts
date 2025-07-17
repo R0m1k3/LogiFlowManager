@@ -404,6 +404,8 @@ export class DatabaseStorage implements IStorage {
 
   // Simplified methods for production - implement core functionality only
   async getOrders(groupIds?: number[]): Promise<any[]> {
+    console.log('📦 getOrders production called with groupIds:', groupIds);
+    
     let whereClause = '';
     let params = [];
     
@@ -411,6 +413,12 @@ export class DatabaseStorage implements IStorage {
       whereClause = ' WHERE o.group_id = ANY($1)';
       params = [groupIds];
     }
+    
+    console.log('📦 SQL Query:', {
+      whereClause,
+      params,
+      query: `SELECT o.* FROM orders o ${whereClause} ORDER BY o.created_at DESC`
+    });
     
     const result = await pool.query(`
       SELECT o.*, 
@@ -424,6 +432,17 @@ export class DatabaseStorage implements IStorage {
       ${whereClause}
       ORDER BY o.created_at DESC
     `, params);
+    
+    console.log('📦 Query result:', {
+      rowCount: result.rows.length,
+      sampleRows: result.rows.slice(0, 2).map(row => ({
+        id: row.id,
+        groupId: row.group_id,
+        plannedDate: row.planned_date,
+        supplierName: row.supplier_name,
+        groupName: row.group_name
+      }))
+    });
     
     // Transformer pour correspondre exactement à la structure Drizzle
     return (result.rows || []).map(row => ({
@@ -544,6 +563,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrder(order: InsertOrder): Promise<Order> {
+    console.log('📦 createOrder production called with:', order);
+    
     const result = await pool.query(`
       INSERT INTO orders (supplier_id, group_id, planned_date, quantity, unit, status, notes, created_by)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -558,6 +579,15 @@ export class DatabaseStorage implements IStorage {
       order.notes,
       order.createdBy
     ]);
+    
+    console.log('✅ Order created in production DB:', {
+      id: result.rows[0].id,
+      groupId: result.rows[0].group_id,
+      plannedDate: result.rows[0].planned_date,
+      supplierId: result.rows[0].supplier_id,
+      status: result.rows[0].status
+    });
+    
     return result.rows[0];
   }
 

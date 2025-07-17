@@ -131,6 +131,10 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 ## Changelog
 
 Changelog:
+- July 17, 2025. **PROBLÈME SUPPRESSION LIVRAISONS CORRIGÉ** - deleteDelivery gère maintenant les commandes liées
+- July 17, 2025. Correction logique métier : suppression dernière livraison remet commande à "pending" 
+- July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Logs détaillés création/récupération commandes pour debug production
+- July 17, 2025. Amélioration logs POST /api/orders et getOrders() pour identifier problèmes visibilité commandes
 - July 08, 2025. Initial setup
 - July 15, 2025. **ERREUR PRODUCTION PERMISSIONS DÉFINITIVEMENT RÉSOLUE** - Page rôles 100% fonctionnelle
 - July 15, 2025. **COLONNES BDD MANQUANTES CORRIGÉES** - Adaptation SQL aux colonnes existantes (display_name, action, resource, is_system)

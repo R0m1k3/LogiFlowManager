@@ -375,28 +375,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('📦 Order creation started:', {
+        userId: req.user?.id || req.user?.claims?.sub,
+        body: req.body,
+        environment: process.env.NODE_ENV
+      });
+
       const user = await storage.getUserWithGroups(req.user.claims ? req.user.claims.sub : req.user.id);
       if (!user) {
+        console.log('❌ User not found in order creation');
         return res.status(404).json({ message: "User not found" });
       }
+
+      console.log('👤 User found for order creation:', {
+        id: user.id,
+        role: user.role,
+        groupsCount: user.userGroups.length,
+        groups: user.userGroups.map(ug => ({ groupId: ug.groupId, groupName: ug.group?.name }))
+      });
 
       const data = insertOrderSchema.parse({
         ...req.body,
         createdBy: user.id,
       });
 
+      console.log('✅ Order data validated:', data);
+
       // Check if user has access to the group
       if (user.role !== 'admin') {
         const userGroupIds = user.userGroups.map(ug => ug.groupId);
         if (!userGroupIds.includes(data.groupId)) {
+          console.log('❌ Access denied to group:', { requestedGroupId: data.groupId, userGroups: userGroupIds });
           return res.status(403).json({ message: "Access denied to this group" });
         }
       }
 
+      console.log('🚀 Creating order in storage...');
       const order = await storage.createOrder(data);
+      console.log('✅ Order created successfully:', { 
+        id: order.id, 
+        groupId: order.groupId,
+        plannedDate: order.plannedDate,
+        supplierId: order.supplierId
+      });
+
       res.json(order);
     } catch (error) {
-      console.error("Error creating order:", error);
+      console.error("❌ Error creating order:", {
+        error: error.message,
+        stack: error.stack,
+        body: req.body,
+        userId: req.user?.id || req.user?.claims?.sub || 'unknown'
+      });
+      
+      // Erreur de validation Zod
+      if (error.name === 'ZodError') {
+        console.error('❌ Order validation error details:', error.errors);
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: error.errors 
+        });
+      }
+      
       res.status(500).json({ message: "Failed to create order" });
     }
   });
