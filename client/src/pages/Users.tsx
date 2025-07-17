@@ -778,7 +778,31 @@ export default function UsersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
-                            {/* Note: Gestion des rôles via la page "Administration" > "Gestion des Rôles" */}
+                            {/* Sélecteur de rôle rapide */}
+                            {userData.id !== user?.id && (
+                              <Select
+                                value={userData.userRoles?.[0]?.role?.name || userData.role || ''}
+                                onValueChange={(newRole) => handleRoleChange(userData.id, newRole)}
+                                disabled={updateUserRoleMutation.isPending}
+                              >
+                                <SelectTrigger className="w-28 h-8 text-xs border-purple-200 hover:border-purple-300">
+                                  <SelectValue placeholder="Rôle" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {safeRoles.map((role) => (
+                                    <SelectItem key={role.id} value={role.name}>
+                                      <div className="flex items-center">
+                                        <div 
+                                          className="w-2 h-2 rounded-full mr-2"
+                                          style={{ backgroundColor: role.color }}
+                                        />
+                                        {role.displayName || role.name}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
                             <Button
                               variant="outline"
                               size="sm"
