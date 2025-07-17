@@ -241,7 +241,9 @@ export const dlcProducts = pgTable("dlc_products", {
   expiryDate: date("expiry_date").notNull(), // Date limite de consommation
   dateType: varchar("date_type").notNull().default("dlc"), // Type: dlc, ddm, dluo
   quantity: integer("quantity").notNull().default(1), // Quantité
-  location: varchar("location"), // Emplacement (optionnel)
+  unit: varchar("unit").notNull().default("unité"), // Unité (fixe par défaut)
+  location: varchar("location").notNull().default("Magasin"), // Emplacement (fixe par défaut)
+  alertThreshold: integer("alert_threshold").notNull().default(15), // Seuil d'alerte fixe à 15 jours
   status: varchar("status").notNull().default("en_cours"), // Statut: en_cours, expires_soon, expires, valides
   notes: text("notes"), // Notes (optionnel)
   createdBy: varchar("created_by").notNull(), // Créateur

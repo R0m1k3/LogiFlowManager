@@ -25,14 +25,9 @@ const dlcFormSchema = z.object({
   productName: z.string().min(1, "Le nom du produit est obligatoire"),
   expiryDate: z.string().min(1, "La date d'expiration est obligatoire"),
   dateType: z.enum(["dlc", "ddm", "dluo"], { required_error: "Le type de date est obligatoire" }),
-  quantity: z.number().min(1, "La quantité doit être supérieure à 0"),
-  unit: z.string().min(1, "L'unité est obligatoire"),
   supplierId: z.number().min(1, "Le fournisseur est obligatoire"),
-  location: z.string().min(1, "L'emplacement est obligatoire"),
   status: z.enum(["en_cours", "expires_soon", "expires", "valides"]).default("en_cours"),
   notes: z.string().optional(),
-  alertThreshold: z.number().min(0).default(3),
-  groupId: z.number().min(1, "Le magasin est obligatoire"),
 });
 
 type DlcFormData = z.infer<typeof dlcFormSchema>;
@@ -98,12 +93,8 @@ export default function DlcPage() {
     defaultValues: {
       productName: "",
       dateType: "dlc",
-      quantity: 1,
-      unit: "",
-      location: "",
       status: "en_cours",
       notes: "",
-      alertThreshold: 3,
     },
   });
 
@@ -193,10 +184,17 @@ export default function DlcPage() {
   });
 
   const onSubmit = (data: DlcFormData) => {
+    // Calculer la date d'expiration et le seuil d'alerte (15 jours avant)
+    const expiryDate = new Date(data.expiryDate);
+    
     const dlcData: InsertDlcProduct = {
       ...data,
-      expiryDate: new Date(data.expiryDate),
-      groupId: parseInt(selectedStore) || data.groupId,
+      expiryDate,
+      quantity: 1, // Valeur par défaut
+      unit: "unité", // Valeur par défaut
+      location: "Magasin", // Valeur par défaut
+      alertThreshold: 15, // Toujours 15 jours
+      groupId: parseInt(selectedStore) || (user?.role !== 'admin' ? stores[0]?.id : 1),
     };
 
     if (editingProduct) {
@@ -212,14 +210,9 @@ export default function DlcPage() {
       productName: product.productName,
       expiryDate: format(new Date(product.expiryDate), "yyyy-MM-dd"),
       dateType: product.dateType as "dlc" | "ddm" | "dluo",
-      quantity: product.quantity,
-      unit: product.unit,
       supplierId: product.supplierId,
-      location: product.location,
       status: product.status as "en_cours" | "expires_soon" | "expires" | "valides",
       notes: product.notes || "",
-      alertThreshold: product.alertThreshold,
-      groupId: product.groupId,
     });
     setIsDialogOpen(true);
   };
@@ -249,7 +242,6 @@ export default function DlcPage() {
   const filteredProducts = dlcProducts.filter(product => {
     if (searchTerm) {
       return product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             product.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
              product.supplier.name.toLowerCase().includes(searchTerm.toLowerCase());
     }
     return true;
@@ -297,97 +289,6 @@ export default function DlcPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="dateType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Type de date</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner le type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="dlc">DLC (Date Limite de Consommation)</SelectItem>
-                            <SelectItem value="ddm">DDM (Date de Durabilité Minimale)</SelectItem>
-                            <SelectItem value="dluo">DLUO (Date Limite d'Utilisation Optimale)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="expiryDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Date d'expiration</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="alertThreshold"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Seuil d'alerte (jours)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="quantity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quantité</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="unit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unité</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="kg, L, pièces..." />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
                     name="supplierId"
                     render={({ field }) => (
                       <FormItem>
@@ -413,50 +314,45 @@ export default function DlcPage() {
                       </FormItem>
                     )}
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="location"
+                    name="expiryDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Emplacement</FormLabel>
+                        <FormLabel>Date d'expiration</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Réserve, Rayon 1, Frigo..." />
+                          <Input type="date" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-
-                {user?.role === 'admin' && (
                   <FormField
                     control={form.control}
-                    name="groupId"
+                    name="dateType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Magasin</FormLabel>
-                        <Select 
-                          onValueChange={(value) => field.onChange(parseInt(value))} 
-                          defaultValue={field.value?.toString() || selectedStore}
-                        >
+                        <FormLabel>Type de date</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner un magasin" />
+                              <SelectValue placeholder="Sélectionner le type" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {stores.map((store: any) => (
-                              <SelectItem key={store.id} value={store.id.toString()}>
-                                {store.name}
-                              </SelectItem>
-                            ))}
+                            <SelectItem value="dlc">DLC (Date Limite de Consommation)</SelectItem>
+                            <SelectItem value="ddm">DDM (Date de Durabilité Minimale)</SelectItem>
+                            <SelectItem value="dluo">DLUO (Date Limite d'Utilisation Optimale)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
+                </div>
 
                 <FormField
                   control={form.control}
@@ -495,25 +391,7 @@ export default function DlcPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {user?.role === 'admin' && (
-              <div>
-                <label className="text-sm font-medium">Magasin</label>
-                <Select value={selectedStore} onValueChange={setSelectedStore}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tous les magasins" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les magasins</SelectItem>
-                    {stores.map((store: any) => (
-                      <SelectItem key={store.id} value={store.id.toString()}>
-                        {store.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium">Statut</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -617,9 +495,7 @@ export default function DlcPage() {
                     <TableHead>Produit</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Date d'expiration</TableHead>
-                    <TableHead>Quantité</TableHead>
                     <TableHead>Fournisseur</TableHead>
-                    <TableHead>Emplacement</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -636,9 +512,7 @@ export default function DlcPage() {
                       <TableCell>
                         {format(new Date(product.expiryDate), "dd/MM/yyyy", { locale: fr })}
                       </TableCell>
-                      <TableCell>{product.quantity} {product.unit}</TableCell>
                       <TableCell>{product.supplier.name}</TableCell>
-                      <TableCell>{product.location}</TableCell>
                       <TableCell>{getStatusBadge(product.status, product.expiryDate)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
