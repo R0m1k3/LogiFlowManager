@@ -11,16 +11,26 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Store, LogIn, User, Info } from "lucide-react";
 import { useLocation } from "wouter";
 
+// Fonction pour détecter l'environnement
+const getEnvironment = () => {
+  const hostname = window.location.hostname;
+  const isDev = hostname.includes('replit.dev') || hostname === 'localhost';
+  return isDev ? 'development' : 'production';
+};
+
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, isLoading, refreshAuth, forceAuthRefresh, isAuthenticated } = useAuthUnified();
   const { toast } = useToast();
   const [showDefaultCredentials, setShowDefaultCredentials] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
   });
+  
+  const currentEnvironment = getEnvironment();
 
   // Check if admin user still has default password
   const { data: defaultCredentialsCheck } = useQuery({
@@ -36,6 +46,49 @@ export default function AuthPage() {
     },
   });
 
+  // Fonction de login simple pour production
+  const handleProductionLogin = async (data: typeof loginData) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Connexion réussie",
+          description: "Redirection en cours...",
+        });
+        
+        // En production, recharger la page pour éviter les problèmes de synchronisation
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 500);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast({
+          title: "Erreur de connexion",
+          description: errorData.message || "Identifiant ou mot de passe incorrect",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erreur de connexion",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Mutation complexe pour développement
   const loginMutation = useMutation({
     mutationFn: async (data: typeof loginData) => {
       const response = await apiRequest("/api/login", "POST", data);
@@ -53,37 +106,22 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/default-credentials-check'] });
       
-      // Attendre un court délai pour que la session soit bien établie
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Force immediate authentication state refresh avec plusieurs tentatives
-      let refreshedUserData = await forceAuthRefresh();
+      // Force immediate authentication state refresh
+      const refreshedUserData = await forceAuthRefresh();
       console.log('🔄 Force auth refresh result:', refreshedUserData);
-      
-      // Système de retry robuste
-      let retryCount = 0;
-      const maxRetries = 5;
-      
-      while ((!refreshedUserData || !refreshedUserData.id) && retryCount < maxRetries) {
-        retryCount++;
-        console.log(`🔄 Retry ${retryCount}/${maxRetries} - attempting auth refresh...`);
-        await new Promise(resolve => setTimeout(resolve, 200 * retryCount)); // Délai croissant
-        refreshedUserData = await forceAuthRefresh();
-      }
       
       if (refreshedUserData && refreshedUserData.id) {
         console.log('🔄 User data confirmed, forcing redirect...');
-        // Délai supplémentaire pour assurer la synchronisation complète
-        setTimeout(() => {
-          setLocation("/");
-        }, 50);
+        setLocation("/");
       } else {
-        console.error('❌ Failed to refresh auth state after multiple attempts');
-        // Fallback: recharger la page pour forcer la synchronisation
-        window.location.href = "/";
+        setTimeout(() => {
+          forceAuthRefresh().then((retryUserData) => {
+            if (retryUserData && retryUserData.id) {
+              setLocation("/");
+            }
+          });
+        }, 500);
       }
-      
-      console.log('🔄 Login complete, auth state refreshed');
     },
     onError: (error: any) => {
       toast({
@@ -119,7 +157,14 @@ export default function AuthPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate(loginData);
+    
+    if (currentEnvironment === 'production') {
+      // Utiliser la méthode simple pour production
+      handleProductionLogin(loginData);
+    } else {
+      // Utiliser React Query pour développement
+      loginMutation.mutate(loginData);
+    }
   };
 
   if (isLoading) {
@@ -189,9 +234,9 @@ export default function AuthPage() {
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={loginMutation.isPending}
+                  disabled={currentEnvironment === 'production' ? isSubmitting : loginMutation.isPending}
                 >
-                  {loginMutation.isPending ? "Connexion..." : "Se connecter"}
+                  {(currentEnvironment === 'production' ? isSubmitting : loginMutation.isPending) ? "Connexion..." : "Se connecter"}
                 </Button>
               </form>
             </CardContent>
