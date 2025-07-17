@@ -14,22 +14,25 @@
 - `CreateDeliveryModal.tsx` : Même logique appliquée
 - Reset automatique formulaire quand admin change de magasin
 
-### 2. Invalidation Cache Renforcée (✅ FAIT)
+### 2. Solution Cache Hybride (✅ FAIT)
 ```javascript
-// Avant : Une seule clé de cache
+// CHANGEMENT MAGASIN : Invalidation sélective
 queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
 
-// Après : Toutes les clés possibles
-queryClient.invalidateQueries({ queryKey: [ordersUrl, selectedStoreId] });
-queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedStoreId] });
-queryClient.refetchQueries({ queryKey: ['/api/orders', selectedStoreId] });
+// SUPPRESSION/CRÉATION : Solution radicale
+queryClient.clear() + window.location.reload()
 ```
 
 ### 3. Logs Diagnostics (✅ FAIT)
 - Calendar.tsx : Logs URL et paramètres API
 - Orders.tsx : Logs invalidation cache
 - Modaux : Logs sélection magasin
+
+### 4. Solution Hybride (✅ NOUVEAU)
+- **Changement magasin** : Invalidation douce (sélecteur fonctionne)
+- **Suppression/création** : Nettoyage radical (cohérence garantie)
 
 ## 🧪 Tests à Effectuer
 

@@ -119,10 +119,10 @@ export default function Orders() {
       // SOLUTION RADICALE : Vider complètement le cache pour éviter les incohérences
       queryClient.clear();
       
-      // Force un reload immédiat des données
+      // Force un reload pour garantir la cohérence en production
       setTimeout(() => {
         window.location.reload();
-      }, 500);
+      }, 100);
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

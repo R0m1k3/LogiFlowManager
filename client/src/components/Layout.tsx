@@ -1,5 +1,5 @@
 import { ReactNode, useState, createContext, useContext } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { LogOut, Store } from "lucide-react";
@@ -29,6 +29,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { user } = useAuthUnified();
+  const queryClient = useQueryClient();
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
 
   const { data: stores = [] } = useQuery<Group[]>({
@@ -61,9 +62,11 @@ export default function Layout({ children }: LayoutProps) {
                     console.log('🏪 Store selector changed:', { value, parsed: value === "all" ? null : parseInt(value) });
                     const newStoreId = value === "all" ? null : parseInt(value);
                     
-                    // Force un nettoyage complet du cache quand on change de magasin
-                    console.log('🧹 Clearing all cache for store change');
-                    queryClient.clear();
+                    // Invalider seulement les caches de données critiques
+                    console.log('🧹 Invalidating data caches for store change');
+                    queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
                     
                     setSelectedStoreId(newStoreId);
                   }}
