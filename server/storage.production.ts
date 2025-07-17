@@ -2279,6 +2279,15 @@ export class DatabaseStorage implements IStorage {
   async createDlcProduct(dlcProductData: InsertDlcProduct): Promise<DlcProduct> {
     try {
       console.log('📨 Creating DLC product with data:', dlcProductData);
+      console.log('📨 DLC data.name:', dlcProductData.name);
+      console.log('📨 DLC data.productCode:', dlcProductData.productCode);
+      console.log('📨 DLC data.dlcDate:', dlcProductData.dlcDate);
+      
+      // Ensure name is not null
+      const productName = dlcProductData.name || 'Produit DLC';
+      const productCode = dlcProductData.productCode || '';
+      
+      console.log('📨 Using productName:', productName);
       
       const result = await pool.query(`
         INSERT INTO dlc_products (
@@ -2290,22 +2299,22 @@ export class DatabaseStorage implements IStorage {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), $12, $13, $14, $15, $16)
         RETURNING *
       `, [
-        dlcProductData.name,                              // name (nouveau)
-        dlcProductData.name,                              // product_name (ancien, NOT NULL)
-        dlcProductData.productCode || '',                 // product_code
+        productName,                                     // name (nouveau)
+        productName,                                     // product_name (ancien, NOT NULL)
+        productCode,                                     // product_code
         dlcProductData.dlcDate,                          // dlc_date (nouveau)
         dlcProductData.dlcDate,                          // expiry_date (ancien, NOT NULL)
         dlcProductData.quantity,                         // quantity
         dlcProductData.status || 'en_attente',           // status
         dlcProductData.groupId,                          // group_id
         dlcProductData.supplierId,                       // supplier_id
-        dlcProductData.description,                      // description
+        dlcProductData.description || '',                // description
         dlcProductData.createdBy,                        // created_by
         'DLC',                                           // date_type (NOT NULL)
         'unité',                                         // unit (NOT NULL)
         'Magasin',                                       // location (NOT NULL)
         15,                                              // alert_threshold (NOT NULL)
-        dlcProductData.description                       // notes
+        dlcProductData.description || ''                 // notes
       ]);
 
       const row = result.rows[0];
