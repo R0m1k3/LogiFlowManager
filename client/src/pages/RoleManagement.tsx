@@ -37,9 +37,7 @@ export default function RoleManagement() {
   const [selectedRole, setSelectedRole] = useState<RoleWithPermissions | null>(null);
   const [createRoleOpen, setCreateRoleOpen] = useState(false);
   const [editRoleOpen, setEditRoleOpen] = useState(false);
-  const [editUserRolesOpen, setEditUserRolesOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
-  const [selectedRoleForUser, setSelectedRoleForUser] = useState<number | null>(null);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -61,24 +59,16 @@ export default function RoleManagement() {
     refetchOnMount: true,
   });
 
-  // Fetch users 
-  const { data: usersData = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery<UserWithRoles[]>({
-    queryKey: ['/api/users'],
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: true,
-  });
+
 
   // Protection Array.isArray et logs debug RENFORCÉS
   const roles = Array.isArray(rolesData) ? rolesData : [];
   const permissions = Array.isArray(permissionsData) ? permissionsData : [];
-  const users = Array.isArray(usersData) ? usersData : [];
 
 
 
   console.log("📊 RoleManagement Data:", {
     roles: roles.length,
-    users: users.length,
     permissions: permissions.length
   });
 
@@ -193,50 +183,7 @@ export default function RoleManagement() {
     },
   });
 
-  // Update user roles mutation
-  const updateUserRolesMutation = useMutation({
-    mutationFn: async (data: { userId: string; roleIds: number[] }) => {
-      console.log("🚀 Mutation started:", data);
-      try {
-        const result = await apiRequest(`/api/users/${data.userId}/roles`, 'POST', { roleIds: data.roleIds });
-        console.log("🚀 Mutation result:", result);
-        return result;
-      } catch (error) {
-        console.error("🚨 Mutation error:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data, variables) => {
-      console.log("✅ User role updated successfully");
-      
-      // Force refresh all related data INCLUDING user roles display
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
-      
-      // Force immediate refetch to update UI
-      queryClient.refetchQueries({ queryKey: ['/api/users'] });
-      queryClient.refetchQueries({ queryKey: ['/api/roles'] });
-      
-      // Also refresh any permission-related queries
-      queryClient.refetchQueries({ queryKey: ['/api/permissions'] });
-      
-      // Close modal and reset
-      setEditUserRolesOpen(false);
-      setSelectedUser(null);
-      setSelectedRoleForUser(null);
-      
-      toast({ title: "Rôle utilisateur mis à jour avec succès" });
-    },
-    onError: (error) => {
-      console.error("❌ User role mutation error:", error);
-      toast({ 
-        title: "Erreur lors de la mise à jour du rôle utilisateur", 
-        description: error.message || 'Erreur inconnue', 
-        variant: "destructive" 
-      });
-    },
-  });
+
 
   const handleCreateRole = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -285,35 +232,7 @@ export default function RoleManagement() {
     });
   };
 
-  const handleUserRolesUpdate = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    
-    if (!selectedUser || selectedRoleForUser === null) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner un utilisateur et un rôle",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Validation: vérifier que le rôle est valide
-    // Accepter les IDs de production existants (2,3,4,6) en plus des IDs standards (1,2,3,4)
-    const validRoleIds = [1, 2, 3, 4, 6]; // IDs acceptés
-    if (!validRoleIds.includes(selectedRoleForUser)) {
-      toast({
-        title: "Rôle invalide",
-        description: "Le rôle sélectionné n'est pas valide",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    updateUserRolesMutation.mutate({
-      userId: selectedUser.id,
-      roleIds: [selectedRoleForUser],
-    });
-  };
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -364,10 +283,6 @@ export default function RoleManagement() {
           <TabsTrigger value="roles">
             <Shield className="w-4 h-4 mr-2" />
             Rôles
-          </TabsTrigger>
-          <TabsTrigger value="users">
-            <Users className="w-4 h-4 mr-2" />
-            Utilisateurs
           </TabsTrigger>
           <TabsTrigger value="permissions">
             <Settings className="w-4 h-4 mr-2" />
@@ -528,67 +443,7 @@ export default function RoleManagement() {
           </div>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des Rôles Utilisateurs</CardTitle>
-              <CardDescription>Attribuez des rôles aux utilisateurs</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Array.isArray(users) && users.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{user.name || user.username}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant="outline"
-                        style={{
-                          backgroundColor: user.userRoles?.[0]?.role ? getRoleColor(user.userRoles[0].role.name) : '#f3f4f6',
-                          color: '#374151',
-                          borderColor: user.userRoles?.[0]?.role ? getRoleColor(user.userRoles[0].role.name) : '#d1d5db'
-                        }}
-                        onClick={() => {
-                          console.log("🎨 Badge Color Debug:", {
-                            userId: user.id,
-                            userName: user.name,
-                            userRoles: user.userRoles,
-                            roleColor: user.userRoles?.[0]?.role?.color,
-                            roleDisplayName: user.userRoles?.[0]?.role?.displayName,
-                            roleId: user.userRoles?.[0]?.roleId
-                          });
-                        }}
-                      >
-                        {user.userRoles?.[0]?.role?.displayName || user.role}
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedUser(user as UserWithRoles);
-                          
-                          // Pré-sélectionner le rôle actuel de l'utilisateur
-                          const currentRoleId = user.userRoles?.[0]?.roleId;
-                          // Accepter les IDs de production existants (2,3,4,6) 
-                          const validRoleIds = [1, 2, 3, 4, 6];
-                          const validRoleId = validRoleIds.includes(currentRoleId) ? currentRoleId : 3;
-                          setSelectedRoleForUser(validRoleId);
-                          
-                          setEditUserRolesOpen(true);
-                        }}
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Modifier Rôles
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
 
         <TabsContent value="permissions" className="space-y-4">
           <Card>
@@ -681,79 +536,7 @@ export default function RoleManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit User Roles Dialog */}
-      <Dialog open={editUserRolesOpen} onOpenChange={setEditUserRolesOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Modifier le Rôle Utilisateur</DialogTitle>
-            <DialogDescription>
-              Attribuez un rôle à {selectedUser?.name || selectedUser?.username}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedUser && (
-            <form onSubmit={handleUserRolesUpdate} className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Sélectionnez un rôle :</p>
-                <p className="text-xs text-muted-foreground">
-                  Rôle actuel : {selectedUser.userRoles?.[0]?.role?.displayName || selectedUser.role}
-                </p>
-                {Array.isArray(roles) && roles.map((role) => {
-                  const isCurrentRole = selectedUser.userRoles?.[0]?.roleId === role.id;
-                  return (
-                    <div key={role.id} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id={`user-role-${role.id}`}
-                        name="selectedRole"
-                        value={role.id}
-                        checked={selectedRoleForUser === role.id}
-                        onChange={() => {
-                          setSelectedRoleForUser(role.id);
-                        }}
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                      />
-                      <label
-                        htmlFor={`user-role-${role.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
-                      >
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: getRoleColor(role.name) }}
-                        />
-                        {role.displayName}
-                        {isCurrentRole && <span className="text-xs text-green-600">(actuel)</span>}
-                      </label>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex justify-between">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    console.log("🔧 Cancel button clicked");
-                    setEditUserRolesOpen(false);
-                    setSelectedUser(null);
-                    setSelectedRoleForUser(null);
-                  }}
-                >
-                  Annuler
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={updateUserRolesMutation.isPending || selectedRoleForUser === null}
-                  onClick={(e) => {
-                    console.log("🔧 Submit button clicked", { selectedRoleForUser, isPending: updateUserRolesMutation.isPending });
-                  }}
-                >
-                  {updateUserRolesMutation.isPending ? 'Mise à jour...' : 'Mettre à jour'}
-                </Button>
-              </div>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
