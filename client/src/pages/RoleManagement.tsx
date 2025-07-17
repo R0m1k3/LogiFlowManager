@@ -55,8 +55,10 @@ export default function RoleManagement() {
   const { data: permissionsData = [], isLoading: permissionsLoading, refetch: refetchPermissions } = useQuery<Permission[]>({
     queryKey: ['/api/permissions'],
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: false
   });
 
 
@@ -71,6 +73,10 @@ export default function RoleManagement() {
     roles: roles.length,
     permissions: permissions.length
   });
+
+  console.log("🔍 Permissions by Category Debug:", Object.keys(permissionsByCategory));
+  console.log("🔍 Has gestion_dlc:", permissionsByCategory['gestion_dlc'] ? permissionsByCategory['gestion_dlc'].length : 'NOT FOUND');
+  console.log("🔍 Full permissions sample:", permissions.slice(0, 3));
 
   // Debug des couleurs spécifiquement
   console.log("🎨 Colors Debug:", roles.map(role => ({
