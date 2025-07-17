@@ -403,16 +403,7 @@ export default function DlcPage() {
           <h1 className="text-3xl font-bold">Gestion DLC</h1>
           <p className="text-muted-foreground">Gestion des dates limites de consommation</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={printExpiringSoon}>
-            <FileText className="w-4 h-4 mr-2" />
-            Imprimer expire bientôt
-          </Button>
-          <Button variant="outline" onClick={printExpired}>
-            <FileText className="w-4 h-4 mr-2" />
-            Imprimer expirés
-          </Button>
-        </div>
+
       </div>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -620,7 +611,17 @@ export default function DlcPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Expire Bientôt</CardTitle>
-            <Clock className="h-4 w-4 text-orange-600" />
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-orange-600" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={printExpiringSoon}
+                className="h-6 w-6 p-0 hover:bg-orange-100"
+              >
+                <FileText className="h-3 w-3 text-orange-600" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.expiringSoon}</div>
@@ -630,7 +631,17 @@ export default function DlcPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Expirés</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-600" />
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={printExpired}
+                className="h-6 w-6 p-0 hover:bg-red-100"
+              >
+                <FileText className="h-3 w-3 text-red-600" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{stats.expired}</div>
