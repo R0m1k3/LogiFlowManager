@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { LogOut, Store } from "lucide-react";
-import { useAuthSimple } from "@/hooks/useAuthSimple";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import Sidebar from "./Sidebar";
 import type { Group } from "@shared/schema";
 
@@ -28,7 +28,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { user } = useAuthSimple();
+  const { user } = useAuthUnified();
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
 
   const { data: stores = [] } = useQuery<Group[]>({
@@ -57,7 +57,10 @@ export default function Layout({ children }: LayoutProps) {
                 <Store className="h-4 w-4 text-gray-500" />
                 <Select
                   value={selectedStoreId?.toString() || "all"}
-                  onValueChange={(value) => setSelectedStoreId(value === "all" ? null : parseInt(value))}
+                  onValueChange={(value) => {
+                    console.log('🏪 Store selector changed:', { value, parsed: value === "all" ? null : parseInt(value) });
+                    setSelectedStoreId(value === "all" ? null : parseInt(value));
+                  }}
                 >
                   <SelectTrigger className="w-64 border border-gray-300">
                     <SelectValue placeholder="Sélectionner un magasin" />
