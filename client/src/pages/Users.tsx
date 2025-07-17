@@ -40,6 +40,8 @@ export default function UsersPage() {
   const [userGroups, setUserGroups] = useState<number[]>([]);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedUserForRole, setSelectedUserForRole] = useState<UserWithGroups | null>(null);
+  const [showRoleConfirmModal, setShowRoleConfirmModal] = useState(false);
+  const [pendingRoleChange, setPendingRoleChange] = useState<{userId: string, newRoleName: string, newRoleDisplay: string} | null>(null);
   
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -524,9 +526,30 @@ export default function UsersPage() {
       return;
     }
 
-    if (window.confirm("Êtes-vous sûr de vouloir modifier le rôle de cet utilisateur ?")) {
-      updateUserRoleMutation.mutate({ userId, roleId: role.id });
+    // Préparer la confirmation et ouvrir le modal
+    setPendingRoleChange({
+      userId,
+      newRoleName,
+      newRoleDisplay: role.displayName || role.name
+    });
+    setShowRoleConfirmModal(true);
+  }
+
+  const confirmRoleChange = () => {
+    if (!pendingRoleChange) return;
+    
+    const role = safeRoles.find(r => r.name === pendingRoleChange.newRoleName);
+    if (role) {
+      updateUserRoleMutation.mutate({ userId: pendingRoleChange.userId, roleId: role.id });
     }
+    
+    setShowRoleConfirmModal(false);
+    setPendingRoleChange(null);
+  }
+
+  const cancelRoleChange = () => {
+    setShowRoleConfirmModal(false);
+    setPendingRoleChange(null);
   }
 
   // Gestion des rôles centralisée dans Administration > Gestion des Rôles
@@ -1152,6 +1175,58 @@ export default function UsersPage() {
                 </Button>
               </div>
 
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Role Change Confirmation Modal */}
+      {showRoleConfirmModal && pendingRoleChange && (
+        <Dialog open={showRoleConfirmModal} onOpenChange={cancelRoleChange}>
+          <DialogContent className="sm:max-w-md" aria-describedby="role-change-modal-description">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-medium flex items-center">
+                <Shield className="w-5 h-5 mr-2 text-orange-500" />
+                Confirmer le changement de rôle
+              </DialogTitle>
+              <p id="role-change-modal-description" className="text-sm text-gray-600 mt-2">
+                Cette action modifiera les permissions de l'utilisateur dans l'application.
+              </p>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center mb-2">
+                  <Shield className="w-4 h-4 mr-2 text-orange-600" />
+                  <span className="text-sm font-medium text-orange-800">Attention</span>
+                </div>
+                <p className="text-sm text-orange-700">
+                  Vous êtes sur le point de changer le rôle de cet utilisateur vers{" "}
+                  <span className="font-semibold">{pendingRoleChange.newRoleDisplay}</span>.
+                  Cette action prendra effet immédiatement.
+                </p>
+              </div>
+              
+              <p className="text-sm text-gray-600 mb-4">
+                Êtes-vous sûr de vouloir continuer ?
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={cancelRoleChange}
+                disabled={updateUserRoleMutation.isPending}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={confirmRoleChange}
+                disabled={updateUserRoleMutation.isPending}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                {updateUserRoleMutation.isPending ? "Modification..." : "Confirmer"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
