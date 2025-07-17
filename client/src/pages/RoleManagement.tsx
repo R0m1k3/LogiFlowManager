@@ -327,7 +327,8 @@ export default function RoleManagement() {
                 ) : (
                   <div className="space-y-2">
                     {roles.map((role) => {
-                      const roleColor = getRoleColor(role.name);
+                      // Utiliser la couleur de la base de données, avec fallback sur getRoleColor
+                      const roleColor = role.color || getRoleColor(role.name);
                       return (
                         <div
                           key={role.id}
