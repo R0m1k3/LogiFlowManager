@@ -28,7 +28,9 @@ import type {
   CustomerOrder,
   InsertCustomerOrder,
   DlcProduct,
-  InsertDlcProduct
+  InsertDlcProduct,
+  DlcProductFrontend,
+  InsertDlcProductFrontend
 } from "../shared/schema";
 
 // Production storage implementation using raw PostgreSQL queries
@@ -2338,7 +2340,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createDlcProduct(dlcProductData: InsertDlcProduct): Promise<DlcProduct> {
+  async createDlcProduct(dlcProductData: InsertDlcProductFrontend): Promise<DlcProductFrontend> {
     try {
       console.log('📨 Creating DLC product with data:', JSON.stringify(dlcProductData, null, 2));
       console.log('📨 DLC data.name:', dlcProductData.name);
@@ -2416,7 +2418,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateDlcProduct(id: number, dlcProductData: Partial<InsertDlcProduct>): Promise<DlcProduct> {
+  async updateDlcProduct(id: number, dlcProductData: Partial<InsertDlcProductFrontend>): Promise<DlcProductFrontend> {
     try {
       const fields: string[] = [];
       const params: any[] = [];
@@ -2506,7 +2508,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async validateDlcProduct(id: number, validatedBy: string): Promise<DlcProduct> {
+  async validateDlcProduct(id: number, validatedBy: string): Promise<DlcProductFrontend> {
     try {
       const result = await pool.query(`
         UPDATE dlc_products 

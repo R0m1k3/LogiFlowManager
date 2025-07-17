@@ -51,6 +51,8 @@ import {
   type CustomerOrderWithRelations,
   type DlcProduct,
   type InsertDlcProduct,
+  type DlcProductFrontend,
+  type InsertDlcProductFrontend,
   type DlcProductWithRelations,
 } from "@shared/schema";
 import { db } from "./db";
@@ -145,10 +147,10 @@ export interface IStorage {
   // DLC Product operations
   getDlcProducts(groupIds?: number[], filters?: { status?: string; supplierId?: number; }): Promise<DlcProductWithRelations[]>;
   getDlcProduct(id: number): Promise<DlcProductWithRelations | undefined>;
-  createDlcProduct(dlcProduct: InsertDlcProduct): Promise<DlcProduct>;
-  updateDlcProduct(id: number, dlcProduct: Partial<InsertDlcProduct>): Promise<DlcProduct>;
+  createDlcProduct(dlcProduct: InsertDlcProductFrontend): Promise<DlcProductFrontend>;
+  updateDlcProduct(id: number, dlcProduct: Partial<InsertDlcProductFrontend>): Promise<DlcProductFrontend>;
   deleteDlcProduct(id: number): Promise<void>;
-  validateDlcProduct(id: number, validatedBy: string): Promise<DlcProduct>;
+  validateDlcProduct(id: number, validatedBy: string): Promise<DlcProductFrontend>;
   getDlcStats(groupIds?: number[]): Promise<{ active: number; expiringSoon: number; expired: number; }>;
 
   // Role management operations
@@ -1117,7 +1119,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id as number,
         productName: row.product_name as string,
         gencode: row.gencode as string | null,
-        expiryDate: row.expiry_date as Date,
+        dlcDate: row.expiry_date as Date,
         dateType: row.date_type as string,
         quantity: row.quantity as number,
         unit: row.unit as string,
@@ -1198,7 +1200,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id as number,
         productName: row.product_name as string,
         gencode: row.gencode as string | null,
-        expiryDate: row.expiry_date as Date,
+        dlcDate: row.expiry_date as Date,
         dateType: row.date_type as string,
         quantity: row.quantity as number,
         unit: row.unit as string,
@@ -1253,35 +1255,55 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createDlcProduct(dlcProductData: InsertDlcProduct): Promise<DlcProduct> {
+  async createDlcProduct(dlcProductData: InsertDlcProductFrontend): Promise<DlcProductFrontend> {
+    // Convert dlcDate to expiryDate for Drizzle schema compatibility
+    const { dlcDate, ...restData } = dlcProductData as any;
     const [dlcProduct] = await db
       .insert(dlcProducts)
       .values({
-        ...dlcProductData,
+        ...restData,
+        expiryDate: dlcDate,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
-    return dlcProduct;
+    
+    // Return with dlcDate field for frontend compatibility
+    return {
+      ...dlcProduct,
+      dlcDate: dlcProduct.expiryDate,
+    } as any;
   }
 
-  async updateDlcProduct(id: number, dlcProductData: Partial<InsertDlcProduct>): Promise<DlcProduct> {
+  async updateDlcProduct(id: number, dlcProductData: Partial<InsertDlcProductFrontend>): Promise<DlcProductFrontend> {
+    // Convert dlcDate to expiryDate for Drizzle schema compatibility
+    const { dlcDate, ...restData } = dlcProductData as any;
+    const updateData = { ...restData };
+    if (dlcDate) {
+      updateData.expiryDate = dlcDate;
+    }
+    
     const [dlcProduct] = await db
       .update(dlcProducts)
       .set({
-        ...dlcProductData,
+        ...updateData,
         updatedAt: new Date(),
       })
       .where(eq(dlcProducts.id, id))
       .returning();
-    return dlcProduct;
+    
+    // Return with dlcDate field for frontend compatibility
+    return {
+      ...dlcProduct,
+      dlcDate: dlcProduct.expiryDate,
+    } as any;
   }
 
   async deleteDlcProduct(id: number): Promise<void> {
     await db.delete(dlcProducts).where(eq(dlcProducts.id, id));
   }
 
-  async validateDlcProduct(id: number, validatedBy: string): Promise<DlcProduct> {
+  async validateDlcProduct(id: number, validatedBy: string): Promise<DlcProductFrontend> {
     const [dlcProduct] = await db
       .update(dlcProducts)
       .set({
@@ -1292,7 +1314,12 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(dlcProducts.id, id))
       .returning();
-    return dlcProduct;
+    
+    // Return with dlcDate field for frontend compatibility
+    return {
+      ...dlcProduct,
+      dlcDate: dlcProduct.expiryDate,
+    } as any;
   }
 
   async getDlcStats(groupIds?: number[]): Promise<{ active: number; expiringSoon: number; expired: number; }> {

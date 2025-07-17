@@ -593,7 +593,16 @@ export type UserWithRole = User & {
 export type DlcProduct = typeof dlcProducts.$inferSelect;
 export type InsertDlcProduct = z.infer<typeof insertDlcProductSchema>;
 
-export type DlcProductWithRelations = DlcProduct & {
+// Frontend-compatible types with dlcDate field
+export type DlcProductFrontend = Omit<DlcProduct, 'expiryDate'> & {
+  dlcDate: Date;
+};
+
+export type InsertDlcProductFrontend = Omit<InsertDlcProduct, 'expiryDate'> & {
+  dlcDate: Date;
+};
+
+export type DlcProductWithRelations = DlcProductFrontend & {
   supplier: Supplier;
   group: Group;
   creator: User;

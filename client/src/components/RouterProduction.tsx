@@ -74,7 +74,7 @@ function RouterProduction() {
         <Route path="/customer-orders" component={CustomerOrders} />
         <Route path="/dlc" component={DlcPage} />
         <Route path="/nocodb-config" component={NocoDBConfig} />
-        <Route path="/" component={Calendar} />
+        <Route path="/" component={Dashboard} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
