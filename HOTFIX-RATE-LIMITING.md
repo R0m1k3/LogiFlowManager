@@ -1,61 +1,65 @@
-# 🚨 CORRECTIF URGENT - Limitation de requêtes résolue
+# 🚨 HOTFIX - Accès aux logs de debug en production
 
-## Problème identifié
-L'erreur "Trop de requêtes depuis cette IP, veuillez réessayer plus tard" était causée par :
-- Configuration React Query avec `staleTime: 0` forçant des requêtes constantes  
-- Limite API production trop restrictive (100 req/min)
-- Appels d'authentification trop fréquents
+## Système de debug activé
 
-## ✅ Corrections appliquées
+✅ **Logs détaillés ajoutés** dans `server/routes.production.ts` pour :
+- Route POST /api/groups 
+- Route POST /api/suppliers
 
-### 1. Optimisation React Query (`client/src/lib/queryClient.ts`)
-```js
-// AVANT: staleTime: 0 (pas de cache)
-// APRÈS: staleTime: 2 * 60 * 1000 (2 minutes de cache)
-```
+## Comment voir les logs en production
 
-### 2. Authentification optimisée (`client/src/hooks/useAuthUnified.ts`)  
-```js
-// AVANT: staleTime: 5 * 60 * 1000 (5 minutes)
-// APRÈS: staleTime: 10 * 60 * 1000 (10 minutes)
-```
-
-### 3. Limites production ajustées (`server/security.ts`)
-```js
-// AVANT: max: 100 requêtes/minute en production
-// APRÈS: max: 300 requêtes/minute en production
-// + Exclusion route /api/user du rate limiting strict
-```
-
-### 4. Logs de débogage ajoutés
-- Alerte automatique quand les limites sont atteintes
-- Timestamp et chemin de la requête bloquée
-
-## 🚀 Déploiement production
-
-Pour appliquer ces corrections en production :
-
-1. **Rebuild Docker** :
+### 1. Via Docker logs
 ```bash
-docker-compose down
-docker-compose up -d --build
+# Logs en temps réel
+docker logs -f logiflow-app
+
+# Logs des dernières 100 lignes
+docker logs --tail 100 logiflow-app
+
+# Logs avec timestamp
+docker logs -t logiflow-app
 ```
 
-2. **Vérification** :
-```bash
-# Tester l'API
-curl -I http://votre-domaine:3000/api/user
+### 2. Via Portainer (si utilisé)
+1. Aller dans Containers > logiflow-app
+2. Cliquer sur "Logs"
+3. Activer "Auto-refresh" pour voir en temps réel
 
-# Vérifier les logs
-docker-compose logs -f logiflow-app
+### 3. Logs à surveiller
+
+Quand vous créez un groupe, vous devriez voir :
+```
+🏪 POST /api/groups - Raw request received
+📨 Request headers: {"content-type":"application/json",...}
+📋 Request body type: object
+📋 Request body content: {"name":"Test","color":"#FF5722"}
+📋 Request body keys: ["name","color"]
+🔐 User requesting group creation: admin_local
+✅ User has permission to create group: admin
+✅ Group data validation passed: {...}
+🏪 Creating group with data: {...}
+✅ Group created successfully: {...}
 ```
 
-## 📊 Impact attendu
+**OU en cas d'erreur :**
+```
+❌ Error creating group: [détails de l'erreur]
+📊 Full error details: {...}
+```
 
-- **Réduction 80%** des appels API grâce au cache
-- **Capacité triplée** : 300 au lieu de 100 req/min  
-- **Performance améliorée** : moins de rechargements inutiles
-- **Expérience utilisateur** : plus de blocages par rate limiting
+## Test immédiat
 
----
-*Correctif appliqué le 16 juillet 2025 - LogiFlow v1.2*
+1. **Ouvrir les logs** : `docker logs -f logiflow-app`
+2. **Dans l'interface** : Aller sur Groupes/Magasins > Créer un nouveau groupe
+3. **Remplir** : Nom="Test Debug", Couleur="#FF5722"
+4. **Valider** et observer les logs en temps réel
+
+Les logs vont révéler exactement où le problème se situe :
+- Problème de parsing du body (express.json)
+- Problème de validation Zod  
+- Problème de base de données PostgreSQL
+- Problème d'authentification/permissions
+
+## Résolution attendue
+
+Une fois les logs visibles, nous pourrons identifier et corriger immédiatement le problème exact.
