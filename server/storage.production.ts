@@ -2282,19 +2282,24 @@ export class DatabaseStorage implements IStorage {
       console.log('📨 DLC data.name:', dlcProductData.name);
       console.log('📨 DLC data.productCode:', dlcProductData.productCode);
       console.log('📨 DLC data.dlcDate:', dlcProductData.dlcDate);
+      console.log('📨 DLC data.expiryDate:', (dlcProductData as any).expiryDate);
       
-      // Vérifier que dlcDate n'est pas null/undefined
-      if (!dlcProductData.dlcDate) {
-        console.error('❌ dlcDate is missing or null! Received:', dlcProductData.dlcDate);
+      // Support à la fois dlcDate et expiryDate pour compatibilité
+      const finalExpiryDate = dlcProductData.dlcDate || (dlcProductData as any).expiryDate;
+      const finalProductName = dlcProductData.name || (dlcProductData as any).productName || 'Produit DLC';
+      const finalProductCode = dlcProductData.productCode || (dlcProductData as any).gencode || '';
+      
+      console.log('📨 Using finalExpiryDate:', finalExpiryDate);
+      console.log('📨 Using finalProductName:', finalProductName);
+      
+      // Vérifier que la date d'expiration n'est pas null/undefined
+      if (!finalExpiryDate) {
+        console.error('❌ Expiry date is missing! dlcDate:', dlcProductData.dlcDate, 'expiryDate:', (dlcProductData as any).expiryDate);
         console.error('❌ Full data received:', dlcProductData);
-        throw new Error('dlcDate is required but was null or undefined');
+        throw new Error('Expiry date is required but was null or undefined');
       }
       
-      // Ensure name is not null
-      const productName = dlcProductData.name || 'Produit DLC';
-      const productCode = dlcProductData.productCode || '';
-      
-      console.log('📨 Using productName:', productName);
+      console.log('📨 Using productName:', finalProductName);
       
       const result = await pool.query(`
         INSERT INTO dlc_products (
@@ -2306,11 +2311,11 @@ export class DatabaseStorage implements IStorage {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), $12, $13, $14, $15, $16)
         RETURNING *
       `, [
-        productName,                                     // name (nouveau)
-        productName,                                     // product_name (ancien, NOT NULL)
-        productCode,                                     // product_code
-        dlcProductData.dlcDate,                          // dlc_date (nouveau)
-        dlcProductData.dlcDate,                          // expiry_date (ancien, NOT NULL)
+        finalProductName,                                // name (nouveau)
+        finalProductName,                                // product_name (ancien, NOT NULL)
+        finalProductCode,                                // product_code
+        finalExpiryDate,                                 // dlc_date (nouveau)
+        finalExpiryDate,                                 // expiry_date (ancien, NOT NULL)
         dlcProductData.quantity,                         // quantity
         dlcProductData.status || 'en_attente',           // status
         dlcProductData.groupId,                          // group_id
