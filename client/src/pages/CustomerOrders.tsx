@@ -38,9 +38,11 @@ import type { CustomerOrderWithRelations, Group } from "@shared/schema";
 import { CustomerOrderForm } from "@/components/CustomerOrderForm";
 import { CustomerOrderDetails } from "@/components/CustomerOrderDetails";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
+import { useStore } from "@/components/Layout";
 
 export default function CustomerOrders() {
   const { user } = useAuthUnified();
+  const { selectedStoreId } = useStore();
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -64,18 +66,19 @@ export default function CustomerOrders() {
     queryKey: ['/api/suppliers'],
   });
 
-  // Fetch customer orders (no store filtering needed)
+  // Fetch customer orders with store filtering for admins
+  const customerOrdersUrl = `/api/customer-orders${selectedStoreId && user?.role === 'admin' ? `?storeId=${selectedStoreId}` : ''}`;
   const { data: customerOrders = [], isLoading } = useQuery<CustomerOrderWithRelations[]>({
-    queryKey: ['/api/customer-orders'],
+    queryKey: [customerOrdersUrl, selectedStoreId],
   });
 
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: any) => apiRequest('/api/customer-orders', 'POST', data),
     onSuccess: () => {
-      // Force refresh of the query
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
-      queryClient.refetchQueries({ queryKey: ['/api/customer-orders'] });
+      // Force refresh of the query with store context
+      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0]?.toString().includes('/api/customer-orders') });
+      queryClient.refetchQueries({ predicate: (query) => query.queryKey[0]?.toString().includes('/api/customer-orders') });
       setShowCreateModal(false);
       toast({
         title: "Succès",
@@ -96,7 +99,7 @@ export default function CustomerOrders() {
     mutationFn: ({ id, data }: { id: number; data: any }) =>
       apiRequest(`/api/customer-orders/${id}`, 'PUT', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
+      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0]?.toString().includes('/api/customer-orders') });
       setShowEditModal(false);
       setSelectedOrder(null);
       toast({
@@ -117,7 +120,7 @@ export default function CustomerOrders() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiRequest(`/api/customer-orders/${id}`, 'DELETE'),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
+      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0]?.toString().includes('/api/customer-orders') });
       setShowDeleteModal(false);
       setSelectedOrder(null);
       toast({
@@ -139,7 +142,7 @@ export default function CustomerOrders() {
     mutationFn: ({ id, status }: { id: number; status: string }) =>
       apiRequest(`/api/customer-orders/${id}`, 'PUT', { status }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
+      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0]?.toString().includes('/api/customer-orders') });
       toast({
         title: "Succès",
         description: "Statut de la commande mis à jour",
@@ -152,7 +155,7 @@ export default function CustomerOrders() {
     mutationFn: ({ id, customerNotified }: { id: number; customerNotified: boolean }) =>
       apiRequest(`/api/customer-orders/${id}`, 'PUT', { customerNotified }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-orders'] });
+      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0]?.toString().includes('/api/customer-orders') });
       toast({
         title: "Succès",
         description: "Statut de notification mis à jour",

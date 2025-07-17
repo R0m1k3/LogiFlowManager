@@ -1442,11 +1442,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // All users see only their assigned stores
-      const groupIds = user.userGroups.map(ug => ug.groupId);
+      const { storeId } = req.query;
+      
+      // Determine which groups to show
+      let groupIds;
+      if (user.role === 'admin' && storeId) {
+        // Admin filtering by specific store
+        groupIds = [parseInt(storeId.toString())];
+        console.log("Customer orders - Admin filtering by store:", { storeId, groupIds });
+      } else if (user.role === 'admin') {
+        // Admin viewing all stores - get all groups
+        const allGroups = await storage.getGroups();
+        groupIds = allGroups.map(g => g.id);
+        console.log("Customer orders - Admin viewing all stores:", { groupCount: groupIds.length });
+      } else {
+        // Non-admin users see only their assigned stores
+        groupIds = user.userGroups.map(ug => ug.groupId);
+        console.log("Customer orders - User assigned stores:", { groupIds });
+      }
 
       const customerOrders = await storage.getCustomerOrders(groupIds);
-      console.log("Customer orders returned from storage:", customerOrders, "Type:", typeof customerOrders, "Is Array:", Array.isArray(customerOrders));
+      console.log("Customer orders returned from storage:", customerOrders?.length || 0, "items");
       res.json(customerOrders || []);
     } catch (error) {
       console.error("Error fetching customer orders:", error);

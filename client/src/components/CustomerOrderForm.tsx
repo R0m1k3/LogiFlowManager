@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { insertCustomerOrderSchema, type CustomerOrderWithRelations, type Group, type Supplier } from "@shared/schema";
+import { useStore } from "@/components/Layout";
 
 const customerOrderFormSchema = insertCustomerOrderSchema.extend({
   deposit: z.string().optional(),
@@ -58,6 +59,7 @@ export function CustomerOrderForm({
   isLoading = false 
 }: CustomerOrderFormProps) {
   const { user } = useAuthUnified();
+  const { selectedStoreId } = useStore();
 
   // Fetch groups for store selection
   const { data: groups = [] } = useQuery<Group[]>({
@@ -84,7 +86,7 @@ export function CustomerOrderForm({
       deposit: order?.deposit ? order.deposit.toString() : "0",
       isPromotionalPrice: order?.isPromotionalPrice || false,
       customerNotified: order?.customerNotified || false,
-      groupId: order?.groupId || (user?.userGroups?.[0]?.groupId) || undefined, // Auto-sélection
+      groupId: order?.groupId || (user?.role === 'admin' && selectedStoreId ? selectedStoreId : user?.userGroups?.[0]?.groupId) || undefined, // Respect admin store selection
     },
   });
 
@@ -99,10 +101,14 @@ export function CustomerOrderForm({
       return;
     }
     
-    // Ensure groupId is set - prioritize admin context for "tous magasins"
+    // Ensure groupId is set - prioritize selectedStoreId for admins
     let groupId = data.groupId;
     if (!groupId) {
-      if (user?.userGroups?.[0]?.groupId) {
+      if (user?.role === 'admin' && selectedStoreId) {
+        // Admin has selected a specific store - use it
+        groupId = selectedStoreId;
+        console.log("🏪 Using admin selected store:", selectedStoreId);
+      } else if (user?.userGroups?.[0]?.groupId) {
         groupId = user.userGroups[0].groupId;
       } else if (user?.role === 'admin' && groups.length > 0) {
         groupId = groups[0].id; // Admin in "tous magasins" mode - use first group
@@ -131,10 +137,14 @@ export function CustomerOrderForm({
     ? groups 
     : user?.userGroups?.map(ug => ug.group) || [];
 
-  // Auto-select group for users
+  // Auto-select group for users respecting admin store selection
   const currentGroupId = form.getValues('groupId');
   if (!currentGroupId) {
-    if (user?.userGroups?.[0]?.groupId) {
+    if (user?.role === 'admin' && selectedStoreId) {
+      // Admin has selected a specific store - use it
+      form.setValue('groupId', selectedStoreId);
+      console.log("🏪 Auto-selecting admin store:", selectedStoreId);
+    } else if (user?.userGroups?.[0]?.groupId) {
       // User has assigned groups - use first one
       form.setValue('groupId', user.userGroups[0].groupId);
     } else if (user?.role === 'admin' && groups.length > 0) {
