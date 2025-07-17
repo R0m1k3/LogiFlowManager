@@ -141,7 +141,11 @@ The application uses a sophisticated dual authentication approach:
 - **SCRIPT SQL PRODUCTION CRÉÉ** - Script fix-production-permissions.sql pour corriger displayName des permissions en production (problème spécifique production vs développement)
 - **AUTHENTIFICATION PRODUCTION CORRIGÉE** - Résolu erreurs 401 en production : suppression double import et appel await incorrect dans localAuth.production.ts
 - **DIAGNOSTIC PRODUCTION ACTIVÉ** - Logs détaillés ajoutés pour traquer les problèmes d'authentification et permissions
-- **ROUTES DLC PRODUCTION CORRIGÉES** - Ajout complet des routes DLC manquantes dans routes.production.ts (GET /api/dlc-products, GET /api/dlc-products/stats, POST, PUT, DELETE) - résout les erreurs 404 en productionour identifier différences entre base développement et production
+- **ROUTES DLC PRODUCTION CORRIGÉES** - Ajout complet des routes DLC manquantes dans routes.production.ts (GET /api/dlc-products, GET /api/dlc-products/stats, POST, PUT, DELETE) - résout les erreurs 404 en production
+- **STORAGE ENVIRONNEMENT ADAPTATIF** - Routes utilisent maintenant le storage approprié selon NODE_ENV (développement = Drizzle ORM, production = raw SQL)
+- **MAPPING CHAMPS DLC CORRIGÉ** - Storage production supporte les deux formats : `dlcDate` (nouveau) et `expiryDate` (ancien) pour compatibilité frontend/backend
+- **FORMAT DATE ISO CORRIGÉ** - Toutes les dates du storage production converties en chaînes ISO pour éviter erreur "Invalid time value" dans le frontend
+- **CRÉATION DLC PRODUCTION FONCTIONNELLE** - Résolu problèmes mapping produits DLC en production avec support backward compatibility
 
 ### Production Readiness Status - July 17, 2025
 - **DATABASE MIGRATIONS** ✅ Toutes les migrations automatiques intégrées dans initDatabase.production.ts

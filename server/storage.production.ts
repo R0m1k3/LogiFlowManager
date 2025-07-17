@@ -2219,7 +2219,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id,
         name: row.name || row.product_name,
         productCode: row.product_code || row.gencode,
-        dlcDate: row.dlc_date || row.expiry_date,
+        dlcDate: (row.dlc_date || row.expiry_date)?.toISOString?.() || (row.dlc_date || row.expiry_date),
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
@@ -2227,9 +2227,9 @@ export class DatabaseStorage implements IStorage {
         description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
-        validatedAt: row.validated_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        validatedAt: row.validated_at?.toISOString?.() || row.validated_at,
+        createdAt: row.created_at?.toISOString?.() || row.created_at,
+        updatedAt: row.updated_at?.toISOString?.() || row.updated_at,
         groupName: row.group_name,
         supplierName: row.supplier_name
       }));
@@ -2256,7 +2256,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id,
         name: row.name || row.product_name,
         productCode: row.product_code || row.gencode,
-        dlcDate: row.dlc_date || row.expiry_date,
+        dlcDate: (row.dlc_date || row.expiry_date)?.toISOString?.() || (row.dlc_date || row.expiry_date),
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
@@ -2264,9 +2264,9 @@ export class DatabaseStorage implements IStorage {
         description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
-        validatedAt: row.validated_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        validatedAt: row.validated_at?.toISOString?.() || row.validated_at,
+        createdAt: row.created_at?.toISOString?.() || row.created_at,
+        updatedAt: row.updated_at?.toISOString?.() || row.updated_at,
         groupName: row.group_name,
         supplierName: row.supplier_name
       };
@@ -2336,7 +2336,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id,
         name: row.name || row.product_name,
         productCode: row.product_code || row.gencode,
-        dlcDate: row.dlc_date || row.expiry_date,
+        dlcDate: (row.dlc_date || row.expiry_date)?.toISOString?.() || (row.dlc_date || row.expiry_date),
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
@@ -2344,9 +2344,9 @@ export class DatabaseStorage implements IStorage {
         description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
-        validatedAt: row.validated_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
+        validatedAt: row.validated_at?.toISOString?.() || row.validated_at,
+        createdAt: row.created_at?.toISOString?.() || row.created_at,
+        updatedAt: row.updated_at?.toISOString?.() || row.updated_at
       };
     } catch (error) {
       console.error("❌ Error creating DLC product:", error);
