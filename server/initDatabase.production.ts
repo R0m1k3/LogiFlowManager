@@ -673,10 +673,10 @@ async function initRolesAndPermissionsProduction() {
   try {
     console.log('🎭 Initializing roles and permissions for production...');
     
-    // Check if roles already exist (avoid re-creating)
-    const existingRoles = await pool.query('SELECT COUNT(*) as count FROM roles');
-    if (existingRoles.rows[0].count > 0) {
-      console.log('✅ Roles already exist, skipping role/permission initialization');
+    // Check if DLC permissions already exist (avoid re-creating)
+    const existingDlcPermissions = await pool.query('SELECT COUNT(*) as count FROM permissions WHERE category = $1', ['gestion_dlc']);
+    if (existingDlcPermissions.rows[0].count > 0) {
+      console.log('✅ DLC permissions already exist, skipping role/permission initialization');
       return;
     }
 

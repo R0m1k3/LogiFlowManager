@@ -5,6 +5,7 @@ import { setupSecurityHeaders, setupRateLimiting, setupInputSanitization } from 
 import { setupCompression } from "./cache";
 import { monitor, setupMonitoringEndpoints } from "./monitoring";
 import { initRolesAndPermissions } from "./initRolesAndPermissions";
+import { initDatabase } from "./initDatabase.production";
 
 const app = express();
 
@@ -55,6 +56,14 @@ app.use((req, res, next) => {
   } catch (error) {
     console.error("Failed to initialize roles and permissions:", error);
     // Continue startup even if role initialization fails
+  }
+
+  // Initialize production database and permissions
+  try {
+    await initDatabase();
+  } catch (error) {
+    console.error("Failed to initialize production database:", error);
+    // Continue startup even if production initialization fails
   }
 
   const server = await registerRoutes(app);
