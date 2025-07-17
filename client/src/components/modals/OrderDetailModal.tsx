@@ -69,15 +69,32 @@ export default function OrderDetailModal({
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const endpoint = isOrder ? `/api/orders/${id}` : `/api/deliveries/${id}`;
+      console.log(`🗑️ Deleting ${isOrder ? 'order' : 'delivery'}:`, id);
       await apiRequest(endpoint, "DELETE");
     },
     onSuccess: () => {
+      console.log(`✅ ${isOrder ? 'Order' : 'Delivery'} deleted successfully, clearing cache...`);
       toast({
         title: "Succès",
         description: `${isOrder ? 'Commande' : 'Livraison'} supprimée avec succès`,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      
+      // SOLUTION PRODUCTION : Invalidation intelligente avec predicate
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0]?.toString() || '';
+          return key.includes('/api/orders') || key.includes('/api/deliveries');
+        }
+      });
+      
+      // Force refetch pour production
+      queryClient.refetchQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0]?.toString() || '';
+          return key.includes('/api/orders') || key.includes('/api/deliveries');
+        }
+      });
+      
       onClose();
     },
     onError: (error) => {

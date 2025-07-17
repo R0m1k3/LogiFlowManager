@@ -1,65 +1,60 @@
-# 🚨 HOTFIX - Accès aux logs de debug en production
+# 🚨 HOTFIX PRODUCTION - INVALIDATION CACHE UNIVERSELLE
 
-## Système de debug activé
+## **Problème Identifié**
+Suppression depuis calendrier fonctionne, mais depuis page Orders reste visible en production.
 
-✅ **Logs détaillés ajoutés** dans `server/routes.production.ts` pour :
-- Route POST /api/groups 
-- Route POST /api/suppliers
+**Cause** : Invalidation cache incohérente entre composants
 
-## Comment voir les logs en production
+## **Solution Appliquée**
 
-### 1. Via Docker logs
-```bash
-# Logs en temps réel
-docker logs -f logiflow-app
+### **1. OrderDetailModal.tsx (Calendrier)**
+```javascript
+// AVANT (simple)
+queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
 
-# Logs des dernières 100 lignes
-docker logs --tail 100 logiflow-app
+// APRÈS (predicate universel)
+queryClient.invalidateQueries({
+  predicate: (query) => {
+    const key = query.queryKey[0]?.toString() || '';
+    return key.includes('/api/orders') || key.includes('/api/deliveries');
+  }
+});
 
-# Logs avec timestamp
-docker logs -t logiflow-app
+queryClient.refetchQueries({
+  predicate: (query) => {
+    const key = query.queryKey[0]?.toString() || '';
+    return key.includes('/api/orders') || key.includes('/api/deliveries');
+  }
+});
 ```
 
-### 2. Via Portainer (si utilisé)
-1. Aller dans Containers > logiflow-app
-2. Cliquer sur "Logs"
-3. Activer "Auto-refresh" pour voir en temps réel
+### **2. Orders.tsx (Page Commandes)**
+```javascript
+// AVANT (radical avec reload)
+queryClient.clear();
+window.location.reload();
 
-### 3. Logs à surveiller
-
-Quand vous créez un groupe, vous devriez voir :
-```
-🏪 POST /api/groups - Raw request received
-📨 Request headers: {"content-type":"application/json",...}
-📋 Request body type: object
-📋 Request body content: {"name":"Test","color":"#FF5722"}
-📋 Request body keys: ["name","color"]
-🔐 User requesting group creation: admin_local
-✅ User has permission to create group: admin
-✅ Group data validation passed: {...}
-🏪 Creating group with data: {...}
-✅ Group created successfully: {...}
+// APRÈS (predicate cohérent)
+queryClient.invalidateQueries({ predicate: ... });
+queryClient.refetchQueries({ predicate: ... });
 ```
 
-**OU en cas d'erreur :**
-```
-❌ Error creating group: [détails de l'erreur]
-📊 Full error details: {...}
-```
+## **Pourquoi cette solution**
+- **Predicate** capture TOUTES les variantes de queryKey :
+  - `/api/orders`
+  - `/api/orders?storeId=2` 
+  - `["/api/orders", 2]`
+  - `/api/deliveries?startDate=...`
 
-## Test immédiat
+- **refetchQueries** force la récupération immédiate (production)
+- **Plus de reload** → UX fluide
+- **Cohérence** entre calendrier et pages
 
-1. **Ouvrir les logs** : `docker logs -f logiflow-app`
-2. **Dans l'interface** : Aller sur Groupes/Magasins > Créer un nouveau groupe
-3. **Remplir** : Nom="Test Debug", Couleur="#FF5722"
-4. **Valider** et observer les logs en temps réel
+## **Test de Validation**
+1. ✅ Supprimer depuis calendrier → Disparaît partout
+2. ✅ Supprimer depuis page Orders → Disparaît partout  
+3. ✅ Sélecteur magasin reste stable
+4. ✅ Pas de reload intempestif
 
-Les logs vont révéler exactement où le problème se situe :
-- Problème de parsing du body (express.json)
-- Problème de validation Zod  
-- Problème de base de données PostgreSQL
-- Problème d'authentification/permissions
-
-## Résolution attendue
-
-Une fois les logs visibles, nous pourrons identifier et corriger immédiatement le problème exact.
+**Invalidation cache universelle appliquée !**
