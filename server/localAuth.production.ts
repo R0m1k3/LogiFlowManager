@@ -2,7 +2,6 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import session from 'express-session';
 import { pool } from './initDatabase.production';
-import { hashPassword, comparePasswords } from './auth-utils.production';
 import type { Express } from 'express';
 
 // Import connect-pg-simple using ES6 import
@@ -28,7 +27,7 @@ declare global {
   }
 }
 
-// Import des fonctions de hachage
+// Import des fonctions de hachage (une seule fois)
 import { hashPassword, comparePasswords } from './auth-utils.production';
 
 export function setupLocalAuth(app: Express) {
@@ -223,8 +222,32 @@ export function setupLocalAuth(app: Express) {
 }
 
 export const requireAuth = (req: any, res: any, next: any) => {
-  if (req.isAuthenticated()) {
+  // 🔍 DEBUG PRODUCTION: Diagnostiquer l'authentification
+  console.log('🔍 PRODUCTION AUTH DEBUG:', {
+    url: req.url,
+    method: req.method,
+    isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : 'NO_FUNCTION',
+    hasUser: !!req.user,
+    userId: req.user?.id,
+    username: req.user?.username,
+    sessionId: req.sessionID,
+    hasSession: !!req.session,
+    sessionData: req.session ? Object.keys(req.session) : 'NO_SESSION',
+    cookies: req.headers.cookie ? 'HAS_COOKIES' : 'NO_COOKIES'
+  });
+  
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    console.log('✅ PRODUCTION AUTH: User authenticated, proceeding');
     return next();
   }
-  res.status(401).json({ message: 'Authentication required' });
+  
+  console.log('❌ PRODUCTION AUTH: Authentication failed, returning 401');
+  res.status(401).json({ 
+    message: 'Authentication required',
+    debug: {
+      isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+      hasUser: !!req.user,
+      hasSession: !!req.session
+    }
+  });
 };

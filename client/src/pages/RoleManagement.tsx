@@ -130,6 +130,22 @@ export default function RoleManagement() {
     rolePermissionsSample: rolePermissions?.slice(0, 2)
   });
 
+  // 🔍 DEBUG PRODUCTION: Diagnostiquer les permissions qui arrivent
+  if (permissions.length > 0) {
+    console.log('🔍 DEBUG PERMISSIONS FRONTEND:', {
+      totalPermissions: permissions.length,
+      firstPermission: permissions[0],
+      dlcPermissions: permissions.filter(p => p.category === 'gestion_dlc').map(p => ({
+        id: p.id,
+        name: p.name,
+        displayName: p.displayName,
+        hasDisplayName: !!p.displayName,
+        displayNameEqualsName: p.displayName === p.name
+      })),
+      permissionsWithoutDisplayName: permissions.filter(p => !p.displayName || p.displayName === p.name).length
+    });
+  }
+
   // Traduction des catégories en français
   const categoryTranslations: Record<string, string> = {
     'administration': 'Administration',
@@ -480,7 +496,7 @@ export default function RoleManagement() {
                                   htmlFor={`permission-${permission.id}`}
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                  {permission.displayName}
+                                  {permission.displayName || permission.name}
                                 </label>
                                 <Badge variant="outline" className="text-xs">
                                   {permission.action}
