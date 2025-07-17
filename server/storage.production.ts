@@ -2217,14 +2217,14 @@ export class DatabaseStorage implements IStorage {
       const result = await pool.query(query, params);
       return result.rows.map(row => ({
         id: row.id,
-        name: row.name,
-        productCode: row.product_code,
-        dlcDate: row.dlc_date,
+        name: row.name || row.product_name,
+        productCode: row.product_code || row.gencode,
+        dlcDate: row.dlc_date || row.expiry_date,
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
         supplierId: row.supplier_id,
-        description: row.description,
+        description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
         validatedAt: row.validated_at,
@@ -2254,14 +2254,14 @@ export class DatabaseStorage implements IStorage {
       const row = result.rows[0];
       return {
         id: row.id,
-        name: row.name,
-        productCode: row.product_code,
-        dlcDate: row.dlc_date,
+        name: row.name || row.product_name,
+        productCode: row.product_code || row.gencode,
+        dlcDate: row.dlc_date || row.expiry_date,
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
         supplierId: row.supplier_id,
-        description: row.description,
+        description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
         validatedAt: row.validated_at,
@@ -2282,22 +2282,30 @@ export class DatabaseStorage implements IStorage {
       
       const result = await pool.query(`
         INSERT INTO dlc_products (
-          name, product_code, dlc_date, quantity, status, 
-          group_id, supplier_id, description, created_by,
-          created_at, updated_at
+          name, product_name, product_code, dlc_date, expiry_date, 
+          quantity, status, group_id, supplier_id, description, 
+          created_by, created_at, updated_at, date_type, unit, 
+          location, alert_threshold, notes
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), $12, $13, $14, $15, $16)
         RETURNING *
       `, [
-        dlcProductData.name,
-        dlcProductData.productCode,
-        dlcProductData.dlcDate,
-        dlcProductData.quantity,
-        dlcProductData.status || 'en_attente',
-        dlcProductData.groupId,
-        dlcProductData.supplierId,
-        dlcProductData.description,
-        dlcProductData.createdBy
+        dlcProductData.name,                              // name (nouveau)
+        dlcProductData.name,                              // product_name (ancien, NOT NULL)
+        dlcProductData.productCode || '',                 // product_code
+        dlcProductData.dlcDate,                          // dlc_date (nouveau)
+        dlcProductData.dlcDate,                          // expiry_date (ancien, NOT NULL)
+        dlcProductData.quantity,                         // quantity
+        dlcProductData.status || 'en_attente',           // status
+        dlcProductData.groupId,                          // group_id
+        dlcProductData.supplierId,                       // supplier_id
+        dlcProductData.description,                      // description
+        dlcProductData.createdBy,                        // created_by
+        'DLC',                                           // date_type (NOT NULL)
+        'unité',                                         // unit (NOT NULL)
+        'Magasin',                                       // location (NOT NULL)
+        15,                                              // alert_threshold (NOT NULL)
+        dlcProductData.description                       // notes
       ]);
 
       const row = result.rows[0];
@@ -2305,14 +2313,14 @@ export class DatabaseStorage implements IStorage {
 
       return {
         id: row.id,
-        name: row.name,
-        productCode: row.product_code,
-        dlcDate: row.dlc_date,
+        name: row.name || row.product_name,
+        productCode: row.product_code || row.gencode,
+        dlcDate: row.dlc_date || row.expiry_date,
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
         supplierId: row.supplier_id,
-        description: row.description,
+        description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
         validatedAt: row.validated_at,
@@ -2333,21 +2341,43 @@ export class DatabaseStorage implements IStorage {
 
       Object.entries(dlcProductData).forEach(([key, value]) => {
         if (value !== undefined) {
-          if (key === 'productCode') {
+          if (key === 'name') {
+            fields.push(`name = $${paramIndex}`);
+            fields.push(`product_name = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
+          } else if (key === 'productCode') {
             fields.push(`product_code = $${paramIndex}`);
+            fields.push(`gencode = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           } else if (key === 'dlcDate') {
             fields.push(`dlc_date = $${paramIndex}`);
+            fields.push(`expiry_date = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
+          } else if (key === 'description') {
+            fields.push(`description = $${paramIndex}`);
+            fields.push(`notes = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           } else if (key === 'groupId') {
             fields.push(`group_id = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           } else if (key === 'supplierId') {
             fields.push(`supplier_id = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           } else if (key === 'createdBy') {
             fields.push(`created_by = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           } else {
             fields.push(`${key} = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           }
-          params.push(value);
-          paramIndex++;
         }
       });
 
@@ -2364,14 +2394,14 @@ export class DatabaseStorage implements IStorage {
       const row = result.rows[0];
       return {
         id: row.id,
-        name: row.name,
-        productCode: row.product_code,
-        dlcDate: row.dlc_date,
+        name: row.name || row.product_name,
+        productCode: row.product_code || row.gencode,
+        dlcDate: row.dlc_date || row.expiry_date,
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
         supplierId: row.supplier_id,
-        description: row.description,
+        description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
         validatedAt: row.validated_at,
@@ -2405,14 +2435,14 @@ export class DatabaseStorage implements IStorage {
       const row = result.rows[0];
       return {
         id: row.id,
-        name: row.name,
-        productCode: row.product_code,
-        dlcDate: row.dlc_date,
+        name: row.name || row.product_name,
+        productCode: row.product_code || row.gencode,
+        dlcDate: row.dlc_date || row.expiry_date,
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
         supplierId: row.supplier_id,
-        description: row.description,
+        description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
         validatedAt: row.validated_at,
