@@ -214,6 +214,7 @@ async function createTablesIfNotExist() {
       order_taker VARCHAR(255) NOT NULL,
       customer_name VARCHAR(255) NOT NULL,
       customer_phone VARCHAR(255),
+      customer_email VARCHAR(255),
       product_designation TEXT NOT NULL,
       product_reference VARCHAR(255),
       gencode VARCHAR(255),
@@ -333,6 +334,17 @@ async function addMissingColumns() {
       WHERE name IS NULL OR name = ''
     `);
     console.log('✅ Updated name column with existing data');
+
+    // Check and add customer_email column to customer_orders
+    const customerEmailExists = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'customer_orders' AND column_name = 'customer_email'
+    `);
+    
+    if (customerEmailExists.rows.length === 0) {
+      await pool.query('ALTER TABLE customer_orders ADD COLUMN customer_email VARCHAR(255)');
+      console.log('✅ Added customer_email column to customer_orders');
+    }
 
     // Check and add quantity column to customer_orders
     const quantityExists = await pool.query(`
