@@ -1044,7 +1044,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // ✅ CORRECTION: Permettre à tous les utilisateurs authentifiés de lire les permissions (nécessaire pour l'interface de gestion des rôles)
       const permissions = await storage.getPermissions();
-      console.log('🔐 Permissions API response:', { count: permissions.length, firstPermission: permissions[0] });
+      
+      // Debug spécifique pour les permissions DLC
+      const dlcPermissions = permissions.filter(p => p.category === 'gestion_dlc');
+      console.log('🔐 Permissions API response:', { 
+        totalCount: permissions.length, 
+        dlcCount: dlcPermissions.length,
+        dlcPermissions: dlcPermissions.map(p => ({ name: p.name, displayName: p.displayName, category: p.category })),
+        allCategories: [...new Set(permissions.map(p => p.category))].sort()
+      });
+      
       res.json(Array.isArray(permissions) ? permissions : []);
     } catch (error) {
       console.error("Error fetching permissions:", error);
