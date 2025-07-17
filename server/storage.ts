@@ -1452,8 +1452,14 @@ export class DatabaseStorage implements IStorage {
   // Role-Permission association operations
   async getRolePermissions(roleId: number): Promise<RolePermission[]> {
     return await db
-      .select()
+      .select({
+        roleId: rolePermissions.roleId,
+        permissionId: rolePermissions.permissionId,
+        createdAt: rolePermissions.createdAt,
+        permission: permissions
+      })
       .from(rolePermissions)
+      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
       .where(eq(rolePermissions.roleId, roleId));
   }
 
