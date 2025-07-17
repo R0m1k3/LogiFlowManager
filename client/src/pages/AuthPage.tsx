@@ -41,7 +41,7 @@ export default function AuthPage() {
       const response = await apiRequest("/api/login", "POST", data);
       return response;
     },
-    onSuccess: async (userData) => {
+    onSuccess: async (loginResult) => {
       console.log('✅ Login successful, refreshing auth state...');
       
       toast({
@@ -54,13 +54,24 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/default-credentials-check'] });
       
       // Force immediate authentication state refresh
-      await forceAuthRefresh();
+      const refreshedUserData = await forceAuthRefresh();
+      console.log('🔄 Force auth refresh result:', refreshedUserData);
       
-      // Double refresh for production sync
-      setTimeout(async () => {
-        await forceAuthRefresh();
-        console.log('🔄 Second force auth refresh completed for production sync');
-      }, 300);
+      // Si on a des données utilisateur, forcer la redirection immédiatement
+      if (refreshedUserData && refreshedUserData.id) {
+        console.log('🔄 User data confirmed, forcing redirect...');
+        setLocation("/calendar");
+      } else {
+        // Sinon, essayer encore après un délai
+        setTimeout(() => {
+          forceAuthRefresh().then((retryUserData) => {
+            console.log('🔄 Retry force auth refresh result:', retryUserData);
+            if (retryUserData && retryUserData.id) {
+              setLocation("/calendar");
+            }
+          });
+        }, 500);
+      }
       
       console.log('🔄 Login complete, auth state refreshed');
     },
@@ -91,10 +102,8 @@ export default function AuthPage() {
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
       console.log('🔄 User authenticated, redirecting to dashboard...', { user: user.username, authenticated: isAuthenticated });
-      // Force immediate redirect
-      setTimeout(() => {
-        setLocation("/");
-      }, 50);
+      // Force immediate redirect to calendar page
+      setLocation("/calendar");
     }
   }, [isLoading, isAuthenticated, user, setLocation]);
 

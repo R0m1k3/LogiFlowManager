@@ -62,9 +62,11 @@ export function useAuthUnified() {
     console.log('🔄 ForceAuthRefresh called, isDevelopment:', isDevelopment);
     
     if (!isDevelopment) {
-      // En production, faire un fetch immédiat
+      // En production, faire un fetch immédiat et forcer un re-render
       try {
         console.log('🔄 Production force refresh - fetching user data');
+        setProductionLoading(true);
+        
         const response = await fetch('/api/user', {
           credentials: 'include',
           cache: 'no-cache',
@@ -80,13 +82,29 @@ export function useAuthUnified() {
           setProductionUser(userData);
           setProductionError(null);
           setProductionLoading(false);
+          
+          // Forcer un trigger de refresh pour déclencher les re-renders
+          setRefreshTrigger(prev => prev + 1);
+          
+          return userData;
+        } else {
+          console.log('❌ Production force refresh failed:', response.status);
+          setProductionUser(null);
+          setProductionError(null);
+          setProductionLoading(false);
+          return null;
         }
       } catch (error) {
         console.error('❌ Production force refresh error:', error);
+        setProductionError(error);
+        setProductionUser(null);
+        setProductionLoading(false);
+        return null;
       }
     } else {
       console.log('🔄 Development mode - using React Query refetch');
-      await developmentQuery.refetch();
+      const result = await developmentQuery.refetch();
+      return result.data;
     }
   };
 
