@@ -102,8 +102,19 @@ export function useAuthUnified() {
         return null;
       }
     } else {
-      console.log('🔄 Development mode - using React Query refetch');
+      // En développement, forcer un refetch avec invalidation du cache
+      console.log('🔄 Development mode - invalidating cache and refetching');
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      
+      // Attendre un court délai pour la propagation
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       const result = await developmentQuery.refetch();
+      console.log('🔄 Development refetch result:', { 
+        success: result.isSuccess, 
+        hasData: !!result.data,
+        userId: result.data?.id 
+      });
       return result.data;
     }
   };

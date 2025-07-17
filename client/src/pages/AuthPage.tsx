@@ -53,24 +53,34 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/default-credentials-check'] });
       
-      // Force immediate authentication state refresh
-      const refreshedUserData = await forceAuthRefresh();
+      // Attendre un court délai pour que la session soit bien établie
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Force immediate authentication state refresh avec plusieurs tentatives
+      let refreshedUserData = await forceAuthRefresh();
       console.log('🔄 Force auth refresh result:', refreshedUserData);
       
-      // Si on a des données utilisateur, forcer la redirection immédiatement
+      // Système de retry robuste
+      let retryCount = 0;
+      const maxRetries = 5;
+      
+      while ((!refreshedUserData || !refreshedUserData.id) && retryCount < maxRetries) {
+        retryCount++;
+        console.log(`🔄 Retry ${retryCount}/${maxRetries} - attempting auth refresh...`);
+        await new Promise(resolve => setTimeout(resolve, 200 * retryCount)); // Délai croissant
+        refreshedUserData = await forceAuthRefresh();
+      }
+      
       if (refreshedUserData && refreshedUserData.id) {
         console.log('🔄 User data confirmed, forcing redirect...');
-        setLocation("/");
-      } else {
-        // Sinon, essayer encore après un délai
+        // Délai supplémentaire pour assurer la synchronisation complète
         setTimeout(() => {
-          forceAuthRefresh().then((retryUserData) => {
-            console.log('🔄 Retry force auth refresh result:', retryUserData);
-            if (retryUserData && retryUserData.id) {
-              setLocation("/");
-            }
-          });
-        }, 500);
+          setLocation("/");
+        }, 50);
+      } else {
+        console.error('❌ Failed to refresh auth state after multiple attempts');
+        // Fallback: recharger la page pour forcer la synchronisation
+        window.location.href = "/";
       }
       
       console.log('🔄 Login complete, auth state refreshed');
