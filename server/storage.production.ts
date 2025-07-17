@@ -1086,8 +1086,57 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPublicity(id: number): Promise<any> {
-    const result = await pool.query('SELECT * FROM publicities WHERE id = $1', [id]);
-    return result.rows[0] || undefined;
+    // Get the publicity with creator information
+    const publicityResult = await pool.query(`
+      SELECT p.*, u.username, u.email, u.first_name, u.last_name, u.role
+      FROM publicities p 
+      LEFT JOIN users u ON p.created_by = u.id 
+      WHERE p.id = $1
+    `, [id]);
+    
+    if (publicityResult.rows.length === 0) {
+      return undefined;
+    }
+    
+    const publicity = publicityResult.rows[0];
+    
+    // Get participations with group information
+    const participationsResult = await pool.query(`
+      SELECT pp.group_id, g.name as group_name, g.color as group_color, pp.created_at
+      FROM publicity_participations pp 
+      LEFT JOIN groups g ON pp.group_id = g.id 
+      WHERE pp.publicity_id = $1
+    `, [id]);
+    
+    return {
+      id: publicity.id,
+      pubNumber: publicity.pub_number,
+      designation: publicity.designation,
+      startDate: publicity.start_date,
+      endDate: publicity.end_date,
+      year: publicity.year,
+      createdBy: publicity.created_by,
+      createdAt: publicity.created_at,
+      updatedAt: publicity.updated_at,
+      creator: {
+        id: publicity.created_by,
+        username: publicity.username,
+        email: publicity.email,
+        firstName: publicity.first_name,
+        lastName: publicity.last_name,
+        role: publicity.role
+      },
+      participations: participationsResult.rows.map(p => ({
+        publicityId: id,
+        groupId: p.group_id,
+        group: {
+          id: p.group_id,
+          name: p.group_name,
+          color: p.group_color
+        },
+        createdAt: p.created_at
+      }))
+    };
   }
 
   async createPublicity(publicity: InsertPublicity): Promise<Publicity> {

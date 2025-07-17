@@ -689,11 +689,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
+      const { participatingGroups, ...publicityData } = req.body;
+
+      // Create publicity
       const publicity = await storage.createPublicity({
-        ...req.body,
+        ...publicityData,
         createdBy: userId,
       });
-      res.status(201).json(publicity);
+
+      // Set participations if provided
+      if (participatingGroups && participatingGroups.length > 0) {
+        await storage.setPublicityParticipations(publicity.id, participatingGroups);
+      }
+
+      // Get the complete publicity with relations
+      const completePublicity = await storage.getPublicity(publicity.id);
+      res.status(201).json(completePublicity);
     } catch (error) {
       console.error("Error creating publicity:", error);
       res.status(500).json({ message: "Failed to create publicity" });
@@ -709,8 +720,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      const publicity = await storage.updatePublicity(id, req.body);
-      res.json(publicity);
+      const { participatingGroups, ...publicityData } = req.body;
+
+      // Update publicity
+      const updatedPublicity = await storage.updatePublicity(id, publicityData);
+
+      // Update participations
+      if (participatingGroups !== undefined) {
+        await storage.setPublicityParticipations(id, participatingGroups);
+      }
+
+      // Get the complete publicity with relations
+      const completePublicity = await storage.getPublicity(id);
+      res.json(completePublicity);
     } catch (error) {
       console.error("Error updating publicity:", error);
       res.status(500).json({ message: "Failed to update publicity" });

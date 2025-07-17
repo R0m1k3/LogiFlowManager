@@ -84,6 +84,10 @@ export default function Publicities() {
         const error = await response.json();
         throw new Error(error.message || 'Erreur lors de la suppression');
       }
+      // Handle empty response (204 No Content) in production
+      if (response.status === 204) {
+        return { message: "Publicity deleted successfully" };
+      }
       return response.json();
     },
     onSuccess: () => {
