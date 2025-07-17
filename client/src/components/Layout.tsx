@@ -33,7 +33,9 @@ export default function Layout({ children }: LayoutProps) {
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(() => {
     // Restaurer le selectedStoreId depuis localStorage si disponible
     const saved = localStorage.getItem('selectedStoreId');
-    return saved ? parseInt(saved) : null;
+    const restoredId = saved ? parseInt(saved) : null;
+    console.log('🏪 Layout - Restoring selectedStoreId from localStorage:', { saved, restoredId });
+    return restoredId;
   });
 
   const { data: stores = [] } = useQuery<Group[]>({
@@ -78,8 +80,10 @@ export default function Layout({ children }: LayoutProps) {
                     // Sauvegarder dans localStorage et mettre à jour l'état
                     if (newStoreId) {
                       localStorage.setItem('selectedStoreId', newStoreId.toString());
+                      console.log('💾 Store saved to localStorage:', newStoreId);
                     } else {
                       localStorage.removeItem('selectedStoreId');
+                      console.log('🗑️ Store removed from localStorage');
                     }
                     setSelectedStoreId(newStoreId);
                   }}

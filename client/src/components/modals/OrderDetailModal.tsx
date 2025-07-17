@@ -82,19 +82,24 @@ export default function OrderDetailModal({
       // SOLUTION PRODUCTION : Cache clearing radical pour éviter incohérences storeId
       console.log('🗑️ Cache cleared, forcing page reload to maintain storeId consistency...');
       
-      // Sauvegarder le selectedStoreId avant le nettoyage
-      const currentStoreId = localStorage.getItem('selectedStoreId');
-      if (currentStoreId) {
-        console.log('💾 Preserving storeId:', currentStoreId);
-      }
+      // SOLUTION HYBRIDE : Invalidation sélective pour éviter perte storeId
+      console.log('🧹 Using selective invalidation to preserve storeId context...');
       
-      // SOLUTION RADICALE : Vider complètement le cache pour éviter les incohérences storeId
-      queryClient.clear();
+      // Invalidation ciblée sans clear() pour préserver le contexte
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0]?.toString() || '';
+          return key.includes('/api/orders') || key.includes('/api/deliveries');
+        }
+      });
       
-      // Force un reload pour garantir la cohérence storeId en production
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Force refetch pour garantir synchronisation immédiate
+      queryClient.refetchQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0]?.toString() || '';
+          return key.includes('/api/orders') || key.includes('/api/deliveries');
+        }
+      });
       
       onClose();
     },

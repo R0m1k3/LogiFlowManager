@@ -121,13 +121,24 @@ export default function Orders() {
         localStorage.setItem('selectedStoreId', selectedStoreId.toString());
       }
       
-      // SOLUTION PRODUCTION : Cache clearing radical pour éviter incohérences storeId
-      queryClient.clear();
+      // SOLUTION HYBRIDE : Invalidation sélective pour éviter perte storeId
+      console.log('🧹 Using selective invalidation to preserve storeId context...');
       
-      // Force un reload pour garantir la cohérence en production
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Invalidation ciblée sans clear() pour préserver le contexte
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0]?.toString() || '';
+          return key.includes('/api/orders') || key.includes('/api/deliveries');
+        }
+      });
+      
+      // Force refetch pour garantir synchronisation immédiate
+      queryClient.refetchQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0]?.toString() || '';
+          return key.includes('/api/orders') || key.includes('/api/deliveries');
+        }
+      });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

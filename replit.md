@@ -151,6 +151,7 @@ Changelog:
 - July 17, 2025. **INVALIDATION CACHE COHÉRENTE** - Predicate universel pour capturer toutes queryKey variants (calendrier + pages)
 - July 17, 2025. **CACHE INVALIDATION PRODUCTION** - Multiple queryKey avec selectedStoreId pour différencier données par magasin
 - July 17, 2025. **SOLUTION RADICALE CACHE APPLIQUÉE** - queryClient.clear() pour éliminer définitivement incohérences production
+- July 17, 2025. **SOLUTION HYBRIDE CACHE** - Invalidation douce changement magasin, nettoyage radical suppression/création
 - July 17, 2025. Correction logique métier : suppression dernière livraison remet commande à "pending" 
 - July 17, 2025. **LOGS DIAGNOSTICS AJOUTÉS** - Logs détaillés création/récupération commandes pour debug production
 - July 17, 2025. Amélioration logs POST /api/orders et getOrders() pour identifier problèmes visibilité commandes
