@@ -62,22 +62,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/groups', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('🏪 POST /api/groups - Request body:', req.body);
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      console.log('🔐 User requesting group creation:', userId);
+      
       const user = await storage.getUser(userId);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        console.log('❌ Insufficient permissions for user:', { userId, userRole: user?.role });
         return res.status(403).json({ message: "Insufficient permissions" });
       }
+      console.log('✅ User has permission to create group:', user.role);
 
       const result = insertGroupSchema.safeParse(req.body);
       if (!result.success) {
+        console.log('❌ Group validation failed:', result.error.errors);
         return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
       }
+      console.log('✅ Group data validation passed:', result.data);
 
       const group = await storage.createGroup(result.data);
+      console.log('✅ Group creation successful:', group);
       res.status(201).json(group);
     } catch (error) {
-      console.error("Error creating group:", error);
-      res.status(500).json({ message: "Failed to create group" });
+      console.error("❌ Error creating group:", error);
+      console.error("📊 Full error details:", {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        detail: error.detail
+      });
+      res.status(500).json({ 
+        message: "Failed to create group",
+        error: error.message,
+        details: error.detail || "Database error occurred"
+      });
     }
   });
 
@@ -133,22 +151,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/suppliers', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('🚚 POST /api/suppliers - Request body:', req.body);
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      console.log('🔐 User requesting supplier creation:', userId);
+      
       const user = await storage.getUser(userId);
       if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+        console.log('❌ Insufficient permissions for user:', { userId, userRole: user?.role });
         return res.status(403).json({ message: "Insufficient permissions" });
       }
+      console.log('✅ User has permission to create supplier:', user.role);
 
       const result = insertSupplierSchema.safeParse(req.body);
       if (!result.success) {
+        console.log('❌ Supplier validation failed:', result.error.errors);
         return res.status(400).json({ message: "Invalid input", errors: result.error.errors });
       }
+      console.log('✅ Supplier data validation passed:', result.data);
 
       const supplier = await storage.createSupplier(result.data);
+      console.log('✅ Supplier creation successful:', supplier);
       res.status(201).json(supplier);
     } catch (error) {
-      console.error("Error creating supplier:", error);
-      res.status(500).json({ message: "Failed to create supplier" });
+      console.error("❌ Error creating supplier:", error);
+      console.error("📊 Full error details:", {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        detail: error.detail
+      });
+      res.status(500).json({ 
+        message: "Failed to create supplier",
+        error: error.message,
+        details: error.detail || "Database error occurred"
+      });
     }
   });
 

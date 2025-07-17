@@ -315,12 +315,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createGroup(group: InsertGroup): Promise<Group> {
-    const result = await pool.query(`
-      INSERT INTO groups (name, color) 
-      VALUES ($1, $2) 
-      RETURNING *
-    `, [group.name, group.color]);
-    return result.rows[0];
+    console.log('🏪 Creating group with data:', { 
+      name: group.name, 
+      color: group.color,
+      fullData: group 
+    });
+    
+    try {
+      const result = await pool.query(`
+        INSERT INTO groups (name, color) 
+        VALUES ($1, $2) 
+        RETURNING *
+      `, [group.name, group.color]);
+      
+      console.log('✅ Group created successfully:', result.rows[0]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Failed to create group:', error);
+      console.error('📊 Error details:', {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+        constraint: error.constraint
+      });
+      throw error;
+    }
   }
 
   async updateGroup(id: number, group: Partial<InsertGroup>): Promise<Group> {
@@ -342,12 +361,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSupplier(supplier: InsertSupplier): Promise<Supplier> {
-    const result = await pool.query(`
-      INSERT INTO suppliers (name, contact, phone) 
-      VALUES ($1, $2, $3) 
-      RETURNING *
-    `, [supplier.name, supplier.contact || '', supplier.phone || '']);
-    return result.rows[0];
+    console.log('🚚 Creating supplier with data:', { 
+      name: supplier.name, 
+      contact: supplier.contact,
+      phone: supplier.phone,
+      fullData: supplier 
+    });
+    
+    try {
+      const result = await pool.query(`
+        INSERT INTO suppliers (name, contact, phone) 
+        VALUES ($1, $2, $3) 
+        RETURNING *
+      `, [supplier.name, supplier.contact || '', supplier.phone || '']);
+      
+      console.log('✅ Supplier created successfully:', result.rows[0]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Failed to create supplier:', error);
+      console.error('📊 Error details:', {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+        constraint: error.constraint
+      });
+      throw error;
+    }
   }
 
   async updateSupplier(id: number, supplier: Partial<InsertSupplier>): Promise<Supplier> {
