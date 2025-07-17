@@ -105,9 +105,7 @@ export default function Deliveries() {
 
   const validateMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/deliveries/${id}/validate`, {
-        method: "POST",
-      });
+      await apiRequest(`/api/deliveries/${id}/validate`, "POST");
     },
     onSuccess: () => {
       toast({

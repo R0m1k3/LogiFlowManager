@@ -290,14 +290,11 @@ export default function BLReconciliation() {
   const updateReconciliationMutation = useMutation({
     mutationFn: async (data: { id: number; blNumber: string; blAmount: string; invoiceReference: string; invoiceAmount: string }) => {
       console.log('🔄 Updating reconciliation data:', data);
-      const response = await apiRequest(`/api/deliveries/${data.id}`, {
-        method: "PUT",
-        body: {
-          blNumber: data.blNumber,
-          blAmount: data.blAmount,
-          invoiceReference: data.invoiceReference,
-          invoiceAmount: data.invoiceAmount,
-        },
+      const response = await apiRequest(`/api/deliveries/${data.id}`, "PUT", {
+        blNumber: data.blNumber,
+        blAmount: data.blAmount,
+        invoiceReference: data.invoiceReference,
+        invoiceAmount: data.invoiceAmount,
       });
       console.log('✅ Reconciliation update response:', response);
       return response;

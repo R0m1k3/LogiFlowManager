@@ -35,10 +35,7 @@ export default function OrderDetailModal({
 
   const validateDeliveryMutation = useMutation({
     mutationFn: async (data: { id: number; blNumber: string; blAmount: number }) => {
-      await apiRequest(`/api/deliveries/${data.id}/validate`, {
-        method: "POST",
-        body: data,
-      });
+      await apiRequest(`/api/deliveries/${data.id}/validate`, "POST", data);
     },
     onSuccess: () => {
       toast({

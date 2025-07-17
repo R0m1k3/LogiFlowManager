@@ -211,10 +211,7 @@ export default function UsersPage() {
         payload.password = userData.password;
       }
       
-      const response = await apiRequest("/api/users", {
-        method: "POST",
-        body: payload,
-      });
+      const response = await apiRequest("/api/users", "POST", payload);
       return response;
     },
     onError: (error: any) => {
@@ -333,9 +330,7 @@ export default function UsersPage() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await apiRequest(`/api/users/${userId}`, {
-        method: "DELETE",
-      });
+      await apiRequest(`/api/users/${userId}`, "DELETE");
     },
     onSuccess: () => {
       toast({
