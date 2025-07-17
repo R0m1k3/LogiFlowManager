@@ -676,7 +676,8 @@ async function initRolesAndPermissionsProduction() {
     // Check if roles already exist (avoid re-creating)
     const existingRoles = await pool.query('SELECT COUNT(*) as count FROM roles');
     if (existingRoles.rows[0].count > 0) {
-      console.log('✅ Roles already exist, skipping role/permission initialization');
+      console.log('✅ Roles already exist, checking for missing DLC permissions...');
+      await ensureDlcPermissionsExist();
       return;
     }
 
@@ -837,6 +838,87 @@ async function initRolesAndPermissionsProduction() {
     console.log('✅ Production roles and permissions initialization complete!');
   } catch (error) {
     console.error('❌ Error initializing roles and permissions:', error);
+    // Continue anyway
+  }
+}
+
+async function ensureDlcPermissionsExist() {
+  try {
+    console.log('🔍 Checking for missing DLC permissions...');
+    
+    // Check if DLC permissions exist
+    const dlcPermissions = await pool.query(`
+      SELECT name FROM permissions WHERE category = 'gestion_dlc'
+    `);
+    
+    if (dlcPermissions.rows.length >= 7) {
+      console.log('✅ All DLC permissions already exist');
+      return;
+    }
+    
+    console.log('⚠️ Missing DLC permissions, creating them...');
+    
+    // Create missing DLC permissions
+    const requiredDlcPermissions = [
+      { category: 'gestion_dlc', name: 'dlc_read', displayName: 'Voir produits DLC', description: 'Accès en lecture aux produits DLC', action: 'read', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_create', displayName: 'Créer produits DLC', description: 'Création de nouveaux produits DLC', action: 'create', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_update', displayName: 'Modifier produits DLC', description: 'Modification des produits DLC', action: 'update', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_delete', displayName: 'Supprimer produits DLC', description: 'Suppression de produits DLC', action: 'delete', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_validate', displayName: 'Valider produits DLC', description: 'Validation des produits DLC', action: 'validate', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_print', displayName: 'Imprimer étiquettes DLC', description: 'Impression des étiquettes DLC', action: 'print', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_stats', displayName: 'Voir statistiques DLC', description: 'Accès aux statistiques DLC', action: 'stats', resource: 'dlc' }
+    ];
+    
+    const createdDlcPermissions = {};
+    for (const perm of requiredDlcPermissions) {
+      // Check if permission already exists
+      const existing = await pool.query('SELECT id FROM permissions WHERE name = $1', [perm.name]);
+      
+      if (existing.rows.length === 0) {
+        const result = await pool.query(`
+          INSERT INTO permissions (name, display_name, description, category, action, resource, is_system)
+          VALUES ($1, $2, $3, $4, $5, $6, true)
+          RETURNING id, name
+        `, [perm.name, perm.displayName, perm.description, perm.category, perm.action, perm.resource]);
+        
+        createdDlcPermissions[perm.name] = result.rows[0].id;
+        console.log(`✅ Created DLC permission: ${perm.displayName}`);
+      } else {
+        createdDlcPermissions[perm.name] = existing.rows[0].id;
+        console.log(`✅ DLC permission exists: ${perm.displayName}`);
+      }
+    }
+    
+    // Assign DLC permissions to existing roles
+    const rolePermissions = {
+      'admin': ['dlc_read', 'dlc_create', 'dlc_update', 'dlc_delete', 'dlc_validate', 'dlc_print', 'dlc_stats'],
+      'manager': ['dlc_read', 'dlc_create', 'dlc_update', 'dlc_validate', 'dlc_print', 'dlc_stats'],
+      'employee': ['dlc_read', 'dlc_create', 'dlc_update'],
+      'directeur': ['dlc_read', 'dlc_create', 'dlc_update', 'dlc_delete', 'dlc_validate', 'dlc_print', 'dlc_stats']
+    };
+    
+    for (const [roleName, permissionNames] of Object.entries(rolePermissions)) {
+      const roleQuery = await pool.query('SELECT id FROM roles WHERE name = $1', [roleName]);
+      if (roleQuery.rows.length > 0) {
+        const roleId = roleQuery.rows[0].id;
+        
+        for (const permName of permissionNames) {
+          const permId = createdDlcPermissions[permName];
+          if (permId) {
+            await pool.query(`
+              INSERT INTO role_permissions (role_id, permission_id)
+              VALUES ($1, $2)
+              ON CONFLICT (role_id, permission_id) DO NOTHING
+            `, [roleId, permId]);
+          }
+        }
+        console.log(`✅ Assigned DLC permissions to ${roleName}`);
+      }
+    }
+    
+    console.log('✅ DLC permissions initialization complete!');
+  } catch (error) {
+    console.error('❌ Error ensuring DLC permissions exist:', error);
     // Continue anyway
   }
 }
