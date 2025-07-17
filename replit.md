@@ -131,6 +131,9 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 ## Changelog
 
 Changelog:
+- July 17, 2025. **FILTRAGE MAGASIN COMMANDES CLIENT CORRIGÉ** - API customer-orders prend en compte storeId, formulaire respecte sélection admin
+- July 17, 2025. **CRÉATION COMMANDES CLIENT AMÉLIORÉE** - Formulaire utilise selectedStoreId du contexte admin pour créer dans le bon magasin
+- July 17, 2025. **INVALIDATION CACHE OPTIMISÉE** - Predicate queries pour synchronisation temps réel toutes vues commandes client
 - July 17, 2025. **PROBLÈME IMPRESSION COMMANDES CLIENT PRODUCTION RÉSOLU** - Mapping complet des données dans storage.production.ts
 - July 17, 2025. **COLONNE NOTES AJOUTÉE** - Migration automatique colonne notes dans customer_orders pour production
 - July 17, 2025. **DONNÉES IMPRESSION CORRIGÉES** - orderTaker, productDesignation, productReference, gencode maintenant disponibles
