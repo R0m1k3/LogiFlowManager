@@ -1,0 +1,210 @@
+✅ PRODUCTION AUTH: User authenticated, proceeding
+
+🔍 PRODUCTION AUTH DEBUG: {
+
+  url: '/api/roles/2/permissions',
+
+  method: 'GET',
+
+  isAuthenticated: true,
+
+  hasUser: true,
+
+  userId: 'admin_local',
+
+  username: 'admin',
+
+  sessionId: 'qse1Lk4Db54YXQeDSP3ErYSaPtde0oTP',
+
+  hasSession: true,
+
+  sessionData: [ 'cookie', 'passport' ],
+
+  cookies: 'HAS_COOKIES'
+
+}
+
+✅ PRODUCTION AUTH: User authenticated, proceeding
+
+🔍 DIAGNOSTIC RÔLES PRODUCTION:
+
+
+
+{
+
+  id: 2,
+
+  name: 'admin',
+
+  displayName: 'admin',
+
+  color: '#d5b82a',
+
+  isGrayColor: false,
+
+  expectedColors: {
+
+    admin: '#dc2626',
+
+    manager: '#2563eb',
+
+    employee: '#16a34a',
+
+    directeur: '#7c3aed'
+
+  }
+
+}
+
+
+
+{
+
+  id: 6,
+
+  name: 'directeur',
+
+  displayName: 'directeur',
+
+  color: '#aa8eb8',
+
+  isGrayColor: false,
+
+  expectedColors: {
+
+    admin: '#dc2626',
+
+    manager: '#2563eb',
+
+    employee: '#16a34a',
+
+    directeur: '#7c3aed'
+
+  }
+
+}
+
+
+
+{
+
+  id: 4,
+
+  name: 'employé',
+
+  displayName: 'employé',
+
+  color: '#a3c388',
+
+  isGrayColor: false,
+
+  expectedColors: {
+
+    admin: '#dc2626',
+
+    manager: '#2563eb',
+
+    employee: '#16a34a',
+
+    directeur: '#7c3aed'
+
+  }
+
+}
+
+
+
+{
+
+  id: 3,
+
+  name: 'manager',
+
+  displayName: 'manager',
+
+  color: '#7c93c0',
+
+  isGrayColor: false,
+
+  expectedColors: {
+
+    admin: '#dc2626',
+
+    manager: '#2563eb',
+
+    employee: '#16a34a',
+
+    directeur: '#7c3aed'
+
+  }
+
+}
+
+🎨 Roles API response: {
+
+  count: 4,
+
+  firstRole: {
+
+    id: 2,
+
+    name: 'admin',
+
+    displayName: 'admin',
+
+    description: 'Accès complet à toutes les fonctionnalités du système',
+
+    color: '#d5b82a',
+
+    isSystem: true,
+
+    isActive: true,
+
+    createdAt: 2025-07-11T14:31:40.362Z,
+
+    updatedAt: 2025-07-17T11:46:19.553Z,
+
+    rolePermissions: [
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object]
+
+    ]
+
+  }
+
+}
+
+6:11:17 PM [express] GET /api/roles 304 in 11ms
+
+6:11:17 PM [express] GET /api/roles/2/permissions 304 in 16ms
+
+
+      
+      
+    

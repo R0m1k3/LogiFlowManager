@@ -1,5 +1,19 @@
--- Script SQL pour corriger les permissions en production
+-- Script SQL COMPLET pour corriger les rôles ET permissions en production
 -- Exécutez ce script sur votre base de données de production
+
+-- ========================================
+-- PARTIE 1: CORRECTION DES RÔLES
+-- ========================================
+
+-- Mise à jour des rôles avec les displayName français
+UPDATE roles SET display_name = 'Administrateur' WHERE name = 'admin';
+UPDATE roles SET display_name = 'Manager' WHERE name = 'manager';
+UPDATE roles SET display_name = 'Employé' WHERE name = 'employee' OR name = 'employé';
+UPDATE roles SET display_name = 'Directeur' WHERE name = 'directeur';
+
+-- ========================================
+-- PARTIE 2: CORRECTION DES PERMISSIONS
+-- ========================================
 
 -- Mise à jour des permissions avec les displayName français
 
@@ -87,5 +101,25 @@ UPDATE permissions SET display_name = 'Voir statistiques DLC' WHERE name = 'dlc_
 UPDATE permissions SET display_name = 'Voir rapprochements BL' WHERE name = 'bl_reconciliation_read';
 UPDATE permissions SET display_name = 'Modifier rapprochements BL' WHERE name = 'bl_reconciliation_update';
 
--- Vérification : afficher les permissions après mise à jour
+-- ========================================
+-- VÉRIFICATIONS FINALES
+-- ========================================
+
+-- Vérifier les rôles après mise à jour
+SELECT name, display_name FROM roles ORDER BY name;
+
+-- Vérifier les permissions après mise à jour
 SELECT name, display_name, category FROM permissions ORDER BY category, name;
+
+-- Compter les éléments corrigés
+SELECT 
+  'RÔLES' as type,
+  COUNT(*) as total,
+  COUNT(CASE WHEN display_name != name THEN 1 END) as avec_traduction_francaise
+FROM roles
+UNION ALL
+SELECT 
+  'PERMISSIONS' as type,
+  COUNT(*) as total,
+  COUNT(CASE WHEN display_name != name THEN 1 END) as avec_traduction_francaise
+FROM permissions;
