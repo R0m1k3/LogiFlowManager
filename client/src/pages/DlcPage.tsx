@@ -56,9 +56,10 @@ export default function DlcPage() {
 
 
 
-  // Fetch suppliers
+  // Fetch suppliers with DLC enabled only
   const { data: suppliers = [] } = useQuery({
-    queryKey: ["/api/suppliers"],
+    queryKey: ["/api/suppliers", "dlc"],
+    queryFn: () => apiRequest("/api/suppliers?dlc=true"),
     enabled: !authLoading,
   });
 

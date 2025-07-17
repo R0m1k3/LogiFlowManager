@@ -186,7 +186,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Insufficient permissions" });
       }
 
-      const suppliers = await storage.getSuppliers();
+      // Check if DLC filter is requested
+      const dlcOnly = req.query.dlc === 'true';
+      const suppliers = await storage.getSuppliers(dlcOnly);
       res.json(suppliers);
     } catch (error) {
       console.error("Error fetching suppliers:", error);

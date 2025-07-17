@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +18,9 @@ import {
   Edit,
   Trash2,
   Package,
-  Truck
+  Truck,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import type { Supplier } from "@shared/schema";
 
@@ -34,6 +37,7 @@ export default function Suppliers() {
     name: "",
     contact: "",
     phone: "",
+    hasDlc: false,
   });
 
   const { data: suppliers = [], isLoading } = useQuery<Supplier[]>({
@@ -65,7 +69,7 @@ export default function Suppliers() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
       setShowCreateModal(false);
-      setFormData({ name: "", contact: "", phone: "" });
+      setFormData({ name: "", contact: "", phone: "", hasDlc: false });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -99,7 +103,7 @@ export default function Suppliers() {
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
       setShowEditModal(false);
       setSelectedSupplier(null);
-      setFormData({ name: "", contact: "", phone: "" });
+      setFormData({ name: "", contact: "", phone: "", hasDlc: false });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -170,7 +174,7 @@ export default function Suppliers() {
   };
 
   const handleCreate = () => {
-    setFormData({ name: "", contact: "", phone: "" });
+    setFormData({ name: "", contact: "", phone: "", hasDlc: false });
     setShowCreateModal(true);
   };
 
@@ -180,6 +184,7 @@ export default function Suppliers() {
       name: supplier.name,
       contact: supplier.contact || "",
       phone: supplier.phone || "",
+      hasDlc: supplier.hasDlc || false,
     });
     setShowEditModal(true);
   };
@@ -220,7 +225,7 @@ export default function Suppliers() {
     }
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -355,6 +360,19 @@ export default function Suppliers() {
                           {supplier.phone}
                         </div>
                       )}
+                      <div className="flex items-center text-sm">
+                        {supplier.hasDlc ? (
+                          <div className="flex items-center text-green-600">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            DLC activé
+                          </div>
+                        ) : (
+                          <div className="flex items-center text-gray-400">
+                            <XCircle className="w-4 h-4 mr-2" />
+                            DLC désactivé
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="border-t pt-4">
@@ -395,7 +413,7 @@ export default function Suppliers() {
         setShowCreateModal(false);
         setShowEditModal(false);
         setSelectedSupplier(null);
-        setFormData({ name: "", contact: "", phone: "" });
+        setFormData({ name: "", contact: "", phone: "", hasDlc: false });
       }}>
         <DialogContent className="sm:max-w-md" aria-describedby="supplier-modal-description">
           <DialogHeader>
@@ -439,6 +457,17 @@ export default function Suppliers() {
               />
             </div>
 
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="hasDlc"
+                checked={formData.hasDlc}
+                onCheckedChange={(checked) => handleChange('hasDlc', checked === true)}
+              />
+              <Label htmlFor="hasDlc" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Gestion DLC
+              </Label>
+            </div>
+
             <div className="flex items-center space-x-3 pt-4">
               <Button 
                 type="button" 
@@ -447,7 +476,7 @@ export default function Suppliers() {
                   setShowCreateModal(false);
                   setShowEditModal(false);
                   setSelectedSupplier(null);
-                  setFormData({ name: "", contact: "", phone: "" });
+                  setFormData({ name: "", contact: "", phone: "", hasDlc: false });
                 }}
               >
                 Annuler
