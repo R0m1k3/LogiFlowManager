@@ -49,11 +49,14 @@ export default function AuthPage() {
         description: "Bienvenue dans LogiFlow",
       });
       
-      // Refresh authentication state and redirect will happen automatically
-      // via the useEffect that watches for isAuthenticated changes
+      // Force invalidation of auth queries and refresh auth state
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/default-credentials-check'] });
+      
+      // Refresh authentication state
       refreshAuth();
       
-      console.log('🔄 Login complete, waiting for auth state refresh...');
+      console.log('🔄 Login complete, auth state refreshed');
     },
     onError: (error: any) => {
       toast({

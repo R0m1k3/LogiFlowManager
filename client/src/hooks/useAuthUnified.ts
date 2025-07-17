@@ -7,8 +7,8 @@ export function useAuthUnified() {
   // Détection d'environnement plus robuste
   const isDevelopment = typeof window !== 'undefined' && 
     (window.location.hostname === 'localhost' || 
-     window.location.hostname.includes('replit.dev') ||
-     import.meta.env.DEV === true);
+     window.location.hostname.includes('replit.dev')) &&
+     import.meta.env.DEV === true;
 
   // Debug logging pour comprendre l'environnement
   console.log('🔍 Auth Environment Debug:', {
@@ -41,12 +41,16 @@ export function useAuthUnified() {
     enabled: isDevelopment, // Seulement en développement
   });
 
-  // Fonction pour rafraîchir l'authentification en production
+  // Fonction pour rafraîchir l'authentification
   const refreshAuth = () => {
     console.log('🔄 RefreshAuth called, isDevelopment:', isDevelopment);
     if (!isDevelopment) {
       console.log('🔄 Triggering production auth refresh');
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger(prev => {
+        const newValue = prev + 1;
+        console.log('🔄 Production refresh trigger updated:', prev, '->', newValue);
+        return newValue;
+      });
     } else {
       console.log('🔄 Development mode - using React Query refresh');
       developmentQuery.refetch();
