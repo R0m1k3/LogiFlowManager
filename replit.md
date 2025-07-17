@@ -131,6 +131,9 @@ LogiFlow is a web application for managing orders and deliveries across multiple
 ## Changelog
 
 Changelog:
+- July 17, 2025. **PROBLÈME IMPRESSION COMMANDES CLIENT PRODUCTION RÉSOLU** - Mapping complet des données dans storage.production.ts
+- July 17, 2025. **COLONNE NOTES AJOUTÉE** - Migration automatique colonne notes dans customer_orders pour production
+- July 17, 2025. **DONNÉES IMPRESSION CORRIGÉES** - orderTaker, productDesignation, productReference, gencode maintenant disponibles
 - July 17, 2025. **CORRECTIONS BUGS CRITIQUES APPLIQUÉES** - Sélecteur magasin et rafraîchissement automatique
 - July 17, 2025. **ÉTIQUETTES COMMANDES CLIENT AMÉLIORÉES** - Code-barres EAN13 scannable avec jsbarcode, affichage acompte et prix promotionnel
 - July 17, 2025. **PRODUCTION DEPLOYMENT REQUIS** - Installation jsbarcode et rebuild nécessaires pour fonctionnalité complète
