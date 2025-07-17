@@ -52,7 +52,12 @@ export default function AuthPage() {
         description: "Bienvenue dans LogiFlow",
       });
       
-      // The redirect will happen automatically when isAuthenticated becomes true
+      // Force redirect after a brief delay to ensure auth state is updated
+      setTimeout(() => {
+        console.log('🔄 Forcing redirect to dashboard after login...');
+        setLocation('/');
+      }, 500);
+      
       console.log('🔄 Login complete, waiting for auth state refresh...');
     },
     onError: (error: any) => {
@@ -80,11 +85,14 @@ export default function AuthPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      console.log('🔄 User authenticated, redirecting to dashboard...');
-      setLocation("/");
+    if (!isLoading && isAuthenticated && user) {
+      console.log('🔄 User authenticated, redirecting to dashboard...', { user: user.username, authenticated: isAuthenticated });
+      // Force immediate redirect
+      setTimeout(() => {
+        setLocation("/");
+      }, 50);
     }
-  }, [isLoading, isAuthenticated, setLocation]);
+  }, [isLoading, isAuthenticated, user, setLocation]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
