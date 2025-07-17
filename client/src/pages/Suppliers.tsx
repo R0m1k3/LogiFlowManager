@@ -53,7 +53,10 @@ export default function Suppliers() {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("/api/suppliers", "POST", data);
+      console.log('🚚 Frontend: Creating supplier with data:', data);
+      const result = await apiRequest("/api/suppliers", "POST", data);
+      console.log('🚚 Frontend: Supplier creation result:', result);
+      return result;
     },
     onSuccess: () => {
       toast({

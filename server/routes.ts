@@ -63,17 +63,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/groups', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims ? req.user.claims ? req.user.claims.sub : req.user.id : req.user.id;
+      // Debug logging pour la création de groupe
+      console.log('📨 POST /api/groups - Headers:', {
+        'content-type': req.headers['content-type'],
+        'content-length': req.headers['content-length'],
+        'user-agent': req.headers['user-agent']?.substring(0, 50) + '...'
+      });
+      
+      console.log('📋 POST /api/groups - Request body:', JSON.stringify(req.body, null, 2));
+      
+      // Déterminer l'ID utilisateur selon l'environnement
+      let userId;
+      if (req.user.claims && req.user.claims.sub) {
+        userId = req.user.claims.sub; // Production Replit Auth
+        console.log('🔐 Using Replit Auth user ID:', userId);
+      } else if (req.user.id) {
+        userId = req.user.id; // Développement local
+        console.log('🔐 Using local auth user ID:', userId);
+      } else {
+        console.error('❌ No user ID found in request:', { user: req.user });
+        return res.status(401).json({ message: "User authentication failed" });
+      }
+      
+      console.log('🔐 User requesting group creation:', userId);
+      
+      // Vérifier l'utilisateur
       const user = await storage.getUser(userId);
-      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+      if (!user) {
+        console.error('❌ User not found:', userId);
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      console.log('✅ User found:', { username: user.username, role: user.role });
+      
+      // Vérifier les permissions
+      if (user.role !== 'admin' && user.role !== 'manager') {
+        console.error('❌ Insufficient permissions:', { userRole: user.role, required: ['admin', 'manager'] });
         return res.status(403).json({ message: "Insufficient permissions" });
       }
-
+      
+      console.log('✅ User has permission to create group');
+      
+      // Valider les données
+      console.log('🔍 Validating group data with schema...');
       const data = insertGroupSchema.parse(req.body);
+      console.log('✅ Group data validation passed:', data);
+      
+      // Créer le groupe
+      console.log('🏪 Creating group in database...');
       const group = await storage.createGroup(data);
+      console.log('✅ Group creation successful:', { id: group.id, name: group.name });
+      
       res.json(group);
     } catch (error) {
-      console.error("Error creating group:", error);
+      console.error('❌ Failed to create group:', {
+        error: error.message,
+        stack: error.stack,
+        body: req.body,
+        userId: req.user?.id || req.user?.claims?.sub || 'unknown'
+      });
+      
+      // Erreur de validation Zod
+      if (error.name === 'ZodError') {
+        console.error('❌ Validation error details:', error.errors);
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: error.errors 
+        });
+      }
+      
       res.status(500).json({ message: "Failed to create group" });
     }
   });
@@ -129,16 +187,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/suppliers', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims ? req.user.claims.sub : req.user.id);
-      if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+      // Debug logging pour la création de fournisseur
+      console.log('📨 POST /api/suppliers - Headers:', {
+        'content-type': req.headers['content-type'],
+        'content-length': req.headers['content-length']
+      });
+      
+      console.log('📋 POST /api/suppliers - Request body:', JSON.stringify(req.body, null, 2));
+      
+      // Déterminer l'ID utilisateur selon l'environnement
+      let userId;
+      if (req.user.claims && req.user.claims.sub) {
+        userId = req.user.claims.sub; // Production Replit Auth
+        console.log('🔐 Using Replit Auth user ID:', userId);
+      } else if (req.user.id) {
+        userId = req.user.id; // Développement local
+        console.log('🔐 Using local auth user ID:', userId);
+      } else {
+        console.error('❌ No user ID found in request:', { user: req.user });
+        return res.status(401).json({ message: "User authentication failed" });
+      }
+      
+      console.log('🔐 User requesting supplier creation:', userId);
+      
+      // Vérifier l'utilisateur
+      const user = await storage.getUser(userId);
+      if (!user) {
+        console.error('❌ User not found:', userId);
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      console.log('✅ User found:', { username: user.username, role: user.role });
+      
+      // Vérifier les permissions
+      if (user.role !== 'admin' && user.role !== 'manager') {
+        console.error('❌ Insufficient permissions:', { userRole: user.role, required: ['admin', 'manager'] });
         return res.status(403).json({ message: "Insufficient permissions" });
       }
-
+      
+      console.log('✅ User has permission to create supplier');
+      
+      // Valider les données
+      console.log('🔍 Validating supplier data with schema...');
       const data = insertSupplierSchema.parse(req.body);
+      console.log('✅ Supplier data validation passed:', data);
+      
+      // Créer le fournisseur
+      console.log('🚚 Creating supplier in database...');
       const supplier = await storage.createSupplier(data);
+      console.log('✅ Supplier creation successful:', { id: supplier.id, name: supplier.name });
+      
       res.json(supplier);
     } catch (error) {
-      console.error("Error creating supplier:", error);
+      console.error('❌ Failed to create supplier:', {
+        error: error.message,
+        stack: error.stack,
+        body: req.body,
+        userId: req.user?.id || req.user?.claims?.sub || 'unknown'
+      });
+      
+      // Erreur de validation Zod
+      if (error.name === 'ZodError') {
+        console.error('❌ Validation error details:', error.errors);
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: error.errors 
+        });
+      }
+      
       res.status(500).json({ message: "Failed to create supplier" });
     }
   });

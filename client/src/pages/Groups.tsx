@@ -82,7 +82,10 @@ export default function Groups() {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("/api/groups", "POST", data);
+      console.log('🏪 Frontend: Creating group with data:', data);
+      const result = await apiRequest("/api/groups", "POST", data);
+      console.log('🏪 Frontend: Group creation result:', result);
+      return result;
     },
     onSuccess: () => {
       toast({
@@ -163,7 +166,7 @@ export default function Groups() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/groups/${id}`);
+      await apiRequest(`/api/groups/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({
