@@ -28,6 +28,9 @@ export async function initDatabase() {
     // Create default admin user only if it doesn't exist
     await createDefaultAdmin();
     
+    // Initialize roles and permissions for production
+    await initRolesAndPermissionsProduction();
+    
     console.log('✅ Database initialization complete');
     
   } catch (error) {
@@ -232,6 +235,29 @@ async function createTablesIfNotExist() {
     );
   `;
 
+  const createDlcProductsTable = `
+    CREATE TABLE IF NOT EXISTS dlc_products (
+      id SERIAL PRIMARY KEY,
+      product_name VARCHAR(255) NOT NULL,
+      expiry_date DATE NOT NULL,
+      date_type VARCHAR(50) NOT NULL DEFAULT 'DLC',
+      quantity INTEGER NOT NULL DEFAULT 1,
+      unit VARCHAR(50) NOT NULL DEFAULT 'unité',
+      supplier_id INTEGER NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
+      location VARCHAR(255) NOT NULL DEFAULT 'Magasin',
+      status VARCHAR(50) NOT NULL DEFAULT 'active',
+      notes TEXT,
+      alert_threshold INTEGER NOT NULL DEFAULT 15,
+      validated_at TIMESTAMP,
+      validated_by VARCHAR(255) REFERENCES users(id),
+      group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      created_by VARCHAR(255) NOT NULL REFERENCES users(id),
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      gencode VARCHAR(255)
+    );
+  `;
+
   const tables = [
     createUsersTable,
     createGroupsTable,
@@ -246,7 +272,8 @@ async function createTablesIfNotExist() {
     createPermissionsTable,
     createRolePermissionsTable,
     createNocodbConfigTable,
-    createCustomerOrdersTable
+    createCustomerOrdersTable,
+    createDlcProductsTable
   ];
 
   for (const table of tables) {
@@ -639,6 +666,178 @@ async function createDefaultAdmin() {
     }
   } catch (error) {
     console.error('❌ Failed to create admin user:', error);
+  }
+}
+
+async function initRolesAndPermissionsProduction() {
+  try {
+    console.log('🎭 Initializing roles and permissions for production...');
+    
+    // Check if roles already exist (avoid re-creating)
+    const existingRoles = await pool.query('SELECT COUNT(*) as count FROM roles');
+    if (existingRoles.rows[0].count > 0) {
+      console.log('✅ Roles already exist, skipping role/permission initialization');
+      return;
+    }
+
+    // Create 4 default roles with proper French names
+    const roles = [
+      { name: 'admin', displayName: 'Administrateur', description: 'Accès complet à toutes les fonctionnalités', color: '#dc2626' },
+      { name: 'manager', displayName: 'Manager', description: 'Gestion des commandes, livraisons et fournisseurs', color: '#2563eb' },
+      { name: 'employee', displayName: 'Employé', description: 'Accès en lecture aux données et publicités', color: '#16a34a' },
+      { name: 'directeur', displayName: 'Directeur', description: 'Supervision générale et gestion stratégique', color: '#7c3aed' }
+    ];
+
+    const createdRoles = {};
+    for (const role of roles) {
+      const result = await pool.query(`
+        INSERT INTO roles (name, display_name, description, color, is_system, is_active)
+        VALUES ($1, $2, $3, $4, true, true)
+        RETURNING id, name
+      `, [role.name, role.displayName, role.description, role.color]);
+      createdRoles[role.name] = result.rows[0].id;
+      console.log(\`✅ Created role: \${role.displayName}\`);
+    }
+
+    // Create 49 permissions with French categories
+    const permissions = [
+      // Dashboard (tableau_de_bord)
+      { category: 'tableau_de_bord', name: 'dashboard_read', displayName: 'Voir tableau de bord', description: 'Accès en lecture au tableau de bord', action: 'read', resource: 'dashboard' },
+      
+      // Stores (magasins) 
+      { category: 'magasins', name: 'groups_read', displayName: 'Voir magasins', description: 'Accès en lecture aux magasins', action: 'read', resource: 'groups' },
+      { category: 'magasins', name: 'groups_create', displayName: 'Créer magasins', description: 'Création de nouveaux magasins', action: 'create', resource: 'groups' },
+      { category: 'magasins', name: 'groups_update', displayName: 'Modifier magasins', description: 'Modification des magasins existants', action: 'update', resource: 'groups' },
+      { category: 'magasins', name: 'groups_delete', displayName: 'Supprimer magasins', description: 'Suppression de magasins', action: 'delete', resource: 'groups' },
+      
+      // Suppliers (fournisseurs)
+      { category: 'fournisseurs', name: 'suppliers_read', displayName: 'Voir fournisseurs', description: 'Accès en lecture aux fournisseurs', action: 'read', resource: 'suppliers' },
+      { category: 'fournisseurs', name: 'suppliers_create', displayName: 'Créer fournisseurs', description: 'Création de nouveaux fournisseurs', action: 'create', resource: 'suppliers' },
+      { category: 'fournisseurs', name: 'suppliers_update', displayName: 'Modifier fournisseurs', description: 'Modification des fournisseurs', action: 'update', resource: 'suppliers' },
+      { category: 'fournisseurs', name: 'suppliers_delete', displayName: 'Supprimer fournisseurs', description: 'Suppression de fournisseurs', action: 'delete', resource: 'suppliers' },
+      
+      // Orders (commandes)
+      { category: 'commandes', name: 'orders_read', displayName: 'Voir commandes', description: 'Accès en lecture aux commandes', action: 'read', resource: 'orders' },
+      { category: 'commandes', name: 'orders_create', displayName: 'Créer commandes', description: 'Création de nouvelles commandes', action: 'create', resource: 'orders' },
+      { category: 'commandes', name: 'orders_update', displayName: 'Modifier commandes', description: 'Modification des commandes', action: 'update', resource: 'orders' },
+      { category: 'commandes', name: 'orders_delete', displayName: 'Supprimer commandes', description: 'Suppression de commandes', action: 'delete', resource: 'orders' },
+      
+      // Deliveries (livraisons)
+      { category: 'livraisons', name: 'deliveries_read', displayName: 'Voir livraisons', description: 'Accès en lecture aux livraisons', action: 'read', resource: 'deliveries' },
+      { category: 'livraisons', name: 'deliveries_create', displayName: 'Créer livraisons', description: 'Création de nouvelles livraisons', action: 'create', resource: 'deliveries' },
+      { category: 'livraisons', name: 'deliveries_update', displayName: 'Modifier livraisons', description: 'Modification des livraisons', action: 'update', resource: 'deliveries' },
+      { category: 'livraisons', name: 'deliveries_delete', displayName: 'Supprimer livraisons', description: 'Suppression de livraisons', action: 'delete', resource: 'deliveries' },
+      
+      // Publicities (publicites)
+      { category: 'publicites', name: 'publicities_read', displayName: 'Voir publicités', description: 'Accès en lecture aux publicités', action: 'read', resource: 'publicities' },
+      { category: 'publicites', name: 'publicities_create', displayName: 'Créer publicités', description: 'Création de nouvelles publicités', action: 'create', resource: 'publicities' },
+      { category: 'publicites', name: 'publicities_update', displayName: 'Modifier publicités', description: 'Modification des publicités', action: 'update', resource: 'publicities' },
+      { category: 'publicites', name: 'publicities_delete', displayName: 'Supprimer publicités', description: 'Suppression de publicités', action: 'delete', resource: 'publicities' },
+      { category: 'publicites', name: 'publicities_participate', displayName: 'Participer aux publicités', description: 'Participation des magasins aux publicités', action: 'participate', resource: 'publicities' },
+      
+      // Customer Orders (commandes_clients)
+      { category: 'commandes_clients', name: 'customer_orders_read', displayName: 'Voir commandes clients', description: 'Accès en lecture aux commandes clients', action: 'read', resource: 'customer_orders' },
+      { category: 'commandes_clients', name: 'customer_orders_create', displayName: 'Créer commandes clients', description: 'Création de nouvelles commandes clients', action: 'create', resource: 'customer_orders' },
+      { category: 'commandes_clients', name: 'customer_orders_update', displayName: 'Modifier commandes clients', description: 'Modification des commandes clients', action: 'update', resource: 'customer_orders' },
+      { category: 'commandes_clients', name: 'customer_orders_delete', displayName: 'Supprimer commandes clients', description: 'Suppression de commandes clients', action: 'delete', resource: 'customer_orders' },
+      { category: 'commandes_clients', name: 'customer_orders_print', displayName: 'Imprimer commandes clients', description: 'Impression des barcodes et documents', action: 'print', resource: 'customer_orders' },
+      
+      // Users (utilisateurs)
+      { category: 'utilisateurs', name: 'users_read', displayName: 'Voir utilisateurs', description: 'Accès en lecture aux utilisateurs', action: 'read', resource: 'users' },
+      { category: 'utilisateurs', name: 'users_create', displayName: 'Créer utilisateurs', description: 'Création de nouveaux utilisateurs', action: 'create', resource: 'users' },
+      { category: 'utilisateurs', name: 'users_update', displayName: 'Modifier utilisateurs', description: 'Modification des utilisateurs', action: 'update', resource: 'users' },
+      { category: 'utilisateurs', name: 'users_delete', displayName: 'Supprimer utilisateurs', description: 'Suppression d\'utilisateurs', action: 'delete', resource: 'users' },
+      
+      // Role Management (gestion_roles)
+      { category: 'gestion_roles', name: 'roles_read', displayName: 'Voir rôles', description: 'Accès en lecture aux rôles', action: 'read', resource: 'roles' },
+      { category: 'gestion_roles', name: 'roles_create', displayName: 'Créer rôles', description: 'Création de nouveaux rôles', action: 'create', resource: 'roles' },
+      { category: 'gestion_roles', name: 'roles_update', displayName: 'Modifier rôles', description: 'Modification des rôles', action: 'update', resource: 'roles' },
+      { category: 'gestion_roles', name: 'roles_delete', displayName: 'Supprimer rôles', description: 'Suppression de rôles', action: 'delete', resource: 'roles' },
+      { category: 'gestion_roles', name: 'permissions_read', displayName: 'Voir permissions', description: 'Accès en lecture aux permissions', action: 'read', resource: 'permissions' },
+      { category: 'gestion_roles', name: 'permissions_assign', displayName: 'Assigner permissions', description: 'Attribution de permissions aux rôles', action: 'assign', resource: 'permissions' },
+      
+      // Reconciliation (rapprochement)
+      { category: 'rapprochement', name: 'bl_reconciliation_read', displayName: 'Voir rapprochement BL', description: 'Accès au rapprochement des bons de livraison', action: 'read', resource: 'bl_reconciliation' },
+      { category: 'rapprochement', name: 'bl_reconciliation_update', displayName: 'Modifier rapprochement BL', description: 'Modification du rapprochement des BL', action: 'update', resource: 'bl_reconciliation' },
+      
+      // Administration 
+      { category: 'administration', name: 'nocodb_config_read', displayName: 'Voir config NocoDB', description: 'Accès à la configuration NocoDB', action: 'read', resource: 'nocodb_config' },
+      { category: 'administration', name: 'nocodb_config_update', displayName: 'Modifier config NocoDB', description: 'Modification de la configuration NocoDB', action: 'update', resource: 'nocodb_config' },
+      { category: 'administration', name: 'system_admin', displayName: 'Administration système', description: 'Accès complet à l\'administration', action: 'admin', resource: 'system' },
+      
+      // Calendar (calendrier)
+      { category: 'calendrier', name: 'calendar_read', displayName: 'Voir calendrier', description: 'Accès en lecture au calendrier', action: 'read', resource: 'calendar' },
+      { category: 'calendrier', name: 'calendar_update', displayName: 'Modifier calendrier', description: 'Modification des événements du calendrier', action: 'update', resource: 'calendar' },
+      
+      // DLC Management (gestion_dlc)
+      { category: 'gestion_dlc', name: 'dlc_read', displayName: 'Voir produits DLC', description: 'Accès en lecture aux produits DLC', action: 'read', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_create', displayName: 'Créer produits DLC', description: 'Création de nouveaux produits DLC', action: 'create', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_update', displayName: 'Modifier produits DLC', description: 'Modification des produits DLC', action: 'update', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_delete', displayName: 'Supprimer produits DLC', description: 'Suppression de produits DLC', action: 'delete', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_validate', displayName: 'Valider produits DLC', description: 'Validation des produits DLC', action: 'validate', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_print', displayName: 'Imprimer étiquettes DLC', description: 'Impression des étiquettes DLC', action: 'print', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_stats', displayName: 'Voir statistiques DLC', description: 'Accès aux statistiques DLC', action: 'read', resource: 'dlc_stats' }
+    ];
+
+    const createdPermissions = {};
+    for (const perm of permissions) {
+      const result = await pool.query(\`
+        INSERT INTO permissions (name, display_name, description, category, action, resource, is_system)
+        VALUES ($1, $2, $3, $4, $5, $6, true)
+        RETURNING id, name
+      \`, [perm.name, perm.displayName, perm.description, perm.category, perm.action, perm.resource]);
+      createdPermissions[perm.name] = result.rows[0].id;
+    }
+    console.log(\`✅ Created \${permissions.length} permissions\`);
+
+    // Assign permissions to roles
+    const rolePermissions = {
+      'admin': Object.keys(createdPermissions), // Admin gets all permissions
+      'manager': [
+        'dashboard_read', 'groups_read', 'suppliers_read', 'suppliers_create', 'suppliers_update',
+        'orders_read', 'orders_create', 'orders_update', 'deliveries_read', 'deliveries_create', 
+        'deliveries_update', 'publicities_read', 'publicities_create', 'publicities_update', 
+        'publicities_participate', 'customer_orders_read', 'customer_orders_create', 
+        'customer_orders_update', 'customer_orders_print', 'users_read', 'bl_reconciliation_read',
+        'bl_reconciliation_update', 'calendar_read', 'calendar_update',
+        'dlc_read', 'dlc_create', 'dlc_update', 'dlc_validate', 'dlc_print', 'dlc_stats'
+      ],
+      'employee': [
+        'dashboard_read', 'groups_read', 'suppliers_read', 'orders_read', 'deliveries_read',
+        'publicities_read', 'customer_orders_read', 'customer_orders_create', 'customer_orders_print',
+        'calendar_read', 'dlc_read', 'dlc_create', 'dlc_update'
+      ],
+      'directeur': [
+        'dashboard_read', 'groups_read', 'groups_create', 'groups_update', 'suppliers_read', 
+        'suppliers_create', 'suppliers_update', 'orders_read', 'orders_create', 'orders_update',
+        'deliveries_read', 'deliveries_create', 'deliveries_update', 'publicities_read', 
+        'publicities_create', 'publicities_update', 'publicities_participate', 
+        'customer_orders_read', 'customer_orders_create', 'customer_orders_update', 
+        'customer_orders_print', 'users_read', 'users_create', 'users_update', 'roles_read',
+        'bl_reconciliation_read', 'bl_reconciliation_update', 'calendar_read', 'calendar_update',
+        'dlc_read', 'dlc_create', 'dlc_update', 'dlc_delete', 'dlc_validate', 'dlc_print', 'dlc_stats'
+      ]
+    };
+
+    for (const [roleName, permissionNames] of Object.entries(rolePermissions)) {
+      const roleId = createdRoles[roleName];
+      for (const permName of permissionNames) {
+        const permId = createdPermissions[permName];
+        if (permId) {
+          await pool.query(\`
+            INSERT INTO role_permissions (role_id, permission_id)
+            VALUES ($1, $2)
+            ON CONFLICT (role_id, permission_id) DO NOTHING
+          \`, [roleId, permId]);
+        }
+      }
+      console.log(\`✅ Assigned \${permissionNames.length} permissions to \${roleName}\`);
+    }
+
+    console.log('✅ Production roles and permissions initialization complete!');
+  } catch (error) {
+    console.error('❌ Error initializing roles and permissions:', error);
+    // Continue anyway
   }
 }
 
