@@ -74,24 +74,7 @@ export default function RoleManagement() {
     refetchPermissions();
   };
 
-  // Test API call for debugging
-  const testApiCall = async () => {
-    console.log("🧪 Testing direct API call...");
-    try {
-      const response = await fetch('/api/permissions', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      console.log("🧪 Direct API response:", data);
-      console.log("🧪 Direct API DLC count:", data.filter((p: any) => p.category === 'gestion_dlc').length);
-    } catch (error) {
-      console.error("🧪 Direct API error:", error);
-    }
-  };
+  // Debug function removed after successful DLC permissions fix
 
 
 
@@ -189,14 +172,7 @@ export default function RoleManagement() {
     return acc;
   }, {} as Record<string, Permission[]>) : {};
 
-  // Debug logs pour diagnostiquer le problème DLC
-  console.log("🔍 Permissions by Category Debug:", Object.keys(permissionsByCategory));
-  console.log("🔍 Has gestion_dlc:", permissionsByCategory['gestion_dlc'] ? permissionsByCategory['gestion_dlc'].length : 'NOT FOUND');
-  console.log("🔍 Full permissions sample:", permissions.slice(0, 3));
-  console.log("🔍 Total permissions received:", permissions.length);
-  console.log("🔍 DLC permissions details:", permissions.filter(p => p.category === 'gestion_dlc'));
-  console.log("🔍 All categories found:", Object.keys(permissionsByCategory));
-  console.log("🔍 Raw permissions data:", permissions.map(p => ({ name: p.name, category: p.category, displayName: p.displayName })));
+  // Debug permissions (cleaned up after successful DLC fix)
 
   // Create role mutation
   const createRoleMutation = useMutation({
@@ -534,22 +510,13 @@ export default function RoleManagement() {
                   <CardTitle>Liste des Permissions</CardTitle>
                   <CardDescription>Toutes les permissions disponibles dans le système</CardDescription>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={forceRefreshPermissions}
-                  >
-                    🔄 Actualiser Permissions
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={testApiCall}
-                  >
-                    🧪 Test API
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={forceRefreshPermissions}
+                >
+                  🔄 Actualiser Permissions
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
