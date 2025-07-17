@@ -61,6 +61,18 @@ export default function RoleManagement() {
     retry: false
   });
 
+  // Force refresh permissions on mount
+  useEffect(() => {
+    refetchPermissions();
+  }, [refetchPermissions]);
+
+  // Debug function to force refresh permissions
+  const forceRefreshPermissions = () => {
+    console.log("🔄 Force refreshing permissions...");
+    queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+    refetchPermissions();
+  };
+
 
 
   // Protection Array.isArray et logs debug RENFORCÉS
@@ -493,8 +505,19 @@ export default function RoleManagement() {
         <TabsContent value="permissions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Liste des Permissions</CardTitle>
-              <CardDescription>Toutes les permissions disponibles dans le système</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Liste des Permissions</CardTitle>
+                  <CardDescription>Toutes les permissions disponibles dans le système</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={forceRefreshPermissions}
+                >
+                  🔄 Actualiser Permissions
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
