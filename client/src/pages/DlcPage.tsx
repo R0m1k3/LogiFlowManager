@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle, Plus, Eye, Edit, Trash2, CheckCircle, Package, Clock, AlertCircle, Filter, Download, FileText } from "lucide-react";
@@ -43,6 +44,8 @@ export default function DlcPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<DlcProductWithRelations | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<number | null>(null);
 
   // Fetch stores/groups
   const { data: stores = [] } = useQuery({
@@ -211,9 +214,30 @@ export default function DlcPage() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
-      deleteMutation.mutate(id);
+    setProductToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (productToDelete) {
+      deleteMutation.mutate(productToDelete);
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
     }
+  };
+
+  const handleValidate = (id: number) => {
+    validateMutation.mutate(id);
+  };
+
+  // Fonction pour déterminer si un produit doit afficher le bouton de validation
+  const shouldShowValidateButton = (product: DlcProductWithRelations) => {
+    const today = new Date();
+    const expiry = new Date(product.expiryDate);
+    const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Afficher le bouton si le produit expire dans 15 jours ou moins, ou est déjà expiré
+    return (daysUntilExpiry <= 15 && product.status !== "valides");
   };
 
   const getStatusBadge = (status: string, expiryDate: Date) => {
@@ -673,18 +697,19 @@ export default function DlcPage() {
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          {(user?.role === 'admin' || user?.role === 'manager') && product.status !== 'valides' && (
+                          {shouldShowValidateButton(product) && (user?.role === 'admin' || user?.role === 'manager') && (
                             <Button
-                              variant="outline"
+                              variant="default"
                               size="sm"
-                              onClick={() => validateMutation.mutate(product.id)}
+                              onClick={() => handleValidate(product.id)}
                               disabled={validateMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
                             >
                               <CheckCircle className="w-4 h-4" />
                             </Button>
                           )}
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
                             onClick={() => handleDelete(product.id)}
                             disabled={deleteMutation.isPending}
@@ -701,6 +726,24 @@ export default function DlcPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de confirmation de suppression */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce produit DLC ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
