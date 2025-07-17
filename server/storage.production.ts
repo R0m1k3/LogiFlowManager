@@ -2458,8 +2458,26 @@ export class DatabaseStorage implements IStorage {
             fields.push(`created_by = $${paramIndex}`);
             params.push(value);
             paramIndex++;
+          } else if (key === 'dateType') {
+            fields.push(`date_type = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
+          } else if (key === 'alertThreshold') {
+            fields.push(`alert_threshold = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
+          } else if (key === 'validatedBy') {
+            fields.push(`validated_by = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
+          } else if (key === 'validatedAt') {
+            fields.push(`validated_at = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           } else {
-            fields.push(`${key} = $${paramIndex}`);
+            // Pour les autres champs, utiliser le nom tel quel
+            const dbFieldName = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+            fields.push(`${dbFieldName} = $${paramIndex}`);
             params.push(value);
             paramIndex++;
           }
