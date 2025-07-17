@@ -33,6 +33,18 @@ import type {
 
 // Production storage implementation using raw PostgreSQL queries
 export class DatabaseStorage implements IStorage {
+  // Helper method to safely format dates to ISO strings
+  private formatDate(date: any): string | null {
+    if (!date) return null;
+    if (typeof date === 'string') return date; // Already a string
+    try {
+      return date.toISOString();
+    } catch (error) {
+      console.warn('Failed to format date:', date, error);
+      return null;
+    }
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
     return result.rows[0] || undefined;
@@ -2219,7 +2231,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id,
         name: row.name || row.product_name,
         productCode: row.product_code || row.gencode,
-        dlcDate: (row.dlc_date || row.expiry_date)?.toISOString?.() || (row.dlc_date || row.expiry_date),
+        dlcDate: this.formatDate(row.dlc_date || row.expiry_date),
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
@@ -2227,9 +2239,9 @@ export class DatabaseStorage implements IStorage {
         description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
-        validatedAt: row.validated_at?.toISOString?.() || row.validated_at,
-        createdAt: row.created_at?.toISOString?.() || row.created_at,
-        updatedAt: row.updated_at?.toISOString?.() || row.updated_at,
+        validatedAt: this.formatDate(row.validated_at),
+        createdAt: this.formatDate(row.created_at),
+        updatedAt: this.formatDate(row.updated_at),
         groupName: row.group_name,
         supplierName: row.supplier_name
       }));
@@ -2256,7 +2268,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id,
         name: row.name || row.product_name,
         productCode: row.product_code || row.gencode,
-        dlcDate: (row.dlc_date || row.expiry_date)?.toISOString?.() || (row.dlc_date || row.expiry_date),
+        dlcDate: this.formatDate(row.dlc_date || row.expiry_date),
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
@@ -2264,9 +2276,9 @@ export class DatabaseStorage implements IStorage {
         description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
-        validatedAt: row.validated_at?.toISOString?.() || row.validated_at,
-        createdAt: row.created_at?.toISOString?.() || row.created_at,
-        updatedAt: row.updated_at?.toISOString?.() || row.updated_at,
+        validatedAt: this.formatDate(row.validated_at),
+        createdAt: this.formatDate(row.created_at),
+        updatedAt: this.formatDate(row.updated_at),
         groupName: row.group_name,
         supplierName: row.supplier_name
       };
@@ -2336,7 +2348,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id,
         name: row.name || row.product_name,
         productCode: row.product_code || row.gencode,
-        dlcDate: (row.dlc_date || row.expiry_date)?.toISOString?.() || (row.dlc_date || row.expiry_date),
+        dlcDate: this.formatDate(row.dlc_date || row.expiry_date),
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
@@ -2344,9 +2356,9 @@ export class DatabaseStorage implements IStorage {
         description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
-        validatedAt: row.validated_at?.toISOString?.() || row.validated_at,
-        createdAt: row.created_at?.toISOString?.() || row.created_at,
-        updatedAt: row.updated_at?.toISOString?.() || row.updated_at
+        validatedAt: this.formatDate(row.validated_at),
+        createdAt: this.formatDate(row.created_at),
+        updatedAt: this.formatDate(row.updated_at)
       };
     } catch (error) {
       console.error("❌ Error creating DLC product:", error);
@@ -2417,7 +2429,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id,
         name: row.name || row.product_name,
         productCode: row.product_code || row.gencode,
-        dlcDate: (row.dlc_date || row.expiry_date)?.toISOString?.() || (row.dlc_date || row.expiry_date),
+        dlcDate: this.formatDate(row.dlc_date || row.expiry_date),
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
@@ -2425,9 +2437,9 @@ export class DatabaseStorage implements IStorage {
         description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
-        validatedAt: row.validated_at?.toISOString?.() || row.validated_at,
-        createdAt: row.created_at?.toISOString?.() || row.created_at,
-        updatedAt: row.updated_at?.toISOString?.() || row.updated_at
+        validatedAt: this.formatDate(row.validated_at),
+        createdAt: this.formatDate(row.created_at),
+        updatedAt: this.formatDate(row.updated_at)
       };
     } catch (error) {
       console.error("Error updating DLC product:", error);
@@ -2458,7 +2470,7 @@ export class DatabaseStorage implements IStorage {
         id: row.id,
         name: row.name || row.product_name,
         productCode: row.product_code || row.gencode,
-        dlcDate: (row.dlc_date || row.expiry_date)?.toISOString?.() || (row.dlc_date || row.expiry_date),
+        dlcDate: this.formatDate(row.dlc_date || row.expiry_date),
         quantity: row.quantity,
         status: row.status,
         groupId: row.group_id,
@@ -2466,9 +2478,9 @@ export class DatabaseStorage implements IStorage {
         description: row.description || row.notes,
         createdBy: row.created_by,
         validatedBy: row.validated_by,
-        validatedAt: row.validated_at?.toISOString?.() || row.validated_at,
-        createdAt: row.created_at?.toISOString?.() || row.created_at,
-        updatedAt: row.updated_at?.toISOString?.() || row.updated_at
+        validatedAt: this.formatDate(row.validated_at),
+        createdAt: this.formatDate(row.created_at),
+        updatedAt: this.formatDate(row.updated_at)
       };
     } catch (error) {
       console.error("Error validating DLC product:", error);
