@@ -255,21 +255,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { startDate, endDate, storeId } = req.query;
+      
+      console.log('📦 Orders API called with:', {
+        startDate,
+        endDate,
+        storeId,
+        userRole: user.role
+      });
 
       let groupIds: number[] | undefined;
       if (user.role === 'admin') {
         groupIds = storeId ? [parseInt(storeId as string)] : undefined;
+        console.log('📦 Admin filtering with groupIds:', groupIds);
       } else {
         groupIds = user.userGroups.map((ug: any) => ug.groupId);
+        console.log('📦 Non-admin filtering with groupIds:', groupIds);
       }
 
       let orders;
       if (startDate && endDate) {
+        console.log('📦 Fetching orders by date range:', startDate, 'to', endDate);
         orders = await storage.getOrdersByDateRange(startDate as string, endDate as string, groupIds);
       } else {
+        console.log('📦 Fetching all orders with groupIds:', groupIds);
         orders = await storage.getOrders(groupIds);
       }
 
+      console.log('📦 Orders returned:', orders.length, 'items');
       res.json(orders);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -317,10 +329,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/orders/:id', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
+      console.log('🗑️ Production - Deleting order:', id);
       await storage.deleteOrder(id);
+      console.log('✅ Production - Order deleted successfully:', id);
       res.status(204).send();
     } catch (error) {
-      console.error("Error deleting order:", error);
+      console.error("❌ Production - Error deleting order:", error);
       res.status(500).json({ message: "Failed to delete order" });
     }
   });

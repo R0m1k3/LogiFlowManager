@@ -612,7 +612,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteOrder(id: number): Promise<void> {
-    await pool.query('DELETE FROM orders WHERE id = $1', [id]);
+    console.log('🗑️ Production Storage - Deleting order:', id);
+    
+    // Vérifier les livraisons liées avant suppression
+    const linkedDeliveries = await pool.query(
+      'SELECT id FROM deliveries WHERE order_id = $1',
+      [id]
+    );
+    
+    if (linkedDeliveries.rows.length > 0) {
+      console.log('🔗 Order has linked deliveries:', linkedDeliveries.rows.length);
+      // Pour chaque livraison liée, supprimer la liaison
+      for (const delivery of linkedDeliveries.rows) {
+        await pool.query(
+          'UPDATE deliveries SET order_id = NULL WHERE id = $1',
+          [delivery.id]
+        );
+      }
+    }
+    
+    const result = await pool.query('DELETE FROM orders WHERE id = $1', [id]);
+    console.log('✅ Production Storage - Order deleted, affected rows:', result.rowCount);
   }
 
   async getDeliveries(groupIds?: number[]): Promise<any[]> {

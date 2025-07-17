@@ -101,14 +101,21 @@ export default function Orders() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
+      console.log('🗑️ Deleting order:', id);
       await apiRequest(`/api/orders/${id}`, "DELETE");
     },
     onSuccess: () => {
+      console.log('✅ Order deleted successfully, invalidating cache...');
       toast({
         title: "Succès",
         description: "Commande supprimée avec succès",
       });
+      // Invalider le cache avec la même clé que la requête principale
+      queryClient.invalidateQueries({ queryKey: [ordersUrl, selectedStoreId] });
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
+      // Force un refresh immédiat
+      queryClient.refetchQueries({ queryKey: [ordersUrl, selectedStoreId] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

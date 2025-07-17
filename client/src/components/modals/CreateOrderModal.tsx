@@ -79,16 +79,22 @@ export default function CreateOrderModal({
 
   const createOrderMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("/api/orders", "POST", data);
+      console.log('🚀 Creating order with data:', data);
+      const response = await apiRequest("/api/orders", "POST", data);
+      console.log('✅ Order created successfully:', response);
+      return response;
     },
     onSuccess: () => {
       toast({
         title: "Succès",
         description: "Commande créée avec succès",
       });
+      console.log('🔄 Invalidating order caches...');
       // Invalider tous les caches liés aux commandes
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/stats/monthly'] });
+      // Invalider le cache spécifique du calendrier et des pages
+      queryClient.refetchQueries({ queryKey: ['/api/orders'] });
       onClose();
     },
     onError: (error) => {
