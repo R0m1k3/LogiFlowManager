@@ -60,7 +60,14 @@ export default function Tasks() {
       if (selectedStoreId) {
         params.append('storeId', selectedStoreId);
       }
-      return fetch(`/api/tasks?${params.toString()}`).then(res => res.json());
+      return fetch(`/api/tasks?${params.toString()}`, {
+        credentials: 'include'
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      });
     },
     enabled: !!user,
   });
@@ -68,6 +75,14 @@ export default function Tasks() {
   // Fetch users for task assignment
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
+    queryFn: () => fetch('/api/users', {
+      credentials: 'include'
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    }),
     enabled: !!user,
   });
 
