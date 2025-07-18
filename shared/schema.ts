@@ -261,7 +261,7 @@ export const tasks = pgTable("tasks", {
   dueDate: timestamp("due_date"), // Date d'échéance (optionnel)
   priority: varchar("priority").notNull().default("medium"), // low, medium, high
   status: varchar("status").notNull().default("pending"), // pending, completed
-  assignedTo: varchar("assigned_to").notNull(), // Utilisateur responsable
+  assignedTo: text("assigned_to").notNull(), // Utilisateur responsable (champ libre)
   createdBy: varchar("created_by").notNull(), // Utilisateur créateur
   groupId: integer("group_id").notNull(), // Magasin/groupe associé
   completedAt: timestamp("completed_at"), // Date de completion

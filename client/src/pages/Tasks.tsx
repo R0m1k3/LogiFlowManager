@@ -236,7 +236,6 @@ export default function Tasks() {
                 </DialogHeader>
                 <TaskForm
                   onClose={() => setShowCreateModal(false)}
-                  users={users}
                 />
               </DialogContent>
             </Dialog>
@@ -389,7 +388,7 @@ export default function Tasks() {
                                     
                                     <div className="flex items-center gap-4 text-xs text-gray-500">
                                       <span>
-                                        Assigné à: {task.assignedUser?.firstName} {task.assignedUser?.lastName} ({task.assignedUser?.username})
+                                        Assigné à: {task.assignedTo}
                                       </span>
                                       {task.dueDate && (
                                         <span>
@@ -469,7 +468,7 @@ export default function Tasks() {
                                     
                                     <div className="flex items-center gap-4 text-xs text-gray-500">
                                       <span>
-                                        Assigné à: {task.assignedUser?.firstName} {task.assignedUser?.lastName} ({task.assignedUser?.username})
+                                        Assigné à: {task.assignedTo}
                                       </span>
                                       {task.completedAt && (
                                         <span>
@@ -516,7 +515,6 @@ export default function Tasks() {
                 setShowEditModal(false);
                 setSelectedTask(null);
               }}
-              users={users}
             />
           )}
         </DialogContent>

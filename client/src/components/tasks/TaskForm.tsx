@@ -9,13 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Clock } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { insertTaskSchema, Task } from "@shared/schema";
 import { z } from "zod";
@@ -26,10 +20,15 @@ type TaskWithRelations = Task & {
   group: { id: number; name: string; color: string; };
 };
 
-// Étendre le schéma pour inclure les champs de date et d'heure séparés
-const taskFormSchema = insertTaskSchema.extend({
-  dueDate: z.date().optional(),
-  dueTime: z.string().optional(),
+// Schéma simplifié sans date d'échéance et magasin
+const taskFormSchema = insertTaskSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+  createdBy: true,
+  dueDate: true,
+  groupId: true,
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -37,19 +36,15 @@ type TaskFormData = z.infer<typeof taskFormSchema>;
 interface TaskFormProps {
   task?: TaskWithRelations;
   onClose: () => void;
-  users: any[];
 }
 
-export default function TaskForm({ task, onClose, users }: TaskFormProps) {
+export default function TaskForm({ task, onClose }: TaskFormProps) {
   const { user } = useAuthUnified();
   const { selectedStoreId } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch groups for assignment
-  const { data: groups = [] } = useQuery({
-    queryKey: ["/api/groups"],
-  });
+
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
@@ -58,19 +53,13 @@ export default function TaskForm({ task, onClose, users }: TaskFormProps) {
       description: task?.description || "",
       priority: task?.priority || "medium",
       status: task?.status || "pending",
-      assignedTo: task?.assignedTo || user?.id || "",
-      groupId: task?.groupId || parseInt(selectedStoreId || "1"),
-      dueDate: task?.dueDate ? new Date(task.dueDate) : undefined,
-      dueTime: task?.dueDate ? format(new Date(task.dueDate), "HH:mm") : "",
+      assignedTo: task?.assignedTo || "",
     },
   });
 
   // Mutation pour créer/modifier une tâche
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/tasks", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: any) => apiRequest("/api/tasks", "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast({
@@ -90,10 +79,7 @@ export default function TaskForm({ task, onClose, users }: TaskFormProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/tasks/${task?.id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: any) => apiRequest(`/api/tasks/${task?.id}`, "PUT", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast({
@@ -114,15 +100,14 @@ export default function TaskForm({ task, onClose, users }: TaskFormProps) {
 
   const onSubmit = (data: TaskFormData) => {
     const submitData = {
-      ...data,
-      // Combiner la date et l'heure si les deux sont fournis
-      dueDate: data.dueDate && data.dueTime 
-        ? new Date(`${format(data.dueDate, "yyyy-MM-dd")}T${data.dueTime}:00`)
-        : data.dueDate || null,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      assignedTo: data.assignedTo,
+      groupId: parseInt(selectedStoreId || "1"),
+      createdBy: user?.id,
     };
-
-    // Retirer dueTime car ce n'est pas dans le schéma de la DB
-    delete (submitData as any).dueTime;
 
     if (task) {
       updateMutation.mutate(submitData);
@@ -244,117 +229,18 @@ export default function TaskForm({ task, onClose, users }: TaskFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Assigné à *</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un utilisateur" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName} ({user.username})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Input 
+                  placeholder="Nom de la personne assignée"
+                  {...field} 
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Groupe/Magasin */}
-        <FormField
-          control={form.control}
-          name="groupId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Magasin *</FormLabel>
-              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un magasin" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {groups.map((group: any) => (
-                    <SelectItem key={group.id} value={group.id.toString()}>
-                      {group.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        {/* Date d'échéance */}
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="dueDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date d'échéance</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "dd/MM/yyyy", { locale: fr })
-                        ) : (
-                          <span>Sélectionner une date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                      initialFocus
-                      locale={fr}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Heure d'échéance */}
-          <FormField
-            control={form.control}
-            name="dueTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Heure d'échéance</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      type="time"
-                      placeholder="HH:MM"
-                      className="pl-10"
-                      {...field}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
         {/* Boutons d'action */}
         <div className="flex justify-end space-x-3 pt-6">
