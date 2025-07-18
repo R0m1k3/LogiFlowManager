@@ -214,6 +214,7 @@ The application uses a sophisticated dual authentication approach:
 - **AUTHENTIFICATION DÉVELOPPEMENT RÉPARÉE** - Mot de passe admin réinitialisé avec algorithme scrypt correct pour développement
 - **MÉTHODE COMPLETETASK PRODUCTION CORRIGÉE** - Requête SQL simplifiée et logs ajoutés pour déboguer validation tâches
 - **COLONNES COMPLETED_AT/BY RECRÉÉES** - Suppression et recréation des colonnes completed_at et completed_by en production pour résoudre erreur SQL définitivement
+- **CRITIQUE FIX v2 AJOUTÉ** - Migration forcée dans initDatabase.production.ts pour recréer définitivement les colonnes completed_at/by au démarrage de l'application
 
 ### July 18, 2025 - Restauration Interface Tâches Complète avec Calendrier
 - **VERSION COMPLÈTE RESTAURÉE** - Retour à l'interface Tasks.tsx avec fonctionnalités calendrier, navigation par dates et filtres avancés

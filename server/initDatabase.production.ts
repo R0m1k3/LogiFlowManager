@@ -449,6 +449,52 @@ async function addMissingColumns() {
       console.log('✅ Added completed_by column to tasks');
     }
 
+    // FORCE FIX PRODUCTION ISSUE: Recreate tasks table completed columns (Critical Fix v2)
+    console.log('🔧 CRITICAL FIX v2: Forcing tasks table completed columns for production...');
+    
+    try {
+      // First verify current structure
+      const currentCols = await pool.query(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'tasks' AND column_name IN ('completed_at', 'completed_by')
+      `);
+      console.log('📋 Current completed columns:', currentCols.rows);
+      
+      // Drop existing constraints first
+      await pool.query(`ALTER TABLE tasks DROP CONSTRAINT IF EXISTS tasks_completed_by_fkey CASCADE;`);
+      console.log('✅ Dropped constraints');
+      
+      // Force drop and recreate columns 
+      await pool.query(`ALTER TABLE tasks DROP COLUMN IF EXISTS completed_at CASCADE;`);
+      await pool.query(`ALTER TABLE tasks DROP COLUMN IF EXISTS completed_by CASCADE;`);
+      console.log('✅ Dropped old columns');
+      
+      await pool.query(`ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP NULL;`);
+      await pool.query(`ALTER TABLE tasks ADD COLUMN completed_by VARCHAR(255) NULL;`);
+      console.log('✅ Added new columns');
+      
+      // Re-add foreign key constraint
+      await pool.query(`
+        ALTER TABLE tasks ADD CONSTRAINT tasks_completed_by_fkey 
+        FOREIGN KEY (completed_by) REFERENCES users(id) ON DELETE SET NULL;
+      `);
+      console.log('✅ Added constraints');
+      
+      // Final verification
+      const verifyResult = await pool.query(`
+        SELECT column_name, data_type, is_nullable 
+        FROM information_schema.columns 
+        WHERE table_name = 'tasks' AND column_name IN ('completed_at', 'completed_by')
+        ORDER BY column_name
+      `);
+      
+      console.log('🎉 CRITICAL FIX v2 COMPLETED. Final structure:', verifyResult.rows);
+      
+    } catch (taskError) {
+      console.error('❌ Critical fix failed:', taskError);
+      throw taskError; // Force error to prevent app from starting with broken schema
+    }
+
     // Add missing columns to roles table
     const rolesColumnsToAdd = [
       { name: 'display_name', type: 'VARCHAR(255)', default: null },
