@@ -157,6 +157,8 @@ export default function Sidebar() {
     return hasRole;
   };
 
+
+
   // Si l'utilisateur n'est pas encore chargé, afficher un état de chargement
   if (isLoading) {
     return (
