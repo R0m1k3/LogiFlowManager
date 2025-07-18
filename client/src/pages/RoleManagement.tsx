@@ -14,6 +14,81 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Trash2, Shield, Users, Settings } from "lucide-react";
 import type { Role, Permission, User } from "@shared/schema";
 
+// Fonction pour forcer l'affichage des noms français même si displayName est incorrect
+function getPermissionDisplayName(permission: any): string {
+  // Si displayName existe et n'est pas le même que name, l'utiliser
+  if (permission.displayName && permission.displayName !== permission.name) {
+    return permission.displayName;
+  }
+  
+  // Sinon, mapper manuellement selon le nom technique
+  const frenchNames: Record<string, string> = {
+    'dashboard_read': 'Voir tableau de bord',
+    'groups_read': 'Voir magasins',
+    'groups_create': 'Créer magasins',
+    'groups_update': 'Modifier magasins',
+    'groups_delete': 'Supprimer magasins',
+    'suppliers_read': 'Voir fournisseurs',
+    'suppliers_create': 'Créer fournisseurs',
+    'suppliers_update': 'Modifier fournisseurs',
+    'suppliers_delete': 'Supprimer fournisseurs',
+    'orders_read': 'Voir commandes',
+    'orders_create': 'Créer commandes',
+    'orders_update': 'Modifier commandes',
+    'orders_delete': 'Supprimer commandes',
+    'deliveries_read': 'Voir livraisons',
+    'deliveries_create': 'Créer livraisons',
+    'deliveries_update': 'Modifier livraisons',
+    'deliveries_delete': 'Supprimer livraisons',
+    'deliveries_validate': 'Valider livraisons',
+    'deliveries_reconcile': 'Rapprocher livraisons',
+    'publicities_read': 'Voir publicités',
+    'publicities_create': 'Créer publicités',
+    'publicities_update': 'Modifier publicités',
+    'publicities_delete': 'Supprimer publicités',
+    'customer_orders_read': 'Voir commandes clients',
+    'customer_orders_create': 'Créer commandes clients',
+    'customer_orders_update': 'Modifier commandes clients',
+    'customer_orders_delete': 'Supprimer commandes clients',
+    'customer_orders_print': 'Imprimer commandes clients',
+    'customer_orders_export': 'Exporter commandes clients',
+    'users_read': 'Voir utilisateurs',
+    'users_create': 'Créer utilisateurs',
+    'users_update': 'Modifier utilisateurs',
+    'users_delete': 'Supprimer utilisateurs',
+    'roles_read': 'Voir rôles',
+    'roles_create': 'Créer rôles',
+    'roles_update': 'Modifier rôles',
+    'roles_delete': 'Supprimer rôles',
+    'permissions_assign': 'Assigner permissions',
+    'calendar_read': 'Voir calendrier',
+    'calendar_create': 'Créer événement calendrier',
+    'calendar_update': 'Modifier événement calendrier', 
+    'calendar_delete': 'Supprimer événement calendrier',
+    'reconciliation_read': 'Voir rapprochement',
+    'reconciliation_update': 'Modifier rapprochement',
+    'tasks_read': 'Voir tâches',
+    'tasks_create': 'Créer tâches',
+    'tasks_update': 'Modifier tâches',
+    'tasks_delete': 'Supprimer tâches',
+    'tasks_assign': 'Assigner tâches',
+    'dlc_read': 'Voir DLC',
+    'dlc_create': 'Créer DLC',
+    'dlc_update': 'Modifier DLC',
+    'dlc_delete': 'Supprimer DLC',
+    'dlc_validate': 'Valider DLC',
+    'dlc_print': 'Imprimer DLC',
+    'dlc_stats': 'Statistiques DLC',
+    'nocodb_config': 'Configuration NocoDB',
+    'magasins_read': 'Voir magasins',
+    'magasins_create': 'Créer magasins',
+    'magasins_update': 'Modifier magasins',
+    'magasins_delete': 'Supprimer magasins'
+  };
+  
+  return frenchNames[permission.name] || permission.displayName || permission.name;
+}
+
 interface RoleWithPermissions extends Role {
   rolePermissions: Array<{
     roleId: number;
@@ -608,7 +683,7 @@ export default function RoleManagement() {
                       {Array.isArray(categoryPermissions) && categoryPermissions.map((permission) => (
                         <div key={permission.id} className="flex items-center justify-between p-2 border rounded">
                           <div>
-                            <p className="font-medium text-sm">{permission.displayName}</p>
+                            <p className="font-medium text-sm">{getPermissionDisplayName(permission)}</p>
                             <p className="text-xs text-muted-foreground">{permission.description}</p>
                           </div>
                           <div className="flex items-center gap-1">
