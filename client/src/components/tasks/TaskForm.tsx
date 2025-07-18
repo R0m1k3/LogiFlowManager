@@ -9,6 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/queryClient";
 import { insertTaskSchema, Task } from "@shared/schema";
@@ -20,15 +26,16 @@ type TaskWithRelations = Task & {
   group: { id: number; name: string; color: string; };
 };
 
-// Schéma simplifié sans date d'échéance et magasin
+// Schéma simplifié sans magasin (date d'échéance incluse)
 const taskFormSchema = insertTaskSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
   completedAt: true,
   createdBy: true,
-  dueDate: true,
   groupId: true,
+}).extend({
+  dueDate: z.string().optional(), // Date optionnelle au format string
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -54,17 +61,19 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
       priority: task?.priority || "medium",
       status: task?.status || "pending",
       assignedTo: task?.assignedTo || "",
+      dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : "",
     },
   });
 
   // Mutation pour créer/modifier une tâche
   const createMutation = useMutation({
     mutationFn: (data: any) => {
-      // Ajouter le groupId basé sur le magasin sélectionné
+      // Ajouter le groupId basé sur le magasin sélectionné et convertir la date
       const taskData = {
         ...data,
         groupId: selectedStoreId ? parseInt(selectedStoreId) : undefined,
-        createdBy: user?.id
+        createdBy: user?.id,
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null
       };
       return apiRequest("/api/tasks", "POST", taskData);
     },
@@ -125,6 +134,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
         priority: data.priority,
         status: data.status,
         assignedTo: data.assignedTo,
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
       };
       updateMutation.mutate(submitData);
     } else {
@@ -257,7 +267,24 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
           )}
         />
 
-
+        {/* Date d'échéance */}
+        <FormField
+          control={form.control}
+          name="dueDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Date d'échéance</FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  {...field}
+                  placeholder="Sélectionner une date"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Boutons d'action */}
         <div className="flex justify-end space-x-3 pt-6">
