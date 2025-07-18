@@ -1355,9 +1355,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUserWithGroups(userId);
       console.log("👤 Permissions API - User found:", user ? user.role : 'NOT FOUND');
       
-      if (!user || user.role !== 'admin') {
-        console.log("❌ Permissions API - Access denied, user role:", user?.role);
-        return res.status(403).json({ message: "Accès refusé" });
+      // ✅ CORRECTION: Permettre à tous les utilisateurs authentifiés de lire les permissions (nécessaire pour l'interface de gestion des rôles)
+      if (!user) {
+        console.log("❌ Permissions API - User not found");
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
       }
 
       console.log("🔍 Fetching all permissions...");
@@ -1365,6 +1366,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("📝 Permissions fetched:", permissions.length, "items");
       console.log("🏷️ Categories found:", [...new Set(permissions.map(p => p.category))]);
       console.log("🔧 DLC permissions:", permissions.filter(p => p.category === 'gestion_dlc').map(p => p.name));
+      
+      // 🎯 VÉRIFICATION SPÉCIFIQUE PERMISSIONS TÂCHES
+      const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
+      console.log("📋 Task permissions found:", taskPermissions.length);
+      if (taskPermissions.length > 0) {
+        console.log("📋 Task permissions details:");
+        taskPermissions.forEach(p => {
+          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+        });
+      }
       
       res.json(Array.isArray(permissions) ? permissions : []);
     } catch (error) {

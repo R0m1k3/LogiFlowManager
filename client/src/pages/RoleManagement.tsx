@@ -126,9 +126,19 @@ export default function RoleManagement() {
     retry: false
   });
 
-  // Fetch permissions with forced refetch
+  // Fetch permissions with forced refetch and cache bypass
   const { data: permissionsData = [], isLoading: permissionsLoading, refetch: refetchPermissions } = useQuery<Permission[]>({
-    queryKey: ['/api/permissions'],
+    queryKey: ['/api/permissions', Date.now()], // Cache bypass avec timestamp
+    queryFn: async () => {
+      const response = await fetch(`/api/permissions?t=${Date.now()}`, {
+        credentials: 'include',
+        cache: 'no-cache'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch permissions');
+      }
+      return response.json();
+    },
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: true,
@@ -164,6 +174,16 @@ export default function RoleManagement() {
   console.log("📊 RoleManagement Data:", {
     roles: roles.length,
     permissions: permissions.length
+  });
+  
+  // Debug spécifique pour les permissions tâches
+  const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
+  console.log("🔍 DEBUG PERMISSIONS FRONTEND:", {
+    totalPermissions: permissions.length,
+    allCategories: [...new Set(permissions.map(p => p.category))],
+    hasGestionTaches: taskPermissions.length > 0,
+    taskPermissions: taskPermissions,
+    firstPermission: permissions[0]
   });
 
 
