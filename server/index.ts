@@ -58,11 +58,6 @@ app.use((req, res, next) => {
     // Continue startup even if role initialization fails
   }
 
-  // FORCE PRODUCTION MODE FOR TESTING
-  process.env.NODE_ENV = 'production';
-  console.log('🔍 DIAGNOSTIC - NODE_ENV (FORCED):', process.env.NODE_ENV);
-  console.log('🔍 DIAGNOSTIC - Using storage:', process.env.NODE_ENV === 'production' ? 'PRODUCTION' : 'DEVELOPMENT');
-  
   // Initialize production database and permissions only in production
   if (process.env.NODE_ENV === 'production') {
     try {

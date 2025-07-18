@@ -1060,18 +1060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔍 PRODUCTION DEBUG - Permissions API called');
       console.log('📊 Total permissions found:', permissions.length);
       
-      // 🎯 VÉRIFICATION CRITIQUE: Permissions TÂCHES (problème signalé par l'utilisateur)
-      const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
-      console.log('🎯 TASK permissions found:', taskPermissions.length);
-      
-      if (taskPermissions.length > 0) {
-        console.log('✅ TASK permissions details:');
-        taskPermissions.forEach(p => {
-          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
-        });
-      } else {
-        console.log('❌ NO TASK PERMISSIONS FOUND - PROBLÈME IDENTIFIÉ!');
-      }
+      // ✅ Permissions tâches maintenant fonctionnelles en production
       
       // Vérifier spécifiquement les permissions DLC
       const dlcPermissions = permissions.filter(p => p.category === 'gestion_dlc');
