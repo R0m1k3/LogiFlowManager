@@ -265,6 +265,7 @@ export const tasks = pgTable("tasks", {
   createdBy: varchar("created_by").notNull(), // Utilisateur créateur
   groupId: integer("group_id").notNull(), // Magasin/groupe associé
   completedAt: timestamp("completed_at"), // Date de completion
+  completedBy: varchar("completed_by"), // Utilisateur qui a complété la tâche
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -544,6 +545,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   createdAt: true,
   updatedAt: true,
   completedAt: true,
+  completedBy: true,
 }).extend({
   dueDate: z.coerce.date().optional().nullable(), // Convertit automatiquement les chaînes en Date
 });

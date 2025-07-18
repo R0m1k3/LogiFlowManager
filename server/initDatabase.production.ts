@@ -270,6 +270,8 @@ async function createTablesIfNotExist() {
       due_date DATE,
       group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
       created_by VARCHAR(255) NOT NULL REFERENCES users(id),
+      completed_at TIMESTAMP,
+      completed_by VARCHAR(255) REFERENCES users(id),
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -434,6 +436,17 @@ async function addMissingColumns() {
     if (ordersUnitExists.rows.length === 0) {
       await pool.query('ALTER TABLE orders ADD COLUMN unit VARCHAR(50)');
       console.log('✅ Added unit column to orders');
+    }
+
+    // Check and add completed_by column to tasks
+    const tasksCompletedByExists = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'tasks' AND column_name = 'completed_by'
+    `);
+    
+    if (tasksCompletedByExists.rows.length === 0) {
+      await pool.query('ALTER TABLE tasks ADD COLUMN completed_by VARCHAR(255) REFERENCES users(id)');
+      console.log('✅ Added completed_by column to tasks');
     }
 
     // Add missing columns to roles table
