@@ -4,7 +4,7 @@ import { useStore } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Package, ShoppingCart, TrendingUp, Clock, MapPin, User, AlertTriangle, CheckCircle, Truck, FileText, BarChart3, Megaphone, Shield, XCircle } from "lucide-react";
+import { Calendar, Package, ShoppingCart, TrendingUp, Clock, MapPin, User, AlertTriangle, CheckCircle, Truck, FileText, BarChart3, Megaphone, Shield, XCircle, CheckSquare } from "lucide-react";
 import { safeFormat, safeDate } from "@/lib/dateUtils";
 import type { PublicityWithRelations } from "@shared/schema";
 
@@ -95,6 +95,18 @@ export default function Dashboard() {
       const params = new URLSearchParams();
       if (selectedStoreId && user?.role === 'admin') params.append("storeId", selectedStoreId.toString());
       return fetch(`/api/dlc-products/stats?${params.toString()}`, {
+        credentials: 'include'
+      }).then(res => res.json());
+    },
+  });
+
+  // Fetch tasks
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["/api/tasks", selectedStoreId],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (selectedStoreId && user?.role === 'admin') params.append("storeId", selectedStoreId.toString());
+      return fetch(`/api/tasks?${params.toString()}`, {
         credentials: 'include'
       }).then(res => res.json());
     },
@@ -463,43 +475,49 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Statut DLC */}
+        {/* Tâches à faire */}
         <Card className="bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
           <CardHeader className="pb-4 border-b border-gray-100">
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
-              <Shield className="h-5 w-5 mr-3 text-green-600" />
-              Statut DLC
+              <CheckSquare className="h-5 w-5 mr-3 text-blue-600" />
+              Tâches à faire
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 p-6">
-            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center space-x-3">
-                <div className="h-3 w-3 bg-green-500"></div>
-                <span className="text-sm font-medium text-gray-700">Actifs</span>
-              </div>
-              <span className="font-semibold text-green-600 text-lg">{dlcStats.active}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center space-x-3">
-                <div className="h-3 w-3 bg-yellow-500"></div>
-                <span className="text-sm font-medium text-gray-700">Expire bientôt</span>
-              </div>
-              <span className="font-semibold text-yellow-600 text-lg">{dlcStats.expiringSoon}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center space-x-3">
-                <div className="h-3 w-3 bg-red-500"></div>
-                <span className="text-sm font-medium text-gray-700">Expirés</span>
-              </div>
-              <span className="font-semibold text-red-600 text-lg">{dlcStats.expired}</span>
-            </div>
-            <div className="flex items-center justify-between border-t border-gray-200 pt-3 mt-3 p-3">
-              <div className="flex items-center space-x-3">
-                <div className="h-3 w-3 bg-gray-500"></div>
-                <span className="text-sm font-semibold text-gray-800">Total produits</span>
-              </div>
-              <span className="font-bold text-xl text-gray-800">{dlcStats.active + dlcStats.expiringSoon + dlcStats.expired}</span>
-            </div>
+            {Array.isArray(tasks) && tasks.length > 0 ? tasks
+              .sort((a: any, b: any) => {
+                const dateA = safeDate(a.createdAt);
+                const dateB = safeDate(b.createdAt);
+                return (dateA ? dateA.getTime() : 0) - (dateB ? dateB.getTime() : 0);
+              })
+              .slice(0, 5)
+              .map((task: any) => (
+                <div key={task.id} className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors border-l-3 border-blue-500">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-2 w-2 bg-blue-500"></div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 truncate">{task.title}</p>
+                      <p className="text-sm text-gray-600 truncate">{task.assignedTo}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge 
+                      variant={task.status === 'completed' ? 'default' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {task.status === 'completed' ? 'Terminé' : 'En cours'}
+                    </Badge>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {safeFormat(task.createdAt, "d MMM")}
+                    </p>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">Aucune tâche en cours</p>
+                  <p className="text-xs text-gray-400 mt-1">Toutes les tâches sont terminées</p>
+                </div>
+              )}
           </CardContent>
         </Card>
       </div>
