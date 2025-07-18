@@ -110,12 +110,6 @@ export default function Sidebar() {
       icon: Clock, 
       roles: ["admin", "manager", "employee"] 
     },
-    { 
-      path: "/tasks", 
-      label: "Tâches", 
-      icon: ListTodo, 
-      roles: ["admin", "manager", "employee"] 
-    },
   ];
 
   const managementItems = [

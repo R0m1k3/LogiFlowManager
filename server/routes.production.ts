@@ -1853,10 +1853,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      console.log("🔄 Completing task using storage.completeTask...");
-      await storage.completeTask(id, userId);
-      const updatedTask = await storage.getTask(id);
-      console.log("✅ Task completed successfully:", updatedTask);
+      console.log("🔄 Updating task to completed...");
+      const updatedTask = await storage.updateTask(id, { 
+        status: 'completed',
+        completedBy: userId
+      });
+      console.log("✅ Task updated successfully:", updatedTask);
       res.json(updatedTask);
     } catch (error) {
       console.error("❌ Error completing task:", error);
