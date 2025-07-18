@@ -1060,6 +1060,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔍 PRODUCTION DEBUG - Permissions API called');
       console.log('📊 Total permissions found:', permissions.length);
       
+      // 🎯 VÉRIFICATION CRITIQUE: Permissions TÂCHES (problème signalé par l'utilisateur)
+      const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
+      console.log('🎯 TASK permissions found:', taskPermissions.length);
+      
+      if (taskPermissions.length > 0) {
+        console.log('✅ TASK permissions details:');
+        taskPermissions.forEach(p => {
+          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+        });
+      } else {
+        console.log('❌ NO TASK PERMISSIONS FOUND - PROBLÈME IDENTIFIÉ!');
+      }
+      
       // Vérifier spécifiquement les permissions DLC
       const dlcPermissions = permissions.filter(p => p.category === 'gestion_dlc');
       console.log('🔧 DLC permissions found:', dlcPermissions.length);
@@ -1070,6 +1083,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
         });
       }
+      
+      // 🎯 VÉRIFICATION SPÉCIFIQUE PERMISSIONS TÂCHES (problème signalé par l'utilisateur)
+      const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
+      console.log('🎯 TASK permissions found:', taskPermissions.length);
+      
+      if (taskPermissions.length > 0) {
+        console.log('🎯 TASK permissions details:');
+        taskPermissions.forEach(p => {
+          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+        });
+      } else {
+        console.log('❌ NO TASK PERMISSIONS FOUND IN API RESPONSE - This is the problem!');
+      }
+      
+      // Vérifier toutes les catégories
+      const allCategories = [...new Set(permissions.map(p => p.category))].sort();
+      console.log('📂 All categories found:', allCategories);
+      console.log('🔍 Has gestion_taches?', allCategories.includes('gestion_taches'));
       
       // Vérifier les permissions fournisseurs qui semblent problématiques selon l'utilisateur
       const supplierPermissions = permissions.filter(p => p.category === 'fournisseurs');
@@ -1261,6 +1292,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const roleId = parseInt(req.params.id);
       const rolePermissions = await storage.getRolePermissions(roleId);
+      
+      // 🎯 DEBUG SPÉCIFIQUE: Vérifier si les permissions tâches sont assignées au rôle
+      console.log('🔍 ROLE PERMISSIONS DEBUG for role ID:', roleId);
+      console.log('📊 Total role permissions found:', rolePermissions?.length || 0);
+      
+      if (Array.isArray(rolePermissions) && rolePermissions.length > 0) {
+        const taskRolePermissions = rolePermissions.filter(rp => {
+          // Chercher les permissions de la catégorie gestion_taches
+          return rp.permission && rp.permission.category === 'gestion_taches';
+        });
+        console.log('🎯 TASK role permissions found:', taskRolePermissions.length);
+        
+        if (taskRolePermissions.length > 0) {
+          console.log('✅ TASK role permissions details:');
+          taskRolePermissions.forEach(rp => {
+            console.log(`  - Permission ID: ${rp.permissionId}, Name: ${rp.permission.name}, DisplayName: "${rp.permission.displayName}"`);
+          });
+        } else {
+          console.log('❌ NO TASK ROLE PERMISSIONS FOUND - Problème avec assignation des rôles');
+        }
+      }
+      
       res.json(Array.isArray(rolePermissions) ? rolePermissions : []);
     } catch (error) {
       console.error("Error fetching role permissions:", error);
