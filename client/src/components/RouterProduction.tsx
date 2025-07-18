@@ -71,6 +71,7 @@ function RouterProduction() {
         <Route path="/groups" component={Groups} />
         <Route path="/users" component={Users} />
         <Route path="/roles" component={RoleManagement} />
+        <Route path="/role-management" component={RoleManagement} />
         <Route path="/bl-reconciliation" component={BLReconciliation} />
         <Route path="/publicities" component={Publicities} />
         <Route path="/customer-orders" component={CustomerOrders} />
