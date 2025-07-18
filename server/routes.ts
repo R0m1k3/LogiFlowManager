@@ -1355,10 +1355,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUserWithGroups(userId);
       console.log("👤 Permissions API - User found:", user ? user.role : 'NOT FOUND');
       
-      // ✅ CORRECTION: Permettre à tous les utilisateurs authentifiés de lire les permissions (nécessaire pour l'interface de gestion des rôles)
-      if (!user) {
-        console.log("❌ Permissions API - User not found");
-        return res.status(404).json({ message: "Utilisateur non trouvé" });
+      if (!user || user.role !== 'admin') {
+        console.log("❌ Permissions API - Access denied, user role:", user?.role);
+        return res.status(403).json({ message: "Accès refusé - droits administrateur requis" });
       }
 
       console.log("🔍 Fetching all permissions...");
@@ -2427,6 +2426,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         taskPermissions: taskPermissions,
         samplePermissions: samplePermissions,
         categories: [...new Set(permissions.map(p => p.category))].sort(),
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Debug endpoint to check current user auth status
+  app.get('/api/debug/auth-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      
+      res.json({
+        isAuthenticated: true,
+        userId: userId,
+        user: user ? {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          firstName: user.firstName,
+          lastName: user.lastName
+        } : null,
+        canAccessPermissions: user?.role === 'admin',
         timestamp: new Date().toISOString()
       });
     } catch (error) {

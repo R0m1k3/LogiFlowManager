@@ -126,18 +126,24 @@ export default function RoleManagement() {
     retry: false
   });
 
-  // Fetch permissions with forced refetch and cache bypass
-  const { data: permissionsData = [], isLoading: permissionsLoading, refetch: refetchPermissions } = useQuery<Permission[]>({
-    queryKey: ['/api/permissions', Date.now()], // Cache bypass avec timestamp
+  // Fetch permissions with forced refetch
+  const { data: permissionsData = [], isLoading: permissionsLoading, refetch: refetchPermissions, error: permissionsError } = useQuery<Permission[]>({
+    queryKey: ['/api/permissions'],
     queryFn: async () => {
-      const response = await fetch(`/api/permissions?t=${Date.now()}`, {
-        credentials: 'include',
-        cache: 'no-cache'
+      console.log('🔄 FRONTEND: Fetching permissions...');
+      const response = await fetch('/api/permissions', {
+        credentials: 'include'
       });
+      console.log('🔄 FRONTEND: Response status:', response.status, response.ok);
       if (!response.ok) {
-        throw new Error('Failed to fetch permissions');
+        const errorText = await response.text();
+        console.error('🔄 FRONTEND: Permission fetch error:', response.status, errorText);
+        throw new Error(`Failed to fetch permissions: ${response.status}`);
       }
-      return response.json();
+      const data = await response.json();
+      console.log('🔄 FRONTEND: Permissions received:', data.length, 'items');
+      console.log('🔄 FRONTEND: Task permissions in response:', data.filter((p: any) => p.category === 'gestion_taches').length);
+      return data;
     },
     staleTime: 0,
     gcTime: 0,
