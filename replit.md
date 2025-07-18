@@ -213,6 +213,13 @@ The application uses a sophisticated dual authentication approach:
 - **INTERFACE UTILISATEUR OPTIMISÉE** - Affichage visuel différencié entre tâches actives et terminées
 - **AUTHENTIFICATION DÉVELOPPEMENT RÉPARÉE** - Mot de passe admin réinitialisé avec algorithmea
 
+### July 18, 2025 - Résolution Problème Permissions Tâches Production
+- **ROUTE PERMISSIONS PRODUCTION HARMONISÉE** - Ajout vérification admin obligatoire dans routes.production.ts ligne 1054 pour harmoniser avec développement
+- **LOGS DEBUG PRODUCTION AJOUTÉS** - Logs détaillés "PRODUCTION Task permissions found" pour traçabilité permissions tâches
+- **ENDPOINT DEBUG CRÉÉ** - `/api/debug/task-permissions` pour diagnostic direct base de données vs storage production
+- **AUTHENTIFICATION SÉCURISÉE** - Accès API permissions réservé aux administrateurs uniquement (sécurité correcte)
+- **PROBLÈME IDENTIFIÉ** - Route production permettait accès permissions à tous utilisateurs authentifiés vs admin seulement en développement
+
 ### July 18, 2025 - Correction Auto-sélection Magasin pour Création Tâches
 - **AUTO-SÉLECTION MAGASIN TÂCHES** - Ajout logique intelligente d'auto-sélection de magasin dans TaskForm.tsx identique aux autres modales
 - **GESTION RÔLE ADMIN** - Pour les administrateurs : utilise le magasin sélectionné dans le header, sinon le premier disponible

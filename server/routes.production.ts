@@ -1053,66 +1053,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
     try {
-      // ✅ CORRECTION: Permettre à tous les utilisateurs authentifiés de lire les permissions (nécessaire pour l'interface de gestion des rôles)
-      const permissions = await storage.getPermissions();
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      console.log("🔍 PRODUCTION Permissions API - User ID:", userId);
       
-      // 🔍 DEBUG PRODUCTION: Diagnostic des permissions pour identifier le problème d'affichage
-      console.log('🔍 PRODUCTION DEBUG - Permissions API called');
-      console.log('📊 Total permissions found:', permissions.length);
+      const user = await storage.getUserWithGroups(userId);
+      console.log("👤 PRODUCTION Permissions API - User found:", user ? user.role : 'NOT FOUND');
       
-      // ✅ Permissions tâches maintenant fonctionnelles en production
-      
-      // Vérifier spécifiquement les permissions DLC
-      const dlcPermissions = permissions.filter(p => p.category === 'gestion_dlc');
-      console.log('🔧 DLC permissions found:', dlcPermissions.length);
-      
-      if (dlcPermissions.length > 0) {
-        console.log('🔧 DLC permissions details:');
-        dlcPermissions.forEach(p => {
-          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
-        });
+      if (!user || user.role !== 'admin') {
+        console.log("❌ PRODUCTION Permissions API - Access denied, user role:", user?.role);
+        return res.status(403).json({ message: "Accès refusé - droits administrateur requis" });
       }
+
+      console.log("🔍 PRODUCTION Fetching all permissions...");
+      const permissions = await storage.getPermissions();
+      console.log("📝 PRODUCTION Permissions fetched:", permissions.length, "items");
+      console.log("🏷️ PRODUCTION Categories found:", [...new Set(permissions.map(p => p.category))]);
       
-      // 🎯 VÉRIFICATION SPÉCIFIQUE PERMISSIONS TÂCHES (problème signalé par l'utilisateur)
+      // 🎯 VÉRIFICATION SPÉCIFIQUE PERMISSIONS TÂCHES
       const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
-      console.log('🎯 TASK permissions found:', taskPermissions.length);
-      
+      console.log("📋 PRODUCTION Task permissions found:", taskPermissions.length);
       if (taskPermissions.length > 0) {
-        console.log('🎯 TASK permissions details:');
+        console.log("📋 PRODUCTION Task permissions details:");
         taskPermissions.forEach(p => {
           console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
         });
       } else {
-        console.log('❌ NO TASK PERMISSIONS FOUND IN API RESPONSE - This is the problem!');
-      }
-      
-      // Vérifier toutes les catégories
-      const allCategories = [...new Set(permissions.map(p => p.category))].sort();
-      console.log('📂 All categories found:', allCategories);
-      console.log('🔍 Has gestion_taches?', allCategories.includes('gestion_taches'));
-      
-      // Vérifier les permissions fournisseurs qui semblent problématiques selon l'utilisateur
-      const supplierPermissions = permissions.filter(p => p.category === 'fournisseurs');
-      console.log('🏭 Supplier permissions found:', supplierPermissions.length);
-      
-      if (supplierPermissions.length > 0) {
-        console.log('🏭 Supplier permissions details:');
-        supplierPermissions.forEach(p => {
-          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
-        });
-      }
-      
-      // Vérifier toutes les catégories
-      const categories = [...new Set(permissions.map(p => p.category))];
-      console.log('🏷️ All categories:', categories);
-      
-      // Vérifier s'il y a des permissions sans displayName ou avec displayName vide
-      const permissionsWithoutDisplayName = permissions.filter(p => !p.displayName || p.displayName === p.name);
-      if (permissionsWithoutDisplayName.length > 0) {
-        console.log('⚠️ PROBLÈME: Permissions sans displayName français trouvées:', permissionsWithoutDisplayName.length);
-        permissionsWithoutDisplayName.forEach(p => {
-          console.log(`  - PROBLÉMATIQUE: ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}"`);
-        });
+        console.log('❌ PRODUCTION NO TASK PERMISSIONS FOUND - This explains the problem!');
       }
       
       res.json(Array.isArray(permissions) ? permissions : []);
@@ -1122,32 +1088,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 🚨 ENDPOINT TEMPORAIRE DE DIAGNOSTIC PRODUCTION
-  app.get('/api/debug/permissions-raw', isAuthenticated, async (req: any, res) => {
+  // 🚨 ENDPOINT TEMPORAIRE DE DIAGNOSTIC PRODUCTION PERMISSIONS TÂCHES
+  app.get('/api/debug/task-permissions', isAuthenticated, async (req: any, res) => {
     try {
-      console.log('🔍 RAW PERMISSIONS DEBUG - Direct database query');
+      console.log('🔍 PRODUCTION TASK PERMISSIONS DEBUG');
       
-      // Faire une requête SQL directe pour voir ce qui est vraiment dans la base
+      // Vérifier directement en base de données
       const { pool } = require('./initDatabase.production');
-      const result = await pool.query(`
-        SELECT id, name, display_name, category, action, resource, description 
+      const taskResult = await pool.query(`
+        SELECT id, name, display_name, category, action, resource 
         FROM permissions 
-        ORDER BY category, name 
-        LIMIT 10
+        WHERE category = 'gestion_taches'
+        ORDER BY name
       `);
       
-      console.log('📊 Raw database results:', result.rows.length);
-      result.rows.forEach(row => {
-        console.log(`DB ROW: ID=${row.id}, name="${row.name}", display_name="${row.display_name}", category="${row.category}"`);
+      console.log('📋 Task permissions in DB:', taskResult.rows.length);
+      taskResult.rows.forEach(row => {
+        console.log(`  - ID: ${row.id}, Name: ${row.name}, DisplayName: "${row.display_name}", Category: ${row.category}`);
       });
       
+      // Vérifier aussi via le storage
+      const storagePermissions = await storage.getPermissions();
+      const storageTaskPermissions = storagePermissions.filter(p => p.category === 'gestion_taches');
+      console.log('📋 Task permissions via storage:', storageTaskPermissions.length);
+      
       res.json({
-        message: 'Debug endpoint - check server logs',
-        totalFound: result.rows.length,
-        sample: result.rows
+        database: taskResult.rows,
+        storage: storageTaskPermissions,
+        summary: {
+          database_count: taskResult.rows.length,
+          storage_count: storageTaskPermissions.length,
+          timestamp: new Date().toISOString()
+        }
       });
     } catch (error) {
-      console.error('❌ Debug permissions error:', error);
+      console.error('❌ Task permissions debug error:', error);
       res.status(500).json({ message: "Debug failed", error: error.message });
     }
   });

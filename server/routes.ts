@@ -2458,6 +2458,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check task permissions specifically
+  app.get('/api/debug/task-permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log('🔍 DEV TASK PERMISSIONS DEBUG');
+      
+      const permissions = await storage.getPermissions();
+      const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
+      
+      console.log('📋 DEV Task permissions found:', taskPermissions.length);
+      taskPermissions.forEach(p => {
+        console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+      });
+      
+      res.json({
+        environment: 'development',
+        storage: taskPermissions,
+        allCategories: [...new Set(permissions.map(p => p.category))].sort(),
+        summary: {
+          total_permissions: permissions.length,
+          task_permissions_count: taskPermissions.length,
+          has_gestion_taches: taskPermissions.length > 0,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('❌ Task permissions debug error:', error);
+      res.status(500).json({ message: "Debug failed", error: error.message });
+    }
+  });
+
   // Emergency production SQL fix for permissions
   app.post('/api/debug/emergency-sql-fix', isAuthenticated, async (req: any, res) => {
     try {
