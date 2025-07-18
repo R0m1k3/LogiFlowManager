@@ -13,6 +13,7 @@ import {
 import { format, addDays, isAfter, isBefore } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useLocation } from "wouter";
+import { useStore } from "@/components/Layout";
 import { Task } from "@shared/schema";
 
 type TaskWithRelations = Task & {
@@ -23,11 +24,19 @@ type TaskWithRelations = Task & {
 
 export default function RecentTasksCard() {
   const { user } = useAuthUnified();
+  const { selectedStoreId } = useStore();
   const [, navigate] = useLocation();
 
   // Fetch tasks
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["/api/tasks"],
+    queryKey: ["/api/tasks", selectedStoreId],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (selectedStoreId) {
+        params.append('storeId', selectedStoreId);
+      }
+      return fetch(`/api/tasks?${params.toString()}`).then(res => res.json());
+    },
     enabled: !!user,
   });
 
@@ -159,7 +168,7 @@ export default function RecentTasksCard() {
                         </span>
                       )}
                       <span>
-                        {task.assignedUser?.firstName} {task.assignedUser?.lastName}
+                        {task.assignedTo}
                       </span>
                     </div>
                   </div>

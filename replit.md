@@ -174,4 +174,11 @@ The application uses a sophisticated dual authentication approach:
 - **CRUD FOURNISSEURS DLC** - Mis à jour createSupplier() et updateSupplier() production pour gérer champ has_dlc
 - **SCHÉMA DATABASE VÉRIFIÉ** - Confirmé colonne has_dlc présente en base production pour fonctionnalité complète
 
+### July 18, 2025 - Module Tâches Simplifié et Filtrage par Magasin
+- **FORMULAIRE TÂCHES SIMPLIFIÉ** - Champ "Assigné à" converti en texte libre, suppression sélection magasin et dates d'échéance
+- **FILTRAGE MAGASIN CORRIGÉ** - API /api/tasks supporte paramètre ?storeId pour filtrer tâches par magasin sélectionné
+- **SCHÉMA BASE CORRECTÉ** - Colonne assigned_to au lieu d'assignee_id pour cohérence avec interface
+- **INTERFACE ÉPURÉE** - Formulaire création/modification simplifié selon demandes utilisateur
+- **AFFICHAGE CORRIGÉ** - Tâches affichent assignedTo (texte libre) au lieu d'objet utilisateur
+
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.

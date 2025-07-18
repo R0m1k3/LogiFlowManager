@@ -54,7 +54,14 @@ export default function Tasks() {
 
   // Fetch tasks
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["/api/tasks"],
+    queryKey: ["/api/tasks", selectedStoreId],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (selectedStoreId) {
+        params.append('storeId', selectedStoreId);
+      }
+      return fetch(`/api/tasks?${params.toString()}`).then(res => res.json());
+    },
     enabled: !!user,
   });
 

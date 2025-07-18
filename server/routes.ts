@@ -2208,13 +2208,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
       const user = await storage.getUserWithGroups(userId);
+      const storeId = req.query.storeId;
+      
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       let groupIds: number[] | undefined;
-      if (user.role !== 'admin') {
-        groupIds = user.userGroups.map(ug => ug.group.id);
+      if (user.role === 'admin') {
+        // Admin peut voir toutes les tâches ou filtrer par magasin
+        if (storeId && storeId !== 'all') {
+          groupIds = [parseInt(storeId)];
+        }
+        // Si pas de storeId ou storeId='all', pas de filtrage (toutes les tâches)
+      } else {
+        // Non-admin voit seulement ses magasins assignés
+        const userGroupIds = user.userGroups.map(ug => ug.group.id);
+        if (storeId && storeId !== 'all') {
+          const requestedStoreId = parseInt(storeId);
+          if (userGroupIds.includes(requestedStoreId)) {
+            groupIds = [requestedStoreId];
+          } else {
+            return res.status(403).json({ message: "Access denied to this store" });
+          }
+        } else {
+          groupIds = userGroupIds;
+        }
       }
 
       const tasks = await storage.getTasks(groupIds);
