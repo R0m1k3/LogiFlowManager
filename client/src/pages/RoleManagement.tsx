@@ -63,14 +63,16 @@ export default function RoleManagement() {
 
   // Force refresh permissions on mount
   useEffect(() => {
+    queryClient.removeQueries({ queryKey: ['/api/permissions'] });
     refetchPermissions();
-  }, [refetchPermissions]);
+  }, [refetchPermissions, queryClient]);
 
   // Debug function to force refresh permissions
   const forceRefreshPermissions = () => {
     console.log("🔄 Force refreshing permissions...");
     queryClient.removeQueries({ queryKey: ['/api/permissions'] });
     queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+    queryClient.resetQueries({ queryKey: ['/api/permissions'] });
     refetchPermissions();
   };
 

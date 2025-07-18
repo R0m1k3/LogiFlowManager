@@ -2825,7 +2825,7 @@ export class DatabaseStorage implements IStorage {
     return result.rows[0];
   }
 
-  async updateTask(id: number, task: Partial<InsertTask>): Promise<Task> {
+  async updateTask(id: number, task: Partial<InsertTask> & { completedAt?: string; completedBy?: string }): Promise<Task> {
     const updateFields = [];
     const values = [];
     let paramCount = 1;
@@ -2869,7 +2869,7 @@ export class DatabaseStorage implements IStorage {
     // Add completedAt and completedBy for production routes
     if (task.completedAt !== undefined) {
       updateFields.push(`completed_at = $${paramCount++}`);
-      values.push(this.formatDate(task.completedAt));
+      values.push(task.completedAt);
     }
     if (task.completedBy !== undefined) {
       updateFields.push(`completed_by = $${paramCount++}`);

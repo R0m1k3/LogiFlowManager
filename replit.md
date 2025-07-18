@@ -184,4 +184,13 @@ The application uses a sophisticated dual authentication approach:
 - **RÔLES TÂCHES CONFIGURÉS** - Attribution des permissions tâches aux rôles : admin (toutes), manager (read, create, update, assign), employee (read, create, update), directeur (toutes)
 - **TABLE TÂCHES PRODUCTION** - Création table tasks dans initDatabase.production.ts avec colonnes assigned_to, due_date, priority, status et contraintes appropriées
 
+### July 18, 2025 - Correction Production : Validation Tâches et Permissions
+- **CHAMP COMPLETED_BY AJOUTÉ** - Colonne completed_by ajoutée à la table tasks en production avec migration automatique
+- **SCHÉMA TYPESCRIPT CORRIGÉ** - Types InsertTask et Task mis à jour pour inclure completedBy et completedAt
+- **STORAGE PRODUCTION CORRIGÉ** - Fonctions getTasks et updateTask modifiées pour supporter completed_by avec jointures utilisateur
+- **PERMISSIONS PRODUCTION VÉRIFIÉES** - Permissions "gestion_taches" confirmées présentes en base de données production (IDs 141-145)
+- **ROUTE VALIDATION OPÉRATIONNELLE** - Route POST /api/tasks/:id/complete fonctionnelle avec attribution automatique completedBy
+- **CACHE PERMISSIONS FORCÉ** - Invalidation cache côté frontend pour affichage permissions "Gestion des Tâches"
+- **TEST VALIDATION RÉUSSI** - Tâche test ID 14 créée et validée avec succès en base de données production
+
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.
