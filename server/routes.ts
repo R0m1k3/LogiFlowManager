@@ -7,8 +7,11 @@ import { setupLocalAuth, requireAuth } from "./localAuth";
 // Use appropriate storage based on environment
 console.log('🔍 DIAGNOSTIC - NODE_ENV:', process.env.NODE_ENV);
 const isProduction = process.env.NODE_ENV === 'production';
-const storage = isProduction ? prodStorage : devStorage;
-console.log('🔍 DIAGNOSTIC - Using storage:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
+
+// FORCE PRODUCTION STORAGE TEMPORAIREMENT POUR DEBUG PERMISSIONS TÂCHES
+console.log('🚨 FORCING PRODUCTION STORAGE FOR TASK PERMISSIONS DEBUG');
+const storage = prodStorage; // Force production storage même en développement
+console.log('🔍 DIAGNOSTIC - Using storage: FORCED PRODUCTION');
 
 
 // Alias pour compatibilité
@@ -2487,6 +2490,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ Task permissions debug error:', error);
       res.status(500).json({ message: "Debug failed", error: error.message });
+    }
+  });
+
+  // Test CRITIQUE - Comparaison des storages pour permissions tâches
+  app.get('/api/debug/compare-storages', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log('🔍 CRITICAL TEST - Comparing dev vs prod storage for task permissions');
+      
+      // Test développement
+      const devPermissions = await devStorage.getPermissions();
+      const devTaskPerms = devPermissions.filter(p => p.category === 'gestion_taches');
+      console.log('📋 DEV storage - Task permissions:', devTaskPerms.length);
+      
+      // Test production
+      const prodPermissions = await prodStorage.getPermissions();
+      const prodTaskPerms = prodPermissions.filter(p => p.category === 'gestion_taches');
+      console.log('📋 PROD storage - Task permissions:', prodTaskPerms.length);
+      
+      res.json({
+        development: {
+          total: devPermissions.length,
+          task_permissions: devTaskPerms.length,
+          categories: [...new Set(devPermissions.map(p => p.category))].sort(),
+          task_details: devTaskPerms
+        },
+        production: {
+          total: prodPermissions.length,
+          task_permissions: prodTaskPerms.length,
+          categories: [...new Set(prodPermissions.map(p => p.category))].sort(),
+          task_details: prodTaskPerms
+        },
+        database_verified: true,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ Storage comparison error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ENDPOINT TEMPORAIRE - Test production storage avec gestion d'erreur détaillée
+  app.get('/api/debug/test-production-permissions', isAuthenticated, async (req: any, res) => {
+    console.log('🚨 STARTING PRODUCTION STORAGE TEST');
+    
+    try {
+      // Test basique de connexion d'abord
+      console.log('🔍 Testing production storage connection...');
+      
+      if (!prodStorage) {
+        throw new Error('Production storage is not available');
+      }
+      
+      console.log('🔍 Production storage object exists, testing getPermissions...');
+      const productionPermissions = await prodStorage.getPermissions();
+      console.log('✅ Production storage getPermissions() succeeded:', productionPermissions.length, 'permissions');
+      
+      const taskPermissions = productionPermissions.filter(p => p.category === 'gestion_taches');
+      console.log('🏭 PRODUCTION STORAGE - Task permissions found:', taskPermissions.length);
+      
+      if (taskPermissions.length > 0) {
+        console.log('📋 Production task permissions details:');
+        taskPermissions.forEach(p => {
+          console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+        });
+      } else {
+        console.log('❌ NO TASK PERMISSIONS found in production storage!');
+      }
+      
+      res.json({
+        success: true,
+        environment: 'forced_production_storage',
+        total_permissions: productionPermissions.length,
+        task_permissions_count: taskPermissions.length,
+        task_permissions: taskPermissions,
+        all_categories: [...new Set(productionPermissions.map(p => p.category))].sort(),
+        has_gestion_taches: taskPermissions.length > 0,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ CRITICAL ERROR in production storage test:', error);
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error message:', error?.message);
+      console.error('❌ Error stack:', error?.stack);
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Production storage test failed", 
+        error: error?.message || 'Unknown error',
+        errorType: typeof error,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 

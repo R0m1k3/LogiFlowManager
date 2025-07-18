@@ -9,10 +9,6 @@ import { initDatabase } from "./initDatabase.production";
 
 const app = express();
 
-// 🚨 FORCER MODE PRODUCTION TEMPORAIREMENT POUR DEBUG PERMISSIONS TÂCHES
-process.env.NODE_ENV = 'production';
-console.log('🔧 DEBUG MODE FORCÉ: NODE_ENV =', process.env.NODE_ENV);
-
 // Sécurité et optimisation
 setupSecurityHeaders(app);
 setupRateLimiting(app);
