@@ -1710,14 +1710,33 @@ export class DatabaseStorage implements IStorage {
 
   async getPermissions(): Promise<Permission[]> {
     try {
+      console.log('🔍 PRODUCTION getPermissions() - Starting SQL query...');
       const result = await pool.query(`
         SELECT id, name, display_name, description, category, action, resource, is_system, created_at 
         FROM permissions 
         ORDER BY category, name
       `);
       
+      console.log('📊 PRODUCTION getPermissions() - SQL result:', result.rows.length, 'rows');
+      
+      if (result.rows.length === 0) {
+        console.log('⚠️ PRODUCTION getPermissions() - NO PERMISSIONS FOUND IN DATABASE!');
+        return [];
+      }
+      
+      // Log des catégories trouvées
+      const categories = [...new Set(result.rows.map(row => row.category))];
+      console.log('🏷️ PRODUCTION getPermissions() - Categories found:', categories);
+      
+      // Log spécifique pour les permissions tâches
+      const taskPerms = result.rows.filter(row => row.category === 'gestion_taches');
+      console.log('📋 PRODUCTION getPermissions() - Task permissions in DB result:', taskPerms.length);
+      taskPerms.forEach(row => {
+        console.log(`  - ID: ${row.id}, Name: ${row.name}, DisplayName: "${row.display_name}", Category: ${row.category}`);
+      });
+      
       // Transformation des données snake_case vers camelCase pour cohérence TypeScript
-      return result.rows.map(row => ({
+      const mappedResult = result.rows.map(row => ({
         id: row.id,
         name: row.name,
         displayName: row.display_name || row.name,
@@ -1727,9 +1746,25 @@ export class DatabaseStorage implements IStorage {
         resource: row.resource,
         isSystem: row.is_system || false,
         createdAt: row.created_at
-      })) || [];
+      }));
+      
+      // Log final après mapping
+      const mappedTaskPerms = mappedResult.filter(p => p.category === 'gestion_taches');
+      console.log('📋 PRODUCTION getPermissions() - Task permissions after mapping:', mappedTaskPerms.length);
+      mappedTaskPerms.forEach(p => {
+        console.log(`  - Mapped: ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+      });
+      
+      console.log('✅ PRODUCTION getPermissions() - Returning', mappedResult.length, 'permissions');
+      return mappedResult;
     } catch (error) {
-      console.error("Error in getPermissions:", error);
+      console.error("❌ CRITICAL ERROR in getPermissions PRODUCTION:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+        stack: error.stack
+      });
       return [];
     }
   }

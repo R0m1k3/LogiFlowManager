@@ -1350,30 +1350,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/permissions', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
-      console.log("🔍 Permissions API - User ID:", userId);
+      console.log(`🔍 ${isProduction ? 'PRODUCTION' : 'DEV'} Permissions API - User ID:`, userId);
       
       const user = await storage.getUserWithGroups(userId);
-      console.log("👤 Permissions API - User found:", user ? user.role : 'NOT FOUND');
+      console.log(`👤 ${isProduction ? 'PRODUCTION' : 'DEV'} Permissions API - User found:`, user ? user.role : 'NOT FOUND');
       
       if (!user || user.role !== 'admin') {
-        console.log("❌ Permissions API - Access denied, user role:", user?.role);
+        console.log(`❌ ${isProduction ? 'PRODUCTION' : 'DEV'} Permissions API - Access denied, user role:`, user?.role);
         return res.status(403).json({ message: "Accès refusé - droits administrateur requis" });
       }
 
-      console.log("🔍 Fetching all permissions...");
+      console.log(`🔍 ${isProduction ? 'PRODUCTION' : 'DEV'} Fetching all permissions...`);
       const permissions = await storage.getPermissions();
-      console.log("📝 Permissions fetched:", permissions.length, "items");
-      console.log("🏷️ Categories found:", [...new Set(permissions.map(p => p.category))]);
-      console.log("🔧 DLC permissions:", permissions.filter(p => p.category === 'gestion_dlc').map(p => p.name));
+      console.log(`📝 ${isProduction ? 'PRODUCTION' : 'DEV'} Permissions fetched:`, permissions.length, "items");
+      console.log(`🏷️ ${isProduction ? 'PRODUCTION' : 'DEV'} Categories found:`, [...new Set(permissions.map(p => p.category))]);
+      console.log(`🔧 ${isProduction ? 'PRODUCTION' : 'DEV'} DLC permissions:`, permissions.filter(p => p.category === 'gestion_dlc').map(p => p.name));
       
       // 🎯 VÉRIFICATION SPÉCIFIQUE PERMISSIONS TÂCHES
       const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
-      console.log("📋 Task permissions found:", taskPermissions.length);
+      console.log(`📋 ${isProduction ? 'PRODUCTION' : 'DEV'} Task permissions found:`, taskPermissions.length);
       if (taskPermissions.length > 0) {
-        console.log("📋 Task permissions details:");
+        console.log(`📋 ${isProduction ? 'PRODUCTION' : 'DEV'} Task permissions details:`);
         taskPermissions.forEach(p => {
           console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
         });
+      } else {
+        console.log(`❌ ${isProduction ? 'PRODUCTION' : 'DEV'} NO TASK PERMISSIONS FOUND - This explains the frontend issue!`);
       }
       
       res.json(Array.isArray(permissions) ? permissions : []);
