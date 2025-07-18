@@ -266,7 +266,17 @@ export default function Tasks() {
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
                 locale={fr}
-                className="rounded-md border"
+                className="rounded-md border w-full"
+                classNames={{
+                  months: "flex flex-col space-y-4 w-full",
+                  month: "space-y-4 w-full",
+                  table: "w-full border-collapse",
+                  head_row: "flex w-full",
+                  head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] flex-1 text-center",
+                  row: "flex w-full mt-2",
+                  cell: "text-center text-sm p-0 relative flex-1 h-9 [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                  day: "h-9 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md"
+                }}
               />
             </CardContent>
           </Card>

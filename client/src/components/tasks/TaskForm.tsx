@@ -59,7 +59,15 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
 
   // Mutation pour créer/modifier une tâche
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/tasks", "POST", data),
+    mutationFn: (data: any) => {
+      // Ajouter le groupId basé sur le magasin sélectionné
+      const taskData = {
+        ...data,
+        groupId: selectedStoreId ? parseInt(selectedStoreId) : undefined,
+        createdBy: user?.id
+      };
+      return apiRequest("/api/tasks", "POST", taskData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast({
@@ -99,20 +107,29 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   });
 
   const onSubmit = (data: TaskFormData) => {
-    const submitData = {
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: data.status,
-      assignedTo: data.assignedTo,
-      groupId: parseInt(selectedStoreId || "1"),
-      createdBy: user?.id,
-    };
+    // Vérifier qu'un magasin est sélectionné
+    if (!selectedStoreId) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un magasin avant de créer une tâche",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (task) {
+      // Modification de tâche existante
+      const submitData = {
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        status: data.status,
+        assignedTo: data.assignedTo,
+      };
       updateMutation.mutate(submitData);
     } else {
-      createMutation.mutate(submitData);
+      // Création d'une nouvelle tâche - le groupId sera ajouté dans createMutation
+      createMutation.mutate(data);
     }
   };
 
