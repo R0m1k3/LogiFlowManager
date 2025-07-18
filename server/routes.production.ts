@@ -1282,11 +1282,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const roleId = parseInt(req.params.id);
       const rolePermissions = await storage.getRolePermissions(roleId);
       
-      // 🎯 DEBUG SPÉCIFIQUE: Vérifier si les permissions tâches sont assignées au rôle
+      // 🎯 DEBUG CRITIQUE PRODUCTION: Vérifier pourquoi les permissions tâches ne s'affichent pas
       console.log('🔍 ROLE PERMISSIONS DEBUG for role ID:', roleId);
       console.log('📊 Total role permissions found:', rolePermissions?.length || 0);
       
       if (Array.isArray(rolePermissions) && rolePermissions.length > 0) {
+        // Afficher toutes les catégories disponibles pour ce rôle
+        const categoriesInRole = [...new Set(rolePermissions.map(rp => rp.permission?.category).filter(Boolean))];
+        console.log('📂 Categories in role permissions:', categoriesInRole);
+        
         const taskRolePermissions = rolePermissions.filter(rp => {
           // Chercher les permissions de la catégorie gestion_taches
           return rp.permission && rp.permission.category === 'gestion_taches';
@@ -1299,8 +1303,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`  - Permission ID: ${rp.permissionId}, Name: ${rp.permission.name}, DisplayName: "${rp.permission.displayName}"`);
           });
         } else {
-          console.log('❌ NO TASK ROLE PERMISSIONS FOUND - Problème avec assignation des rôles');
+          console.log('❌ NO TASK ROLE PERMISSIONS FOUND - Checking raw data:');
+          console.log('🔍 First 3 rolePermissions structure:', JSON.stringify(rolePermissions.slice(0, 3), null, 2));
+          console.log('🔍 Sample permission object:', rolePermissions[0]?.permission ? JSON.stringify(rolePermissions[0].permission, null, 2) : 'No permission object');
         }
+      } else {
+        console.log('❌ NO ROLE PERMISSIONS FOUND AT ALL for role:', roleId);
       }
       
       res.json(Array.isArray(rolePermissions) ? rolePermissions : []);
