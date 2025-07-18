@@ -2889,21 +2889,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async completeTask(id: number, completedBy?: string): Promise<void> {
-    const updateFields = ['status = $1', 'completed_at = CURRENT_TIMESTAMP', 'updated_at = CURRENT_TIMESTAMP'];
-    const values = ['completed'];
-    let paramCount = 2;
-
-    if (completedBy !== undefined) {
-      updateFields.push(`completed_by = $${paramCount++}`);
-      values.push(completedBy);
+    console.log('🔄 Completing task using storage.completeTask...');
+    
+    try {
+      if (completedBy) {
+        await pool.query(`
+          UPDATE tasks SET 
+            status = 'completed',
+            completed_at = CURRENT_TIMESTAMP,
+            completed_by = $1,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $2
+        `, [completedBy, id]);
+      } else {
+        await pool.query(`
+          UPDATE tasks SET 
+            status = 'completed',
+            completed_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+        `, [id]);
+      }
+      
+      console.log('✅ Task completed successfully');
+    } catch (error) {
+      console.error('❌ Error completing task:', error);
+      throw error;
     }
-
-    values.push(id);
-
-    await pool.query(`
-      UPDATE tasks SET ${updateFields.join(', ')}
-      WHERE id = $${paramCount}
-    `, values);
   }
 
   async deleteTask(id: number): Promise<void> {
