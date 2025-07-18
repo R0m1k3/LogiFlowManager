@@ -2842,10 +2842,10 @@ export class DatabaseStorage implements IStorage {
       updateFields.push(`status = $${paramCount++}`);
       values.push(task.status);
       
-      // If status is completed, set completed_at
-      if (task.status === 'completed') {
+      // If status is completed, set completed_at only if not explicitly provided
+      if (task.status === 'completed' && task.completedAt === undefined) {
         updateFields.push(`completed_at = CURRENT_TIMESTAMP`);
-      } else if (task.status !== 'completed') {
+      } else if (task.status !== 'completed' && task.completedAt === undefined) {
         updateFields.push(`completed_at = NULL`);
       }
     }
@@ -2886,6 +2886,24 @@ export class DatabaseStorage implements IStorage {
     `, values);
     
     return result.rows[0];
+  }
+
+  async completeTask(id: number, completedBy?: string): Promise<void> {
+    const updateFields = ['status = $1', 'completed_at = CURRENT_TIMESTAMP', 'updated_at = CURRENT_TIMESTAMP'];
+    const values = ['completed'];
+    let paramCount = 2;
+
+    if (completedBy !== undefined) {
+      updateFields.push(`completed_by = $${paramCount++}`);
+      values.push(completedBy);
+    }
+
+    values.push(id);
+
+    await pool.query(`
+      UPDATE tasks SET ${updateFields.join(', ')}
+      WHERE id = $${paramCount}
+    `, values);
   }
 
   async deleteTask(id: number): Promise<void> {
