@@ -197,7 +197,7 @@ export interface IStorage {
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, task: Partial<InsertTask>): Promise<Task>;
   deleteTask(id: number): Promise<void>;
-  completeTask(id: number): Promise<void>;
+  completeTask(id: number, completedBy?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1764,12 +1764,13 @@ export class DatabaseStorage implements IStorage {
     await db.delete(tasks).where(eq(tasks.id, id));
   }
 
-  async completeTask(id: number): Promise<void> {
+  async completeTask(id: number, completedBy?: string): Promise<void> {
     await db
       .update(tasks)
       .set({ 
         status: 'completed',
         completedAt: new Date(),
+        completedBy: completedBy,
         updatedAt: new Date() 
       })
       .where(eq(tasks.id, id));

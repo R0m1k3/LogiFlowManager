@@ -2337,30 +2337,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/tasks/:id/complete', isAuthenticated, async (req: any, res) => {
+  app.post('/api/tasks/:id/complete', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
       
+      console.log("🎯 DEV Task completion request:", { id, userId });
+      
       const existingTask = await storage.getTask(id);
       if (!existingTask) {
+        console.log("❌ Task not found:", id);
         return res.status(404).json({ message: "Task not found" });
       }
 
+      console.log("✅ Task found:", existingTask);
+
       const user = await storage.getUserWithGroups(userId);
+      console.log("👤 User data:", user);
+      
       if (user?.role !== 'admin') {
         const userGroupIds = user?.userGroups.map(ug => ug.group.id) || [];
         if (!userGroupIds.includes(existingTask.groupId)) {
+          console.log("❌ Access denied - group mismatch:", { userGroupIds, taskGroupId: existingTask.groupId });
           return res.status(403).json({ message: "Access denied" });
         }
       }
 
-      await storage.completeTask(id);
+      console.log("🔄 Completing task using storage.completeTask...");
+      await storage.completeTask(id, userId);
       const updatedTask = await storage.getTask(id);
+      console.log("✅ Task completed successfully:", updatedTask);
       res.json(updatedTask);
     } catch (error) {
-      console.error("Error completing task:", error);
-      res.status(500).json({ message: "Failed to complete task" });
+      console.error("❌ Error completing task:", error);
+      res.status(500).json({ message: "Failed to complete task", error: error.message });
     }
   });
 
