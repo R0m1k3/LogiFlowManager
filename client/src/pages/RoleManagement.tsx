@@ -129,22 +129,38 @@ export default function RoleManagement() {
     selectedRoleId: selectedRole?.id,
     rolePermissionsLength: rolePermissions?.length,
     permissionsLength: permissions.length,
-    rolePermissionsSample: rolePermissions?.slice(0, 2)
+    rolePermissionsSample: rolePermissions?.slice(0, 2),
+    taskPermissionsInRole: rolePermissions?.filter(rp => {
+      const permission = permissions.find(p => p.id === rp.permissionId);
+      return permission?.category === 'gestion_taches';
+    }).map(rp => {
+      const permission = permissions.find(p => p.id === rp.permissionId);
+      return { rolePermissionId: rp.permissionId, permissionName: permission?.name };
+    })
   });
 
   // 🔍 DEBUG PRODUCTION: Diagnostiquer les permissions qui arrivent
   if (permissions.length > 0) {
+    const allCategories = [...new Set(permissions.map(p => p.category))].sort();
+    const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
+    
     console.log('🔍 DEBUG PERMISSIONS FRONTEND:', {
       totalPermissions: permissions.length,
-      firstPermission: permissions[0],
-      dlcPermissions: permissions.filter(p => p.category === 'gestion_dlc').map(p => ({
+      allCategories: allCategories,
+      hasGestionTaches: allCategories.includes('gestion_taches'),
+      taskPermissions: taskPermissions.map(p => ({
         id: p.id,
         name: p.name,
         displayName: p.displayName,
-        hasDisplayName: !!p.displayName,
-        displayNameEqualsName: p.displayName === p.name
+        category: p.category
       })),
-      permissionsWithoutDisplayName: permissions.filter(p => !p.displayName || p.displayName === p.name).length
+      firstPermission: permissions[0],
+      permissionsWithoutDisplayName: permissions.filter(p => !p.displayName || p.displayName === p.name).length,
+      sampleFromEachCategory: allCategories.slice(0, 5).map(cat => ({
+        category: cat,
+        count: permissions.filter(p => p.category === cat).length,
+        sample: permissions.find(p => p.category === cat)?.name
+      }))
     });
   }
 
@@ -190,6 +206,18 @@ export default function RoleManagement() {
     acc[permission.category].push(permission);
     return acc;
   }, {} as Record<string, Permission[]>) : {};
+
+  // Debug the grouped permissions
+  console.log('🔍 DEBUG GROUPED PERMISSIONS:', {
+    categoriesInGrouped: Object.keys(permissionsByCategory),
+    gestionTachesInGrouped: !!permissionsByCategory['gestion_taches'],
+    gestionTachesCount: permissionsByCategory['gestion_taches']?.length || 0,
+    allCategoriesWithCounts: Object.entries(permissionsByCategory).map(([cat, perms]) => ({
+      category: cat,
+      count: perms.length,
+      translation: categoryTranslations[cat] || cat
+    }))
+  });
 
   // Debug permissions (cleaned up after successful DLC fix)
 
@@ -542,8 +570,8 @@ export default function RoleManagement() {
                     size="sm"
                     onClick={async () => {
                       try {
-                        console.log('🔧 Fixing production permissions...');
-                        const response = await fetch('/api/debug/fix-production-permissions', {
+                        console.log('🚨 Emergency SQL fix for production...');
+                        const response = await fetch('/api/debug/emergency-sql-fix', {
                           method: 'POST',
                           credentials: 'include',
                           headers: {
@@ -551,25 +579,22 @@ export default function RoleManagement() {
                           }
                         });
                         const result = await response.json();
-                        console.log('✅ Fix result:', result);
+                        console.log('✅ Emergency fix result:', result);
                         
                         if (result.success) {
-                          alert(`Corrections appliquées avec succès:\n${result.fixes.join('\n')}\n\nActualisez la page.`);
-                          // Force refresh permissions and roles
-                          queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
-                          queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
-                          forceRefreshPermissions();
-                          refetchRoles();
+                          alert(`Corrections d'urgence appliquées:\n${result.fixes.join('\n')}\n\nActualisez la page.`);
+                          // Force refresh everything
+                          window.location.reload();
                         } else {
                           alert(`Erreur: ${result.message}`);
                         }
                       } catch (error) {
-                        console.error('❌ Fix error:', error);
-                        alert('Erreur lors de l\'application des corrections');
+                        console.error('❌ Emergency fix error:', error);
+                        alert('Erreur lors de l\'application des corrections d\'urgence');
                       }
                     }}
                   >
-                    🔧 Corriger Production
+                    🚨 Fix SQL Urgence
                   </Button>
                 </div>
               </div>
