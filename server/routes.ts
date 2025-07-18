@@ -2404,6 +2404,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug/Fix endpoint for production permission issues
+  app.post('/api/debug/fix-production-permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log('🔧 FIXING PRODUCTION PERMISSIONS...');
+      
+      // Only allow admin users to run fixes
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const fixes = [];
+      
+      // 1. Fix missing display names for permissions 
+      console.log('📝 Fixing permission display names...');
+      const permissions = await storage.getPermissions();
+      let fixedDisplayNames = 0;
+      
+      for (const permission of permissions) {
+        if (!permission.displayName || permission.displayName === permission.name) {
+          // Create proper French display names based on name patterns
+          let displayName = permission.name;
+          
+          // Pattern-based translations
+          if (permission.name.includes('_read')) displayName = displayName.replace('_read', ' - Voir');
+          if (permission.name.includes('_create')) displayName = displayName.replace('_create', ' - Créer');
+          if (permission.name.includes('_update')) displayName = displayName.replace('_update', ' - Modifier');
+          if (permission.name.includes('_delete')) displayName = displayName.replace('_delete', ' - Supprimer');
+          if (permission.name.includes('_validate')) displayName = displayName.replace('_validate', ' - Valider');
+          if (permission.name.includes('_print')) displayName = displayName.replace('_print', ' - Imprimer');
+          if (permission.name.includes('_assign')) displayName = displayName.replace('_assign', ' - Assigner');
+          if (permission.name.includes('_notify')) displayName = displayName.replace('_notify', ' - Notifier');
+          if (permission.name.includes('_stats')) displayName = displayName.replace('_stats', ' - Statistiques');
+          
+          // Resource-based translations
+          displayName = displayName
+            .replace('dashboard', 'tableau de bord')
+            .replace('groups', 'magasins')
+            .replace('suppliers', 'fournisseurs')
+            .replace('orders', 'commandes')
+            .replace('deliveries', 'livraisons')
+            .replace('publicities', 'publicités')
+            .replace('customer_orders', 'commandes clients')
+            .replace('tasks', 'tâches')
+            .replace('users', 'utilisateurs')
+            .replace('roles', 'rôles')
+            .replace('permissions', 'permissions')
+            .replace('dlc', 'produits DLC')
+            .replace('calendar', 'calendrier')
+            .replace('reconciliation', 'rapprochement')
+            .replace('bl_reconciliation', 'rapprochement BL')
+            .replace('nocodb_config', 'config NocoDB')
+            .replace('system', 'système');
+          
+          // Capitalize first letter
+          displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+          
+          try {
+            await storage.updatePermission(permission.id, {
+              ...permission,
+              displayName: displayName
+            });
+            fixedDisplayNames++;
+          } catch (updateError) {
+            console.error(`Error updating permission ${permission.id}:`, updateError);
+          }
+        }
+      }
+      
+      fixes.push(`Fixed ${fixedDisplayNames} permission display names`);
+      
+      // 2. Ensure missing task permissions exist
+      console.log('🎯 Checking task management permissions...');
+      const taskPermissions = [
+        { category: "gestion_taches", name: "tasks_read", displayName: "Voir tâches", description: "Accès en lecture aux tâches", action: "read", resource: "tasks" },
+        { category: "gestion_taches", name: "tasks_create", displayName: "Créer tâches", description: "Création de nouvelles tâches", action: "create", resource: "tasks" },
+        { category: "gestion_taches", name: "tasks_update", displayName: "Modifier tâches", description: "Modification des tâches existantes", action: "update", resource: "tasks" },
+        { category: "gestion_taches", name: "tasks_delete", displayName: "Supprimer tâches", description: "Suppression de tâches", action: "delete", resource: "tasks" },
+        { category: "gestion_taches", name: "tasks_assign", displayName: "Assigner tâches", description: "Attribution de tâches aux utilisateurs", action: "assign", resource: "tasks" }
+      ];
+      
+      let createdTaskPermissions = 0;
+      for (const taskPerm of taskPermissions) {
+        const existing = permissions.find(p => p.name === taskPerm.name);
+        if (!existing) {
+          try {
+            await storage.createPermission({
+              ...taskPerm,
+              isSystem: true
+            });
+            createdTaskPermissions++;
+          } catch (createError) {
+            console.error(`Error creating task permission ${taskPerm.name}:`, createError);
+          }
+        }
+      }
+      
+      if (createdTaskPermissions > 0) {
+        fixes.push(`Created ${createdTaskPermissions} missing task permissions`);
+      }
+      
+      console.log('✅ Production permissions fix completed');
+      
+      res.json({
+        success: true,
+        message: 'Production permission fixes applied successfully',
+        fixes: fixes,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('❌ Error fixing production permissions:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fix production permissions', 
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

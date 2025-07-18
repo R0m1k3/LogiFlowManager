@@ -542,8 +542,8 @@ export default function RoleManagement() {
                     size="sm"
                     onClick={async () => {
                       try {
-                        console.log('🔧 Applying French translations fix...');
-                        const response = await fetch('/api/debug/fix-translations', {
+                        console.log('🔧 Fixing production permissions...');
+                        const response = await fetch('/api/debug/fix-production-permissions', {
                           method: 'POST',
                           credentials: 'include',
                           headers: {
@@ -552,15 +552,24 @@ export default function RoleManagement() {
                         });
                         const result = await response.json();
                         console.log('✅ Fix result:', result);
-                        alert('Corrections appliquées ! Actualisez la page.');
-                        window.location.reload();
+                        
+                        if (result.success) {
+                          alert(`Corrections appliquées avec succès:\n${result.fixes.join('\n')}\n\nActualisez la page.`);
+                          // Force refresh permissions and roles
+                          queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
+                          queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+                          forceRefreshPermissions();
+                          refetchRoles();
+                        } else {
+                          alert(`Erreur: ${result.message}`);
+                        }
                       } catch (error) {
                         console.error('❌ Fix error:', error);
                         alert('Erreur lors de l\'application des corrections');
                       }
                     }}
                   >
-                    🔧 Corriger Français
+                    🔧 Corriger Production
                   </Button>
                 </div>
               </div>
