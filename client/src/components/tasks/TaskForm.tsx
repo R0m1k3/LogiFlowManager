@@ -61,7 +61,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
       priority: task?.priority || "medium",
       status: task?.status || "pending",
       assignedTo: task?.assignedTo || "",
-      dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : undefined,
+      dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     },
   });
 
@@ -73,7 +73,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
         ...data,
         groupId: selectedStoreId ? parseInt(selectedStoreId) : undefined,
         createdBy: user?.id,
-        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null
+        dueDate: data.dueDate ? new Date(data.dueDate) : null
       };
       return apiRequest("/api/tasks", "POST", taskData);
     },
@@ -134,7 +134,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
         priority: data.priority,
         status: data.status,
         assignedTo: data.assignedTo,
-        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+        dueDate: data.dueDate ? new Date(data.dueDate) : null,
       };
       updateMutation.mutate(submitData);
     } else {
