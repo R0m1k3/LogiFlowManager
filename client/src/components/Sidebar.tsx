@@ -16,7 +16,8 @@ import {
   Shield,
   Database,
   ShoppingCart,
-  Clock
+  Clock,
+  ListTodo
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -101,6 +102,12 @@ export default function Sidebar() {
       path: "/dlc", 
       label: "Gestion DLC", 
       icon: Clock, 
+      roles: ["admin", "manager", "employee"] 
+    },
+    { 
+      path: "/tasks", 
+      label: "Tâches", 
+      icon: ListTodo, 
       roles: ["admin", "manager", "employee"] 
     },
   ];

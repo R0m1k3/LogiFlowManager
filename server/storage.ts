@@ -13,6 +13,7 @@ import {
   userRoles,
   customerOrders,
   dlcProducts,
+  tasks,
   type User,
   type UpsertUser,
   type Group,
@@ -54,6 +55,8 @@ import {
   type DlcProductFrontend,
   type InsertDlcProductFrontend,
   type DlcProductWithRelations,
+  type Task,
+  type InsertTask,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray, desc, sql, gte, lte } from "drizzle-orm";
@@ -186,6 +189,15 @@ export interface IStorage {
   userHasPermission(userId: string, permissionName: string): Promise<boolean>;
   userHasRole(userId: string, roleName: string): Promise<boolean>;
   getUserEffectivePermissions(userId: string): Promise<Permission[]>;
+
+  // Task operations
+  getTasks(groupIds?: number[]): Promise<any[]>;
+  getTasksByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<any[]>;
+  getTask(id: number): Promise<any | undefined>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: number, task: Partial<InsertTask>): Promise<Task>;
+  deleteTask(id: number): Promise<void>;
+  completeTask(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1683,6 +1695,84 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userRoles.userId, userId))
       .groupBy(permissions.id)
       .orderBy(permissions.category, permissions.name);
+  }
+
+  // Task operations
+  async getTasks(groupIds?: number[]): Promise<any[]> {
+    const tasksQuery = db.query.tasks.findMany({
+      with: {
+        assignedUser: true,
+        creator: true,
+        group: true,
+      },
+      orderBy: [desc(tasks.createdAt)],
+      where: groupIds ? inArray(tasks.groupId, groupIds) : undefined,
+    });
+    
+    return await tasksQuery;
+  }
+
+  async getTasksByDateRange(startDate: string, endDate: string, groupIds?: number[]): Promise<any[]> {
+    const whereCondition = groupIds 
+      ? and(
+          gte(tasks.dueDate, startDate),
+          lte(tasks.dueDate, endDate),
+          inArray(tasks.groupId, groupIds)
+        )
+      : and(
+          gte(tasks.dueDate, startDate),
+          lte(tasks.dueDate, endDate)
+        );
+
+    return await db.query.tasks.findMany({
+      with: {
+        assignedUser: true,
+        creator: true,
+        group: true,
+      },
+      where: whereCondition,
+      orderBy: [desc(tasks.createdAt)],
+    });
+  }
+
+  async getTask(id: number): Promise<any | undefined> {
+    return await db.query.tasks.findFirst({
+      where: eq(tasks.id, id),
+      with: {
+        assignedUser: true,
+        creator: true,
+        group: true,
+      },
+    });
+  }
+
+  async createTask(task: InsertTask): Promise<Task> {
+    const [newTask] = await db.insert(tasks).values(task).returning();
+    return newTask;
+  }
+
+  async updateTask(id: number, task: Partial<InsertTask>): Promise<Task> {
+    const [updatedTask] = await db
+      .update(tasks)
+      .set({ ...task, updatedAt: new Date() })
+      .where(eq(tasks.id, id))
+      .returning();
+    return updatedTask;
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    await db.delete(tasks).where(eq(tasks.id, id));
+  }
+
+  async completeTask(id: number): Promise<void> {
+    await db
+      .update(tasks)
+      .set({ 
+        status: 'completed',
+        completedAt: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(tasks.id, id));
   }
 }
 

@@ -30,7 +30,9 @@ import type {
   DlcProduct,
   InsertDlcProduct,
   DlcProductFrontend,
-  InsertDlcProductFrontend
+  InsertDlcProductFrontend,
+  Task,
+  InsertTask
 } from "../shared/schema";
 
 // Production storage implementation using raw PostgreSQL queries
@@ -2697,6 +2699,185 @@ export class DatabaseStorage implements IStorage {
       console.error("Error fetching DLC stats:", error);
       throw error;
     }
+  }
+
+  // Tasks methods
+  async getTasks(groupIds?: number[]): Promise<any[]> {
+    let whereClause = '';
+    let params = [];
+    
+    if (groupIds && groupIds.length > 0) {
+      whereClause = ' WHERE t.group_id = ANY($1)';
+      params = [groupIds];
+    }
+
+    const result = await pool.query(`
+      SELECT t.*, 
+             g.name as group_name, g.color as group_color,
+             assignee.username as assignee_username, assignee.first_name as assignee_first_name, assignee.last_name as assignee_last_name,
+             creator.username as creator_username, creator.first_name as creator_first_name, creator.last_name as creator_last_name
+      FROM tasks t
+      LEFT JOIN groups g ON t.group_id = g.id  
+      LEFT JOIN users assignee ON t.assignee_id = assignee.id
+      LEFT JOIN users creator ON t.created_by = creator.id
+      ${whereClause}
+      ORDER BY t.created_at DESC
+    `, params);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      dueDate: row.due_date,
+      assigneeId: row.assignee_id,
+      groupId: row.group_id,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      completedAt: row.completed_at,
+      assignee: row.assignee_id ? {
+        id: row.assignee_id,
+        username: row.assignee_username,
+        name: `${row.assignee_first_name || ''} ${row.assignee_last_name || ''}`.trim()
+      } : null,
+      creator: {
+        id: row.created_by,
+        username: row.creator_username,
+        name: `${row.creator_first_name || ''} ${row.creator_last_name || ''}`.trim()
+      },
+      group: {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color
+      }
+    }));
+  }
+
+  async getTask(id: number): Promise<any> {
+    const result = await pool.query(`
+      SELECT t.*, 
+             g.name as group_name, g.color as group_color,
+             assignee.username as assignee_username, assignee.first_name as assignee_first_name, assignee.last_name as assignee_last_name,
+             creator.username as creator_username, creator.first_name as creator_first_name, creator.last_name as creator_last_name
+      FROM tasks t
+      LEFT JOIN groups g ON t.group_id = g.id
+      LEFT JOIN users assignee ON t.assignee_id = assignee.id
+      LEFT JOIN users creator ON t.created_by = creator.id
+      WHERE t.id = $1
+    `, [id]);
+
+    if (!result.rows[0]) return undefined;
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      dueDate: row.due_date,
+      assigneeId: row.assignee_id,
+      groupId: row.group_id,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      completedAt: row.completed_at,
+      assignee: row.assignee_id ? {
+        id: row.assignee_id,
+        username: row.assignee_username,
+        name: `${row.assignee_first_name || ''} ${row.assignee_last_name || ''}`.trim()
+      } : null,
+      creator: {
+        id: row.created_by,
+        username: row.creator_username,
+        name: `${row.creator_first_name || ''} ${row.creator_last_name || ''}`.trim()
+      },
+      group: {
+        id: row.group_id,
+        name: row.group_name,
+        color: row.group_color
+      }
+    };
+  }
+
+  async createTask(task: InsertTask): Promise<Task> {
+    const result = await pool.query(`
+      INSERT INTO tasks (
+        title, description, status, priority, due_date,
+        assignee_id, group_id, created_by
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `, [
+      task.title,
+      task.description || null,
+      task.status || 'pending',
+      task.priority || 'medium',
+      this.formatDate(task.dueDate),
+      task.assigneeId || null,
+      task.groupId,
+      task.createdBy
+    ]);
+    return result.rows[0];
+  }
+
+  async updateTask(id: number, task: Partial<InsertTask>): Promise<Task> {
+    const updateFields = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (task.title !== undefined) {
+      updateFields.push(`title = $${paramCount++}`);
+      values.push(task.title);
+    }
+    if (task.description !== undefined) {
+      updateFields.push(`description = $${paramCount++}`);
+      values.push(task.description);
+    }
+    if (task.status !== undefined) {
+      updateFields.push(`status = $${paramCount++}`);
+      values.push(task.status);
+      
+      // If status is completed, set completed_at
+      if (task.status === 'completed') {
+        updateFields.push(`completed_at = CURRENT_TIMESTAMP`);
+      } else if (task.status !== 'completed') {
+        updateFields.push(`completed_at = NULL`);
+      }
+    }
+    if (task.priority !== undefined) {
+      updateFields.push(`priority = $${paramCount++}`);
+      values.push(task.priority);
+    }
+    if (task.dueDate !== undefined) {
+      updateFields.push(`due_date = $${paramCount++}`);
+      values.push(this.formatDate(task.dueDate));
+    }
+    if (task.assigneeId !== undefined) {
+      updateFields.push(`assignee_id = $${paramCount++}`);
+      values.push(task.assigneeId);
+    }
+    if (task.groupId !== undefined) {
+      updateFields.push(`group_id = $${paramCount++}`);
+      values.push(task.groupId);
+    }
+
+    updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    const result = await pool.query(`
+      UPDATE tasks SET ${updateFields.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING *
+    `, values);
+    
+    return result.rows[0];
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
   }
 }
 

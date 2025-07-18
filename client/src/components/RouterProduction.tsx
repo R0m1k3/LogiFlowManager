@@ -16,6 +16,7 @@ import NocoDBConfig from "@/pages/NocoDBConfig";
 import CustomerOrders from "@/pages/CustomerOrders";
 import RoleManagement from "@/pages/RoleManagement";
 import DlcPage from "@/pages/DlcPage";
+import Tasks from "@/pages/Tasks";
 import Layout from "@/components/Layout";
 
 function RouterProduction() {
@@ -73,6 +74,7 @@ function RouterProduction() {
         <Route path="/publicities" component={Publicities} />
         <Route path="/customer-orders" component={CustomerOrders} />
         <Route path="/dlc" component={DlcPage} />
+        <Route path="/tasks" component={Tasks} />
         <Route path="/nocodb-config" component={NocoDBConfig} />
         <Route path="/" component={Dashboard} />
         <Route component={NotFound} />

@@ -253,6 +253,22 @@ export const dlcProducts = pgTable("dlc_products", {
   updatedAt: timestamp("updated_at").defaultNow(), // Date de mise à jour
 });
 
+// Tasks table
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
+  title: varchar("title").notNull(), // Titre de la tâche (requis)
+  description: text("description"), // Description de la tâche (optionnel)
+  dueDate: timestamp("due_date"), // Date d'échéance (optionnel)
+  priority: varchar("priority").notNull().default("medium"), // low, medium, high
+  status: varchar("status").notNull().default("pending"), // pending, completed
+  assignedTo: varchar("assigned_to").notNull(), // Utilisateur responsable
+  createdBy: varchar("created_by").notNull(), // Utilisateur créateur
+  groupId: integer("group_id").notNull(), // Magasin/groupe associé
+  completedAt: timestamp("completed_at"), // Date de completion
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userGroups: many(userGroups),
@@ -262,6 +278,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   createdPublicities: many(publicities),
   createdCustomerOrders: many(customerOrders),
   createdDlcProducts: many(dlcProducts),
+  createdTasks: many(tasks),
+  assignedTasks: many(tasks),
 }));
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
@@ -271,6 +289,7 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   publicityParticipations: many(publicityParticipations),
   customerOrders: many(customerOrders),
   dlcProducts: many(dlcProducts),
+  tasks: many(tasks),
   nocodbConfig: one(nocodbConfig, {
     fields: [groups.nocodbConfigId],
     references: [nocodbConfig.id],
@@ -413,6 +432,21 @@ export const dlcProductsRelations = relations(dlcProducts, ({ one }) => ({
   }),
 }));
 
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  assignedUser: one(users, {
+    fields: [tasks.assignedTo],
+    references: [users.id],
+  }),
+  creator: one(users, {
+    fields: [tasks.createdBy],
+    references: [users.id],
+  }),
+  group: one(groups, {
+    fields: [tasks.groupId],
+    references: [groups.id],
+  }),
+}));
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   id: true,
@@ -505,6 +539,13 @@ export const insertDlcProductFrontendSchema = insertDlcProductSchema
   .omit({ expiryDate: true })
   .extend({ dlcDate: z.coerce.date() });
 
+export const insertTaskSchema = createInsertSchema(tasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -523,6 +564,9 @@ export type InsertDelivery = z.infer<typeof insertDeliverySchema>;
 
 export type UserGroup = typeof userGroups.$inferSelect;
 export type InsertUserGroup = z.infer<typeof insertUserGroupSchema>;
+
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = z.infer<typeof insertTaskSchema>;
 
 // Extended types with relations
 export type OrderWithRelations = Order & {
