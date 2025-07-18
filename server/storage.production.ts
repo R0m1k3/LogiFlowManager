@@ -2714,10 +2714,12 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(`
       SELECT t.*, 
              g.name as group_name, g.color as group_color,
-             creator.username as creator_username, creator.first_name as creator_first_name, creator.last_name as creator_last_name
+             creator.username as creator_username, creator.first_name as creator_first_name, creator.last_name as creator_last_name,
+             completer.username as completer_username, completer.first_name as completer_first_name, completer.last_name as completer_last_name
       FROM tasks t
       LEFT JOIN groups g ON t.group_id = g.id  
       LEFT JOIN users creator ON t.created_by = creator.id
+      LEFT JOIN users completer ON t.completed_by = completer.id
       ${whereClause}
       ORDER BY t.created_at DESC
     `, params);
@@ -2735,11 +2737,17 @@ export class DatabaseStorage implements IStorage {
       createdAt: this.formatDate(row.created_at),
       updatedAt: this.formatDate(row.updated_at),
       completedAt: this.formatDate(row.completed_at),
+      completedBy: row.completed_by,
       creator: {
         id: row.created_by,
         username: row.creator_username,
         name: `${row.creator_first_name || ''} ${row.creator_last_name || ''}`.trim()
       },
+      completer: row.completed_by ? {
+        id: row.completed_by,
+        username: row.completer_username,
+        name: `${row.completer_first_name || ''} ${row.completer_last_name || ''}`.trim()
+      } : null,
       group: {
         id: row.group_id,
         name: row.group_name,
@@ -2752,10 +2760,12 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(`
       SELECT t.*, 
              g.name as group_name, g.color as group_color,
-             creator.username as creator_username, creator.first_name as creator_first_name, creator.last_name as creator_last_name
+             creator.username as creator_username, creator.first_name as creator_first_name, creator.last_name as creator_last_name,
+             completer.username as completer_username, completer.first_name as completer_first_name, completer.last_name as completer_last_name
       FROM tasks t
       LEFT JOIN groups g ON t.group_id = g.id
       LEFT JOIN users creator ON t.created_by = creator.id
+      LEFT JOIN users completer ON t.completed_by = completer.id
       WHERE t.id = $1
     `, [id]);
 
@@ -2775,11 +2785,17 @@ export class DatabaseStorage implements IStorage {
       createdAt: this.formatDate(row.created_at),
       updatedAt: this.formatDate(row.updated_at),
       completedAt: this.formatDate(row.completed_at),
+      completedBy: row.completed_by,
       creator: {
         id: row.created_by,
         username: row.creator_username,
         name: `${row.creator_first_name || ''} ${row.creator_last_name || ''}`.trim()
       },
+      completer: row.completed_by ? {
+        id: row.completed_by,
+        username: row.completer_username,
+        name: `${row.completer_first_name || ''} ${row.completer_last_name || ''}`.trim()
+      } : null,
       group: {
         id: row.group_id,
         name: row.group_name,
