@@ -17,7 +17,7 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/queryClient";
-import { insertTaskSchema, Task } from "@shared/schema";
+import { insertTaskSchema, Task, Group } from "@shared/schema";
 import { z } from "zod";
 
 type TaskWithRelations = Task & {
@@ -51,7 +51,68 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // État local pour gérer le magasin sélectionné (auto-sélection intelligente)
+  const [localSelectedStoreId, setLocalSelectedStoreId] = useState<number | null>(null);
 
+  // Récupération des magasins pour l'auto-sélection
+  const { data: groupsData = [] } = useQuery<Group[]>({
+    queryKey: ['/api/groups'],
+  });
+  
+  // Filtrer les groupes selon le magasin sélectionné pour les admins
+  const groups = Array.isArray(groupsData) ? (
+    user?.role === 'admin' && selectedStoreId 
+      ? groupsData.filter(g => g.id === selectedStoreId)
+      : groupsData
+  ) : [];
+
+  // Auto-sélectionner le magasin selon les règles (même logique que CreateOrderModal)
+  useEffect(() => {
+    console.log('🏪 TaskForm - Store selection effect:', {
+      groupsLength: groups.length,
+      selectedStoreId,
+      localSelectedStoreId,
+      userRole: user?.role,
+      allGroups: groups.map(g => ({ id: g.id, name: g.name })),
+    });
+    
+    if (groups.length > 0 && !localSelectedStoreId) {
+      let defaultStoreId: number | null = null;
+      
+      if (user?.role === 'admin') {
+        // Pour l'admin : utiliser le magasin sélectionné dans le header (filtré), sinon le premier de la liste
+        if (selectedStoreId && groups.find(g => g.id === selectedStoreId)) {
+          defaultStoreId = selectedStoreId;
+        } else {
+          defaultStoreId = groups[0].id;
+        }
+        console.log('🏪 Admin task store selection:', { 
+          selectedStoreId, 
+          defaultStoreId, 
+          firstGroupId: groups[0].id,
+          groupsAvailable: groups.map(g => g.name)
+        });
+      } else {
+        // Pour les autres rôles : prendre le premier magasin attribué
+        defaultStoreId = groups[0].id;
+        console.log('🏪 Non-admin task store selection:', { defaultStoreId, firstGroupId: groups[0].id });
+      }
+      
+      if (defaultStoreId) {
+        console.log('🏪 Setting default task store ID:', defaultStoreId, 'for group:', groups.find(g => g.id === defaultStoreId)?.name);
+        setLocalSelectedStoreId(defaultStoreId);
+      }
+    }
+    
+    // Mettre à jour localSelectedStoreId si selectedStoreId change (pour les admins)
+    if (user?.role === 'admin' && selectedStoreId && selectedStoreId !== localSelectedStoreId) {
+      console.log('🔄 Updating task form store because header store changed:', { 
+        oldStoreId: localSelectedStoreId, 
+        newStoreId: selectedStoreId 
+      });
+      setLocalSelectedStoreId(selectedStoreId);
+    }
+  }, [groups, selectedStoreId, user?.role, localSelectedStoreId]);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
@@ -68,13 +129,14 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   // Mutation pour créer/modifier une tâche
   const createMutation = useMutation({
     mutationFn: (data: any) => {
-      // Ajouter le groupId basé sur le magasin sélectionné
+      // Ajouter le groupId basé sur le magasin auto-sélectionné
       const taskData = {
         ...data,
-        groupId: selectedStoreId ? parseInt(selectedStoreId) : undefined,
+        groupId: localSelectedStoreId,
         createdBy: user?.id,
         dueDate: data.dueDate || null
       };
+      console.log('🚀 Creating task with data:', taskData);
       return apiRequest("/api/tasks", "POST", taskData);
     },
     onSuccess: () => {
@@ -116,11 +178,11 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   });
 
   const onSubmit = (data: TaskFormData) => {
-    // Vérifier qu'un magasin est sélectionné
-    if (!selectedStoreId) {
+    // Vérifier qu'un magasin est auto-sélectionné
+    if (!localSelectedStoreId) {
       toast({
         title: "Erreur",
-        description: "Veuillez sélectionner un magasin avant de créer une tâche",
+        description: "Aucun magasin disponible pour créer une tâche",
         variant: "destructive",
       });
       return;
@@ -163,8 +225,38 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Avertissement si aucun magasin n'est sélectionné */}
-        {!selectedStoreId && (
+        {/* Affichage du magasin auto-sélectionné */}
+        {localSelectedStoreId && (
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">Magasin sélectionné :</span>{" "}
+                  {(() => {
+                    const selectedGroup = groups.find(g => g.id === localSelectedStoreId);
+                    return selectedGroup ? (
+                      <span className="inline-flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: selectedGroup.color }}
+                        />
+                        {selectedGroup.name}
+                      </span>
+                    ) : `Magasin ID: ${localSelectedStoreId}`;
+                  })()}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Avertissement si aucun magasin n'est disponible */}
+        {!localSelectedStoreId && groups.length === 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -174,7 +266,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-yellow-800">
-                  Veuillez d'abord sélectionner un magasin dans le menu en haut à droite avant de créer une tâche.
+                  Aucun magasin disponible. Veuillez contacter un administrateur.
                 </p>
               </div>
             </div>
