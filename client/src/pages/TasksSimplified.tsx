@@ -282,12 +282,12 @@ export default function TasksSimplified() {
           </Card>
         ) : (
           filteredTasks.map((task: TaskWithRelations) => (
-            <Card key={task.id} className="hover:shadow-md transition-shadow">
+            <Card key={task.id} className={`hover:shadow-md transition-shadow ${task.status === 'completed' ? 'opacity-60 bg-gray-50' : ''}`}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-lg">{task.title}</h3>
+                      <h3 className={`font-semibold text-lg ${task.status === 'completed' ? 'line-through text-gray-500' : ''}`}>{task.title}</h3>
                       <Badge className={getStatusColor(task.status)}>
                         {task.status === "completed" ? "Terminée" : "En attente"}
                       </Badge>
@@ -297,7 +297,7 @@ export default function TasksSimplified() {
                     </div>
                     
                     {task.description && (
-                      <p className="text-gray-600 mb-3">{task.description}</p>
+                      <p className={`mb-3 ${task.status === 'completed' ? 'text-gray-400 line-through' : 'text-gray-600'}`}>{task.description}</p>
                     )}
                     
                     <div className="flex flex-wrap gap-4 text-sm text-gray-500">
