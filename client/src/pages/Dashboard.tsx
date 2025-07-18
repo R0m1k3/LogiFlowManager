@@ -492,7 +492,7 @@ export default function Dashboard() {
               })
               .slice(0, 5)
               .map((task: any) => (
-                <div key={task.id} className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors border-l-3 border-blue-500">
+                <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors border-l-3 border-blue-500">
                   <div className="flex items-center space-x-3">
                     <div className="h-2 w-2 bg-blue-500"></div>
                     <div className="min-w-0 flex-1">
