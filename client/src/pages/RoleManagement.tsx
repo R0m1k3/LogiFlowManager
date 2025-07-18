@@ -602,7 +602,7 @@ export default function RoleManagement() {
                                   htmlFor={`permission-${permission.id}`}
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                  {permission.displayName || permission.name}
+                                  {getPermissionDisplayName(permission)}
                                 </label>
                                 <Badge variant="outline" className="text-xs">
                                   {permission.action}
