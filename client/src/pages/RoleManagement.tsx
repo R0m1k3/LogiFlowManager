@@ -155,6 +155,7 @@ export default function RoleManagement() {
     'fournisseurs': 'Fournisseurs',
     'gestion_dlc': 'Gestion DLC',
     'gestion_roles': 'Gestion des Rôles',
+    'gestion_taches': 'Gestion des Tâches',
     'livraisons': 'Livraisons',
     'magasins': 'Magasins',
     'publicites': 'Publicités',

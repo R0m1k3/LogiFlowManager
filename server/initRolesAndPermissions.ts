@@ -110,6 +110,13 @@ export async function initRolesAndPermissions() {
       { category: "gestion_dlc", name: "dlc_print", displayName: "Imprimer étiquettes DLC", description: "Impression d'étiquettes pour produits DLC", action: "print", resource: "dlc", isSystem: true },
       { category: "gestion_dlc", name: "dlc_stats", displayName: "Voir statistiques DLC", description: "Accès aux statistiques des produits DLC", action: "stats", resource: "dlc", isSystem: true },
       
+      // Task Management permissions
+      { category: "gestion_taches", name: "tasks_read", displayName: "Voir tâches", description: "Accès en lecture aux tâches", action: "read", resource: "tasks", isSystem: true },
+      { category: "gestion_taches", name: "tasks_create", displayName: "Créer tâches", description: "Création de nouvelles tâches", action: "create", resource: "tasks", isSystem: true },
+      { category: "gestion_taches", name: "tasks_update", displayName: "Modifier tâches", description: "Modification des tâches existantes", action: "update", resource: "tasks", isSystem: true },
+      { category: "gestion_taches", name: "tasks_delete", displayName: "Supprimer tâches", description: "Suppression de tâches", action: "delete", resource: "tasks", isSystem: true },
+      { category: "gestion_taches", name: "tasks_assign", displayName: "Assigner tâches", description: "Attribution de tâches aux utilisateurs", action: "assign", resource: "tasks", isSystem: true },
+      
       // Users permissions
       { category: "utilisateurs", name: "users_read", displayName: "Voir utilisateurs", description: "Accès en lecture aux utilisateurs", action: "read", resource: "users", isSystem: true },
       { category: "utilisateurs", name: "users_create", displayName: "Créer utilisateurs", description: "Création de nouveaux utilisateurs", action: "create", resource: "users", isSystem: true },

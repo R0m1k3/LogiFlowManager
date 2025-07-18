@@ -180,5 +180,8 @@ The application uses a sophisticated dual authentication approach:
 - **SCHÉMA BASE CORRECTÉ** - Colonne assigned_to au lieu d'assignee_id pour cohérence avec interface
 - **INTERFACE ÉPURÉE** - Formulaire création/modification simplifié selon demandes utilisateur
 - **AFFICHAGE CORRIGÉ** - Tâches affichent assignedTo (texte libre) au lieu d'objet utilisateur
+- **PERMISSIONS TÂCHES INTÉGRÉES** - Ajout de 5 permissions complètes pour les tâches (read, create, update, delete, assign) dans la catégorie "gestion_taches" avec traduction française
+- **RÔLES TÂCHES CONFIGURÉS** - Attribution des permissions tâches aux rôles : admin (toutes), manager (read, create, update, assign), employee (read, create, update), directeur (toutes)
+- **TABLE TÂCHES PRODUCTION** - Création table tasks dans initDatabase.production.ts avec colonnes assigned_to, due_date, priority, status et contraintes appropriées
 
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.

@@ -259,6 +259,22 @@ async function createTablesIfNotExist() {
     );
   `;
 
+  const createTasksTable = `
+    CREATE TABLE IF NOT EXISTS tasks (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled')),
+      priority VARCHAR(50) NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+      assigned_to VARCHAR(255),
+      due_date DATE,
+      group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      created_by VARCHAR(255) NOT NULL REFERENCES users(id),
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
   const tables = [
     createUsersTable,
     createGroupsTable,
@@ -274,7 +290,8 @@ async function createTablesIfNotExist() {
     createRolePermissionsTable,
     createNocodbConfigTable,
     createCustomerOrdersTable,
-    createDlcProductsTable
+    createDlcProductsTable,
+    createTasksTable
   ];
 
   for (const table of tables) {
@@ -826,6 +843,17 @@ async function initRolesAndPermissionsProduction() {
       { category: 'gestion_dlc', name: 'dlc_delete', displayName: 'Supprimer produits DLC', description: 'Suppression de produits DLC', action: 'delete', resource: 'dlc' },
       { category: 'gestion_dlc', name: 'dlc_validate', displayName: 'Valider produits DLC', description: 'Validation des produits DLC', action: 'validate', resource: 'dlc' },
       { category: 'gestion_dlc', name: 'dlc_print', displayName: 'Imprimer étiquettes DLC', description: 'Impression des étiquettes DLC', action: 'print', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_stats', displayName: 'Voir statistiques DLC', description: 'Accès aux statistiques DLC', action: 'stats', resource: 'dlc' },
+      
+      // Task Management (gestion_taches)
+      { category: 'gestion_taches', name: 'tasks_read', displayName: 'Voir tâches', description: 'Accès en lecture aux tâches', action: 'read', resource: 'tasks' },
+      { category: 'gestion_taches', name: 'tasks_create', displayName: 'Créer tâches', description: 'Création de nouvelles tâches', action: 'create', resource: 'tasks' },
+      { category: 'gestion_taches', name: 'tasks_update', displayName: 'Modifier tâches', description: 'Modification des tâches', action: 'update', resource: 'tasks' },
+      { category: 'gestion_taches', name: 'tasks_delete', displayName: 'Supprimer tâches', description: 'Suppression de tâches', action: 'delete', resource: 'tasks' },
+      { category: 'gestion_taches', name: 'tasks_assign', displayName: 'Assigner tâches', description: 'Attribution de tâches aux utilisateurs', action: 'assign', resource: 'tasks' },
+      { category: 'gestion_dlc', name: 'dlc_delete', displayName: 'Supprimer produits DLC', description: 'Suppression de produits DLC', action: 'delete', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_validate', displayName: 'Valider produits DLC', description: 'Validation des produits DLC', action: 'validate', resource: 'dlc' },
+      { category: 'gestion_dlc', name: 'dlc_print', displayName: 'Imprimer étiquettes DLC', description: 'Impression des étiquettes DLC', action: 'print', resource: 'dlc' },
       { category: 'gestion_dlc', name: 'dlc_stats', displayName: 'Voir statistiques DLC', description: 'Accès aux statistiques DLC', action: 'read', resource: 'dlc_stats' }
     ];
 
@@ -850,12 +878,14 @@ async function initRolesAndPermissionsProduction() {
         'publicities_participate', 'customer_orders_read', 'customer_orders_create', 
         'customer_orders_update', 'customer_orders_print', 'users_read', 'bl_reconciliation_read',
         'bl_reconciliation_update', 'calendar_read', 'calendar_update',
-        'dlc_read', 'dlc_create', 'dlc_update', 'dlc_validate', 'dlc_print', 'dlc_stats'
+        'dlc_read', 'dlc_create', 'dlc_update', 'dlc_validate', 'dlc_print', 'dlc_stats',
+        'tasks_read', 'tasks_create', 'tasks_update', 'tasks_assign'
       ],
       'employee': [
         'dashboard_read', 'groups_read', 'suppliers_read', 'orders_read', 'deliveries_read',
         'publicities_read', 'customer_orders_read', 'customer_orders_create', 'customer_orders_print',
-        'calendar_read', 'dlc_read', 'dlc_create', 'dlc_update'
+        'calendar_read', 'dlc_read', 'dlc_create', 'dlc_update',
+        'tasks_read', 'tasks_create', 'tasks_update'
       ],
       'directeur': [
         'dashboard_read', 'groups_read', 'groups_create', 'groups_update', 'suppliers_read', 
@@ -865,7 +895,8 @@ async function initRolesAndPermissionsProduction() {
         'customer_orders_read', 'customer_orders_create', 'customer_orders_update', 
         'customer_orders_print', 'users_read', 'users_create', 'users_update', 'roles_read',
         'bl_reconciliation_read', 'bl_reconciliation_update', 'calendar_read', 'calendar_update',
-        'dlc_read', 'dlc_create', 'dlc_update', 'dlc_delete', 'dlc_validate', 'dlc_print', 'dlc_stats'
+        'dlc_read', 'dlc_create', 'dlc_update', 'dlc_delete', 'dlc_validate', 'dlc_print', 'dlc_stats',
+        'tasks_read', 'tasks_create', 'tasks_update', 'tasks_delete', 'tasks_assign'
       ]
     };
 
