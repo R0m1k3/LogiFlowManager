@@ -1,0 +1,232 @@
+Présentation complète du module de Tâches
+
+Vue d'ensemble
+
+Le module de Tâches est un système de gestion de tâches complet permettant de créer, organiser, filtrer et suivre les tâches avec gestion des priorités et des dates d'échéance.
+
+
+Structure des données
+
+Les tâches sont stockées dans la table tasks avec les champs suivants :
+
+
+ID : Identifiant unique UUID
+
+Titre : Nom de la tâche (requis)
+
+Description : Détails de la tâche (optionnel)
+
+Date d'échéance : Date limite pour la tâche
+
+Priorité : Niveau d'importance (low, medium, high)
+
+Statut : État de la tâche (pending, completed)
+
+Assigné à : Utilisateur responsable
+
+Créé par : Utilisateur créateur
+
+Groupe : Magasin/groupe associé
+
+Dates : created_at, updated_at, completed_at
+
+Formulaire de création/édition (TaskForm)
+
+Champs du formulaire
+
+Titre (requis)
+
+
+Type : Texte
+
+Validation : Obligatoire
+
+Description (optionnel)
+
+
+Type : Textarea
+
+Pour détails supplémentaires
+
+Date d'échéance (optionnel)
+
+
+Type : Calendar picker
+
+Sélection de date
+
+Priorité (requis)
+
+
+Type : Select
+
+Options : Faible, Moyenne, Élevée
+
+Défaut : Moyenne
+
+Actions du formulaire
+
+Créer : Pour nouvelle tâche
+
+Modifier : Pour tâche existante
+
+Annuler : Fermer sans sauvegarder
+
+Page principale (TasksPage)
+
+Contrôles de navigation
+
+Navigation par dates : Boutons précédent/suivant
+
+Sélecteur de date : Calendrier pour choisir une date
+
+Filtres et recherche
+
+Recherche textuelle
+
+
+Recherche dans titre et description
+
+Mise à jour en temps réel
+
+Filtre par statut
+
+
+Toutes
+
+En cours
+
+Terminées
+
+Filtre par priorité
+
+
+Toutes
+
+Faible
+
+Moyenne
+
+Élevée
+
+Interface utilisateur
+
+Vue calendrier : Sidebar avec calendrier
+
+Vue liste : Affichage des tâches du jour sélectionné
+
+Layout responsive : Grid adaptatif
+
+Liste des tâches (TaskList)
+
+Configuration des priorités
+
+Faible : Badge gris, icône Circle
+
+Moyenne : Badge jaune, icône Clock
+
+Élevée : Badge rouge, icône AlertTriangle
+
+Affichage des tâches
+
+Informations visibles
+
+
+Titre et description
+
+Badge de priorité (coloré)
+
+Heure d'échéance
+
+Utilisateur assigné
+
+Catégorie/statut
+
+Actions disponibles
+
+
+Marquer comme terminé : Toggle statut
+
+Éditer : Ouvrir formulaire modification
+
+Supprimer : Suppression avec confirmation
+
+Organisation
+
+Tâches en cours : Affichées en premier
+
+Tâches terminées : Séparées visuellement
+
+Tri automatique : Par priorité puis par date
+
+Carte des tâches récentes (RecentTasksCard)
+
+Fonctionnalités
+
+Période : 7 prochains jours
+
+Filtre : Seulement tâches incomplètes
+
+Tri : Priorité (haute → basse) puis date
+
+Limite : 5 tâches maximum affichées
+
+Action : Bouton "Voir toutes les tâches"
+
+Affichage compact
+
+Titre et description abrégée
+
+Date d'échéance formatée
+
+Badge de priorité
+
+Message si aucune tâche
+
+Contrôle d'accès
+
+Permissions requises
+
+view_tasks : Pour voir les tâches
+
+create_tasks : Pour créer de nouvelles tâches
+
+edit_tasks : Pour modifier les tâches existantes
+
+Sécurité
+
+Vérification des permissions avant affichage
+
+Masquage des boutons selon les droits
+
+RLS (Row Level Security) au niveau base de données
+
+Fonctionnalités avancées
+
+Gestion des états
+
+États locaux : Date sélectionnée, filtres, recherche
+
+Synchronisation : Remise à zéro pagination lors de changement filtres
+
+Persistance : Maintien de l'état lors navigation
+
+Intégrations
+
+Contexte de données : useData() pour accès données
+
+Authentification : useAuth() pour permissions
+
+Navigation : useNavigate() pour redirection
+
+Toasts : Notifications succès/erreur
+
+Validation
+
+Schéma Zod : Validation côté client
+
+Contraintes DB : Validation côté serveur
+
+Messages d'erreur : Retours utilisateur explicites
+
+Ce module offre une gestion complète des tâches avec une interface intuitive, des filtres avancés et un contrôle d'accès granulaire.
