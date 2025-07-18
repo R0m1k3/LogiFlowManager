@@ -1,0 +1,59 @@
+- PROBLÉMATIQUE: ID: 35, Name: publicities_delete, DisplayName: "publicities_delete"
+
+  - PROBLÉMATIQUE: ID: 32, Name: publicities_read, DisplayName: "publicities_read"
+
+  - PROBLÉMATIQUE: ID: 34, Name: publicities_update, DisplayName: "publicities_update"
+
+  - PROBLÉMATIQUE: ID: 17, Name: reconciliation_create, DisplayName: "reconciliation_create"
+
+  - PROBLÉMATIQUE: ID: 19, Name: reconciliation_delete, DisplayName: "reconciliation_delete"
+
+  - PROBLÉMATIQUE: ID: 16, Name: reconciliation_read, DisplayName: "reconciliation_read"
+
+  - PROBLÉMATIQUE: ID: 18, Name: reconciliation_update, DisplayName: "reconciliation_update"
+
+  - PROBLÉMATIQUE: ID: 29, Name: suppliers_create, DisplayName: "suppliers_create"
+
+  - PROBLÉMATIQUE: ID: 31, Name: suppliers_delete, DisplayName: "suppliers_delete"
+
+  - PROBLÉMATIQUE: ID: 28, Name: suppliers_read, DisplayName: "suppliers_read"
+
+  - PROBLÉMATIQUE: ID: 30, Name: suppliers_update, DisplayName: "suppliers_update"
+
+  - PROBLÉMATIQUE: ID: 21, Name: users_create, DisplayName: "users_create"
+
+  - PROBLÉMATIQUE: ID: 23, Name: users_delete, DisplayName: "users_delete"
+
+  - PROBLÉMATIQUE: ID: 20, Name: users_read, DisplayName: "users_read"
+
+  - PROBLÉMATIQUE: ID: 22, Name: users_update, DisplayName: "users_update"
+
+  - PROBLÉMATIQUE: ID: 41, Name: customer_orders_create, DisplayName: "customer_orders_create"
+
+  - PROBLÉMATIQUE: ID: 43, Name: customer_orders_delete, DisplayName: "customer_orders_delete"
+
+  - PROBLÉMATIQUE: ID: 45, Name: customer_orders_notify, DisplayName: "customer_orders_notify"
+
+  - PROBLÉMATIQUE: ID: 44, Name: customer_orders_print, DisplayName: "customer_orders_print"
+
+  - PROBLÉMATIQUE: ID: 40, Name: customer_orders_read, DisplayName: "customer_orders_read"
+
+  - PROBLÉMATIQUE: ID: 42, Name: customer_orders_update, DisplayName: "customer_orders_update"
+
+  - PROBLÉMATIQUE: ID: 37, Name: groups_create, DisplayName: "groups_create"
+
+  - PROBLÉMATIQUE: ID: 39, Name: groups_delete, DisplayName: "groups_delete"
+
+  - PROBLÉMATIQUE: ID: 36, Name: groups_read, DisplayName: "groups_read"
+
+  - PROBLÉMATIQUE: ID: 38, Name: groups_update, DisplayName: "groups_update"
+
+  - PROBLÉMATIQUE: ID: 47, Name: roles_create, DisplayName: "roles_create"
+
+  - PROBLÉMATIQUE: ID: 49, Name: roles_delete, DisplayName: "roles_delete"
+
+  - PROBLÉMATIQUE: ID: 46, Name: roles_read, DisplayName: "roles_read"
+
+  - PROBLÉMATIQUE: ID: 48, Name: roles_update, DisplayName: "roles_update"
+
+4:30:57 PM [express] GET /api/permissions 304 in 12ms
