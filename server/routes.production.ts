@@ -19,7 +19,8 @@ import {
   insertPermissionSchema,
   insertUserRoleSchema,
   insertDlcProductSchema,
-  insertDlcProductFrontendSchema
+  insertDlcProductFrontendSchema,
+  insertTaskSchema
 } from "../shared/schema";
 import { z } from "zod";
 
@@ -1681,6 +1682,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error validating DLC product:", error);
       res.status(500).json({ message: "Failed to validate DLC product" });
+    }
+  });
+
+  // Tasks routes
+  app.get('/api/tasks', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      const storeId = req.query.storeId;
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let groupIds: number[] | undefined;
+      if (user.role === 'admin') {
+        // Admin peut voir toutes les tâches ou filtrer par magasin
+        if (storeId && storeId !== 'all') {
+          groupIds = [parseInt(storeId)];
+        }
+        // Si pas de storeId ou storeId='all', pas de filtrage (toutes les tâches)
+      } else {
+        // Non-admin voit seulement ses magasins assignés
+        const userGroupIds = user.userGroups.map((ug: any) => ug.group.id);
+        if (storeId && storeId !== 'all') {
+          const requestedStoreId = parseInt(storeId);
+          if (userGroupIds.includes(requestedStoreId)) {
+            groupIds = [requestedStoreId];
+          } else {
+            return res.status(403).json({ message: "Access denied to this store" });
+          }
+        } else {
+          groupIds = userGroupIds;
+        }
+      }
+
+      const tasks = await storage.getTasks(groupIds);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  app.get('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const task = await storage.getTask(id);
+      
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      // Check if user has access to this task's group
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      
+      if (user?.role !== 'admin') {
+        const userGroupIds = user?.userGroups.map((ug: any) => ug.group.id) || [];
+        if (!userGroupIds.includes(task.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      res.json(task);
+    } catch (error) {
+      console.error("Error fetching task:", error);
+      res.status(500).json({ message: "Failed to fetch task" });
+    }
+  });
+
+  app.post('/api/tasks', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      const user = await storage.getUserWithGroups(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Validate access to the specified group
+      if (user.role !== 'admin') {
+        const userGroupIds = user.userGroups.map((ug: any) => ug.group.id);
+        if (!userGroupIds.includes(req.body.groupId)) {
+          return res.status(403).json({ message: "Access denied to this store" });
+        }
+      }
+
+      const validatedData = insertTaskSchema.parse({
+        ...req.body,
+        createdBy: userId,
+      });
+
+      const task = await storage.createTask(validatedData);
+      res.status(201).json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  app.put('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      
+      const existingTask = await storage.getTask(id);
+      if (!existingTask) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      const user = await storage.getUserWithGroups(userId);
+      if (user?.role !== 'admin') {
+        const userGroupIds = user?.userGroups.map((ug: any) => ug.group.id) || [];
+        if (!userGroupIds.includes(existingTask.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+        
+        // Non-admin users can only edit their own tasks
+        if (existingTask.createdBy !== userId) {
+          return res.status(403).json({ message: "Can only edit your own tasks" });
+        }
+      }
+
+      const validatedData = insertTaskSchema.partial().parse(req.body);
+      const updatedTask = await storage.updateTask(id, validatedData);
+      res.json(updatedTask);
+    } catch (error) {
+      console.error("Error updating task:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to update task" });
+    }
+  });
+
+  app.post('/api/tasks/:id/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      
+      const existingTask = await storage.getTask(id);
+      if (!existingTask) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      const user = await storage.getUserWithGroups(userId);
+      if (user?.role !== 'admin') {
+        const userGroupIds = user?.userGroups.map((ug: any) => ug.group.id) || [];
+        if (!userGroupIds.includes(existingTask.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const updatedTask = await storage.updateTask(id, { 
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        completedBy: userId
+      });
+      res.json(updatedTask);
+    } catch (error) {
+      console.error("Error completing task:", error);
+      res.status(500).json({ message: "Failed to complete task" });
+    }
+  });
+
+  app.delete('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims ? req.user.claims.sub : req.user.id;
+      
+      const existingTask = await storage.getTask(id);
+      if (!existingTask) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      const user = await storage.getUserWithGroups(userId);
+      if (user?.role !== 'admin') {
+        const userGroupIds = user?.userGroups.map((ug: any) => ug.group.id) || [];
+        if (!userGroupIds.includes(existingTask.groupId)) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+        
+        if (existingTask.createdBy !== userId) {
+          return res.status(403).json({ message: "Can only delete your own tasks" });
+        }
+      }
+
+      await storage.deleteTask(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ message: "Failed to delete task" });
     }
   });
 

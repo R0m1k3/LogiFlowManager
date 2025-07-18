@@ -2714,11 +2714,9 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(`
       SELECT t.*, 
              g.name as group_name, g.color as group_color,
-             assignee.username as assignee_username, assignee.first_name as assignee_first_name, assignee.last_name as assignee_last_name,
              creator.username as creator_username, creator.first_name as creator_first_name, creator.last_name as creator_last_name
       FROM tasks t
       LEFT JOIN groups g ON t.group_id = g.id  
-      LEFT JOIN users assignee ON t.assignee_id = assignee.id
       LEFT JOIN users creator ON t.created_by = creator.id
       ${whereClause}
       ORDER BY t.created_at DESC
@@ -2730,18 +2728,13 @@ export class DatabaseStorage implements IStorage {
       description: row.description,
       status: row.status,
       priority: row.priority,
-      dueDate: row.due_date,
-      assigneeId: row.assignee_id,
+      dueDate: this.formatDate(row.due_date),
+      assignedTo: row.assigned_to,
       groupId: row.group_id,
       createdBy: row.created_by,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      completedAt: row.completed_at,
-      assignee: row.assignee_id ? {
-        id: row.assignee_id,
-        username: row.assignee_username,
-        name: `${row.assignee_first_name || ''} ${row.assignee_last_name || ''}`.trim()
-      } : null,
+      createdAt: this.formatDate(row.created_at),
+      updatedAt: this.formatDate(row.updated_at),
+      completedAt: this.formatDate(row.completed_at),
       creator: {
         id: row.created_by,
         username: row.creator_username,
@@ -2759,11 +2752,9 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(`
       SELECT t.*, 
              g.name as group_name, g.color as group_color,
-             assignee.username as assignee_username, assignee.first_name as assignee_first_name, assignee.last_name as assignee_last_name,
              creator.username as creator_username, creator.first_name as creator_first_name, creator.last_name as creator_last_name
       FROM tasks t
       LEFT JOIN groups g ON t.group_id = g.id
-      LEFT JOIN users assignee ON t.assignee_id = assignee.id
       LEFT JOIN users creator ON t.created_by = creator.id
       WHERE t.id = $1
     `, [id]);
@@ -2777,18 +2768,13 @@ export class DatabaseStorage implements IStorage {
       description: row.description,
       status: row.status,
       priority: row.priority,
-      dueDate: row.due_date,
-      assigneeId: row.assignee_id,
+      dueDate: this.formatDate(row.due_date),
+      assignedTo: row.assigned_to,
       groupId: row.group_id,
       createdBy: row.created_by,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      completedAt: row.completed_at,
-      assignee: row.assignee_id ? {
-        id: row.assignee_id,
-        username: row.assignee_username,
-        name: `${row.assignee_first_name || ''} ${row.assignee_last_name || ''}`.trim()
-      } : null,
+      createdAt: this.formatDate(row.created_at),
+      updatedAt: this.formatDate(row.updated_at),
+      completedAt: this.formatDate(row.completed_at),
       creator: {
         id: row.created_by,
         username: row.creator_username,
@@ -2806,7 +2792,7 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(`
       INSERT INTO tasks (
         title, description, status, priority, due_date,
-        assignee_id, group_id, created_by
+        assigned_to, group_id, created_by
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
@@ -2816,7 +2802,7 @@ export class DatabaseStorage implements IStorage {
       task.status || 'pending',
       task.priority || 'medium',
       this.formatDate(task.dueDate),
-      task.assigneeId || null,
+      task.assignedTo,
       task.groupId,
       task.createdBy
     ]);
@@ -2855,13 +2841,23 @@ export class DatabaseStorage implements IStorage {
       updateFields.push(`due_date = $${paramCount++}`);
       values.push(this.formatDate(task.dueDate));
     }
-    if (task.assigneeId !== undefined) {
-      updateFields.push(`assignee_id = $${paramCount++}`);
-      values.push(task.assigneeId);
+    if (task.assignedTo !== undefined) {
+      updateFields.push(`assigned_to = $${paramCount++}`);
+      values.push(task.assignedTo);
     }
     if (task.groupId !== undefined) {
       updateFields.push(`group_id = $${paramCount++}`);
       values.push(task.groupId);
+    }
+
+    // Add completedAt and completedBy for production routes
+    if (task.completedAt !== undefined) {
+      updateFields.push(`completed_at = $${paramCount++}`);
+      values.push(this.formatDate(task.completedAt));
+    }
+    if (task.completedBy !== undefined) {
+      updateFields.push(`completed_by = $${paramCount++}`);
+      values.push(task.completedBy);
     }
 
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
