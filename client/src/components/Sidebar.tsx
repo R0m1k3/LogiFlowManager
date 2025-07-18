@@ -69,12 +69,6 @@ export default function Sidebar() {
       roles: ["admin", "manager", "employee"] 
     },
     { 
-      path: "/tasks", 
-      label: "Tâches", 
-      icon: ListTodo, 
-      roles: ["admin", "manager", "employee"] 
-    },
-    { 
       path: "/orders", 
       label: "Commandes", 
       icon: Package, 
@@ -108,6 +102,12 @@ export default function Sidebar() {
       path: "/dlc", 
       label: "Gestion DLC", 
       icon: Clock, 
+      roles: ["admin", "manager", "employee"] 
+    },
+    { 
+      path: "/tasks", 
+      label: "Tâches", 
+      icon: ListTodo, 
       roles: ["admin", "manager", "employee"] 
     },
   ];
