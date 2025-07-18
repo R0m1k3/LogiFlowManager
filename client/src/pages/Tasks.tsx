@@ -91,8 +91,12 @@ export default function Tasks() {
   const handleCompleteTask = async (taskId: number) => {
     try {
       const response = await fetch(`/api/tasks/${taskId}/complete`, {
-        method: 'PUT',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
+        body: JSON.stringify({}),
       });
 
       if (!response.ok) {
@@ -463,12 +467,12 @@ export default function Tasks() {
                           const PriorityIcon = priorityConfig.icon;
                           
                           return (
-                            <Card key={task.id} className="opacity-75">
+                            <Card key={task.id} className="opacity-60 bg-gray-50">
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-3 mb-2">
-                                      <h5 className="font-medium text-gray-900 truncate line-through">
+                                      <h5 className="font-medium text-gray-500 truncate line-through">
                                         {task.title}
                                       </h5>
                                       <Badge variant="secondary" className="flex items-center gap-1">
@@ -478,7 +482,7 @@ export default function Tasks() {
                                     </div>
                                     
                                     {task.description && (
-                                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                      <p className="text-sm text-gray-400 mb-2 line-clamp-2 line-through">
                                         {task.description}
                                       </p>
                                     )}

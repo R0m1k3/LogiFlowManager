@@ -75,7 +75,7 @@ function RouterProduction() {
         <Route path="/publicities" component={Publicities} />
         <Route path="/customer-orders" component={CustomerOrders} />
         <Route path="/dlc" component={DlcPage} />
-        <Route path="/tasks" component={TasksSimplified} />
+        <Route path="/tasks" component={Tasks} />
         <Route path="/nocodb-config" component={NocoDBConfig} />
         <Route path="/" component={Dashboard} />
         <Route component={NotFound} />
