@@ -485,6 +485,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3 p-6">
             {Array.isArray(tasks) && tasks.length > 0 ? tasks
+              .filter((task: any) => task.status !== 'completed')
               .sort((a: any, b: any) => {
                 const dateA = safeDate(a.createdAt);
                 const dateB = safeDate(b.createdAt);
