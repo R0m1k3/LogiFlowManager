@@ -73,7 +73,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
         ...data,
         groupId: selectedStoreId ? parseInt(selectedStoreId) : undefined,
         createdBy: user?.id,
-        dueDate: data.dueDate ? new Date(data.dueDate) : null
+        dueDate: data.dueDate ? new Date(data.dueDate + 'T00:00:00.000Z') : null
       };
       return apiRequest("/api/tasks", "POST", taskData);
     },
@@ -134,7 +134,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
         priority: data.priority,
         status: data.status,
         assignedTo: data.assignedTo,
-        dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        dueDate: data.dueDate ? new Date(data.dueDate + 'T00:00:00.000Z') : null,
       };
       updateMutation.mutate(submitData);
     } else {
