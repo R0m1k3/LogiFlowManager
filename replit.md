@@ -208,7 +208,7 @@ The application uses a sophisticated dual authentication approach:
 - **SIDEBAR CORRIGÉE** - Suppression entrée duplicate "/tasks" causant warning React clés identiques
 - **VALIDATION PRODUCTION TESTÉE** - Test SQL réussi : tâche ID 17 validée avec timestamp et utilisateur
 - **COLONNE ASSIGNED_TO FIXÉE** - Valeurs null remplacées par "Non assigné" et contrainte NOT NULL appliquée
-- **SIDEBAR TÂCHES RESTAURÉE** - Menu "Tâches" déplacé vers section "Gestion" pour visibilité complète avec completedBy et completedAt
+- **SIDEBAR TÂCHES RESTAURÉE** - Menu "Tâches" remis dans section principale au lieu de "Gestion" avec completedBy et completedAt
 - **PERMISSIONS PRODUCTION INTÉGRÉES** - 5 permissions tâches assignées aux 4 rôles (admin, manager, employee, directeur)
 - **INTERFACE UTILISATEUR OPTIMISÉE** - Affichage visuel différencié entre tâches actives et terminées
 

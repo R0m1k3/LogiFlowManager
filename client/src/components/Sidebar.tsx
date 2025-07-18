@@ -114,12 +114,6 @@ export default function Sidebar() {
 
   const managementItems = [
     { 
-      path: "/tasks", 
-      label: "Tâches", 
-      icon: ListTodo, 
-      roles: ["admin", "manager", "employee"] 
-    },
-    { 
       path: "/suppliers", 
       label: "Fournisseurs", 
       icon: Building, 
