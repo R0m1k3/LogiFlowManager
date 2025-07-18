@@ -191,6 +191,14 @@ export default function TasksSimplified() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Vous devez être connecté pour accéder aux tâches.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

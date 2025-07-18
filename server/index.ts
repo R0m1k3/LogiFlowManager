@@ -58,12 +58,14 @@ app.use((req, res, next) => {
     // Continue startup even if role initialization fails
   }
 
-  // Initialize production database and permissions
-  try {
-    await initDatabase();
-  } catch (error) {
-    console.error("Failed to initialize production database:", error);
-    // Continue startup even if production initialization fails
+  // Initialize production database and permissions only in production
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      await initDatabase();
+    } catch (error) {
+      console.error("Failed to initialize production database:", error);
+      // Continue startup even if production initialization fails
+    }
   }
 
   const server = await registerRoutes(app);
