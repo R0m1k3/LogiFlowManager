@@ -273,7 +273,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
           name="dueDate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Date d'échéance</FormLabel>
+              <FormLabel>Date</FormLabel>
               <FormControl>
                 <Input
                   type="date"
