@@ -114,6 +114,12 @@ export default function Sidebar() {
 
   const managementItems = [
     { 
+      path: "/tasks", 
+      label: "Tâches", 
+      icon: ListTodo, 
+      roles: ["admin", "manager", "employee"] 
+    },
+    { 
       path: "/suppliers", 
       label: "Fournisseurs", 
       icon: Building, 
@@ -209,7 +215,14 @@ export default function Sidebar() {
       <nav className="flex-1 py-4 px-3">
         <div className="space-y-1">
           {menuItems.map((item) => {
-            if (!hasPermission(item.roles)) return null;
+            const hasRolePermission = hasPermission(item.roles);
+            // console.log(`🔍 Menu item ${item.path} (${item.label}):`, { 
+            //   roles: item.roles, 
+            //   hasPermission: hasRolePermission,
+            //   userRole: user?.role 
+            // });
+            
+            if (!hasRolePermission) return null;
             
             const Icon = item.icon;
             const active = isActive(item.path);
