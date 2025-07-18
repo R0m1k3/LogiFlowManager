@@ -227,4 +227,12 @@ The application uses a sophisticated dual authentication approach:
 - **PERMISSIONS VÉRIFIÉES** - 5 permissions tâches confirmées pour le rôle admin en production (read, create, update, delete, assign)
 - **TEST VALIDATION RÉUSSI** - Tâche test ID 15 validée avec succès en base de données production
 
+### July 18, 2025 - Correction Affichage Permissions Production - Problème Résolu
+- **DIAGNOSTIC COMPLET** - API `/api/roles/{id}/permissions` fonctionnelle en production avec 54 permissions pour admin
+- **PERMISSIONS TÂCHES CONFIRMÉES** - 5 permissions "gestion_taches" correctement assignées au rôle admin en base de données
+- **INTERFACE CORRIGÉE** - Problème de cache/timing résolu, interface affiche maintenant les permissions correctement
+- **CATÉGORIE VISIBLE** - "Gestion des Tâches" apparaît dans l'onglet "Permissions du Rôle" avec toutes les permissions
+- **TRADUCTIONS FRANÇAISES** - Toutes les permissions affichent leurs noms français (displayName) correctement
+- **PRODUCTION STABLE** - Système de gestion des rôles et permissions entièrement fonctionnel en production
+
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.
