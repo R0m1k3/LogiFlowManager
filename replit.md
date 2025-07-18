@@ -211,7 +211,17 @@ The application uses a sophisticated dual authentication approach:
 - **SIDEBAR TÂCHES RESTAURÉE** - Menu "Tâches" remis dans section principale au lieu de "Gestion" avec completedBy et completedAt
 - **PERMISSIONS PRODUCTION INTÉGRÉES** - 5 permissions tâches assignées aux 4 rôles (admin, manager, employee, directeur)
 - **INTERFACE UTILISATEUR OPTIMISÉE** - Affichage visuel différencié entre tâches actives et terminées
-- **AUTHENTIFICATION DÉVELOPPEMENT RÉPARÉE** - Mot de passe admin réinitialisé avec algorithme scrypt correct pour développement
+- **AUTHENTIFICATION DÉVELOPPEMENT RÉPARÉE** - Mot de passe admin réinitialisé avec algorithmea
+
+### July 18, 2025 - Correction Auto-sélection Magasin pour Création Tâches
+- **AUTO-SÉLECTION MAGASIN TÂCHES** - Ajout logique intelligente d'auto-sélection de magasin dans TaskForm.tsx identique aux autres modales
+- **GESTION RÔLE ADMIN** - Pour les administrateurs : utilise le magasin sélectionné dans le header, sinon le premier disponible
+- **GESTION AUTRES RÔLES** - Pour les managers/employés : utilise automatiquement le premier magasin assigné
+- **AFFICHAGE MAGASIN SÉLECTIONNÉ** - Interface indique clairement quel magasin sera utilisé avec code couleur
+- **SUPPRESSION MESSAGE ERREUR** - Plus besoin de sélectionner manuellement un magasin avant création de tâche
+- **COHÉRENCE INTERFACE** - Même logique d'auto-sélection que CreateOrderModal et CreateDeliveryModal
+- **LOGS DEBUG AJOUTÉS** - Traçabilité complète pour diagnostic auto-sélection magasin tâches
+- **PRODUCTION/DÉVELOPPEMENT** - Correction applicable aux deux environnements pour résoudre problème productione scrypt correct pour développement
 - **MÉTHODE COMPLETETASK PRODUCTION CORRIGÉE** - Requête SQL simplifiée et logs ajoutés pour déboguer validation tâches
 - **COLONNES COMPLETED_AT/BY RECRÉÉES** - Suppression et recréation des colonnes completed_at et completed_by en production pour résoudre erreur SQL définitivement
 - **CRITIQUE FIX v2 AJOUTÉ** - Migration forcée dans initDatabase.production.ts pour recréer définitivement les colonnes completed_at/by au démarrage de l'application
