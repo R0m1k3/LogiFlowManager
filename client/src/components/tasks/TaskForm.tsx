@@ -68,12 +68,12 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   // Mutation pour créer/modifier une tâche
   const createMutation = useMutation({
     mutationFn: (data: any) => {
-      // Ajouter le groupId basé sur le magasin sélectionné et convertir la date
+      // Ajouter le groupId basé sur le magasin sélectionné
       const taskData = {
         ...data,
         groupId: selectedStoreId ? parseInt(selectedStoreId) : undefined,
         createdBy: user?.id,
-        dueDate: data.dueDate ? new Date(data.dueDate + 'T00:00:00.000Z') : null
+        dueDate: data.dueDate || null
       };
       return apiRequest("/api/tasks", "POST", taskData);
     },
@@ -134,7 +134,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
         priority: data.priority,
         status: data.status,
         assignedTo: data.assignedTo,
-        dueDate: data.dueDate ? new Date(data.dueDate + 'T00:00:00.000Z') : null,
+        dueDate: data.dueDate || null,
       };
       updateMutation.mutate(submitData);
     } else {
