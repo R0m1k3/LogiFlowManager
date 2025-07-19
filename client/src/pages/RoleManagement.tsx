@@ -221,7 +221,27 @@ export default function RoleManagement() {
   // Get role permissions specifically
   const { data: rolePermissions = [] } = useQuery<any[]>({
     queryKey: [`/api/roles/${selectedRole?.id}/permissions`],
+    queryFn: async () => {
+      console.log('🔄 FRONTEND: Fetching role permissions for role ID:', selectedRole?.id);
+      const response = await fetch(`/api/roles/${selectedRole?.id}/permissions`, {
+        credentials: 'include'
+      });
+      console.log('🔄 FRONTEND: Role permissions response status:', response.status, response.ok);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔄 FRONTEND: Role permissions fetch error:', response.status, errorText);
+        throw new Error(`Failed to fetch role permissions: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('🔄 FRONTEND: Role permissions received:', data.length, 'items');
+      console.log('🔄 FRONTEND: Role permissions sample:', data.slice(0, 2));
+      return data;
+    },
     enabled: !!selectedRole,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    retry: false
   });
 
   // Debug permissions
