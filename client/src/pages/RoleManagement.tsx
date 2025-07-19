@@ -640,6 +640,11 @@ export default function RoleManagement() {
                           console.log(`🔧 FORCING GESTION_TACHES TO RENDER`);
                           return true;
                         }
+                        // Force include administration even if filter fails
+                        if (category === 'administration' && categoryPermissions && categoryPermissions.length > 0) {
+                          console.log(`🔧 FORCING ADMINISTRATION TO RENDER`);
+                          return true;
+                        }
                         return isValid;
                       })
                       .map(([category, categoryPermissions]) => {
@@ -758,6 +763,11 @@ export default function RoleManagement() {
                     // Force include gestion_taches even if filter fails
                     if (category === 'gestion_taches' && categoryPermissions && categoryPermissions.length > 0) {
                       console.log(`🔧 FORCING GESTION_TACHES TO RENDER IN PERMISSIONS TAB`);
+                      return true;
+                    }
+                    // Force include administration even if filter fails
+                    if (category === 'administration' && categoryPermissions && categoryPermissions.length > 0) {
+                      console.log(`🔧 FORCING ADMINISTRATION TO RENDER IN PERMISSIONS TAB`);
                       return true;
                     }
                     return isValid;
