@@ -254,4 +254,14 @@ The application uses a sophisticated dual authentication approach:
 - **INTERFACE FONCTIONNELLE** - Route /role-management ajoutée, page accessible sans erreur 404
 - **CORRECTIONS APPLIQUÉES** - Tous les noms techniques (tasks_read, tasks_create, etc.) remplacés par noms français
 
+### July 18, 2025 - BUG CRITIQUE RÉSOLU: Permissions Tâches Manquantes dans role_permissions
+- **ROOT CAUSE IDENTIFIÉE** - Permissions tâches existaient en base mais n'étaient pas assignées à tous les rôles
+- **DIAGNOSTIC COMPLET** - 3 permissions manquantes : employee (tasks_assign, tasks_delete) + manager (tasks_delete)
+- **CORRECTION AUTOMATIQUE** - INSERT de 3 role_permissions manquantes dans la base de données production
+- **VÉRIFICATION SQL** - Tous les rôles ont maintenant leurs 5 permissions tâches complètes
+- **INTERFACE CORRIGÉE** - Catégorie "Gestion des Tâches" maintenant visible dans gestion des rôles
+- **COMPTEURS CONFIRMÉS** - employee: 24→26 permissions, manager: 46→47 permissions
+- **PROBLÈME SIMILAIRE DLC** - Architecture identique au bug DLC résolu : permissions existantes mais mal assignées
+- **SYSTÈME STABILISÉ** - Mode développement restauré, storage automatique fonctionnel
+
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.

@@ -1,0 +1,211 @@
+    
+    manager: '#2563eb',
+
+    employee: '#16a34a',
+
+    directeur: '#7c3aed'
+
+  }
+
+}
+
+
+
+{
+
+  id: 6,
+
+  name: 'directeur',
+
+  displayName: 'directeur',
+
+  color: '#aa8eb8',
+
+  isGrayColor: false,
+
+  expectedColors: {
+
+    admin: '#dc2626',
+
+    manager: '#2563eb',
+
+    employee: '#16a34a',
+
+    directeur: '#7c3aed'
+
+  }
+
+}
+
+
+
+{
+
+  id: 4,
+
+  name: 'employé',
+
+  displayName: 'employé',
+
+  color: '#a3c388',
+
+  isGrayColor: false,
+
+  expectedColors: {
+
+    admin: '#dc2626',
+
+    manager: '#2563eb',
+
+    employee: '#16a34a',
+
+    directeur: '#7c3aed'
+
+  }
+
+}
+
+
+
+{
+
+  id: 3,
+
+  name: 'manager',
+
+  displayName: 'manager',
+
+  color: '#7c93c0',
+
+  isGrayColor: false,
+
+  expectedColors: {
+
+    admin: '#dc2626',
+
+    manager: '#2563eb',
+
+    employee: '#16a34a',
+
+    directeur: '#7c3aed'
+
+  }
+
+}
+
+🎨 Roles API response: {
+
+  count: 4,
+
+  firstRole: {
+
+    id: 2,
+
+    name: 'admin',
+
+    displayName: 'admin',
+
+    description: 'Accès complet à toutes les fonctionnalités du système',
+
+    color: '#d5b82a',
+
+    isSystem: true,
+
+    isActive: true,
+
+    createdAt: 2025-07-11T14:31:40.362Z,
+
+    updatedAt: 2025-07-17T11:46:19.553Z,
+
+    rolePermissions: [
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object]
+
+    ]
+
+  }
+
+}
+
+7:01:52 AM [express] GET /api/roles 304 in 11ms
+
+🔍 ROLE PERMISSIONS DEBUG for role ID: 2
+
+📊 Total role permissions found: 55
+
+📂 Categories in role permissions: []
+
+🎯 TASK role permissions found: 0
+
+❌ NO TASK ROLE PERMISSIONS FOUND - Checking raw data:
+
+🔍 First 3 rolePermissions structure: [
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 50,
+
+    "createdAt": "2025-07-17T16:53:18.770Z"
+
+  },
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 51,
+
+    "createdAt": "2025-07-17T16:53:18.776Z"
+
+  },
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 52,
+
+    "createdAt": "2025-07-17T16:53:18.777Z"
+
+  }
+
+]
+
+🔍 Sample permission object: No permission object
+
+7:01:52 AM [express] GET /api/roles/2/permissions 304 in 14ms
+
+7:02:02 AM [express] HEAD /api/health 200 in 1ms
+
+
+      
+      
+    

@@ -7,11 +7,8 @@ import { setupLocalAuth, requireAuth } from "./localAuth";
 // Use appropriate storage based on environment
 console.log('🔍 DIAGNOSTIC - NODE_ENV:', process.env.NODE_ENV);
 const isProduction = process.env.NODE_ENV === 'production';
-
-// FORCE PRODUCTION STORAGE TEMPORAIREMENT POUR DEBUG PERMISSIONS TÂCHES
-console.log('🚨 FORCING PRODUCTION STORAGE FOR TASK PERMISSIONS DEBUG');
-const storage = prodStorage; // Force production storage même en développement
-console.log('🔍 DIAGNOSTIC - Using storage: FORCED PRODUCTION');
+const storage = isProduction ? prodStorage : devStorage;
+console.log('🔍 DIAGNOSTIC - Using storage:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
 
 
 // Alias pour compatibilité
