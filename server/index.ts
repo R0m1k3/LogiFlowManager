@@ -1,5 +1,5 @@
-// 🚨 TEMPORARY: Keep development for Vite, but override storage mode
-process.env.STORAGE_MODE = 'production';
+// Environment setup for production deployment
+// process.env.STORAGE_MODE = 'production'; // Commented out for normal development
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";

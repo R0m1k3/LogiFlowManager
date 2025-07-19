@@ -264,4 +264,14 @@ The application uses a sophisticated dual authentication approach:
 - **PROBLÈME SIMILAIRE DLC** - Architecture identique au bug DLC résolu : permissions existantes mais mal assignées
 - **SYSTÈME STABILISÉ** - Mode développement restauré, storage automatique fonctionnel
 
+### July 19, 2025 - DIAGNOSTIC PRODUCTION: Correction getRolePermissions() Structure de Données
+- **PROBLÈME IDENTIFIÉ** - API `/api/roles/{id}/permissions` retournait structure incomplète en production vs développement
+- **DIFFÉRENCE STRUCTURE** - Production retournait `{roleId, permissionId, createdAt}` au lieu de `{roleId, permissionId, permission: {...}}`
+- **STORAGE PRODUCTION CORRIGÉ** - Fonction `getRolePermissions()` harmonisée avec développement (SQL JOIN complet)
+- **LOGS DEBUG AJOUTÉS** - Traçage complet des appels API et structure de données pour diagnostic
+- **QUERY FRONTEND CORRIGÉE** - TanStack Query avec queryFn explicite pour `/api/roles/{id}/permissions`
+- **ENVIRONNEMENT FORCÉ TEMPORAIRE** - Mode production forcé pour validation des corrections
+- **SOLUTION IDENTIFIÉE** - getRolePermissions() production doit retourner objet permission complet pour affichage interface
+- **STATUT** - Corrections validées en mode forcé, prêt pour application en production réelle
+
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.

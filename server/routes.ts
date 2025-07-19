@@ -4,13 +4,12 @@ import { storage as devStorage } from "./storage";
 import { storage as prodStorage } from "./storage.production";
 import { setupLocalAuth, requireAuth } from "./localAuth";
 
-// 🚨 TEMPORARY: Force production storage for task permissions debugging
 // Use appropriate storage based on environment
 console.log('🔍 DIAGNOSTIC - NODE_ENV:', process.env.NODE_ENV);
 console.log('🔍 DIAGNOSTIC - STORAGE_MODE:', process.env.STORAGE_MODE);
-const isProduction = true; // FORCE PRODUCTION MODE
+const isProduction = process.env.NODE_ENV === 'production' || process.env.STORAGE_MODE === 'production';
 const storage = isProduction ? prodStorage : devStorage;
-console.log('🔍 DIAGNOSTIC - Using storage: PRODUCTION (FORCED)');
+console.log('🔍 DIAGNOSTIC - Using storage:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
 
 
 // Alias pour compatibilité
