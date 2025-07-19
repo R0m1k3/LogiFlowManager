@@ -602,55 +602,60 @@ export default function RoleManagement() {
               <CardContent>
                 {selectedRole ? (
                   <div className="space-y-4">
-                    🚨 CRITICAL DEBUG: Categories available: {Object.keys(permissionsByCategory).join(', ')}
                     {Object.entries(permissionsByCategory)
                       .filter(([category, categoryPermissions]) => {
                         const isValid = Array.isArray(categoryPermissions) && categoryPermissions.length > 0;
                         console.log(`🔍 CATEGORY FILTER DEBUG: ${category} - valid: ${isValid}, count: ${categoryPermissions?.length || 0}`);
                         if (category === 'gestion_taches') {
-                          console.log(`🚨 GESTION_TACHES SPECIFIC DEBUG:`, {
+                          console.log(`🚨 GESTION_TACHES RENDERING:`, {
                             category,
                             isArray: Array.isArray(categoryPermissions),
                             length: categoryPermissions?.length,
+                            willRender: isValid,
                             permissions: categoryPermissions?.map(p => ({ id: p.id, name: p.name, displayName: p.displayName }))
                           });
                         }
                         return isValid;
                       })
-                      .map(([category, categoryPermissions]) => (
-                        <div key={category} className="space-y-2">
-                          <h4 className="font-medium text-sm">
-                            {categoryTranslations[category] || category}
-                            <span className="text-xs text-gray-400 ml-2">({categoryPermissions.length})</span>
-                          </h4>
-                          <div className="space-y-1">
-                            {categoryPermissions.map((permission) => {
-                              const hasPermission = rolePermissions?.some(
-                                rp => rp.permissionId === permission.id
-                              );
-                              return (
-                                <div key={permission.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`permission-${permission.id}`}
-                                    checked={hasPermission || false}
-                                    onCheckedChange={(checked) => handlePermissionToggle(permission.id, checked as boolean)}
-                                  />
-                                  <label
-                                    htmlFor={`permission-${permission.id}`}
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                  >
-                                    {getPermissionDisplayName(permission)}
-                                  </label>
-                                  <Badge variant="outline" className="text-xs">
-                                    {permission.action}
-                                  </Badge>
-                                </div>
-                              );
-                            })}
+                      .map(([category, categoryPermissions]) => {
+                        console.log(`🎨 RENDERING CATEGORY: ${category} with ${categoryPermissions.length} permissions`);
+                        return (
+                          <div key={category} className="space-y-2 border-l-2 border-blue-200 pl-3">
+                            <h4 className="font-medium text-sm text-blue-800">
+                              {categoryTranslations[category] || category}
+                              <span className="text-xs text-gray-400 ml-2 bg-gray-100 px-1 rounded">({categoryPermissions.length})</span>
+                            </h4>
+                            <div className="space-y-1">
+                              {categoryPermissions.map((permission) => {
+                                const hasPermission = rolePermissions?.some(
+                                  rp => rp.permissionId === permission.id
+                                );
+                                if (permission.category === 'gestion_taches') {
+                                  console.log(`🚨 RENDERING TASK PERMISSION: ${permission.name}, checked: ${hasPermission}`);
+                                }
+                                return (
+                                  <div key={permission.id} className="flex items-center space-x-2 bg-gray-50 p-1 rounded">
+                                    <Checkbox
+                                      id={`permission-${permission.id}`}
+                                      checked={hasPermission || false}
+                                      onCheckedChange={(checked) => handlePermissionToggle(permission.id, checked as boolean)}
+                                    />
+                                    <label
+                                      htmlFor={`permission-${permission.id}`}
+                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
+                                    >
+                                      {getPermissionDisplayName(permission)}
+                                    </label>
+                                    <Badge variant="outline" className="text-xs">
+                                      {permission.action}
+                                    </Badge>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    🚨 END CRITICAL DEBUG
+                        );
+                      })}
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-8">Sélectionnez un rôle pour voir ses permissions</p>
@@ -714,29 +719,30 @@ export default function RoleManagement() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                🚨 PERMISSIONS TAB DEBUG: Total categories: {Object.keys(permissionsByCategory).length}
                 {Object.entries(permissionsByCategory)
                   .filter(([category, categoryPermissions]) => {
                     const isValid = Array.isArray(categoryPermissions) && categoryPermissions.length > 0;
                     if (category === 'gestion_taches') {
-                      console.log(`🚨 PERMISSIONS TAB - GESTION_TACHES:`, {
+                      console.log(`🚨 PERMISSIONS TAB - GESTION_TACHES RENDERING:`, {
                         category,
                         isArray: Array.isArray(categoryPermissions),
                         length: categoryPermissions?.length,
-                        firstPermission: categoryPermissions?.[0]
+                        willRender: isValid
                       });
                     }
                     return isValid;
                   })
                   .map(([category, categoryPermissions]) => (
                     <div key={category} className="space-y-2">
-                      <h3 className="font-medium">
+                      <h3 className="font-medium text-lg border-b pb-1">
                         {categoryTranslations[category] || category}
-                        <span className="text-xs text-gray-400 ml-2">({categoryPermissions.length})</span>
+                        <span className="text-xs text-gray-500 ml-2 bg-blue-100 px-2 py-1 rounded">
+                          ({categoryPermissions.length})
+                        </span>
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {categoryPermissions.map((permission) => (
-                          <div key={permission.id} className="flex items-center justify-between p-2 border rounded">
+                          <div key={permission.id} className="flex items-center justify-between p-3 border rounded-lg shadow-sm">
                             <div>
                               <p className="font-medium text-sm">{getPermissionDisplayName(permission)}</p>
                               <p className="text-xs text-muted-foreground">{permission.description}</p>
