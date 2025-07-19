@@ -1710,15 +1710,30 @@ export class DatabaseStorage implements IStorage {
 
   async getPermissions(): Promise<Permission[]> {
     try {
+      console.log('🔍 PRODUCTION getPermissions() - Starting query...');
+      
       const result = await pool.query(`
         SELECT id, name, display_name, description, category, action, resource, is_system, created_at 
         FROM permissions 
         ORDER BY category, name
       `);
       
+      console.log('📊 PRODUCTION getPermissions() - Total permissions found:', result.rows.length);
+      
       if (result.rows.length === 0) {
+        console.log('⚠️ PRODUCTION getPermissions() - NO PERMISSIONS IN DATABASE!');
         return [];
       }
+      
+      // Analyser les catégories spécifiques
+      const taskPerms = result.rows.filter(row => row.category === 'gestion_taches');
+      const adminPerms = result.rows.filter(row => row.category === 'administration');
+      
+      console.log('📋 PRODUCTION Task permissions found:', taskPerms.length);
+      taskPerms.forEach(p => console.log(`  - ID ${p.id}: ${p.name} -> "${p.display_name}"`));
+      
+      console.log('🏛️ PRODUCTION Admin permissions found:', adminPerms.length);
+      adminPerms.forEach(p => console.log(`  - ID ${p.id}: ${p.name} -> "${p.display_name}"`));
       
       // Transformation des données snake_case vers camelCase pour cohérence TypeScript
       const mappedResult = result.rows.map(row => ({
@@ -1733,9 +1748,10 @@ export class DatabaseStorage implements IStorage {
         createdAt: row.created_at
       }));
       
+      console.log('✅ PRODUCTION getPermissions() - Returning mapped result:', mappedResult.length);
       return mappedResult;
     } catch (error) {
-      console.error("Error in getPermissions PRODUCTION:", error);
+      console.error("❌ CRITICAL ERROR in getPermissions PRODUCTION:", error);
       return [];
     }
   }

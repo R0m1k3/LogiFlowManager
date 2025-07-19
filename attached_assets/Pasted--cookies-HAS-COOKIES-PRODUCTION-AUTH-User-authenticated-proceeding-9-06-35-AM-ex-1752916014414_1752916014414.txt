@@ -1,0 +1,204 @@
+  cookies: 'HAS_COOKIES'
+
+}
+
+✅ PRODUCTION AUTH: User authenticated, proceeding
+
+9:06:35 AM [express] GET /api/tasks 200 in 12ms
+
+🔍 PRODUCTION AUTH DEBUG: {
+
+  url: '/api/tasks/4/complete',
+
+  method: 'POST',
+
+  isAuthenticated: true,
+
+  hasUser: true,
+
+  userId: 'admin_local',
+
+  username: 'admin',
+
+  sessionId: 'qse1Lk4Db54YXQeDSP3ErYSaPtde0oTP',
+
+  hasSession: true,
+
+  sessionData: [ 'cookie', 'passport' ],
+
+  cookies: 'HAS_COOKIES'
+
+}
+
+✅ PRODUCTION AUTH: User authenticated, proceeding
+
+🎯 Task completion request: { id: 4, userId: 'admin_local' }
+
+✅ Task found: {
+
+  id: 4,
+
+  title: 'dsqfgdgf',
+
+  description: 'fgfdg',
+
+  status: 'pending',
+
+  priority: 'medium',
+
+  dueDate: '2025-07-19T00:00:00.000Z',
+
+  assignedTo: 'gael',
+
+  groupId: 4,
+
+  createdBy: 'admin_local',
+
+  createdAt: '2025-07-19T09:06:35.955Z',
+
+  updatedAt: '2025-07-19T09:06:35.955Z',
+
+  completedAt: null,
+
+  completedBy: null,
+
+  creator: { id: 'admin_local', username: 'admin', name: 'Michael SCHAL' },
+
+  completer: null,
+
+  group: { id: 4, name: 'Houdemont', color: '#455A64' }
+
+}
+
+👤 User data: {
+
+  id: 'admin_local',
+
+  username: 'admin',
+
+  email: 'admin@logiflow.com',
+
+  name: 'Michael SCHAL',
+
+  role: 'admin',
+
+  password: 'd3f40c87591a7cea913e9e855666ab7b:e63c6b37a4c089ebc6a9ff070266953aa3460fb8c455e9816816afadc00c12564bd5513a86b70ba0432231e93fc67ec9677f9ff14ae4bd795c1c042a17cbc5d4',
+
+  password_changed: true,
+
+  created_at: 2025-07-11T01:56:31.304Z,
+
+  updated_at: 2025-07-17T12:20:41.426Z,
+
+  first_name: 'Michael',
+
+  last_name: 'SCHAL',
+
+  profile_image_url: null,
+
+  userGroups: [
+
+    { userId: 'admin_local', groupId: 1, group: [Object] },
+
+    { userId: 'admin_local', groupId: 4, group: [Object] }
+
+  ],
+
+  userRoles: [
+
+    {
+
+      userId: 'admin_local',
+
+      roleId: 2,
+
+      assignedBy: 'admin_local',
+
+      assignedAt: 2025-07-15T19:06:38.664Z,
+
+      role: [Object]
+
+    }
+
+  ]
+
+}
+
+🔄 Completing task using storage.completeTask...
+
+🔄 Completing task using storage.completeTask...
+
+✅ Task completed successfully
+
+✅ Task completed successfully: {
+
+  id: 4,
+
+  title: 'dsqfgdgf',
+
+  description: 'fgfdg',
+
+  status: 'completed',
+
+  priority: 'medium',
+
+  dueDate: '2025-07-19T00:00:00.000Z',
+
+  assignedTo: 'gael',
+
+  groupId: 4,
+
+  createdBy: 'admin_local',
+
+  createdAt: '2025-07-19T09:06:35.955Z',
+
+  updatedAt: '2025-07-19T09:06:38.044Z',
+
+  completedAt: '2025-07-19T09:06:38.044Z',
+
+  completedBy: 'admin_local',
+
+  creator: { id: 'admin_local', username: 'admin', name: 'Michael SCHAL' },
+
+  completer: { id: 'admin_local', username: 'admin', name: 'Michael SCHAL' },
+
+  group: { id: 4, name: 'Houdemont', color: '#455A64' }
+
+}
+
+9:06:38 AM [express] POST /api/tasks/4/complete 200 in 16ms
+
+🔍 PRODUCTION AUTH DEBUG: {
+
+  url: '/api/tasks?storeId=4',
+
+  method: 'GET',
+
+  isAuthenticated: true,
+
+  hasUser: true,
+
+  userId: 'admin_local',
+
+  username: 'admin',
+
+  sessionId: 'qse1Lk4Db54YXQeDSP3ErYSaPtde0oTP',
+
+  hasSession: true,
+
+  sessionData: [ 'cookie', 'passport' ],
+
+  cookies: 'HAS_COOKIES'
+
+}
+
+✅ PRODUCTION AUTH: User authenticated, proceeding
+
+9:06:38 AM [express] GET /api/tasks 200 in 15ms
+
+9:06:43 AM [express] HEAD /api/health 200 in 1ms
+
+
+      
+      
+    
