@@ -1448,7 +1448,33 @@ export class DatabaseStorage implements IStorage {
 
   // Permission operations
   async getPermissions(): Promise<Permission[]> {
-    return await db.select().from(permissions).orderBy(permissions.category, permissions.name);
+    console.log('🔍 DEV getPermissions() - Starting Drizzle query...');
+    const result = await db.select().from(permissions).orderBy(permissions.category, permissions.name);
+    console.log('📊 DEV getPermissions() - Drizzle result:', result.length, 'permissions');
+    
+    if (result.length === 0) {
+      console.log('⚠️ DEV getPermissions() - NO PERMISSIONS FOUND IN DATABASE!');
+      return [];
+    }
+    
+    // Log des catégories trouvées
+    const categories = [...new Set(result.map(p => p.category))];
+    console.log('🏷️ DEV getPermissions() - Categories found:', categories);
+    
+    // Log spécifique pour les permissions tâches
+    const taskPerms = result.filter(p => p.category === 'gestion_taches');
+    console.log('📋 DEV getPermissions() - Task permissions found:', taskPerms.length);
+    if (taskPerms.length > 0) {
+      taskPerms.forEach(p => {
+        console.log(`  - ID: ${p.id}, Name: ${p.name}, DisplayName: "${p.displayName}", Category: ${p.category}`);
+      });
+    } else {
+      console.log('❌ DEV getPermissions() - NO TASK PERMISSIONS FOUND - This explains the issue!');
+      console.log('🔍 DEV getPermissions() - Sample permissions:', result.slice(0, 3).map(p => ({ id: p.id, name: p.name, category: p.category })));
+    }
+    
+    console.log('✅ DEV getPermissions() - Returning', result.length, 'permissions');
+    return result;
   }
 
   async getPermission(id: number): Promise<Permission | undefined> {
