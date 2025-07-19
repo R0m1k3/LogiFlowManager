@@ -1389,31 +1389,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get permissions for a specific role
   app.get('/api/roles/:id/permissions', isAuthenticated, async (req: any, res) => {
+    console.log("🚀 ROLE PERMISSIONS ROUTE CALLED - Starting");
     try {
       const userId = req.user.claims ? req.user.claims.sub : req.user.id;
-      console.log("🔍 Role Permissions API - User ID:", userId);
+      console.log("🔍 ROLE PERMISSIONS - User ID:", userId);
       
       const user = await storage.getUserWithGroups(userId);
-      console.log("👤 Role Permissions API - User found:", user ? user.role : 'NOT FOUND');
+      console.log("👤 ROLE PERMISSIONS - User found:", user ? `${user.role} (${user.username})` : 'NOT FOUND');
       
       if (!user || user.role !== 'admin') {
-        console.log("❌ Role Permissions API - Access denied, user role:", user?.role);
+        console.log("❌ ROLE PERMISSIONS - Access denied, user role:", user?.role);
         return res.status(403).json({ message: "Access denied" });
       }
 
       const roleId = parseInt(req.params.id);
-      console.log("🔍 Fetching permissions for role ID:", roleId);
+      console.log("🔍 ROLE PERMISSIONS - Fetching for role ID:", roleId);
+      console.log("🔍 ROLE PERMISSIONS - Storage type:", storage.constructor.name);
       
       const rolePermissions = await storage.getRolePermissions(roleId);
-      console.log("📝 Role permissions fetched:", rolePermissions.length, "items");
-      console.log("🏷️ Role permissions sample:", rolePermissions.slice(0, 2));
-      console.log("🔍 Full rolePermissions structure:", JSON.stringify(rolePermissions.slice(0, 1), null, 2));
-      console.log("🔧 DLC permissions in role:", rolePermissions.filter(rp => rp.permission && rp.permission.category === 'gestion_dlc').map(rp => rp.permission.name));
+      console.log("📝 ROLE PERMISSIONS - Fetched:", rolePermissions?.length || 0, "items");
       
-      res.json(Array.isArray(rolePermissions) ? rolePermissions : []);
+      if (rolePermissions && rolePermissions.length > 0) {
+        console.log("🏷️ ROLE PERMISSIONS - Sample:", rolePermissions.slice(0, 2));
+        console.log("🔍 ROLE PERMISSIONS - Full structure sample:", JSON.stringify(rolePermissions[0], null, 2));
+        
+        // Debug spécifique pour les tâches
+        const taskPermissions = rolePermissions.filter(rp => rp.permission && rp.permission.category === 'gestion_taches');
+        console.log("🎯 ROLE PERMISSIONS - Task permissions:", taskPermissions.length);
+        taskPermissions.forEach(tp => {
+          console.log(`  - Task permission: ${tp.permission.name} (${tp.permission.displayName})`);
+        });
+      } else {
+        console.log("⚠️ ROLE PERMISSIONS - No permissions found for role", roleId);
+      }
+      
+      res.json(rolePermissions || []);
     } catch (error) {
-      console.error("❌ Error fetching role permissions:", error);
-      res.status(500).json([]);
+      console.error("❌ ROLE PERMISSIONS - Error:", error);
+      res.status(500).json({ message: "Failed to fetch role permissions" });
     }
   });
 
