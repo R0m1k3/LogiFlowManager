@@ -1,0 +1,140 @@
+      "category": "Calendar",
+
+      "action": null,
+
+      "resource": null,
+
+      "isSystem": false,
+
+      "createdAt": "2025-07-11T14:31:40.324Z"
+
+    }
+
+  },
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 3,
+
+    "createdAt": "2025-07-19T08:49:45.489Z",
+
+    "permission": {
+
+      "id": 3,
+
+      "name": "calendar_read",
+
+      "displayName": null,
+
+      "description": "Accès en lecture au calendrier",
+
+      "category": "Calendar",
+
+      "action": null,
+
+      "resource": null,
+
+      "isSystem": false,
+
+      "createdAt": "2025-07-11T14:31:40.320Z"
+
+    }
+
+  }
+
+]
+
+🔍 Sample permission object: {
+
+  "id": 4,
+
+  "name": "calendar_create",
+
+  "displayName": null,
+
+  "description": "Créer des événements depuis le calendrier",
+
+  "category": "Calendar",
+
+  "action": null,
+
+  "resource": null,
+
+  "isSystem": false,
+
+  "createdAt": "2025-07-11T14:31:40.322Z"
+
+}
+
+8:49:45 AM [express] GET /api/roles/2/permissions 200 in 10ms
+
+👤 PRODUCTION Permissions API - User found: admin
+
+🔍 PRODUCTION Fetching all permissions...
+
+🔍 PRODUCTION getPermissions() - Starting SQL query...
+
+📊 PRODUCTION getPermissions() - SQL result: 55 rows
+
+🏷️ PRODUCTION getPermissions() - Categories found: [
+
+  'Calendar',       'Dashboard',
+
+  'Deliveries',     'Magasins',
+
+  'Orders',         'Publicities',
+
+  'Reconciliation', 'Suppliers',
+
+  'Users',          'customer_orders',
+
+  'gestion_dlc',    'groups',
+
+
+
+'
+
+]
+
+📋 PRODUCTION getPermissions() - Task permissions in DB result: 0
+
+📋 PRODUCTION getPermissions() - Task permissions after mapping: 0
+
+✅ PRODUCTION getPermissions() - Returning 55 permissions
+
+📝 PRODUCTION Permissions fetched: 55 items
+
+🏷️ PRODUCTION Categories found: [
+
+  'Calendar',       'Dashboard',
+
+  'Deliveries',     'Magasins',
+
+  'Orders',         'Publicities',
+
+  'Reconciliation', 'Suppliers',
+
+  'Users',          'customer_orders',
+
+  'gestion_dlc',    'groups',
+
+
+
+'
+
+]
+
+📋 PRODUCTION Task permissions found: 0
+
+❌ PRODUCTION NO TASK PERMISSIONS FOUND - This explains the problem!
+
+8:49:45 AM [express] GET /api/permissions 304 in 16ms
+
+8:49:49 AM [express] HEAD /api/health 200 in 1ms
+
+
+      
+      
+    
