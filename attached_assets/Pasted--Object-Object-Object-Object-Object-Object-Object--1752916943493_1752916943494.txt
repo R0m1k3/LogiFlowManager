@@ -1,0 +1,180 @@
+ [Object], [Object], [Object], [Object],
+
+      [Object], [Object], [Object]
+
+    ]
+
+  }
+
+}
+
+9:21:48 AM [express] GET /api/permissions 304 in 19ms
+
+9:21:48 AM [express] GET /api/roles 304 in 15ms
+
+🔍 PRODUCTION AUTH DEBUG: {
+
+  url: '/api/roles/2/permissions',
+
+  method: 'GET',
+
+  isAuthenticated: true,
+
+  hasUser: true,
+
+  userId: 'admin_local',
+
+  username: 'admin',
+
+  sessionId: 'qse1Lk4Db54YXQeDSP3ErYSaPtde0oTP',
+
+  hasSession: true,
+
+  sessionData: [ 'cookie', 'passport' ],
+
+  cookies: 'HAS_COOKIES'
+
+}
+
+✅ PRODUCTION AUTH: User authenticated, proceeding
+
+🔍 PRODUCTION getRolePermissions() - Starting for role ID: 2
+
+📊 PRODUCTION getRolePermissions() - SQL result: 55 rows
+
+📋 PRODUCTION getRolePermissions() - Task permissions found: 0
+
+✅ PRODUCTION getRolePermissions() - Returning 55 role permissions
+
+🔍 ROLE PERMISSIONS DEBUG for role ID: 2
+
+📊 Total role permissions found: 55
+
+📂 Categories in role permissions: [
+
+  'Calendar',       'Dashboard',
+
+  'Deliveries',     'Magasins',
+
+  'Orders',         'Publicities',
+
+  'Reconciliation', 'Suppliers',
+
+  'Users',          'customer_orders',
+
+  'gestion_dlc',    'groups',
+
+
+
+'
+
+]
+
+🎯 TASK role permissions found: 0
+
+❌ NO TASK ROLE PERMISSIONS FOUND - Checking raw data:
+
+🔍 First 3 rolePermissions structure: [
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 4,
+
+    "createdAt": "2025-07-19T09:01:10.568Z",
+
+    "permission": {
+
+      "id": 4,
+
+      "name": "calendar_create",
+
+      "displayName": null,
+
+      "description": "Créer des événements depuis le calendrier",
+
+      "category": "Calendar",
+
+      "action": null,
+
+      "resource": null,
+
+      "isSystem": false,
+
+      "createdAt": "2025-07-11T14:31:40.322Z"
+
+    }
+
+  },
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 6,
+
+    "createdAt": "2025-07-19T09:01:10.568Z",
+
+    "permission": {
+
+      "id": 6,
+
+      "name": "calendar_delete",
+
+      "displayName": null,
+
+      "description": "Supprimer des événements depuis le calendrier",
+
+      "category": "Calendar",
+
+      "action": null,
+
+      "resource": null,
+
+      "isSystem": false,
+
+      "createdAt": "2025-07-11T14:31:40.324Z"
+
+    }
+
+  },
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 3,
+
+    "createdAt": "2025-07-19T09:01:10.568Z",
+
+    "permission": {
+
+      "id": 3,
+
+      "name": "calendar_read",
+
+      "displayName": null,
+
+      "description": "Accès en lecture au calendrier",
+
+      "category": "Calendar",
+
+      "action": null,
+
+      "resource": null,
+
+      "isSystem": false,
+
+      "createdAt": "2025-07-11T14:31:40.320Z"
+
+    }
+
+  }
+
+]
+
+🔍 Sample permission object: {
+
+  "id": 4,
+

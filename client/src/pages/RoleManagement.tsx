@@ -130,20 +130,13 @@ export default function RoleManagement() {
   const { data: permissionsData = [], isLoading: permissionsLoading, refetch: refetchPermissions, error: permissionsError } = useQuery<Permission[]>({
     queryKey: ['/api/permissions'],
     queryFn: async () => {
-      console.log('🔄 FRONTEND: Fetching permissions...');
       const response = await fetch('/api/permissions', {
         credentials: 'include'
       });
-      console.log('🔄 FRONTEND: Response status:', response.status, response.ok);
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('🔄 FRONTEND: Permission fetch error:', response.status, errorText);
         throw new Error(`Failed to fetch permissions: ${response.status}`);
       }
-      const data = await response.json();
-      console.log('🔄 FRONTEND: Permissions received:', data.length, 'items');
-      console.log('🔄 FRONTEND: Task permissions in response:', data.filter((p: any) => p.category === 'gestion_taches').length);
-      return data;
+      return response.json();
     },
     staleTime: 0,
     gcTime: 0,
@@ -158,9 +151,8 @@ export default function RoleManagement() {
     refetchPermissions();
   }, [refetchPermissions, queryClient]);
 
-  // Debug function to force refresh permissions
+  // Force refresh permissions function
   const forceRefreshPermissions = () => {
-    console.log("🔄 Force refreshing permissions...");
     queryClient.removeQueries({ queryKey: ['/api/permissions'] });
     queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
     queryClient.resetQueries({ queryKey: ['/api/permissions'] });
@@ -178,43 +170,14 @@ export default function RoleManagement() {
   // Auto-select first role if none selected and roles are available
   useEffect(() => {
     if (!selectedRole && roles.length > 0) {
-      console.log('🔄 Auto-selecting first role:', roles[0]);
       setSelectedRole(roles[0] as RoleWithPermissions);
     }
   }, [roles, selectedRole]);
 
 
 
-  console.log("📊 RoleManagement Data:", {
-    roles: roles.length,
-    permissions: permissions.length
-  });
-  
-  // Debug spécifique pour les permissions tâches (en mode minimal)
+  // Check for task permissions availability
   const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
-  if (taskPermissions.length === 0) {
-    console.log("⚠️ No task permissions found in frontend");
-  }
-
-
-
-  // Debug des couleurs spécifiquement
-  console.log("🎨 Colors Debug:", roles.map(role => ({
-    id: role.id,
-    name: role.name,
-    displayName: role.displayName,
-    color: role.color,
-    hasColor: !!role.color
-  })));
-
-  // Force log the rendering decision
-  console.log("🔍 Render Decision:", {
-    showLoading: rolesLoading,
-    showError: !!rolesError,
-    showEmpty: !rolesLoading && !rolesError && roles.length === 0,
-    showRoles: !rolesLoading && !rolesError && roles.length > 0,
-    finalCondition: !rolesLoading && !rolesError && roles.length > 0
-  });
 
   // Get role with permissions
   const { data: roleWithPermissions } = useQuery<RoleWithPermissions>({
@@ -226,68 +189,22 @@ export default function RoleManagement() {
   const { data: rolePermissions = [] } = useQuery<any[]>({
     queryKey: [`/api/roles/${selectedRole?.id}/permissions`],
     queryFn: async () => {
-      console.log('🔄 FRONTEND: Fetching role permissions for role ID:', selectedRole?.id);
       const response = await fetch(`/api/roles/${selectedRole?.id}/permissions`, {
         credentials: 'include'
       });
-      console.log('🔄 FRONTEND: Role permissions response status:', response.status, response.ok);
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('🔄 FRONTEND: Role permissions fetch error:', response.status, errorText);
         throw new Error(`Failed to fetch role permissions: ${response.status}`);
       }
-      const data = await response.json();
-      console.log('🔄 FRONTEND: Role permissions received:', data.length, 'items');
-      console.log('🔄 FRONTEND: Role permissions sample:', data.slice(0, 2));
-      return data;
+      return response.json();
     },
     enabled: !!selectedRole,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: true,
-    retry: false
   });
 
-  // Debug permissions
-  console.log("🔍 Permissions Debug:", {
-    selectedRole: selectedRole?.name,
-    selectedRoleId: selectedRole?.id,
-    rolePermissionsLength: rolePermissions?.length,
-    permissionsLength: permissions.length,
-    rolePermissionsSample: rolePermissions?.slice(0, 2),
-    taskPermissionsInRole: rolePermissions?.filter(rp => {
-      const permission = permissions.find(p => p.id === rp.permissionId);
-      return permission?.category === 'gestion_taches';
-    }).map(rp => {
-      const permission = permissions.find(p => p.id === rp.permissionId);
-      return { rolePermissionId: rp.permissionId, permissionName: permission?.name };
-    })
+  // Task permissions check for role
+  const taskPermissionsInRole = rolePermissions?.filter(rp => {
+    const permission = permissions.find(p => p.id === rp.permissionId);
+    return permission?.category === 'gestion_taches';
   });
-
-  // 🔍 DEBUG PRODUCTION: Diagnostiquer les permissions qui arrivent
-  if (permissions.length > 0) {
-    const allCategories = [...new Set(permissions.map(p => p.category))].sort();
-    const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
-    
-    console.log('🔍 DEBUG PERMISSIONS FRONTEND:', {
-      totalPermissions: permissions.length,
-      allCategories: allCategories,
-      hasGestionTaches: allCategories.includes('gestion_taches'),
-      taskPermissions: taskPermissions.map(p => ({
-        id: p.id,
-        name: p.name,
-        displayName: p.displayName,
-        category: p.category
-      })),
-      firstPermission: permissions[0],
-      permissionsWithoutDisplayName: permissions.filter(p => !p.displayName || p.displayName === p.name).length,
-      sampleFromEachCategory: allCategories.slice(0, 5).map(cat => ({
-        category: cat,
-        count: permissions.filter(p => p.category === cat).length,
-        sample: permissions.find(p => p.category === cat)?.name
-      }))
-    });
-  }
 
   // Traduction des catégories en français
   const categoryTranslations: Record<string, string> = {
@@ -332,13 +249,9 @@ export default function RoleManagement() {
     return acc;
   }, {} as Record<string, Permission[]>) : {};
 
-  // Minimal debug for grouped permissions
-  if (!permissionsByCategory['gestion_taches'] || !permissionsByCategory['administration']) {
-    console.log('⚠️ Missing categories:', {
-      gestionTaches: !!permissionsByCategory['gestion_taches'],
-      administration: !!permissionsByCategory['administration']
-    });
-  }
+  // Check permission categories availability
+  const hasTasksCategory = !!permissionsByCategory['gestion_taches'];
+  const hasAdminCategory = !!permissionsByCategory['administration'];
 
   // Debug permissions (cleaned up after successful DLC fix)
 
@@ -725,26 +638,7 @@ export default function RoleManagement() {
               <div className="space-y-4">
                 {Object.entries(permissionsByCategory)
                   .filter(([category, categoryPermissions]) => {
-                    const isValid = Array.isArray(categoryPermissions) && categoryPermissions.length > 0;
-                    if (category === 'gestion_taches') {
-                      console.log(`🚨 PERMISSIONS TAB - GESTION_TACHES RENDERING:`, {
-                        category,
-                        isArray: Array.isArray(categoryPermissions),
-                        length: categoryPermissions?.length,
-                        willRender: isValid
-                      });
-                    }
-                    // Force include gestion_taches even if filter fails
-                    if (category === 'gestion_taches' && categoryPermissions && categoryPermissions.length > 0) {
-                      console.log(`🔧 FORCING GESTION_TACHES TO RENDER IN PERMISSIONS TAB`);
-                      return true;
-                    }
-                    // Force include administration even if filter fails
-                    if (category === 'administration' && categoryPermissions && categoryPermissions.length > 0) {
-                      console.log(`🔧 FORCING ADMINISTRATION TO RENDER IN PERMISSIONS TAB`);
-                      return true;
-                    }
-                    return isValid;
+                    return Array.isArray(categoryPermissions) && categoryPermissions.length > 0;
                   })
                   .map(([category, categoryPermissions]) => (
                     <div key={category} className="space-y-2">
