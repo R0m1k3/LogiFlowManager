@@ -175,6 +175,14 @@ export default function RoleManagement() {
   const roles = Array.isArray(rolesData) ? rolesData : [];
   const permissions = Array.isArray(permissionsData) ? permissionsData : [];
 
+  // Auto-select first role if none selected and roles are available
+  useEffect(() => {
+    if (!selectedRole && roles.length > 0) {
+      console.log('🔄 Auto-selecting first role:', roles[0]);
+      setSelectedRole(roles[0] as RoleWithPermissions);
+    }
+  }, [roles, selectedRole]);
+
 
 
   console.log("📊 RoleManagement Data:", {
@@ -182,15 +190,11 @@ export default function RoleManagement() {
     permissions: permissions.length
   });
   
-  // Debug spécifique pour les permissions tâches
+  // Debug spécifique pour les permissions tâches (en mode minimal)
   const taskPermissions = permissions.filter(p => p.category === 'gestion_taches');
-  console.log("🔍 DEBUG PERMISSIONS FRONTEND:", {
-    totalPermissions: permissions.length,
-    allCategories: [...new Set(permissions.map(p => p.category))],
-    hasGestionTaches: taskPermissions.length > 0,
-    taskPermissions: taskPermissions,
-    firstPermission: permissions[0]
-  });
+  if (taskPermissions.length === 0) {
+    console.log("⚠️ No task permissions found in frontend");
+  }
 
 
 
@@ -328,17 +332,13 @@ export default function RoleManagement() {
     return acc;
   }, {} as Record<string, Permission[]>) : {};
 
-  // Debug the grouped permissions
-  console.log('🔍 DEBUG GROUPED PERMISSIONS:', {
-    categoriesInGrouped: Object.keys(permissionsByCategory),
-    gestionTachesInGrouped: !!permissionsByCategory['gestion_taches'],
-    gestionTachesCount: permissionsByCategory['gestion_taches']?.length || 0,
-    allCategoriesWithCounts: Object.entries(permissionsByCategory).map(([cat, perms]) => ({
-      category: cat,
-      count: perms.length,
-      translation: categoryTranslations[cat] || cat
-    }))
-  });
+  // Minimal debug for grouped permissions
+  if (!permissionsByCategory['gestion_taches'] || !permissionsByCategory['administration']) {
+    console.log('⚠️ Missing categories:', {
+      gestionTaches: !!permissionsByCategory['gestion_taches'],
+      administration: !!permissionsByCategory['administration']
+    });
+  }
 
   // Debug permissions (cleaned up after successful DLC fix)
 
@@ -624,25 +624,9 @@ export default function RoleManagement() {
                   <div className="space-y-4">
                     {Object.entries(permissionsByCategory)
                       .filter(([category, categoryPermissions]) => {
-                        const isValid = Array.isArray(categoryPermissions) && categoryPermissions.length > 0;
-                        console.log(`🔍 CATEGORY FILTER DEBUG: ${category} - valid: ${isValid}, count: ${categoryPermissions?.length || 0}`);
-                        
-                        // Force include gestion_taches even if filter fails
-                        if (category === 'gestion_taches' && categoryPermissions && categoryPermissions.length > 0) {
-                          console.log(`🔧 FORCING GESTION_TACHES TO RENDER`);
-                          return true;
-                        }
-                        // Force include administration even if filter fails
-                        if (category === 'administration' && categoryPermissions && categoryPermissions.length > 0) {
-                          console.log(`🔧 FORCING ADMINISTRATION TO RENDER`);
-                          return true;
-                        }
-                        
-                        return isValid;
+                        return Array.isArray(categoryPermissions) && categoryPermissions.length > 0;
                       })
-                      .map(([category, categoryPermissions]) => {
-                        console.log(`🎨 RENDERING CATEGORY: ${category} with ${categoryPermissions.length} permissions`);
-                        return (
+                      .map(([category, categoryPermissions]) => (
                           <div key={category} className="space-y-2 border-l-2 border-blue-200 pl-3">
                             <h4 className="font-medium text-sm text-blue-800">
                               {categoryTranslations[category] || category}
@@ -653,9 +637,6 @@ export default function RoleManagement() {
                                 const hasPermission = rolePermissions?.some(
                                   rp => rp.permissionId === permission.id
                                 );
-                                if (permission.category === 'gestion_taches') {
-                                  console.log(`🚨 RENDERING TASK PERMISSION: ${permission.name}, checked: ${hasPermission}`);
-                                }
                                 return (
                                   <div key={permission.id} className="flex items-center space-x-2 bg-gray-50 p-1 rounded">
                                     <Checkbox
@@ -677,8 +658,8 @@ export default function RoleManagement() {
                               })}
                             </div>
                           </div>
-                        );
-                      })}
+                        )
+                      )}
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-8">Sélectionnez un rôle pour voir ses permissions</p>
