@@ -1711,6 +1711,44 @@ export class DatabaseStorage implements IStorage {
   async getPermissions(): Promise<Permission[]> {
     try {
       console.log('🔍 PRODUCTION getPermissions() - Starting SQL query...');
+      console.log('🔍 PRODUCTION DATABASE_URL preview:', process.env.DATABASE_URL?.substring(0, 50) + '...');
+      
+      // First, let's check what's actually in the permissions table
+      const countResult = await pool.query('SELECT COUNT(*) as total FROM permissions');
+      console.log('📊 PRODUCTION Total permissions in DB:', countResult.rows[0]?.total);
+      
+      // Check specifically for task permissions
+      const taskCountResult = await pool.query(`
+        SELECT COUNT(*) as task_count 
+        FROM permissions 
+        WHERE category = 'gestion_taches' OR name LIKE 'tasks_%'
+      `);
+      console.log('📋 PRODUCTION Task permissions count in DB:', taskCountResult.rows[0]?.task_count);
+      
+      // Check specific task permission existence
+      const taskCheckResult = await pool.query(`
+        SELECT id, name, display_name, category 
+        FROM permissions 
+        WHERE name IN ('tasks_read', 'tasks_create', 'tasks_update', 'tasks_delete', 'tasks_assign')
+        ORDER BY name
+      `);
+      console.log('🎯 PRODUCTION Task permissions found in DB:', taskCheckResult.rows.length);
+      taskCheckResult.rows.forEach(row => {
+        console.log(`  - FOUND: ID ${row.id}: ${row.name} -> "${row.display_name}" (${row.category})`);
+      });
+      
+      // Check for administration permissions
+      const adminCheckResult = await pool.query(`
+        SELECT id, name, display_name, category 
+        FROM permissions 
+        WHERE category = 'administration' OR name IN ('system_admin', 'nocodb_config')
+        ORDER BY name
+      `);
+      console.log('🏛️ PRODUCTION Admin permissions found in DB:', adminCheckResult.rows.length);
+      adminCheckResult.rows.forEach(row => {
+        console.log(`  - FOUND: ID ${row.id}: ${row.name} -> "${row.display_name}" (${row.category})`);
+      });
+      
       const result = await pool.query(`
         SELECT id, name, display_name, description, category, action, resource, is_system, created_at 
         FROM permissions 
