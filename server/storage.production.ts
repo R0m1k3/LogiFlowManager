@@ -1803,23 +1803,64 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getRolePermissions(roleId: number): Promise<RolePermission[]> {
+  async getRolePermissions(roleId: number): Promise<any[]> {
     try {
+      console.log('🔍 PRODUCTION getRolePermissions() - Starting for role ID:', roleId);
+      
       const result = await pool.query(`
-        SELECT rp.*, p.name as permission_name, r.name as role_name
+        SELECT 
+          rp.role_id,
+          rp.permission_id,
+          rp.created_at,
+          p.id as p_id,
+          p.name as p_name,
+          p.display_name as p_display_name,
+          p.description as p_description,
+          p.category as p_category,
+          p.action as p_action,
+          p.resource as p_resource,
+          p.is_system as p_is_system,
+          p.created_at as p_created_at,
+          r.name as role_name
         FROM role_permissions rp
         JOIN permissions p ON rp.permission_id = p.id
         JOIN roles r ON rp.role_id = r.id
         WHERE rp.role_id = $1
+        ORDER BY p.category, p.name
       `, [roleId]);
       
-      return result.rows.map(row => ({
+      console.log('📊 PRODUCTION getRolePermissions() - SQL result:', result.rows.length, 'rows');
+      
+      // Map to match the development storage format
+      const mappedResult = result.rows.map(row => ({
         roleId: row.role_id,
         permissionId: row.permission_id,
-        createdAt: row.created_at
-      })) || [];
+        createdAt: this.formatDate(row.created_at),
+        permission: {
+          id: row.p_id,
+          name: row.p_name,
+          displayName: row.p_display_name,
+          description: row.p_description,
+          category: row.p_category,
+          action: row.p_action,
+          resource: row.p_resource,
+          isSystem: row.p_is_system,
+          createdAt: this.formatDate(row.p_created_at)
+        }
+      }));
+      
+      // Debug des permissions tâches spécifiquement
+      const taskPermissions = mappedResult.filter(rp => rp.permission.category === 'gestion_taches');
+      console.log('📋 PRODUCTION getRolePermissions() - Task permissions found:', taskPermissions.length);
+      taskPermissions.forEach(tp => {
+        console.log(`  - Permission: ${tp.permission.name} (${tp.permission.displayName}) - Category: ${tp.permission.category}`);
+      });
+      
+      console.log('✅ PRODUCTION getRolePermissions() - Returning', mappedResult.length, 'role permissions');
+      
+      return mappedResult;
     } catch (error) {
-      console.error("Error in getRolePermissions:", error);
+      console.error("❌ Error in PRODUCTION getRolePermissions:", error);
       return [];
     }
   }
