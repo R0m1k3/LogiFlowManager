@@ -1,0 +1,158 @@
+📂 Categories in role permissions: [
+
+  'Calendar',       'Dashboard',
+
+  'Deliveries',     'Magasins',
+
+  'Orders',         'Publicities',
+
+  'Reconciliation', 'Suppliers',
+
+  'Users',          'customer_orders',
+
+  'gestion_dlc',    'groups',
+
+
+
+'
+
+]
+
+🎯 TASK role permissions found: 0
+
+❌ NO TASK ROLE PERMISSIONS FOUND - Checking raw data:
+
+🔍 First 3 rolePermissions structure: [
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 4,
+
+    "createdAt": "2025-07-15T17:55:17.761Z",
+
+    "permission": {
+
+      "id": 4,
+
+      "name": "calendar_create",
+
+      "displayName": null,
+
+      "description": "Créer des événements depuis le calendrier",
+
+      "category": "Calendar",
+
+      "action": null,
+
+      "resource": null,
+
+      "isSystem": false,
+
+      "createdAt": "2025-07-11T14:31:40.322Z"
+
+    }
+
+  },
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 6,
+
+    "createdAt": "2025-07-15T17:55:17.761Z",
+
+    "permission": {
+
+      "id": 6,
+
+      "name": "calendar_delete",
+
+      "displayName": null,
+
+      "description": "Supprimer des événements depuis le calendrier",
+
+      "category": "Calendar",
+
+      "action": null,
+
+      "resource": null,
+
+      "isSystem": false,
+
+      "createdAt": "2025-07-11T14:31:40.324Z"
+
+    }
+
+  },
+
+  {
+
+    "roleId": 2,
+
+    "permissionId": 3,
+
+    "createdAt": "2025-07-15T17:55:17.761Z",
+
+    "permission": {
+
+      "id": 3,
+
+      "name": "calendar_read",
+
+      "displayName": null,
+
+      "description": "Accès en lecture au calendrier",
+
+      "category": "Calendar",
+
+      "action": null,
+
+      "resource": null,
+
+      "isSystem": false,
+
+      "createdAt": "2025-07-11T14:31:40.320Z"
+
+    }
+
+  }
+
+]
+
+🔍 Sample permission object: {
+
+  "id": 4,
+
+  "name": "calendar_create",
+
+  "displayName": null,
+
+  "description": "Créer des événements depuis le calendrier",
+
+  "category": "Calendar",
+
+  "action": null,
+
+  "resource": null,
+
+  "isSystem": false,
+
+  "createdAt": "2025-07-11T14:31:40.322Z"
+
+}
+
+8:30:19 AM [express] GET /api/roles 304 in 18ms
+
+8:30:19 AM [express] GET /api/roles/2/permissions 304 in 21ms
+
+8:30:47 AM [express] HEAD /api/health 200 in 0ms
+
+8:31:17 AM [express] HEAD /api/health 200 in 0ms
+
+
+      
+      
+    
