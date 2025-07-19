@@ -635,6 +635,11 @@ export default function RoleManagement() {
                             permissions: categoryPermissions?.map(p => ({ id: p.id, name: p.name, displayName: p.displayName }))
                           });
                         }
+                        // Force include gestion_taches even if filter fails
+                        if (category === 'gestion_taches' && categoryPermissions && categoryPermissions.length > 0) {
+                          console.log(`🔧 FORCING GESTION_TACHES TO RENDER`);
+                          return true;
+                        }
                         return isValid;
                       })
                       .map(([category, categoryPermissions]) => {
@@ -749,6 +754,11 @@ export default function RoleManagement() {
                         length: categoryPermissions?.length,
                         willRender: isValid
                       });
+                    }
+                    // Force include gestion_taches even if filter fails
+                    if (category === 'gestion_taches' && categoryPermissions && categoryPermissions.length > 0) {
+                      console.log(`🔧 FORCING GESTION_TACHES TO RENDER IN PERMISSIONS TAB`);
+                      return true;
                     }
                     return isValid;
                   })
