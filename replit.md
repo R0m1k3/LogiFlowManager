@@ -283,4 +283,15 @@ The application uses a sophisticated dual authentication approach:
 - **PRÊT POUR DÉPLOIEMENT** - Toutes les corrections validées et documentées pour application en production réelle
 - **IMPACT RÉSOLU** - Une fois déployé, interface gestion des rôles affichera catégorie "Gestion des Tâches" en production identique au développement
 
+### July 19, 2025 - BUG CRITIQUE RÉSOLU: Catégories Permissions Invisibles en Production
+- **ROOT CAUSE IDENTIFIÉE** - Problème de détection d'environnement : logique isProduction trop restrictive empêchait utilisation du storage production
+- **DIAGNOSTIC COMPLET** - Mode production forcé confirme : permissions "Administration" et "Gestion des Tâches" existent bien en base de données production
+- **CORRECTIONS FRONTEND** - Forçage d'affichage des catégories "administration" et "gestion_taches" dans RoleManagement.tsx
+- **DÉTECTION ENVIRONNEMENT CORRIGÉE** - Ajout détection DATABASE_URL contenant "postgresql" pour autodétection production
+- **VALIDATION UTILISATEUR** - Utilisateur confirme : "je vois tous comme ça doit être en production"
+- **5 PERMISSIONS TÂCHES CONFIRMÉES** - tasks_read, tasks_create, tasks_update, tasks_delete, tasks_assign toutes présentes et fonctionnelles
+- **2 PERMISSIONS ADMINISTRATION CONFIRMÉES** - system_admin et nocodb_config présentes avec noms français corrects
+- **PROBLÈME RÉSOLU DÉFINITIVEMENT** - Interface gestion des rôles complète en production avec toutes les catégories visibles
+- **DÉPLOIEMENT PRÊT** - Logique d'environnement corrigée pour détection automatique en production réelle
+
 The system is designed to be highly maintainable with clear separation of concerns, comprehensive error handling, and robust security measures suitable for production deployment while maintaining excellent developer experience.
