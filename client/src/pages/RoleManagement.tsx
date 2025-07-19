@@ -627,29 +627,15 @@ export default function RoleManagement() {
                         const isValid = Array.isArray(categoryPermissions) && categoryPermissions.length > 0;
                         console.log(`🔍 CATEGORY FILTER DEBUG: ${category} - valid: ${isValid}, count: ${categoryPermissions?.length || 0}`);
                         
-                        // Special handling for critical categories that MUST be shown
-                        if (category === 'gestion_taches') {
-                          console.log(`🚨 GESTION_TACHES RENDERING:`, {
-                            category,
-                            isArray: Array.isArray(categoryPermissions),
-                            length: categoryPermissions?.length,
-                            willRender: true, // FORCE TO TRUE
-                            permissions: categoryPermissions?.map(p => ({ id: p.id, name: p.name, displayName: p.displayName }))
-                          });
+                        // Force include gestion_taches even if filter fails
+                        if (category === 'gestion_taches' && categoryPermissions && categoryPermissions.length > 0) {
                           console.log(`🔧 FORCING GESTION_TACHES TO RENDER`);
-                          return true; // ALWAYS RETURN TRUE
+                          return true;
                         }
-                        
-                        if (category === 'administration') {
-                          console.log(`🚨 ADMINISTRATION RENDERING:`, {
-                            category,
-                            isArray: Array.isArray(categoryPermissions),
-                            length: categoryPermissions?.length,
-                            willRender: true, // FORCE TO TRUE
-                            permissions: categoryPermissions?.map(p => ({ id: p.id, name: p.name, displayName: p.displayName }))
-                          });
+                        // Force include administration even if filter fails
+                        if (category === 'administration' && categoryPermissions && categoryPermissions.length > 0) {
                           console.log(`🔧 FORCING ADMINISTRATION TO RENDER`);
-                          return true; // ALWAYS RETURN TRUE
+                          return true;
                         }
                         
                         return isValid;

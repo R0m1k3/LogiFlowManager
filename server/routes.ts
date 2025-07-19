@@ -7,10 +7,7 @@ import { setupLocalAuth, requireAuth } from "./localAuth";
 // Use appropriate storage based on environment
 console.log('🔍 DIAGNOSTIC - NODE_ENV:', process.env.NODE_ENV);
 console.log('🔍 DIAGNOSTIC - STORAGE_MODE:', process.env.STORAGE_MODE);
-// Fixed: Use production storage when DATABASE_URL indicates PostgreSQL production
-const isProduction = process.env.NODE_ENV === 'production' || 
-                     process.env.STORAGE_MODE === 'production' ||
-                     (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('postgresql'));
+const isProduction = process.env.NODE_ENV === 'production' || process.env.STORAGE_MODE === 'production';
 const storage = isProduction ? prodStorage : devStorage;
 console.log('🔍 DIAGNOSTIC - Using storage:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
 
